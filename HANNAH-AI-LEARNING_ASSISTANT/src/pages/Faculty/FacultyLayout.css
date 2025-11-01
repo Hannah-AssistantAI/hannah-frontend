@@ -1,0 +1,27 @@
+.faculty-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.faculty-content {
+  flex: 1;
+  padding: 24px;
+  margin-left: 280px; /* Width of expanded sidebar */
+  transition: margin-left 0.3s ease;
+  background: #f8fafc;
+}
+
+/* Adjust content margin when sidebar is collapsed */
+.faculty-layout:has(.sidebar.collapsed) .faculty-content,
+body.sidebar-collapsed .faculty-content {
+  margin-left: 70px; /* Width of collapsed sidebar */
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .faculty-content {
+    margin-left: 0;
+    padding: 16px;
+  }
+}

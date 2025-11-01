@@ -1,0 +1,70 @@
+/* Dark Theme Color Palette */
+:root {
+  /* Dark Theme Colors */
+  --dark-bg-primary: #0f0f0f;
+  --dark-bg-secondary: #1a1a1a;
+  --dark-bg-tertiary: #262626;
+  --dark-bg-elevated: #2d2d2d;
+  --dark-bg-hover: #333333;
+  
+  /* Text Colors */
+  --dark-text-primary: #e8eaed;
+  --dark-text-secondary: #bdc1c6;
+  --dark-text-tertiary: #9aa0a6;
+  --dark-text-disabled: #5f6368;
+  
+  /* Border Colors */
+  --dark-border-primary: #3c4043;
+  --dark-border-secondary: #5f6368;
+  --dark-border-hover: #80868b;
+  
+  /* Accent Colors */
+  --dark-accent-blue: #8ab4f8;
+  --dark-accent-blue-hover: #aecbfa;
+  --dark-accent-green: #81c995;
+  --dark-accent-orange: #fcad70;
+  --dark-accent-red: #f28b82;
+  --dark-accent-yellow: #fed7aa;
+  
+  /* Interactive Elements */
+  --dark-button-bg: #3c4043;
+  --dark-button-hover: #5f6368;
+  --dark-input-bg: #202124;
+  --dark-input-border: #3c4043;
+  --dark-input-focus: #8ab4f8;
+  
+  /* Shadows */
+  --dark-shadow-light: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --dark-shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --dark-shadow-heavy: 0 8px 16px rgba(0, 0, 0, 0.5);
+  
+  /* Gradients */
+  --dark-gradient-bg: linear-gradient(to bottom, #0f0f0f 0%, #1a1a1a 100%);
+  --dark-gradient-card: linear-gradient(135deg, #2d2d2d 0%, #262626 100%);
+}
+
+/* Dark Theme Utility Classes */
+.dark-theme {
+  background: var(--dark-bg-primary);
+  color: var(--dark-text-primary);
+}
+
+.dark-bg-secondary {
+  background: var(--dark-bg-secondary);
+}
+
+.dark-bg-tertiary {
+  background: var(--dark-bg-tertiary);
+}
+
+.dark-text-primary {
+  color: var(--dark-text-primary);
+}
+
+.dark-text-secondary {
+  color: var(--dark-text-secondary);
+}
+
+.dark-border {
+  border-color: var(--dark-border-primary);
+}

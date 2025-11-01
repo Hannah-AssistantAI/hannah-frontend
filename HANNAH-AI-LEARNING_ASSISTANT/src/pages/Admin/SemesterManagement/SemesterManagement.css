@@ -1,0 +1,509 @@
+/* Semester Header */
+.semester-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.semester-description {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0;
+}
+
+.btn-add-semester {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+}
+
+.btn-add-semester:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(79, 70, 229, 0.4);
+}
+
+/* Semester List */
+.semester-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.semester-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.semester-item:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.semester-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.semester-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.semester-id {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.semester-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-btn {
+  color: #4f46e5;
+  border-color: #4f46e5;
+}
+
+.edit-btn:hover {
+  background: #f3f4f6;
+  border-color: #4338ca;
+  color: #4338ca;
+}
+
+.delete-btn {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.delete-btn:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: #374151;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-group input {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #1f2937;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn {
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  flex: 1;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(79, 70, 229, 0.4);
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .semester-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .btn-add-semester {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .semester-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .semester-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .modal {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+}
+
+.btn-danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.table-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.semester-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.semester-table th {
+  background-color: #f1f5f9;
+  padding: 16px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+}
+
+.semester-table td {
+  padding: 16px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #374151;
+  font-size: 14px;
+}
+
+.semester-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-badge.active {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.inactive {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.completed {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.modal-close:hover {
+  background-color: #f3f4f6;
+}
+
+.modal-form {
+  padding: 24px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .semester-management {
+    padding: 16px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .semester-table {
+    min-width: 800px;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal {
+    width: 95%;
+    margin: 16px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+}

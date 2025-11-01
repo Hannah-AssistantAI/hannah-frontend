@@ -1,0 +1,27 @@
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f4f4f4;
+}
+
+.admin-content {
+  flex: 1;
+  padding: 0; /* Remove padding since AdminPageWrapper handles it */
+  margin-left: 280px; /* Width of expanded sidebar */
+  transition: margin-left 0.3s ease;
+  background-color: #f4f4f4;
+}
+
+/* Adjust content margin when sidebar is collapsed */
+.admin-layout:has(.sidebar.collapsed) .admin-content,
+body.sidebar-collapsed .admin-content {
+  margin-left: 70px; /* Width of collapsed sidebar */
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .admin-content {
+    margin-left: 0;
+    padding: 0; /* AdminPageWrapper handles responsive padding */
+  }
+}
