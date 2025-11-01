@@ -1735,13 +1735,13 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                 <div className="share-user-item">
                                     <div className="share-user-avatar">
                                         <img 
-                                            src="https://ui-avatars.com/api/?name=Duc+Phan&background=4285F4&color=fff&size=40" 
-                                            alt="Đức Phan"
+                                            src="https://ui-avatars.com/api/?name=Ha+Nguyen&background=4285F4&color=fff&size=40" 
+                                            alt="Hà Nguyễn"
                                         />
                                     </div>
                                     <div className="share-user-info">
-                                        <div className="share-user-name">Đức Phan</div>
-                                        <div className="share-user-email">phanminhduc23@gmail...</div>
+                                        <div className="share-user-name">Ha Nguyen</div>
+                                        <div className="share-user-email">khanhhanguyen1123@gmail...</div>
                                     </div>
                                     <div className="share-user-role">
                                         <select className="share-role-select" disabled>
