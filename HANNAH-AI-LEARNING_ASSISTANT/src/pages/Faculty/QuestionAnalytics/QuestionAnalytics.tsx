@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../../contexts/AppContext';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import QuestionAnalyticsFilter from './QuestionAnalyticsFilter';
@@ -43,8 +44,9 @@ interface KnowledgeGapData {
 
 const KnowledgeGapAnalysis = () => {
   const { setLoading, showNotification } = useApp();
+  const navigate = useNavigate();
   const [gapData, setGapData] = useState<KnowledgeGapData | null>(null);
-  const [selectedQuiz, setSelectedQuiz] = useState<QuizAttempt | null>(null);
+  // const [selectedQuiz, setSelectedQuiz] = useState<QuizAttempt | null>(null);
   
   // Filter state
   const [filters, setFilters] = useState({
@@ -385,7 +387,7 @@ const KnowledgeGapAnalysis = () => {
                     </td>
                     <td className="px-6 py-4">
                       <button
-                        onClick={() => setSelectedQuiz(quiz)}
+                        onClick={() => navigate(`/faculty/analytics/quiz/${quiz.id}`)}
                         className="text-blue-600 hover:text-blue-800 font-medium text-sm"
                       >
                         View details
@@ -404,84 +406,7 @@ const KnowledgeGapAnalysis = () => {
           )}
         </div>
 
-        {/* Quiz Detail Modal */}
-        {selectedQuiz && (
-          <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-slate-200">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-2xl font-bold text-slate-800">Quiz Details</h3>
-                  <button
-                    onClick={() => setSelectedQuiz(null)}
-                    className="text-slate-400 hover:text-slate-600"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-              
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-slate-600 mb-1">Student</p>
-                    <p className="font-semibold text-slate-800">{selectedQuiz.studentName}</p>
-                    <p className="text-sm text-slate-500">{selectedQuiz.studentId}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600 mb-1">Topic</p>
-                    <p className="font-semibold text-slate-800">{selectedQuiz.topic}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600 mb-1">Course</p>
-                    <p className="font-semibold text-slate-800">{selectedQuiz.course}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600 mb-1">Score</p>
-                    <p className="text-2xl font-bold" style={{ color: getScoreColor(selectedQuiz.percentage) }}>
-                      {selectedQuiz.score}/{selectedQuiz.maxScore} ({selectedQuiz.percentage}%)
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600 mb-1">Number of questions</p>
-                    <p className="font-semibold text-slate-800">{selectedQuiz.questionsCount} questions</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600 mb-1">Difficulty</p>
-                    <span className={`inline-block px-3 py-1 text-sm font-semibold rounded-full ${
-                      selectedQuiz.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
-                      selectedQuiz.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {selectedQuiz.difficulty === 'easy' ? 'Easy' : selectedQuiz.difficulty === 'medium' ? 'Medium' : 'Hard'}
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm text-slate-600 mb-1">Attempt time</p>
-                  <p className="font-semibold text-slate-800">
-                    {new Date(selectedQuiz.timestamp).toLocaleString('en-US')}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-slate-200">
-                  <p className="text-sm text-slate-500 italic">
-                    💡 This quiz was created by students in Learn Studio
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-6 border-t border-slate-200 bg-slate-50">
-                <button
-                  onClick={() => setSelectedQuiz(null)}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Quiz Detail Modal removed in favor of dedicated detail page */}
       </div>
     </div>
   );

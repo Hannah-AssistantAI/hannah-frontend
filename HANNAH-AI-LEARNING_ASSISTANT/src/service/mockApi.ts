@@ -319,6 +319,183 @@ export const getQuizDetail = async (quizId: string) => {
   return quiz ? { success: true, data: quiz } : { success: false, error: "Quiz not found" };
 };
 
+// Detailed Quiz Attempt API (for a single student's attempt)
+export const getQuizAttemptDetail = async (attemptId: string) => {
+  await delay(300);
+  // Mock attempts map based on the IDs shown in QuestionAnalytics recentQuizzes (1..5)
+  const attempts: Record<string, any> = {
+    '1': {
+      id: '1',
+      studentName: 'Nguyễn Văn A',
+      studentId: 'SE123456',
+      topic: 'Recursion',
+      course: 'Software Engineering',
+      score: 7,
+      maxScore: 10,
+      percentage: 70,
+      questionsCount: 10,
+      timestamp: '2024-10-22T14:30:00',
+      difficulty: 'hard',
+      questions: [
+        {
+          id: 'Q-1',
+          content: 'What is the base case in recursion?',
+          options: [
+            'The condition to stop recursion',
+            'The step that calls the function again',
+            'A syntax requirement',
+            'An optimization technique'
+          ],
+          correctIndex: 0,
+          selectedIndex: 0,
+          explanation: 'Base case prevents infinite recursion by defining a stopping condition.'
+        },
+        {
+          id: 'Q-2',
+          content: 'Which scenario is best solved with recursion?',
+          options: ['Iterating a fixed array', 'Computing factorial', 'Sorting with loops', 'Reading a file'],
+          correctIndex: 1,
+          selectedIndex: 1
+        },
+        {
+          id: 'Q-3',
+          content: 'Tail recursion is...',
+          options: [
+            'A recursion that has multiple base cases',
+            'A recursion where the recursive call is the last operation',
+            'Recursion with memoization',
+            'Not recommended in any language'
+          ],
+          correctIndex: 1,
+          selectedIndex: 2
+        },
+        {
+          id: 'Q-4',
+          content: 'Common issue causing stack overflow in recursion?',
+          options: ['Too many nested loops', 'Missing or incorrect base case', 'Using large arrays', 'Network delays'],
+          correctIndex: 1,
+          selectedIndex: 1
+        },
+        {
+          id: 'Q-5',
+          content: 'Complexity of naive Fibonacci recursion?',
+          options: ['O(n)', 'O(log n)', 'O(n^2)', 'O(2^n)'],
+          correctIndex: 3,
+          selectedIndex: 3
+        }
+      ]
+    },
+    '2': {
+      id: '2',
+      studentName: 'Trần Thị B',
+      studentId: 'SE123457',
+      topic: 'SQL Joins',
+      course: 'Database Systems',
+      score: 8,
+      maxScore: 10,
+      percentage: 80,
+      questionsCount: 10,
+      timestamp: '2024-10-22T13:15:00',
+      difficulty: 'medium',
+      questions: [
+        {
+          id: 'Q-1',
+          content: 'Which join returns only matching rows from both tables?',
+          options: ['LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'FULL OUTER JOIN'],
+          correctIndex: 2,
+          selectedIndex: 2
+        },
+        {
+          id: 'Q-2',
+          content: 'Which join returns all rows from the left table and matched rows from the right table?',
+          options: ['INNER JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'CROSS JOIN'],
+          correctIndex: 1,
+          selectedIndex: 1
+        }
+      ]
+    },
+    '3': {
+      id: '3',
+      studentName: 'Lê Văn C',
+      studentId: 'SE123458',
+      topic: 'Sorting Algorithms',
+      course: 'Data Structures',
+      score: 6,
+      maxScore: 10,
+      percentage: 60,
+      questionsCount: 10,
+      timestamp: '2024-10-22T11:45:00',
+      difficulty: 'medium',
+      questions: [
+        {
+          id: 'Q-1',
+          content: 'Average time complexity of QuickSort?',
+          options: ['O(n)', 'O(n log n)', 'O(n^2)', 'O(log n)'],
+          correctIndex: 1,
+          selectedIndex: 2
+        },
+        {
+          id: 'Q-2',
+          content: 'Stable sorting algorithm?',
+          options: ['Merge Sort', 'Quick Sort', 'Heap Sort', 'Selection Sort'],
+          correctIndex: 0,
+          selectedIndex: 0
+        }
+      ]
+    },
+    '4': {
+      id: '4',
+      studentName: 'Phạm Thị D',
+      studentId: 'SE123459',
+      topic: 'OOP Principles',
+      course: 'Software Engineering',
+      score: 5,
+      maxScore: 10,
+      percentage: 50,
+      questionsCount: 10,
+      timestamp: '2024-10-21T16:20:00',
+      difficulty: 'hard',
+      questions: [
+        {
+          id: 'Q-1',
+          content: 'Which principle hides internal details?',
+          options: ['Inheritance', 'Polymorphism', 'Encapsulation', 'Abstraction'],
+          correctIndex: 2,
+          selectedIndex: 3
+        }
+      ]
+    },
+    '5': {
+      id: '5',
+      studentName: 'Hoàng Văn E',
+      studentId: 'SE123460',
+      topic: 'Normalization',
+      course: 'Database Systems',
+      score: 9,
+      maxScore: 10,
+      percentage: 90,
+      questionsCount: 10,
+      timestamp: '2024-10-21T15:00:00',
+      difficulty: 'easy',
+      questions: [
+        {
+          id: 'Q-1',
+          content: '3NF eliminates which dependency?',
+          options: ['Partial', 'Transitive', 'Functional', 'None'],
+          correctIndex: 1,
+          selectedIndex: 1
+        }
+      ]
+    }
+  };
+
+  const found = attempts[attemptId];
+  if (!found) {
+    return { success: false, error: 'Quiz attempt not found' };
+  }
+  return { success: true, data: found };
+};
+
 // Learning Outcomes API
 export const getLearningOutcomes = async () => {
   await delay();

@@ -22,6 +22,7 @@ import { Dashboard } from './pages/Admin/Dashboard'
 import { SystemMonitoring } from './pages/Admin/SystemMonitoring/SystemMonitoring'
 import { Configuration } from './pages/Admin/Configuration'
 import SemesterManagement from './pages/Admin/SemesterManagement/SemesterManagement'
+import QuizAttemptDetail from './pages/Faculty/QuestionAnalytics/QuizAttemptDetail'
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
           <Route path="challenges" element={<ChallengesManagement />} />
         </Route>
         <Route path="analytics" element={<QuestionAnalytics />} />
+        <Route path="analytics/quiz/:id" element={<QuizAttemptDetail />} />
         <Route path="questions" element={<QuestionStatistics />} />
       </Route>
     </Routes>
