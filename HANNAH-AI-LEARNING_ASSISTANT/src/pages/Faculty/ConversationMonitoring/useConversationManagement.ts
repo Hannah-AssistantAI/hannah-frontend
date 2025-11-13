@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getFlaggedConversations, updateConversationStatus, getCourses } from '../../../service/mockApi';
 import { useApp } from '../../../contexts/AppContext';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -74,6 +75,7 @@ interface Filters {
 export const useConversationManagement = () => {
   const { setLoading, showNotification } = useApp();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState<TransformedConversation[]>([]);
   const [courses, setCourses] = useState<string[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<TransformedConversation | null>(null);
@@ -157,7 +159,7 @@ export const useConversationManagement = () => {
   };
 
   const handleViewConversation = (conversation: TransformedConversation) => {
-    setSelectedConversation(conversation);
+    navigate(`/faculty/conversations/${conversation.id}`);
   };
 
   const handleCloseDetail = () => {

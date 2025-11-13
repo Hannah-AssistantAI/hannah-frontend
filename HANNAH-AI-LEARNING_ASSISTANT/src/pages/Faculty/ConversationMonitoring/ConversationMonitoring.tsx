@@ -3,7 +3,6 @@ import ConversationHeader from './ConversationHeader';
 import ConversationFilter from './ConversationFilter';
 import ConversationList from './ConversationList';
 import { useConversationManagement } from './useConversationManagement';
-import ConversationDetailModal from './ConversationDetailModal';
 
 const ConversationMonitoring = () => {
   const [activeTab, setActiveTab] = useState<'flagged' | 'history'>('flagged');
@@ -11,12 +10,10 @@ const ConversationMonitoring = () => {
   const {
     conversations,
     courses,
-    selectedConversation,
     filters,
     totalCount,
     pendingCount,
     handleViewConversation,
-    handleCloseDetail,
     handleStatusChange,
     handleFilterChange,
     handleResetFilters
@@ -137,13 +134,6 @@ const ConversationMonitoring = () => {
           </div>
         </div>
       </div>
-
-      {/* Conversation Detail Modal */}
-      <ConversationDetailModal
-        conversation={selectedConversation}
-        onClose={handleCloseDetail}
-        onStatusChange={handleStatusChange}
-      />
     </>
   );
 };
