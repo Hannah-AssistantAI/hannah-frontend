@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { Users, BarChart2, Settings, Book, ChevronDown, ChevronRight, Activity, Key, Monitor, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { Users, Settings, Book, ChevronDown, ChevronRight, Key, Monitor } from 'lucide-react';
 import ReusableSidebar from '../../../components/Sidebar/Sidebar';
 import '../style.css';
 
@@ -9,30 +9,75 @@ interface AdminSidebarContentProps {
 }
 
 const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ isCollapsed = false }) => {
-  const [isMonitoringOpen, setIsMonitoringOpen] = useState(false);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const location = useLocation();
 
-  const toggleMonitoring = (e: React.MouseEvent) => {
+  // Auto-toggle Configuration submenu based on current route
+  useEffect(() => {
+    const isConfigRoute = location.pathname.startsWith('/admin/configuration')
+      || location.pathname.startsWith('/admin/system-monitoring/api-keys');
+    setIsConfigOpen(isConfigRoute);
+  }, [location.pathname]);
+
+  const toggleConfig = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!isCollapsed) {
-      setIsMonitoringOpen(!isMonitoringOpen);
-    }
+    if (!isCollapsed) setIsConfigOpen(!isConfigOpen);
   };
 
   return (
     <div className="nav-section">
       {!isCollapsed && <span className="nav-section-title">MENU</span>}
+      <NavLink
+        to="/admin/course-management"
+        className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+        title={isCollapsed ? "Course Management" : ""}
+      >
+        <Book size={20} />
+        {!isCollapsed && <span className="sidebar-label">Course Management</span>}
+      </NavLink>
       {/* <NavLink to="/admin/dashboard" className="sidebar-link" title={isCollapsed ? "Tổng quan" : ""}>
         <Users size={20} />
         {!isCollapsed && <span className="sidebar-label">Tổng quan</span>}
       </NavLink> */}
-      <NavLink to="/admin/user-management" className="sidebar-link" title={isCollapsed ? "Quản lý Người dùng" : ""}>
+      <NavLink
+        to="/admin/user-management"
+        className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+        title={isCollapsed ? "User Management" : ""}
+      >
         <Users size={20} />
-        {!isCollapsed && <span className="sidebar-label">Quản lý Người dùng</span>}
+        {!isCollapsed && <span className="sidebar-label">User Management</span>}
       </NavLink>
-            <NavLink to="/admin/system-monitoring/api-keys" className="sidebar-link" title={isCollapsed ? "Cấu hình Tích hợp" : ""}>
-        <Activity size={20} />
-        {!isCollapsed && <span className="sidebar-label">Cấu hình Tích hợp</span>}
-      </NavLink>
+      <div>
+        <a
+          href="#"
+          className={`sidebar-link sidebar-toggle ${isConfigOpen ? 'active' : ''}`}
+          onClick={toggleConfig}
+          title={isCollapsed ? "Configuration" : ""}
+        >
+          <Settings size={20} />
+          {!isCollapsed && <span className="sidebar-label">Configuration</span>}
+          {!isCollapsed && (isConfigOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
+        </a>
+
+        {!isCollapsed && (
+          <div className={`sidebar-submenu ${isConfigOpen ? 'open' : ''}`}>
+            <NavLink
+              to="/admin/system-monitoring/api-keys"
+              className={({ isActive }) => `sidebar-sublink${isActive ? ' active' : ''}`}
+            >
+              <Key size={18} />
+              <span>Integration Settings</span>
+            </NavLink>
+            <NavLink
+              to="/admin/configuration"
+              className={({ isActive }) => `sidebar-sublink${isActive ? ' active' : ''}`}
+            >
+              <Settings size={18} />
+              <span>System Configuration</span>
+            </NavLink>
+          </div>
+        )}
+      </div>
       {/* <div className="sidebar-group">
         <a
           href="#"
@@ -58,29 +103,25 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ isCollapsed =
           </div>
         )}
       </div> */}
-      <NavLink to="/admin/configuration" className="sidebar-link" title={isCollapsed ? "Cấu hình Hệ thống" : ""}>
-        <Settings size={20} />
-        {!isCollapsed && <span className="sidebar-label">Cấu hình Hệ thống</span>}
-      </NavLink>
-      <NavLink to="/admin/system-settings" className="sidebar-link" title={isCollapsed ? "Giám sát Hệ thống" : ""}>
+      <NavLink
+        to="/admin/system-settings"
+        className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+        title={isCollapsed ? "System Monitoring" : ""}
+      >
         <Monitor size={20} />
-        {!isCollapsed && <span className="sidebar-label">Giám sát Hệ thống</span>}
+        {!isCollapsed && <span className="sidebar-label">System Monitoring</span>}
       </NavLink>
-      <NavLink to="/admin/semester-management" className="sidebar-link" title={isCollapsed ? "Quản lý Kỳ học" : ""}>
+      {/* <NavLink to="/admin/semester-management" className="sidebar-link" title={isCollapsed ? "Quản lý Kỳ học" : ""}>
         <Calendar size={20} />
         {!isCollapsed && <span className="sidebar-label">Quản lý Kỳ học</span>}
-      </NavLink>
-      <NavLink to="/admin/course-management" className="sidebar-link" title={isCollapsed ? "Quản lý Lộ trình" : ""}>
-        <Book size={20} />
-        {!isCollapsed && <span className="sidebar-label">Quản lý Lộ trình</span>}
-      </NavLink>
+      </NavLink> */}
     </div>
   );
 };
 
 const AdminSidebar: React.FC = () => {
   return (
-    <ReusableSidebar title="Hannah" subtitle="Trang quản trị">
+    <ReusableSidebar title="Hannah" subtitle="Admin Panel">
       <AdminSidebarContent />
     </ReusableSidebar>
   );

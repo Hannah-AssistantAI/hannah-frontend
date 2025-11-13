@@ -7,6 +7,7 @@ import AdminLayout from './pages/Admin/AdminLayout'
 import UserManagement from './pages/Admin/UserManagement'
 import APIKeys from './pages/Admin/SystemMonitoring/APIKeys/APIKeys'
 import CourseManagement from './pages/Admin/CourseManagement/CourseManagement'
+import CourseDetail from './pages/Admin/CourseManagement/CourseDetail'
 import FacultyLayout from './pages/Faculty/FacultyLayout'
 import FAQManagement from './pages/Faculty/FAQ/FAQManagement'
 import QuestionAnalytics from './pages/Faculty/QuestionAnalytics/QuestionAnalytics'
@@ -38,6 +39,7 @@ function App() {
         <Route path="system-monitoring/api-keys" element={<APIKeys />} />
         <Route path="system-settings" element={<SystemMonitoring />} />
         <Route path="course-management" element={<CourseManagement />} />
+  <Route path="course-management/:id" element={<CourseDetail />} />
         <Route path="semester-management" element={<SemesterManagement />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path='configuration' element={<Configuration />} />

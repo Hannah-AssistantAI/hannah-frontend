@@ -17,23 +17,23 @@ export const Configuration: React.FC = () => {
     const result = await updateConfig(section, formData);
 
     if (result.success) {
-      setSuccessMessage(`Cấu hình ${section} đã được lưu thành công!`);
+      setSuccessMessage(`Configuration ${section} saved successfully!`);
       setTimeout(() => setSuccessMessage(null), 3000);
     } else {
-      setErrorMessage(result.error || 'Không thể lưu cấu hình');
+      setErrorMessage(result.error || 'Unable to save configuration');
       setTimeout(() => setErrorMessage(null), 5000);
     }
   };
 
   if (loading || !config) {
-    return <div>Đang tải cấu hình...</div>;
+    return <div>Loading configuration...</div>;
   }
 
   return (
-    <AdminPageWrapper title="Cấu hình Hệ thống">
+    <AdminPageWrapper title="System Configuration">
       <InfoBox>
-        <strong>Tùy chọn Cấu hình:</strong> Các cài đặt có thể được chỉnh sửa thông qua giao diện quản trị.
-        Các thay đổi được lưu vào bảng cấu hình PostgreSQL.
+        <strong>Configuration Options:</strong> Settings can be edited through the admin interface.
+        Changes are saved to the PostgreSQL configuration table.
       </InfoBox>
 
       {successMessage && (
@@ -130,13 +130,13 @@ const DatabaseConfigCard: React.FC<{
   return (
     <Card>
       <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '20px' }}>
-        <i className="fas fa-database" style={{ color: 'var(--success-color)' }}></i> Cấu hình Cơ sở dữ liệu
+        <i className="fas fa-database" style={{ color: 'var(--success-color)' }}></i> Database Configuration
       </h3>
-      <Badge type="success" style={{ marginBottom: '16px' }}>✅ Toàn quyền Kiểm soát</Badge>
+      <Badge type="success" style={{ marginBottom: '16px' }}>✅ Full Control</Badge>
 
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label className="form-label">Máy chủ PostgreSQL</label>
+          <label className="form-label">PostgreSQL Host</label>
           <input
             type="text"
             className="form-input"
@@ -145,7 +145,7 @@ const DatabaseConfigCard: React.FC<{
           />
         </div>
         <div className="form-group">
-          <label className="form-label">Số kết nối tối đa PostgreSQL</label>
+          <label className="form-label">PostgreSQL Max Connections</label>
           <input
             type="number"
             className="form-input"
@@ -154,7 +154,7 @@ const DatabaseConfigCard: React.FC<{
           />
         </div>
         <div className="form-group">
-          <label className="form-label">URI MongoDB</label>
+          <label className="form-label">MongoDB URI</label>
           <input
             type="text"
             className="form-input"
@@ -163,7 +163,7 @@ const DatabaseConfigCard: React.FC<{
           />
         </div>
         <div className="form-group">
-          <label className="form-label">Kích thước Pool kết nối MongoDB</label>
+          <label className="form-label">MongoDB Connection Pool Size</label>
           <input
             type="number"
             className="form-input"
@@ -172,7 +172,7 @@ const DatabaseConfigCard: React.FC<{
           />
         </div>
         <div className="form-group">
-          <label className="form-label">URL Elasticsearch</label>
+          <label className="form-label">Elasticsearch URL</label>
           <input
             type="text"
             className="form-input"
@@ -186,7 +186,7 @@ const DatabaseConfigCard: React.FC<{
           icon="fas fa-save"
           disabled={saving}
         >
-          {saving ? 'Đang lưu...' : 'Lưu cấu hình Cơ sở dữ liệu'}
+          {saving ? 'Saving...' : 'Save Database Configuration'}
         </Button>
       </form>
     </Card>
@@ -329,13 +329,13 @@ const ApplicationConfigCard: React.FC<{
   return (
     <Card>
       <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '20px' }}>
-        <i className="fas fa-cog" style={{ color: 'var(--info-color)' }}></i> Cài đặt Ứng dụng
+        <i className="fas fa-cog" style={{ color: 'var(--info-color)' }}></i> Application Settings
       </h3>
-      <Badge type="success" style={{ marginBottom: '16px' }}>✅ Toàn quyền Kiểm soát</Badge>
+      <Badge type="success" style={{ marginBottom: '16px' }}>✅ Full Control</Badge>
 
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label className="form-label">Thời gian chờ phiên (phút)</label>
+          <label className="form-label">Session timeout (minutes)</label>
           <input
             type="number"
             className="form-input"
@@ -344,7 +344,7 @@ const ApplicationConfigCard: React.FC<{
           />
         </div>
         <div className="form-group">
-          <label className="form-label">Giới hạn câu hỏi hàng ngày mỗi sinh viên</label>
+          <label className="form-label">Daily question limit per student</label>
           <input
             type="number"
             className="form-input"
@@ -353,7 +353,7 @@ const ApplicationConfigCard: React.FC<{
           />
         </div>
         <div className="form-group">
-          <label className="form-label">Cổng WebSocket</label>
+          <label className="form-label">WebSocket Port</label>
           <input
             type="number"
             className="form-input"
@@ -362,7 +362,7 @@ const ApplicationConfigCard: React.FC<{
           />
         </div>
         <div className="form-group">
-          <label className="form-label">Giới hạn tốc độ API Backend (yêu cầu/phút)</label>
+          <label className="form-label">Backend API rate limit (requests/min)</label>
           <input
             type="number"
             className="form-input"
@@ -371,7 +371,7 @@ const ApplicationConfigCard: React.FC<{
           />
         </div>
         <div className="form-group">
-          <label className="form-label">Thời gian hết hạn Cache (giờ)</label>
+          <label className="form-label">Cache expiration (hours)</label>
           <input
             type="number"
             className="form-input"
@@ -387,7 +387,7 @@ const ApplicationConfigCard: React.FC<{
               onChange={(e) => setFormData({ ...formData, enableEmailNotifications: e.target.checked })}
               style={{ width: '20px', height: '20px' }}
             />
-            <span className="form-label" style={{ margin: 0 }}>Bật thông báo Email</span>
+            <span className="form-label" style={{ margin: 0 }}>Enable email notifications</span>
           </label>
         </div>
         <div className="form-group">
@@ -398,7 +398,7 @@ const ApplicationConfigCard: React.FC<{
               onChange={(e) => setFormData({ ...formData, enableRealtimeMonitoring: e.target.checked })}
               style={{ width: '20px', height: '20px' }}
             />
-            <span className="form-label" style={{ margin: 0 }}>Bật giám sát thời gian thực</span>
+            <span className="form-label" style={{ margin: 0 }}>Enable real-time monitoring</span>
           </label>
         </div>
         <Button
@@ -408,7 +408,7 @@ const ApplicationConfigCard: React.FC<{
           disabled={saving}
           style={{ marginTop: '16px' }}
         >
-          {saving ? 'Đang lưu...' : 'Lưu cấu hình Ứng dụng'}
+          {saving ? 'Saving...' : 'Save Application Settings'}
         </Button>
       </form>
     </Card>

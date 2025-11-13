@@ -21,39 +21,39 @@ export const SystemMonitoring: React.FC = () => {
   const { distribution, loading: distLoading } = useResponseSourceDistribution();
 
   if (systemLoading || dbLoading || appLoading || geminiLoading || distLoading) {
-    return <div>Đang tải dữ liệu giám sát...</div>;
+    return <div>Loading monitoring data...</div>;
   }
 
   return (
-    <AdminPageWrapper title="Giám sát Hệ thống">
+    <AdminPageWrapper title="System Monitoring">
       <InfoBox>
-        <strong>Nguồn Số liệu:</strong> Tất cả dữ liệu được theo dõi từ backend FastAPI sử dụng psutil,
-        kết nối cơ sở dữ liệu và nhật ký ứng dụng.
+        <strong>Data Sources:</strong> All data is monitored from the FastAPI backend using psutil,
+        database connections, and application logs.
       </InfoBox>
 
       {/* Backend System Performance */}
       {systemMetrics && (
         <Card
-          title="🖥️ Hiệu suất Hệ thống Backend (Máy chủ FastAPI)"
-          action={<Badge type="success">✅ Toàn quyền Truy cập</Badge>}
+          title="🖥️ Backend System Performance (FastAPI Server)"
+          action={<Badge type="success">✅ Full Access</Badge>}
         >
           <MetricRow
-            label="Sử dụng CPU (psutil.cpu_percent)"
+            label="CPU Usage (psutil.cpu_percent)"
             value={`${systemMetrics.cpu}%`}
             progress={{ value: systemMetrics.cpu, max: 100, color: 'primary' }}
           />
           <MetricRow
-            label="Sử dụng Bộ nhớ (psutil.virtual_memory)"
+            label="Memory Usage (psutil.virtual_memory)"
             value={`${systemMetrics.memory.percent}% (${(systemMetrics.memory.used / 1024 / 1024 / 1024).toFixed(1)} GB / ${(systemMetrics.memory.total / 1024 / 1024 / 1024).toFixed(1)} GB)`}
             progress={{ value: systemMetrics.memory.percent, max: 100, color: 'warning' }}
           />
           <MetricRow
-            label="Sử dụng Ổ đĩa (psutil.disk_usage)"
+            label="Disk Usage (psutil.disk_usage)"
             value={`${systemMetrics.disk.percent}% (${(systemMetrics.disk.used / 1024 / 1024 / 1024).toFixed(0)} GB / ${(systemMetrics.disk.total / 1024 / 1024 / 1024).toFixed(0)} GB)`}
             progress={{ value: systemMetrics.disk.percent, max: 100, color: 'success' }}
           />
           <MetricRow
-            label="Thời gian Hoạt động Máy chủ"
+            label="Server Uptime"
             value={systemMetrics.uptime}
           />
         </Card>
@@ -62,55 +62,55 @@ export const SystemMonitoring: React.FC = () => {
       {/* Database Performance */}
       {dbMetrics && (
         <Card
-          title="🗄️ Hiệu suất Cơ sở dữ liệu"
-          action={<Badge type="success">✅ Toàn quyền Truy cập</Badge>}
+          title="🗄️ Database Performance"
+          action={<Badge type="success">✅ Full Access</Badge>}
           className="mt-24"
         >
           <h4 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: 'var(--primary-color)' }}>
-            PostgreSQL (Dữ liệu có Cấu trúc)
+            PostgreSQL (Structured Data)
           </h4>
           <MetricRow
-            label="Kết nối Đang hoạt động"
+            label="Active Connections"
             value={`${dbMetrics.postgresql.activeConnections} / ${dbMetrics.postgresql.maxConnections}`}
           />
           <MetricRow
-            label="Thời gian Truy vấn Trung bình"
+            label="Average Query Time"
             value={`${dbMetrics.postgresql.avgQueryTime}ms`}
           />
           <MetricRow
-            label="Kích thước Cơ sở dữ liệu"
+            label="Database Size"
             value={dbMetrics.postgresql.size}
           />
 
           <h4 style={{ fontSize: '16px', fontWeight: 600, margin: '24px 0 16px', color: 'var(--success-color)' }}>
-            MongoDB (Nhật ký Cuộc trò chuyện)
+            MongoDB (Conversation Logs)
           </h4>
           <MetricRow
-            label="Kết nối Đang hoạt động"
+            label="Active Connections"
             value={`${dbMetrics.mongodb.activeConnections} / ${dbMetrics.mongodb.maxConnections}`}
           />
           <MetricRow
-            label="Tổng số Cuộc trò chuyện"
+            label="Total Conversations"
             value={dbMetrics.mongodb.totalConversations.toLocaleString()}
           />
           <MetricRow
-            label="Kích thước Bộ sưu tập"
+            label="Collection Size"
             value={dbMetrics.mongodb.size}
           />
 
           <h4 style={{ fontSize: '16px', fontWeight: 600, margin: '24px 0 16px', color: 'var(--info-color)' }}>
-            Elasticsearch (Cơ sở Tri thức)
+            Elasticsearch (Knowledge Base)
           </h4>
           <MetricRow
-            label="Tài liệu được Lập chỉ mục"
+            label="Indexed Documents"
             value={dbMetrics.elasticsearch.indexedDocuments.toLocaleString()}
           />
           <MetricRow
-            label="Thời gian Tìm kiếm Trung bình"
+            label="Average Search Time"
             value={`${dbMetrics.elasticsearch.avgSearchTime}ms`}
           />
           <MetricRow
-            label="Kích thước Chỉ mục"
+            label="Index Size"
             value={dbMetrics.elasticsearch.indexSize}
           />
         </Card>
@@ -119,81 +119,43 @@ export const SystemMonitoring: React.FC = () => {
       {/* Application Metrics */}
       {appMetrics && (
         <Card
-          title="📊 Số liệu Ứng dụng (Theo dõi Backend)"
-          action={<Badge type="success">✅ Toàn quyền Truy cập</Badge>}
+          title="📊 Application Metrics (Backend Monitoring)"
+          action={<Badge type="success">✅ Full Access</Badge>}
           className="mt-24"
         >
           <MetricRow
-            label="Kết nối WebSocket Đang hoạt động"
+            label="Active WebSocket Connections"
             value={appMetrics.activeWebSocketConnections}
           />
           <MetricRow
-            label="Yêu cầu/Phút (Hiện tại)"
+            label="Requests/Minute (Current)"
             value={appMetrics.requestsPerMinute}
           />
           <MetricRow
-            label="Yêu cầu Hôm nay"
+            label="Requests Today"
             value={appMetrics.requestsToday.toLocaleString()}
           />
           <MetricRow
-            label="Tỷ lệ Trúng Cache"
+            label="Cache Hit Rate"
             value={`${appMetrics.cacheHitRate}%`}
           />
           <MetricRow
-            label="Thời gian Xử lý Backend Trung bình"
+            label="Average Backend Processing Time"
             value={`${appMetrics.avgBackendProcessingTime}s`}
           />
         </Card>
       )}
 
-      {/* Gemini API Metrics */}
-      {/* {geminiMetrics && (
-        <Card
-          title="🤖 Gemini API Usage (Tracked from Backend)"
-          action={<Badge type="warning">⚠️ Limited - Measured from our side</Badge>}
-          className="mt-24"
-        >
-          <InfoBox>
-            These metrics are tracked by our backend when calling Gemini API. 
-            We cannot access Gemini's internal infrastructure metrics.
-          </InfoBox>
-          <MetricRow
-            label="API Calls Today"
-            value={geminiMetrics.apiCallsToday.toLocaleString()}
-          />
-          <MetricRow
-            label="Total Tokens Used Today"
-            value={geminiMetrics.totalTokensUsed.toLocaleString()}
-          />
-          <MetricRow
-            label="Avg Response Time (measured from backend)"
-            value={`${geminiMetrics.avgResponseTime}s`}
-          />
-          <MetricRow
-            label="Error Rate"
-            value={`${geminiMetrics.errorRate}%`}
-          />
-          <MetricRow
-            label="Slowest Response Today"
-            value={`${geminiMetrics.slowestResponse}s`}
-          />
-          <MetricRow
-            label="Fastest Response Today"
-            value={`${geminiMetrics.fastestResponse}s`}
-          />
-        </Card>
-      )} */}
-
       {/* Response Source Distribution */}
       {distribution && (
         <Card
-          title="📈 Phân bố Nguồn Phản hồi (Hôm nay)"
-          action={<Badge type="success">✅ Được theo dõi trong Ứng dụng</Badge>}
+          title="📈 Response Source Distribution (Today)"
+          action={<Badge type="success">✅ Tracked In-App</Badge>}
           className="mt-24"
         >
           <MetricRow
-            label="Cơ sở Tri thức Cá nhân (Giảng viên)"
-            value={`${distribution.personalKB.percentage}% (${distribution.personalKB.count} phản hồi)`}
+            label="Personal Knowledge Base (Faculty)"
+            value={`${distribution.personalKB.percentage}% (${distribution.personalKB.count} responses)`}
             progress={{
               value: distribution.personalKB.percentage,
               max: 100,
@@ -201,8 +163,8 @@ export const SystemMonitoring: React.FC = () => {
             }}
           />
           <MetricRow
-            label="Cơ sở Tri thức Toàn cục"
-            value={`${distribution.globalKB.percentage}% (${distribution.globalKB.count} phản hồi)`}
+            label="Global Knowledge Base"
+            value={`${distribution.globalKB.percentage}% (${distribution.globalKB.count} responses)`}
             progress={{
               value: distribution.globalKB.percentage,
               max: 100,
@@ -210,8 +172,8 @@ export const SystemMonitoring: React.FC = () => {
             }}
           />
           <MetricRow
-            label="Gemini API (Được tạo)"
-            value={`${distribution.geminiAPI.percentage}% (${distribution.geminiAPI.count} phản hồi)`}
+            label="Gemini API (Generated)"
+            value={`${distribution.geminiAPI.percentage}% (${distribution.geminiAPI.count} responses)`}
             progress={{
               value: distribution.geminiAPI.percentage,
               max: 100,
