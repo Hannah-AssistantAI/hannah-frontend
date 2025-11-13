@@ -1,4 +1,3 @@
-
 interface TrendChartProps {
   data: {
     date: string;
@@ -18,8 +17,8 @@ const TrendChart = ({ data }: TrendChartProps) => {
         color: '#8c8c8c'
       }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-        <div style={{ fontSize: '16px', fontWeight: '500' }}>Không có dữ liệu</div>
-        <div style={{ fontSize: '14px', marginTop: '8px' }}>Vui lòng chọn khoảng thời gian khác</div>
+        <div style={{ fontSize: '16px', fontWeight: '500' }}>No data</div>
+        <div style={{ fontSize: '14px', marginTop: '8px' }}>Please select a different time range</div>
       </div>
     );
   }
@@ -40,7 +39,7 @@ const TrendChart = ({ data }: TrendChartProps) => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       month: '2-digit',
       day: '2-digit'
     });
@@ -245,7 +244,7 @@ const TrendChart = ({ data }: TrendChartProps) => {
                   fill="white"
                   fontWeight="700"
                 >
-                  📅 {formatDate(item.date)} • {item.count} câu hỏi
+                  📅 {formatDate(item.date)} • {item.count} questions
                 </text>
                 {/* Separator line */}
                 <line
@@ -265,7 +264,7 @@ const TrendChart = ({ data }: TrendChartProps) => {
                   fill="#fbbf24"
                   fontWeight="600"
                 >
-                  ⭐ Câu hỏi phổ biến nhất:
+                  ⭐ Most popular question:
                 </text>
                 {/* Top question */}
                 <text
@@ -278,7 +277,7 @@ const TrendChart = ({ data }: TrendChartProps) => {
                 >
                   {item.topQuestion && item.topQuestion.length > 40
                     ? item.topQuestion.substring(0, 40) + "..."
-                    : item.topQuestion || "Không có dữ liệu"}
+                    : item.topQuestion || "No data"}
                 </text>
               </g>
             );
@@ -328,13 +327,13 @@ const TrendChart = ({ data }: TrendChartProps) => {
           minWidth: '150px'
         }}>
           <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            📈 Cao nhất
+            📈 Highest
           </div>
           <div style={{ fontSize: '24px', fontWeight: '700', color: '#10b981' }}>
             {maxCount}
           </div>
           <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
-            câu hỏi
+            questions
           </div>
         </div>
         
@@ -350,13 +349,13 @@ const TrendChart = ({ data }: TrendChartProps) => {
           minWidth: '150px'
         }}>
           <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            📉 Thấp nhất
+            📉 Lowest
           </div>
           <div style={{ fontSize: '24px', fontWeight: '700', color: '#ef4444' }}>
             {minCount}
           </div>
           <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
-            câu hỏi
+            questions
           </div>
         </div>
         
@@ -372,13 +371,13 @@ const TrendChart = ({ data }: TrendChartProps) => {
           minWidth: '150px'
         }}>
           <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            ➗ Trung bình
+            ➗ Average
           </div>
           <div style={{ fontSize: '24px', fontWeight: '700', color: '#667eea' }}>
             {Math.round(data.reduce((sum, item) => sum + item.count, 0) / data.length)}
           </div>
           <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
-            câu hỏi/ngày
+            questions/day
           </div>
         </div>
       </div>

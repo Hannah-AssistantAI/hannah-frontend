@@ -93,7 +93,7 @@ const KnowledgeGapAnalysis = () => {
         setLoading(false);
       }, 500);
     } catch (error) {
-      showNotification('Lỗi khi tải dữ liệu phân tích', 'error');
+      showNotification('Error loading analytics', 'error');
       setLoading(false);
     }
   };
@@ -220,8 +220,8 @@ const KnowledgeGapAnalysis = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-800 mb-2">📊 Phân tích Lỗ hổng Kiến thức</h1>
-          <p className="text-slate-600">Theo dõi điểm quiz theo chủ đề từ Learn Studio</p>
+          <h1 className="text-4xl font-bold text-slate-800 mb-2">📊 Knowledge Gap Analysis</h1>
+          <p className="text-slate-600">Track quiz scores by topic from Learn Studio</p>
         </div>
 
         {/* Filter Component */}
@@ -237,11 +237,11 @@ const KnowledgeGapAnalysis = () => {
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm font-medium mb-1">Tổng số lượt làm Quiz</p>
+                <p className="text-blue-100 text-sm font-medium mb-1">Total Quiz Attempts</p>
                 <p className="text-4xl font-bold">{filteredTotalAttempts}</p>
                 {filteredTotalAttempts !== gapData.totalAttempts && (
                   <p className="text-blue-200 text-xs mt-1">
-                    (Tổng: {gapData.totalAttempts})
+                    (Overall: {gapData.totalAttempts})
                   </p>
                 )}
               </div>
@@ -252,11 +252,11 @@ const KnowledgeGapAnalysis = () => {
           <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-sm font-medium mb-1">Điểm trung bình</p>
+                <p className="text-purple-100 text-sm font-medium mb-1">Average Score</p>
                 <p className="text-4xl font-bold">{filteredAverageScore.toFixed(1)}%</p>
                 {filteredAverageScore.toFixed(1) !== gapData.averageScore.toFixed(1) && (
                   <p className="text-purple-200 text-xs mt-1">
-                    (Tổng: {gapData.averageScore.toFixed(1)}%)
+                    (Overall: {gapData.averageScore.toFixed(1)}%)
                   </p>
                 )}
               </div>
@@ -268,8 +268,8 @@ const KnowledgeGapAnalysis = () => {
         {/* Top Topics Dashboard */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-slate-800">🎯 Chủ đề được làm Quiz nhiều nhất</h2>
-            <div className="text-sm text-slate-600">Sắp xếp theo số lượt làm quiz</div>
+            <h2 className="text-2xl font-bold text-slate-800">🎯 Most Attempted Quiz Topics</h2>
+            <div className="text-sm text-slate-600">Sorted by number of attempts</div>
           </div>
 
           <div className="space-y-4">
@@ -293,7 +293,7 @@ const KnowledgeGapAnalysis = () => {
 
                 <div className="text-right">
                   <div className="text-2xl font-bold text-slate-800">{topic.attemptCount}</div>
-                  <div className="text-xs text-slate-500">lượt làm</div>
+                  <div className="text-xs text-slate-500">attempts</div>
                 </div>
 
                 <div className="text-right">
@@ -303,12 +303,12 @@ const KnowledgeGapAnalysis = () => {
                   >
                     {topic.avgScore}%
                   </div>
-                  <div className="text-xs text-slate-500">điểm TB</div>
+                  <div className="text-xs text-slate-500">avg score</div>
                 </div>
 
                 <div className="text-right">
                   <div className="text-lg font-semibold text-slate-700">{topic.studentCount}</div>
-                  <div className="text-xs text-slate-500">sinh viên</div>
+                  <div className="text-xs text-slate-500">students</div>
                 </div>
               </div>
             ))}
@@ -318,20 +318,20 @@ const KnowledgeGapAnalysis = () => {
         {/* Recent Quizzes List */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="p-6 border-b border-slate-200">
-            <h2 className="text-2xl font-bold text-slate-800">📋 Quiz được làm gần đây</h2>
+            <h2 className="text-2xl font-bold text-slate-800">📋 Recently Attempted Quizzes</h2>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Sinh viên</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Chủ đề</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Môn học</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Điểm số</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Thời gian</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Độ khó</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Thao tác</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Student</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Topic</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Course</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Score</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Time</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Difficulty</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -361,13 +361,13 @@ const KnowledgeGapAnalysis = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-slate-600">
-                        {new Date(quiz.timestamp).toLocaleDateString('vi-VN', {
-                          day: '2-digit',
+                        {new Date(quiz.timestamp).toLocaleDateString('en-US', {
                           month: '2-digit',
+                          day: '2-digit',
                           year: 'numeric'
                         })}
                         <div className="text-xs text-slate-400">
-                          {new Date(quiz.timestamp).toLocaleTimeString('vi-VN', {
+                          {new Date(quiz.timestamp).toLocaleTimeString('en-US', {
                             hour: '2-digit',
                             minute: '2-digit'
                           })}
@@ -380,7 +380,7 @@ const KnowledgeGapAnalysis = () => {
                         quiz.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-red-100 text-red-800'
                       }`}>
-                        {quiz.difficulty === 'easy' ? 'Dễ' : quiz.difficulty === 'medium' ? 'Trung bình' : 'Khó'}
+                        {quiz.difficulty === 'easy' ? 'Easy' : quiz.difficulty === 'medium' ? 'Medium' : 'Hard'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -388,7 +388,7 @@ const KnowledgeGapAnalysis = () => {
                         onClick={() => setSelectedQuiz(quiz)}
                         className="text-blue-600 hover:text-blue-800 font-medium text-sm"
                       >
-                        Xem chi tiết
+                        View details
                       </button>
                     </td>
                   </tr>
@@ -399,18 +399,18 @@ const KnowledgeGapAnalysis = () => {
 
           {filteredQuizzes.length === 0 && (
             <div className="text-center py-12 text-slate-500">
-              <p className="text-lg">Không có quiz nào phù hợp với bộ lọc</p>
+              <p className="text-lg">No quizzes match the filters</p>
             </div>
           )}
         </div>
 
         {/* Quiz Detail Modal */}
         {selectedQuiz && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-slate-200">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-2xl font-bold text-slate-800">Chi tiết Quiz</h3>
+                  <h3 className="text-2xl font-bold text-slate-800">Quiz Details</h3>
                   <button
                     onClick={() => setSelectedQuiz(null)}
                     className="text-slate-400 hover:text-slate-600"
@@ -423,50 +423,50 @@ const KnowledgeGapAnalysis = () => {
               <div className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-slate-600 mb-1">Sinh viên</p>
+                    <p className="text-sm text-slate-600 mb-1">Student</p>
                     <p className="font-semibold text-slate-800">{selectedQuiz.studentName}</p>
                     <p className="text-sm text-slate-500">{selectedQuiz.studentId}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-slate-600 mb-1">Chủ đề</p>
+                    <p className="text-sm text-slate-600 mb-1">Topic</p>
                     <p className="font-semibold text-slate-800">{selectedQuiz.topic}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-slate-600 mb-1">Môn học</p>
+                    <p className="text-sm text-slate-600 mb-1">Course</p>
                     <p className="font-semibold text-slate-800">{selectedQuiz.course}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-slate-600 mb-1">Điểm số</p>
-                    <p className="font-bold text-2xl" style={{ color: getScoreColor(selectedQuiz.percentage) }}>
+                    <p className="text-sm text-slate-600 mb-1">Score</p>
+                    <p className="text-2xl font-bold" style={{ color: getScoreColor(selectedQuiz.percentage) }}>
                       {selectedQuiz.score}/{selectedQuiz.maxScore} ({selectedQuiz.percentage}%)
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-slate-600 mb-1">Số câu hỏi</p>
-                    <p className="font-semibold text-slate-800">{selectedQuiz.questionsCount} câu</p>
+                    <p className="text-sm text-slate-600 mb-1">Number of questions</p>
+                    <p className="font-semibold text-slate-800">{selectedQuiz.questionsCount} questions</p>
                   </div>
                   <div>
-                    <p className="text-sm text-slate-600 mb-1">Độ khó</p>
+                    <p className="text-sm text-slate-600 mb-1">Difficulty</p>
                     <span className={`inline-block px-3 py-1 text-sm font-semibold rounded-full ${
                       selectedQuiz.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
                       selectedQuiz.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-red-100 text-red-800'
                     }`}>
-                      {selectedQuiz.difficulty === 'easy' ? 'Dễ' : selectedQuiz.difficulty === 'medium' ? 'Trung bình' : 'Khó'}
+                      {selectedQuiz.difficulty === 'easy' ? 'Easy' : selectedQuiz.difficulty === 'medium' ? 'Medium' : 'Hard'}
                     </span>
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-sm text-slate-600 mb-1">Thời gian làm bài</p>
+                  <p className="text-sm text-slate-600 mb-1">Attempt time</p>
                   <p className="font-semibold text-slate-800">
-                    {new Date(selectedQuiz.timestamp).toLocaleString('vi-VN')}
+                    {new Date(selectedQuiz.timestamp).toLocaleString('en-US')}
                   </p>
                 </div>
 
                 <div className="pt-4 border-t border-slate-200">
                   <p className="text-sm text-slate-500 italic">
-                    💡 Quiz này được tạo bởi sinh viên trong Learn Studio
+                    💡 This quiz was created by students in Learn Studio
                   </p>
                 </div>
               </div>
@@ -476,7 +476,7 @@ const KnowledgeGapAnalysis = () => {
                   onClick={() => setSelectedQuiz(null)}
                   className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 >
-                  Đóng
+                  Close
                 </button>
               </div>
             </div>

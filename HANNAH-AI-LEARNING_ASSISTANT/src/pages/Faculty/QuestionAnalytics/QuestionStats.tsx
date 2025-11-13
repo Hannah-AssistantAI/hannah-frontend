@@ -11,7 +11,7 @@ const QuestionStats = ({ data }: QuestionStatsProps) => {
   if (!data || data.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '40px', color: '#8c8c8c' }}>
-        <div>Không có dữ liệu</div>
+        <div>No data</div>
       </div>
     );
   }
@@ -44,7 +44,7 @@ const QuestionStats = ({ data }: QuestionStatsProps) => {
                   transition: 'all 0.3s',
                   cursor: 'pointer'
                 }}
-                title={`${item.course}: ${item.count} câu hỏi`}
+                title={`${item.course}: ${item.count} questions`}
                 onMouseEnter={(e) => {
                   const target = e.target as HTMLElement;
                   target.style.opacity = '0.8';
@@ -83,7 +83,7 @@ const QuestionStats = ({ data }: QuestionStatsProps) => {
         color: '#8c8c8c',
         textAlign: 'center'
       }}>
-        Số câu hỏi theo môn học (hover để xem chi tiết)
+        Questions by course (hover to see details)
       </div>
     </div>
   );
