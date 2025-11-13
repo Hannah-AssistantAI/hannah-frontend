@@ -46,19 +46,19 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
     const newErrors: Record<string, string> = {};
     
     if (!formData.question.trim()) {
-      newErrors.question = 'Câu hỏi không được để trống';
+      newErrors.question = 'Question cannot be empty';
     }
     
     if (!formData.answer.trim()) {
-      newErrors.answer = 'Câu trả lời không được để trống';
+      newErrors.answer = 'Answer cannot be empty';
     }
     
     if (!formData.course) {
-      newErrors.course = 'Vui lòng chọn môn học';
+      newErrors.course = 'Please select a course';
     }
     
     if (formData.tags.length === 0) {
-      newErrors.tags = 'Vui lòng thêm ít nhất một tag';
+      newErrors.tags = 'Please add at least one tag';
     }
 
     setErrors(newErrors);
@@ -77,15 +77,15 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
       
       if (faq) {
         await updateFAQ(faq.id, formData);
-        showNotification('Cập nhật FAQ thành công', 'success');
+        showNotification('FAQ updated successfully', 'success');
       } else {
         await createFAQ(formData);
-        showNotification('Tạo FAQ mới thành công', 'success');
+        showNotification('New FAQ created successfully', 'success');
       }
       
       onSuccess();
     } catch (error) {
-      showNotification('Lỗi khi lưu FAQ', 'error');
+      showNotification('Error saving FAQ', 'error');
     } finally {
       setLoading(false);
     }
@@ -142,10 +142,10 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
             </div>
             <div>
               <h3 className="text-xl font-bold text-gray-900">
-                {faq ? 'Chỉnh sửa câu hỏi thường gặp' : 'Thêm câu hỏi thường gặp mới'}
+                {faq ? 'Edit FAQ' : 'Add New FAQ'}
               </h3>
               <p className="text-sm text-gray-600 mt-0.5">
-                {faq ? 'Cập nhật thông tin câu hỏi thường gặp' : 'Tạo câu hỏi thường gặp mới cho sinh viên'}
+                {faq ? 'Update FAQ information' : 'Create a new FAQ for students'}
               </p>
             </div>
           </div>
@@ -168,7 +168,7 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
             {/* Question Field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Câu hỏi <span className="text-red-500">*</span>
+                Question <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -180,7 +180,7 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
                   }`}
                   value={formData.question}
                   onChange={(e) => handleInputChange('question', e.target.value)}
-                  placeholder="Ví dụ: Làm thế nào để nộp bài tập trên hệ thống?"
+                  placeholder="Example: How do I submit assignments on the system?"
                 />
                 {errors.question && (
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -203,7 +203,7 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
             {/* Answer Field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Câu trả lời <span className="text-red-500">*</span>
+                Answer <span className="text-red-500">*</span>
               </label>
               <textarea
                 className={`w-full px-4 py-3 bg-white border rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 resize-none ${
@@ -213,7 +213,7 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
                 }`}
                 value={formData.answer}
                 onChange={(e) => handleInputChange('answer', e.target.value)}
-                placeholder="Nhập câu trả lời chi tiết và đầy đủ..."
+                placeholder="Enter a detailed and complete answer..."
                 rows={6}
               />
               {errors.answer && (
@@ -225,14 +225,14 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
                 </p>
               )}
               <p className="mt-2 text-xs text-gray-500">
-                Hãy cung cấp câu trả lời rõ ràng, dễ hiểu và hữu ích cho sinh viên
+                Provide a clear, understandable, and helpful answer for students
               </p>
             </div>
 
             {/* Course Field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Môn học <span className="text-red-500">*</span>
+                Course <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <select
@@ -244,7 +244,7 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
                   value={formData.course}
                   onChange={(e) => handleInputChange('course', e.target.value)}
                 >
-                  <option value="">Chọn môn học</option>
+                  <option value="">Select course</option>
                   {courses.map(course => (
                     <option key={course} value={course}>{course}</option>
                   ))}
@@ -278,7 +278,7 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyPress={handleTagInputKeyPress}
-                    placeholder="Nhập tag và nhấn Enter hoặc click Thêm"
+                    placeholder="Enter tag and press Enter or click Add"
                   />
                 </div>
                 <button
@@ -319,7 +319,7 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
                 </div>
               ) : (
                 <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center">
-                  <p className="text-sm text-gray-500">Chưa có tag nào. Hãy thêm tag để phân loại câu hỏi thường gặp</p>
+                  <p className="text-sm text-gray-500">No tags yet. Add tags to categorize the FAQ</p>
                 </div>
               )}
               
@@ -332,7 +332,7 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
                 </p>
               )}
               <p className="mt-2 text-xs text-gray-500">
-                Tags giúp sinh viên tìm kiếm câu hỏi dễ dàng hơn. Ví dụ: "nộp bài", "deadline", "hướng dẫn"
+                Tags help students find questions more easily. Example: "submission", "deadline", "guide"
               </p>
             </div>
           </div>
@@ -345,7 +345,7 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
             className="px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg border border-gray-300 shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
             onClick={onCancel}
           >
-            Hủy bỏ
+            Cancel
           </button>
           <button
             type="submit"
@@ -356,14 +356,14 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                Cập nhật câu hỏi
+                Update Question
               </>
             ) : (
               <>
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Tạo câu hỏi mới
+                Create New Question
               </>
             )}
           </button>

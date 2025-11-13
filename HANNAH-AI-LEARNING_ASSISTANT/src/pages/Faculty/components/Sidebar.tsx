@@ -39,42 +39,42 @@ const FacultySidebarContent: React.FC<FacultySidebarContentProps> = ({
   const menuItems: MenuItem[] = [
     {
       path: '/faculty/faq',
-      label: 'Quản lý câu hỏi thường gặp',
+      label: 'Manage FAQs',
       badge: null,
-      description: 'Quản lý FAQ và câu hỏi thường gặp',
+      description: 'Manage FAQs and frequently asked questions',
       icon: HelpCircle
     },
     {
       path: "/faculty/conversations",
-      label: "Giám sát hội thoại",
+      label: "Monitor Conversations",
       badge: flaggedConversationsCount > 0 ? flaggedConversationsCount : null,
-      description: "Các hội thoại cần xem xét",
+      description: "Conversations requiring review",
       icon: MessageSquare,
     },
     {
       path: "/faculty/materials",
-      label: "Tài liệu học tập",
+      label: "Learning Materials",
       badge: null,
-      description: "Quản lý tài liệu, kết quả học tập và thách thức",
+      description: "Manage materials, learning outcomes and challenges",
       icon: FileText,
       subItems: [
-        { path: "/faculty/materials/documents", label: "Tài liệu" },
-        { path: "/faculty/materials/outcomes", label: "Kết quả học tập" },
-        { path: "/faculty/materials/challenges", label: "Thách thức thường gặp" }
+        { path: "/faculty/materials/documents", label: "Documents" },
+        { path: "/faculty/materials/outcomes", label: "Learning Outcomes" },
+        { path: "/faculty/materials/challenges", label: "Common Challenges" }
       ]
     },
     {
       path: "/faculty/analytics",
-      label: "Lỗ hổng kiến thức",
+      label: "Knowledge Gaps",
       badge: null,
-      description: "Phân tích lỗ hổng kiến thức từ quiz",
+      description: "Analyze knowledge gaps from quizzes",
       icon: TrendingDown,
     },
     // {
     //   path: "/faculty/questions",
-    //   label: "Thống kê câu hỏi",
+    //   label: "Question Statistics",
     //   badge: null,
-    //   description: "Thống kê và xu hướng câu hỏi",
+    //   description: "Question statistics and trends",
     //   icon: BarChart3,
     // },
   ];
@@ -162,7 +162,7 @@ const FacultySidebarContent: React.FC<FacultySidebarContentProps> = ({
 
 const FacultySidebar: React.FC = () => {
   return (
-    <ReusableSidebar title="Hannah" subtitle="Trang giảng viên">
+    <ReusableSidebar title="Hannah" subtitle="Lecturer page">
       <FacultySidebarContent />
     </ReusableSidebar>
   );
