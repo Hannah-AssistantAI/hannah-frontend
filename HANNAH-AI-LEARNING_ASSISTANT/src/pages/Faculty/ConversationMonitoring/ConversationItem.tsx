@@ -38,19 +38,19 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
         bg: 'bg-orange-100',
         text: 'text-orange-800',
         border: 'border-orange-200',
-        label: 'Chưa xử lý'
+        label: 'Pending'
       },
       reviewed: {
         bg: 'bg-blue-100',
         text: 'text-blue-800',
         border: 'border-blue-200',
-        label: 'Đã xem xét'
+        label: 'Reviewed'
       },
       resolved: {
         bg: 'bg-green-100',
         text: 'text-green-800',
         border: 'border-green-200',
-        label: 'Đã giải quyết'
+        label: 'Resolved'
       }
     };
 
@@ -68,11 +68,11 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
     
-    if (diffInHours < 1) return 'Vừa xong';
-    if (diffInHours < 24) return `${diffInHours} giờ trước`;
-    if (diffInHours < 48) return 'Hôm qua';
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours} hours ago`;
+    if (diffInHours < 48) return 'Yesterday';
     
-    return date.toLocaleDateString('vi-VN', {
+    return date.toLocaleDateString('en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -125,7 +125,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
-              <span>{conversation.messageCount} tin nhắn</span>
+              <span>{conversation.messageCount} messages</span>
             </div>
 
             {/* Time */}
@@ -142,7 +142,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span>Bởi: {conversation.handledBy}</span>
+                <span>By: {conversation.handledBy}</span>
               </div>
             )}
 
@@ -175,7 +175,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
-            Xem chi tiết
+            View Details
           </button>
 
           {conversation.status === 'pending' && (
@@ -186,7 +186,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
               <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              Đã xem
+              Mark as Viewed
             </button>
           )}
 
@@ -198,7 +198,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
               <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Giải quyết
+              Resolve
             </button>
           )}
         </div>

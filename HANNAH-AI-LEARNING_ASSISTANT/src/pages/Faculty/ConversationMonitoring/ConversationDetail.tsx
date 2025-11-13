@@ -65,17 +65,17 @@ const ConversationDetail: React.FC = () => {
           messages: conv.messages.map((msg: any) => ({
             role: msg.author.role === 'student' ? 'student' : 'ai',
             text: msg.content,
-            time: new Date(msg.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-          })),
+            time: new Date(msg.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        })),
           handledBy: conv.assignedTo || undefined
         };
         setConversation(transformed);
       } else {
-        showNotification('Không tìm thấy cuộc hội thoại', 'error');
+        showNotification('Conversation not found', 'error');
         navigate('/faculty/conversations');
       }
     } catch (error) {
-      showNotification('Lỗi khi tải chi tiết cuộc hội thoại', 'error');
+      showNotification('Failed to load conversation details', 'error');
       navigate('/faculty/conversations');
     } finally {
       setLoading(false);
@@ -92,14 +92,14 @@ const ConversationDetail: React.FC = () => {
   const handleSubmitResponse = (messageIndex: number) => {
     const response = facultyResponses[messageIndex];
     if (!response || !response.trim()) {
-      showNotification('Vui lòng nhập nội dung phản hồi', 'error');
+      showNotification('Please enter a response', 'error');
       return;
     }
     
     // Save the submitted response with faculty info and timestamp
     const submittedResponse: FacultyResponse = {
       text: response,
-      facultyName: user?.name || 'Giảng viên',
+      facultyName: user?.name || 'Faculty',
       timestamp: new Date().toISOString()
     };
     
@@ -116,7 +116,7 @@ const ConversationDetail: React.FC = () => {
     });
     
     console.log('Submitting faculty response for message', messageIndex, ':', response);
-    showNotification('Đã cập nhật phản hồi của giảng viên', 'success');
+    showNotification('Faculty response updated', 'success');
     // TODO: Call API to save faculty response
   };
 
@@ -144,10 +144,10 @@ const ConversationDetail: React.FC = () => {
     try {
       setLoading(true);
       await updateConversationStatus(`F-${conversation.id}`, newStatus);
-      showNotification('Cập nhật trạng thái thành công', 'success');
+      showNotification('Status updated successfully', 'success');
       navigate('/faculty/conversations');
     } catch (error) {
-      showNotification('Lỗi khi cập nhật trạng thái', 'error');
+      showNotification('Failed to update status', 'error');
     } finally {
       setLoading(false);
     }
@@ -163,7 +163,7 @@ const ConversationDetail: React.FC = () => {
 
   const confirmReport = () => {
     console.log('Reporting conversation:', conversation?.id);
-    showNotification('Đã báo cáo cuộc hội thoại', 'success');
+    showNotification('Conversation reported', 'success');
     setShowReportModal(false);
     navigate('/faculty/conversations');
   };
@@ -177,7 +177,7 @@ const ConversationDetail: React.FC = () => {
       <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang tải...</p>
+          <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
     );
@@ -197,7 +197,7 @@ const ConversationDetail: React.FC = () => {
                 <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span className="font-medium">Quay lại danh sách</span>
+                <span className="font-medium">Back to list</span>
               </button>
               
               <div className="flex gap-3">
@@ -208,7 +208,7 @@ const ConversationDetail: React.FC = () => {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
-                  Báo cáo vấn đề
+                  Report issue
                 </button>
                 <button
                   onClick={handleResolve}
@@ -217,7 +217,7 @@ const ConversationDetail: React.FC = () => {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Đánh dấu đã xử lý
+                  Mark as resolved
                 </button>
               </div>
             </div>
@@ -225,21 +225,21 @@ const ConversationDetail: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-gray-900">Hội thoại #{conversation.id}</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">Conversation #{conversation.id}</h1>
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                     conversation.status === 'pending' ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
                     conversation.status === 'reviewed' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
                     'bg-green-100 text-green-700 border border-green-200'
                   }`}>
-                    {conversation.status === 'pending' ? '⏳ Chờ xử lý' :
-                     conversation.status === 'reviewed' ? '🔍 Đang xử lý' : '✅ Đã giải quyết'}
+                    {conversation.status === 'pending' ? '⏳ Pending' :
+                     conversation.status === 'reviewed' ? '🔍 In review' : '✅ Resolved'}
                   </span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  {new Date(conversation.timestamp).toLocaleString('vi-VN', {
+                  {new Date(conversation.timestamp).toLocaleString('en-US', {
                     hour: '2-digit',
                     minute: '2-digit',
                     day: '2-digit',
@@ -268,10 +268,10 @@ const ConversationDetail: React.FC = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
                     </div>
-                    Nội dung hội thoại
+                    Conversation content
                   </h3>
                   <span className="text-sm font-medium text-gray-500 bg-gray-100 px-4 py-2 rounded-full">
-                    {conversation.messageCount} tin nhắn
+                    {conversation.messageCount} messages
                   </span>
                 </div>
               
@@ -301,7 +301,7 @@ const ConversationDetail: React.FC = () => {
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
                               <span className="font-semibold text-sm text-gray-900">
-                                {message.role === 'student' ? 'Sinh viên' : 'Hannah AI'}
+                                {message.role === 'student' ? 'Student' : 'Hannah AI'}
                               </span>
                               <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-md">{message.time}</span>
                             </div>
@@ -338,10 +338,10 @@ const ConversationDetail: React.FC = () => {
                                       {submittedResponses[index].facultyName}
                                     </span>
                                     <span className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-sm">
-                                      GIẢNG VIÊN
+                                      FACULTY
                                     </span>
                                     <span className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">
-                                      {new Date(submittedResponses[index].timestamp).toLocaleString('vi-VN', {
+                                      {new Date(submittedResponses[index].timestamp).toLocaleString('en-US', {
                                         hour: '2-digit',
                                         minute: '2-digit',
                                         day: '2-digit',
@@ -363,7 +363,7 @@ const ConversationDetail: React.FC = () => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                       </svg>
                                       <span className="text-sm text-green-700 font-semibold">
-                                        Đã cập nhật phản hồi
+                                        Response updated
                                       </span>
                                     </div>
                                     
@@ -374,7 +374,7 @@ const ConversationDetail: React.FC = () => {
                                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                       </svg>
-                                      Chỉnh sửa
+                                      Edit
                                     </button>
                                   </div>
                                 </div>
@@ -389,13 +389,13 @@ const ConversationDetail: React.FC = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                   </svg>
                                 </div>
-                                <span className="font-bold text-sm text-green-900">Phản hồi của giảng viên</span>
+                                <span className="font-bold text-sm text-green-900">Faculty response</span>
                               </div>
                               
                               <textarea
                                 value={facultyResponses[index] || ''}
                                 onChange={(e) => handleFacultyResponseChange(index, e.target.value)}
-                                placeholder="Nhập phản hồi hoặc câu trả lời điều chỉnh của bạn tại đây..."
+                                placeholder="Enter your response or adjusted answer here..."
                                 className="w-full p-4 border-2 border-green-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none bg-white text-gray-800 placeholder-gray-400 shadow-sm text-[15px]"
                                 rows={4}
                               />
@@ -405,7 +405,7 @@ const ConversationDetail: React.FC = () => {
                                   <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                   </svg>
-                                  Phản hồi sẽ được lưu để so sánh với AI
+                                  Response will be saved to compare with AI
                                 </span>
                                 <button
                                   onClick={() => handleSubmitResponse(index)}
@@ -414,7 +414,7 @@ const ConversationDetail: React.FC = () => {
                                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                   </svg>
-                                  Cập nhật phản hồi
+                                  Update response
                                 </button>
                               </div>
                             </div>
@@ -447,7 +447,7 @@ const ConversationDetail: React.FC = () => {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                {!isSidebarCollapsed && <span className="ml-2 font-bold text-blue-900">Thu gọn</span>}
+                {!isSidebarCollapsed && <span className="ml-2 font-bold text-blue-900">Collapse</span>}
               </button>
 
               {!isSidebarCollapsed && (
@@ -460,32 +460,32 @@ const ConversationDetail: React.FC = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                       </div>
-                      Thông tin sinh viên
+                      Student information
                     </h4>
                     <div className="space-y-3">
                       <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl p-4 border border-gray-200 hover:border-blue-300 transition-all">
-                        <p className="text-xs text-gray-500 font-semibold mb-2 uppercase tracking-wide">Tên sinh viên</p>
+                        <p className="text-xs text-gray-500 font-semibold mb-2 uppercase tracking-wide">Student name</p>
                         <p className="font-bold text-gray-900 text-base">{conversation.studentName}</p>
                         <p className="text-sm text-gray-600 mt-1 font-medium">{conversation.studentId}</p>
                       </div>
                       <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl p-4 border border-gray-200 hover:border-blue-300 transition-all">
-                        <p className="text-xs text-gray-500 font-semibold mb-2 uppercase tracking-wide">Môn học</p>
+                        <p className="text-xs text-gray-500 font-semibold mb-2 uppercase tracking-wide">Course</p>
                         <p className="font-bold text-gray-900">{conversation.course}</p>
                       </div>
                       <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl p-4 border border-gray-200">
-                        <p className="text-xs text-gray-500 font-semibold mb-2 uppercase tracking-wide">Trạng thái</p>
+                        <p className="text-xs text-gray-500 font-semibold mb-2 uppercase tracking-wide">Status</p>
                         <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold border-2 ${
                           conversation.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-300' :
                           conversation.status === 'reviewed' ? 'bg-blue-50 text-blue-700 border-blue-300' :
                           'bg-green-50 text-green-700 border-green-300'
                         }`}>
-                          {conversation.status === 'pending' ? '⏳ Chờ xử lý' :
-                           conversation.status === 'reviewed' ? '🔍 Đang xử lý' : '✅ Đã giải quyết'}
+                          {conversation.status === 'pending' ? '⏳ Pending' :
+                           conversation.status === 'reviewed' ? '🔍 In review' : '✅ Resolved'}
                         </span>
                       </div>
                       <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl p-4 border border-gray-200 hover:border-blue-300 transition-all">
-                        <p className="text-xs text-gray-500 font-semibold mb-2 uppercase tracking-wide">Người xử lý</p>
-                        <p className="font-bold text-gray-900">{conversation.handledBy || 'Chưa có'}</p>
+                        <p className="text-xs text-gray-500 font-semibold mb-2 uppercase tracking-wide">Handled by</p>
+                        <p className="font-bold text-gray-900">{conversation.handledBy || 'None'}</p>
                       </div>
                     </div>
                   </div>
@@ -499,7 +499,7 @@ const ConversationDetail: React.FC = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
                           </svg>
                         </div>
-                        Lý do gắn cờ
+                        Flag reasons
                       </h4>
                       <div className="space-y-2">
                         {conversation.flags.map((flag, index) => (
@@ -519,7 +519,7 @@ const ConversationDetail: React.FC = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                         </svg>
                       </div>
-                      Tài liệu tham khảo
+                      References
                     </h4>
                     <div className="space-y-2">
                       {/* Mock data - Replace with actual data from API */}
@@ -531,7 +531,7 @@ const ConversationDetail: React.FC = () => {
                             </svg>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gray-900 truncate">Slide bài giảng - Chương 3</p>
+                            <p className="text-sm font-bold text-gray-900 truncate">Lecture slides - Chapter 3</p>
                             <div className="flex items-center gap-2 mt-2">
                               <div className="flex-1 bg-white rounded-full h-2 overflow-hidden shadow-inner">
                                 <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full" style={{width: '95%'}}></div>
@@ -550,7 +550,7 @@ const ConversationDetail: React.FC = () => {
                             </svg>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gray-900 truncate">Giáo trình cơ sở</p>
+                            <p className="text-sm font-bold text-gray-900 truncate">Basic textbook</p>
                             <div className="flex items-center gap-2 mt-2">
                               <div className="flex-1 bg-white rounded-full h-2 overflow-hidden shadow-inner">
                                 <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full" style={{width: '88%'}}></div>
@@ -569,7 +569,7 @@ const ConversationDetail: React.FC = () => {
                             </svg>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gray-900 truncate">FAQ - Câu hỏi thường gặp</p>
+                            <p className="text-sm font-bold text-gray-900 truncate">FAQ - Frequently asked questions</p>
                             <div className="flex items-center gap-2 mt-2">
                               <div className="flex-1 bg-white rounded-full h-2 overflow-hidden shadow-inner">
                                 <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full" style={{width: '92%'}}></div>
@@ -581,7 +581,7 @@ const ConversationDetail: React.FC = () => {
                       </div>
 
                       <div className="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 rounded-xl p-4 text-center mt-3">
-                        <p className="text-xs text-gray-600 font-bold">📚 Tổng: 3 tài liệu được tham khảo</p>
+                        <p className="text-xs text-gray-600 font-bold">📚 Total: 3 referenced documents</p>
                       </div>
                     </div>
                   </div>
@@ -611,10 +611,10 @@ const ConversationDetail: React.FC = () => {
                 
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    Báo cáo vấn đề
+                    Report issue
                   </h3>
                   <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-                    Bạn có chắc chắn muốn báo cáo cuộc hội thoại này? Hành động này sẽ được gửi đến quản trị viên để xem xét và xử lý.
+                    Are you sure you want to report this conversation? This action will be sent to administrators for review and handling.
                   </p>
                   
                   <div className="flex gap-3">
@@ -622,13 +622,13 @@ const ConversationDetail: React.FC = () => {
                       onClick={confirmReport}
                       className="flex-1 px-5 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-xl transition-all font-bold shadow-lg hover:shadow-xl"
                     >
-                      Xác nhận báo cáo
+                      Confirm report
                     </button>
                     <button
                       onClick={() => setShowReportModal(false)}
                       className="flex-1 px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all font-bold"
                     >
-                      Hủy bỏ
+                      Cancel
                     </button>
                   </div>
                 </div>

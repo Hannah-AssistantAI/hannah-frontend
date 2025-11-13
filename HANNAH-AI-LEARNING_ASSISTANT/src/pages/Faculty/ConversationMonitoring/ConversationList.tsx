@@ -43,10 +43,10 @@ const ConversationList: React.FC<ConversationListProps> = ({
             </svg>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Không tìm thấy cuộc hội thoại nào
+            No conversations found
           </h3>
           <p className="text-sm text-gray-500 mb-6">
-            Thử điều chỉnh bộ lọc hoặc tìm kiếm với từ khóa khác
+            Try adjusting the filters or search with different keywords
           </p>
         </div>
       </div>
@@ -60,10 +60,10 @@ const ConversationList: React.FC<ConversationListProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <h2 className="text-lg font-semibold text-gray-900">
-              Danh sách Cuộc hội thoại
+              Conversation List
             </h2>
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-              {conversations.length} cuộc hội thoại
+              {conversations.length} conversations
             </span>
           </div>
         </div>

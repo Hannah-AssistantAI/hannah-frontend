@@ -30,10 +30,10 @@ const ConversationFilter: React.FC<ConversationFilterProps> = ({
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const statusOptions = [
-    { value: 'all', label: 'Tất cả', color: 'gray' },
-    { value: 'pending', label: 'Chưa xử lý', color: 'orange' },
-    { value: 'reviewed', label: 'Đã xem xét', color: 'blue' },
-    { value: 'resolved', label: 'Đã giải quyết', color: 'green' }
+    { value: 'all', label: 'All', color: 'gray' },
+    { value: 'pending', label: 'Pending', color: 'orange' },
+    { value: 'reviewed', label: 'Reviewed', color: 'blue' },
+    { value: 'resolved', label: 'Resolved', color: 'green' }
   ];
 
   return (
@@ -44,7 +44,7 @@ const ConversationFilter: React.FC<ConversationFilterProps> = ({
           {/* Search Input */}
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tìm kiếm
+              Search
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -55,7 +55,7 @@ const ConversationFilter: React.FC<ConversationFilterProps> = ({
               <input
                 type="text"
                 className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                placeholder="Tìm nội dung cuộc hội thoại"
+                placeholder="Search conversation content"
                 value={filters.search}
                 onChange={(e) => onFilterChange({ search: e.target.value })}
               />
@@ -65,7 +65,7 @@ const ConversationFilter: React.FC<ConversationFilterProps> = ({
           {/* Status Filter */}
           <div className="lg:w-56">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Trạng thái
+              Status
             </label>
             <select
               className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
@@ -83,18 +83,17 @@ const ConversationFilter: React.FC<ConversationFilterProps> = ({
           {/* Filter by Time Period */}
           <div className="lg:w-56">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Lọc theo thời gian
+              Filter by time
             </label>
             <select
               className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
               value={filters.sortBy}
               onChange={(e) => onFilterChange({ sortBy: e.target.value })}
             >
-              <option value="all">Tất cả</option>
-              <option value="week">Tuần này</option>
-              <option value="month">Tháng này</option>
-              {/* <option value="semester">Kỳ học này</option> */}
-              <option value="year">Năm nay</option>
+              <option value="all">All</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="year">This Year</option>
             </select>
           </div>
 
@@ -107,7 +106,7 @@ const ConversationFilter: React.FC<ConversationFilterProps> = ({
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
               </svg>
-              {showAdvanced ? 'Ẩn bộ lọc' : 'Bộ lọc nâng cao'}
+              {showAdvanced ? 'Hide filters' : 'Advanced filters'}
             </button>
           </div>
 
@@ -132,7 +131,7 @@ const ConversationFilter: React.FC<ConversationFilterProps> = ({
               {/* Date From */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Từ ngày
+                  From date
                 </label>
                 <input
                   type="date"
@@ -145,7 +144,7 @@ const ConversationFilter: React.FC<ConversationFilterProps> = ({
               {/* Date To */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Đến ngày
+                  To date
                 </label>
                 <input
                   type="date"
@@ -158,14 +157,14 @@ const ConversationFilter: React.FC<ConversationFilterProps> = ({
               {/* Course Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Môn học
+                  Course
                 </label>
                 <select
                   className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                   value={filters.course}
                   onChange={(e) => onFilterChange({ course: e.target.value })}
                 >
-                  <option value="">Tất cả môn học</option>
+                  <option value="">All courses</option>
                   {courses.map(course => (
                     <option key={course} value={course}>{course}</option>
                   ))}
@@ -178,11 +177,11 @@ const ConversationFilter: React.FC<ConversationFilterProps> = ({
         {/* Active Filters Display */}
         {(filters.status !== 'all' || filters.search || filters.dateFrom || filters.dateTo || filters.course) && (
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="text-sm text-gray-600">Bộ lọc đang áp dụng:</span>
+            <span className="text-sm text-gray-600">Active filters:</span>
             
             {filters.status !== 'all' && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                Trạng thái: {statusOptions.find(s => s.value === filters.status)?.label}
+                Status: {statusOptions.find(s => s.value === filters.status)?.label}
                 <button
                   onClick={() => onFilterChange({ status: 'all' })}
                   className="ml-2 hover:text-blue-900"
@@ -196,7 +195,7 @@ const ConversationFilter: React.FC<ConversationFilterProps> = ({
             
             {filters.search && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                Tìm: "{filters.search}"
+                Search: "{filters.search}"
                 <button
                   onClick={() => onFilterChange({ search: '' })}
                   className="ml-2 hover:text-green-900"
@@ -210,7 +209,7 @@ const ConversationFilter: React.FC<ConversationFilterProps> = ({
             
             {(filters.dateFrom || filters.dateTo) && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                Ngày: {filters.dateFrom || '...'} → {filters.dateTo || '...'}
+                Date: {filters.dateFrom || '...'} → {filters.dateTo || '...'}
                 <button
                   onClick={() => onFilterChange({ dateFrom: '', dateTo: '' })}
                   className="ml-2 hover:text-purple-900"
@@ -224,7 +223,7 @@ const ConversationFilter: React.FC<ConversationFilterProps> = ({
             
             {filters.course && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
-                Môn: {filters.course}
+                Course: {filters.course}
                 <button
                   onClick={() => onFilterChange({ course: '' })}
                   className="ml-2 hover:text-indigo-900"

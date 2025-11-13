@@ -55,7 +55,7 @@ const ConversationMonitoring = () => {
                 }`}
               >
                 <div className="flex items-center justify-center gap-2">
-                  <span>Hội thoại gắn cờ</span>
+                  <span>Flagged Conversations</span>
                   {flaggedCount > 0 && (
                     <span className={`px-2 py-0.5 text-xs rounded-full ${
                       activeTab === 'flagged'
@@ -80,7 +80,7 @@ const ConversationMonitoring = () => {
                 }`}
               >
                 <div className="flex items-center justify-center gap-2">
-                  <span>Lịch sử chỉnh sửa</span>
+                  <span>Edit History</span>
                   {historyCount > 0 && (
                     <span className={`px-2 py-0.5 text-xs rounded-full ${
                       activeTab === 'history'
@@ -116,12 +116,12 @@ const ConversationMonitoring = () => {
                   </svg>
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {activeTab === 'flagged' ? 'Không có hội thoại gắn cờ' : 'Chưa có lịch sử chỉnh sửa'}
+                  {activeTab === 'flagged' ? 'No Flagged Conversations' : 'No Edit History'}
                 </h3>
                 <p className="text-sm text-gray-500 text-center max-w-md">
                   {activeTab === 'flagged' 
-                    ? 'Các hội thoại được gắn cờ bởi sinh viên sẽ hiển thị tại đây để bạn xem xét và xử lý.'
-                    : 'Các hội thoại đã được xử lý sẽ hiển thị tại đây để bạn có thể xem lại lịch sử.'}
+                    ? 'Conversations flagged by students will appear here for you to review and handle.'
+                    : 'Processed conversations will appear here so you can review the history.'}
                 </p>
               </div>
             ) : (
