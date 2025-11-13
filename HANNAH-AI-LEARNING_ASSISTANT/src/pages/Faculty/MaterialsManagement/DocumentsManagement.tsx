@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Upload, File, Trash2, Edit2, FileText, BookOpen, ChevronDown } from 'lucide-react';
+import { Upload, File, Trash2, Edit2, FileText, BookOpen, ChevronDown, Undo, ChevronRight } from 'lucide-react';
 
 // Define types
 interface Material {
@@ -8,6 +8,8 @@ interface Material {
   type: string;
   size: string;
   date: string;
+  status: 'pending' | 'approved' | 'pending_delete';
+  originalName?: string; // Store original name for undo
 }
 
 interface Course {
@@ -20,15 +22,15 @@ interface Course {
 
 const DocumentsManagement: React.FC = () => {
   // Mock data with more courses across semesters
-  const [courses] = useState<Course[]>([
+  const [courses, setCourses] = useState<Course[]>([
     {
       id: 1,
       name: 'Programming Fundamentals - Cơ sở lập trình',
       code: 'PRF192',
       semester: 'Kỳ 1',
-      materials: [
-        { id: 1, name: 'PRF192_Syllabus.pdf', type: 'PDF', size: '1.1 MB', date: '01/09/2024' },
-        { id: 2, name: 'PRF192_Chapter1.docx', type: 'DOCX', size: '2.3 MB', date: '05/09/2024' },
+        materials: [
+        { id: 1, name: 'PRF192_Syllabus.pdf', type: 'PDF', size: '1.1 MB', date: '01/09/2024', status: 'approved' },
+        { id: 2, name: 'PRF192_Chapter1.docx', type: 'DOCX', size: '2.3 MB', date: '05/09/2024', status: 'approved' },
       ]
     },
     {
@@ -36,8 +38,8 @@ const DocumentsManagement: React.FC = () => {
       name: 'Mathematics for Engineering - Toán cho ngành kỹ thuật',
       code: 'MAE101',
       semester: 'Kỳ 1',
-      materials: [
-        { id: 3, name: 'MAE101_Lecture1.pptx', type: 'PPTX', size: '3.1 MB', date: '02/09/2024' },
+        materials: [
+        { id: 3, name: 'MAE101_Lecture1.pptx', type: 'PPTX', size: '3.1 MB', date: '02/09/2024', status: 'approved' },
       ]
     },
     {
@@ -60,8 +62,8 @@ const DocumentsManagement: React.FC = () => {
       code: 'PRO192',
       semester: 'Kỳ 2',
       materials: [
-        { id: 5, name: 'PRO192_OOP_Concepts.pdf', type: 'PDF', size: '2.8 MB', date: '15/01/2025' },
-        { id: 6, name: 'PRO192_Java_Basics.pptx', type: 'PPTX', size: '4.2 MB', date: '20/01/2025' },
+        { id: 5, name: 'PRO192_OOP_Concepts.pdf', type: 'PDF', size: '2.8 MB', date: '15/01/2025', status: 'approved' },
+        { id: 6, name: 'PRO192_Java_Basics.pptx', type: 'PPTX', size: '4.2 MB', date: '20/01/2025', status: 'approved' },
       ]
     },
     {
@@ -73,11 +75,21 @@ const DocumentsManagement: React.FC = () => {
     }
   ]);
 
+  // View state: show course grid or materials screen
+  const [view, setView] = useState<'courses' | 'materials'>('courses');
+
   const semesters = ['Kỳ 1', 'Kỳ 2', 'Kỳ 3', 'Kỳ 4', 'Kỳ 5', 'Kỳ 6', 'Kỳ 7', 'Kỳ 8', 'Kỳ 9'];
 
   const [selectedSemester, setSelectedSemester] = useState<string>('Kỳ 1');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [showSemesterDropdown, setShowSemesterDropdown] = useState(false);
+
+  // Modal states
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
+  const [deletingMaterialId, setDeletingMaterialId] = useState<number | null>(null);
+  const [editName, setEditName] = useState('');
 
   // Get courses for selected semester
   const coursesForSemester = useMemo(() => {
@@ -94,22 +106,136 @@ const DocumentsManagement: React.FC = () => {
 
   const handleDeleteMaterial = (materialId: number) => {
     if (!selectedCourse) return;
-    
-    if (window.confirm('Bạn có chắc chắn muốn xóa tài liệu này?')) {
-      const updatedCourses = courses.map(course => {
+    setDeletingMaterialId(materialId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    if (!selectedCourse || deletingMaterialId === null) return;
+    setCourses(prev => {
+      const updated = prev.map(course => {
         if (course.id === selectedCourse.id) {
           return {
             ...course,
-            materials: course.materials.filter(mat => mat.id !== materialId)
+            materials: course.materials.map(mat => 
+              mat.id === deletingMaterialId 
+                ? { ...mat, status: 'pending_delete' as const, originalName: mat.name }
+                : mat
+            )
           };
         }
         return course;
       });
-      const updatedCourse = updatedCourses.find(c => c.id === selectedCourse.id);
-      if (updatedCourse) {
-        setSelectedCourse(updatedCourse);
-      }
+      const updatedCourse = updated.find(c => c.id === selectedCourse.id) || null;
+      setSelectedCourse(updatedCourse);
+      return updated;
+    });
+    setShowDeleteModal(false);
+    setDeletingMaterialId(null);
+  };
+
+  const getNextMaterialId = () => {
+    const all = courses.flatMap(c => c.materials.map(m => m.id));
+    return (all.length ? Math.max(...all) : 0) + 1;
+  };
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!selectedCourse) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setCourses(prev => {
+      const updated = prev.map(course => {
+        if (course.id !== selectedCourse.id) return course;
+        const startId = getNextMaterialId();
+        const newMats = files.map((file, i) => ({
+          id: startId + i,
+          name: file.name,
+          type: (file.name.split('.').pop() || 'FILE').toUpperCase(),
+          size: `${Math.round((file.size || 0) / 1024)} KB`,
+          date: new Date().toLocaleDateString('vi-VN'),
+          status: 'pending' as const,
+        }));
+        return { ...course, materials: [...newMats, ...course.materials] };
+      });
+      const updatedCourse = updated.find(c => c.id === selectedCourse.id) || null;
+      setSelectedCourse(updatedCourse);
+      return updated;
+    });
+    // Clear input value so same file can be uploaded again if needed
+    e.currentTarget.value = '';
+  };
+
+  const handleEditMaterial = (materialId: number) => {
+    if (!selectedCourse) return;
+    const mat = selectedCourse.materials.find(m => m.id === materialId);
+    if (!mat) return;
+    setEditingMaterial(mat);
+    setEditName(mat.name);
+    setShowEditModal(true);
+  };
+
+  const confirmEdit = () => {
+    if (!selectedCourse || !editingMaterial) return;
+    if (!editName || editName.trim() === '' || editName === editingMaterial.name) {
+      setShowEditModal(false);
+      return;
     }
+
+    setCourses(prev => {
+      const updated = prev.map(course => {
+        if (course.id !== selectedCourse.id) return course;
+        return {
+          ...course,
+          materials: course.materials.map(m => 
+            m.id === editingMaterial.id 
+              ? { ...m, name: editName, status: 'pending' as const, originalName: editingMaterial.name } 
+              : m
+          )
+        };
+      });
+      const updatedCourse = updated.find(c => c.id === selectedCourse.id) || null;
+      setSelectedCourse(updatedCourse);
+      return updated;
+    });
+    setShowEditModal(false);
+    setEditingMaterial(null);
+    setEditName('');
+  };
+
+  const handleUndoChange = (materialId: number) => {
+    if (!selectedCourse) return;
+    
+    setCourses(prev => {
+      const updated = prev.map(course => {
+        if (course.id === selectedCourse.id) {
+          return {
+            ...course,
+            materials: course.materials.map(material => {
+              if (material.id === materialId) {
+                if (material.status === 'pending_delete') {
+                  // Undo delete - restore to approved
+                  const { originalName, ...rest } = material;
+                  return { ...rest, status: 'approved' as const };
+                } else if (material.status === 'pending' && material.originalName) {
+                  // Undo edit - restore original name and set to approved
+                  const { originalName, ...rest } = material;
+                  return { ...rest, name: originalName, status: 'approved' as const };
+                } else if (material.status === 'pending' && !material.originalName) {
+                  // This is a newly added item - remove it completely
+                  return null as any; // Mark for removal
+                }
+              }
+              return material;
+            }).filter(m => m !== null) // Remove null items (newly added ones)
+          };
+        }
+        return course;
+      });
+      const updatedCourse = updated.find(c => c.id === selectedCourse.id) || null;
+      setSelectedCourse(updatedCourse);
+      return updated;
+    });
   };
 
   return (
@@ -122,19 +248,20 @@ const DocumentsManagement: React.FC = () => {
         </div>
 
         {/* Main Container */}
-        <div className="bg-white rounded-xl shadow-lg border border-slate-200">
-          <div className="p-6">
-            {/* Semester Selector */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                  <BookOpen className="w-5 h-5 text-blue-600" />
-                  Chọn kỳ học
-                </label>
-                <span className="text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                  {coursesForSemester.length} môn học
-                </span>
-              </div>
+        {view === 'courses' && (
+          <div className="bg-white rounded-xl shadow-lg border border-slate-200">
+            <div className="p-6">
+              {/* Semester Selector */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                    <BookOpen className="w-5 h-5 text-blue-600" />
+                    Chọn kỳ học
+                  </label>
+                  <span className="text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                    {coursesForSemester.length} môn học
+                  </span>
+                </div>
               
               <div className="relative">
                 <button
@@ -212,7 +339,7 @@ const DocumentsManagement: React.FC = () => {
                   {coursesForSemester.map((course) => (
                     <button
                       key={course.id}
-                      onClick={() => setSelectedCourse(course)}
+                      onClick={() => { setSelectedCourse(course); setView('materials'); }}
                       className={`group text-left p-5 rounded-xl border-2 transition-all duration-200 ${
                         selectedCourse?.id === course.id
                           ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg scale-105'
@@ -274,17 +401,27 @@ const DocumentsManagement: React.FC = () => {
             </div>
           </div>
         </div>
+        )}
 
         {/* Materials Content */}
-        {selectedCourse && (
+        {view === 'materials' && selectedCourse && (
           <div className="bg-white rounded-xl shadow-lg border border-slate-200 mt-6">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-slate-800">Tài liệu - {selectedCourse.name}</h2>
+                <div>
+                    <button
+                      onClick={() => { setView('courses'); setSelectedCourse(null); }}
+                      className="mb-3 flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold transition-colors"
+                    >
+                      <ChevronRight className="w-4 h-4 rotate-180" />
+                      Quay lại danh sách môn học
+                    </button>
+                  <h2 className="text-2xl font-bold text-slate-800">Tài liệu - {selectedCourse.name}</h2>
+                </div>
                 <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition">
                   <Upload className="w-5 h-5" />
                   Tải lên File
-                  <input type="file" className="hidden" multiple />
+                  <input type="file" className="hidden" multiple onChange={handleFileInput} />
                 </label>
               </div>
 
@@ -294,41 +431,237 @@ const DocumentsManagement: React.FC = () => {
                 <p className="text-sm text-slate-500">Hỗ trợ: PDF, DOCX, PPTX, TXT (Max: 50MB)</p>
               </div>
 
-              {selectedCourse.materials.length > 0 ? (
-                <div className="space-y-3">
-                  {selectedCourse.materials.map(mat => (
-                    <div key={mat.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
-                      <div className="flex items-center gap-3">
-                        <File className="w-5 h-5 text-blue-600" />
-                        <div>
-                          <p className="font-semibold text-slate-800">{mat.name}</p>
-                          <p className="text-sm text-slate-500">{mat.type} • {mat.size} • {mat.date}</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button className="p-2 text-slate-600 hover:bg-slate-200 rounded-lg transition">
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteMaterial(mat.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+              <div className="space-y-6">
+                {/* Pending Delete */}
+                {selectedCourse.materials.some(m => m.status === 'pending_delete') && (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-slate-800">Tài liệu đang chờ xóa</h4>
+                      <span className="text-xs text-slate-500">{selectedCourse.materials.filter(m => m.status === 'pending_delete').length} mục</span>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-slate-500">
-                  <FileText className="w-12 h-12 mx-auto mb-2 text-slate-300" />
-                  <p>Chưa có tài liệu nào cho môn học này</p>
-                </div>
-              )}
+                    <div className="space-y-3">
+                      {selectedCourse.materials.filter(m => m.status === 'pending_delete').map(mat => (
+                        <div key={mat.id} className="flex items-center justify-between p-4 bg-red-50 rounded-lg hover:bg-red-100 transition border border-red-200">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <File className="w-5 h-5 text-red-600 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-slate-800">
+                                <span className="line-through">{mat.name}</span> 
+                                <span className="text-xs text-red-700 font-medium"> (Chờ xóa)</span>
+                              </p>
+                              <p className="text-sm text-slate-500">{mat.type} • {mat.size} • {mat.date}</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => handleUndoChange(mat.id)}
+                            className="flex items-center gap-1 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition text-sm font-medium flex-shrink-0 ml-2"
+                            title="Hoàn tác"
+                          >
+                            <Undo className="w-4 h-4" />
+                            Hoàn tác
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Pending */}
+                {selectedCourse.materials.some(m => m.status === 'pending') && (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-slate-800">Tài liệu đang chờ duyệt</h4>
+                      <span className="text-xs text-slate-500">{selectedCourse.materials.filter(m => m.status === 'pending').length} mục</span>
+                    </div>
+                    <div className="space-y-3">
+                      {selectedCourse.materials.filter(m => m.status === 'pending').map(mat => (
+                        <div key={mat.id} className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <File className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-slate-800">
+                                {mat.name} 
+                                <span className="text-xs text-yellow-700 font-medium"> (Chờ duyệt)</span>
+                              </p>
+                              {mat.originalName && (
+                                <p className="text-xs text-slate-500 line-through mt-1">
+                                  Trước: {mat.originalName}
+                                </p>
+                              )}
+                              <p className="text-sm text-slate-500">{mat.type} • {mat.size} • {mat.date}</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2 flex-shrink-0">
+                            <button 
+                              onClick={() => handleUndoChange(mat.id)}
+                              className="flex items-center gap-1 px-2 py-1.5 text-blue-600 hover:bg-blue-50 rounded transition text-sm font-medium"
+                              title="Hoàn tác"
+                            >
+                              <Undo className="w-4 h-4" />
+                              Hoàn tác
+                            </button>
+                            <button onClick={() => handleEditMaterial(mat.id)} className="p-2 text-slate-600 hover:bg-slate-200 rounded-lg transition">
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            {mat.originalName && (
+                              <button onClick={() => handleDeleteMaterial(mat.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Approved */}
+                {selectedCourse.materials.some(m => m.status === 'approved') ? (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-slate-800">Tài liệu đã được duyệt</h4>
+                      <span className="text-xs text-slate-500">{selectedCourse.materials.filter(m => m.status === 'approved').length} mục</span>
+                    </div>
+                    <div className="space-y-3">
+                      {selectedCourse.materials.filter(m => m.status === 'approved').map(mat => (
+                        <div key={mat.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+                          <div className="flex items-center gap-3">
+                            <File className="w-5 h-5 text-blue-600" />
+                            <div>
+                              <p className="font-semibold text-slate-800">{mat.name}</p>
+                              <p className="text-sm text-slate-500">{mat.type} • {mat.size} • {mat.date}</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => handleEditMaterial(mat.id)} className="p-2 text-slate-600 hover:bg-slate-200 rounded-lg transition">
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleDeleteMaterial(mat.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  !selectedCourse.materials.some(m => m.status === 'pending') && (
+                    <div className="text-center py-8 text-slate-500">
+                      <FileText className="w-12 h-12 mx-auto mb-2 text-slate-300" />
+                      <p>Chưa có tài liệu nào cho môn học này</p>
+                    </div>
+                  )
+                )}
+              </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Edit Modal */}
+      {showEditModal && editingMaterial && (
+        <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-slate-800">Chỉnh sửa tài liệu</h3>
+              <button 
+                onClick={() => { setShowEditModal(false); setEditingMaterial(null); setEditName(''); }}
+                className="text-slate-400 hover:text-slate-600 transition"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Tên tài liệu
+              </label>
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:outline-none transition"
+                placeholder="Nhập tên tài liệu..."
+                autoFocus
+                onKeyPress={(e) => e.key === 'Enter' && confirmEdit()}
+              />
+              <p className="text-xs text-slate-500 mt-2">
+                Sau khi chỉnh sửa, tài liệu sẽ cần được admin duyệt lại
+              </p>
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => { setShowEditModal(false); setEditingMaterial(null); setEditName(''); }}
+                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={confirmEdit}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+              >
+                Lưu thay đổi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Modal */}
+      {showDeleteModal && deletingMaterialId !== null && (
+        <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-slate-800">Xác nhận xóa</h3>
+              <button 
+                onClick={() => { setShowDeleteModal(false); setDeletingMaterialId(null); }}
+                className="text-slate-400 hover:text-slate-600 transition"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-slate-800 font-semibold">
+                    {selectedCourse?.materials.find(m => m.id === deletingMaterialId)?.name}
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    Tài liệu sẽ được đánh dấu chờ xóa
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg">
+                Tài liệu sẽ được đánh dấu là "Chờ xóa" và cần admin duyệt trước khi xóa hoàn toàn.
+              </p>
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => { setShowDeleteModal(false); setDeletingMaterialId(null); }}
+                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
+              >
+                Đánh dấu chờ xóa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
