@@ -6,14 +6,14 @@ interface Challenge {
     title: string;
     description: string;
     solution: string;
-    frequency: 'Cao' | 'Trung bình' | 'Thấp';
+    frequency: 'High' | 'Medium' | 'Low';
     materialId: number;
     materialName: string;
     status: 'pending' | 'approved' | 'pending_delete';
     originalTitle?: string;
     originalDescription?: string;
     originalSolution?: string;
-    originalFrequency?: 'Cao' | 'Trung bình' | 'Thấp';
+    originalFrequency?: 'High' | 'Medium' | 'Low';
 }
 
 interface Material {
@@ -37,7 +37,7 @@ const ChallengesManagement: React.FC = () => {
     // View state
     const [view, setView] = useState<'courses' | 'challenges'>('courses');
     
-    const [selectedSemester, setSelectedSemester] = useState<string>('Kỳ 1');
+    const [selectedSemester, setSelectedSemester] = useState<string>('Semester 1');
     const [showSemesterDropdown, setShowSemesterDropdown] = useState<boolean>(false);
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
     const [showAddForm, setShowAddForm] = useState<boolean>(false);
@@ -54,14 +54,14 @@ const ChallengesManagement: React.FC = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deletingChallenge, setDeletingChallenge] = useState<{ challengeId: number; materialId: number } | null>(null);
 
-    const semesters = ['Kỳ 1', 'Kỳ 2', 'Kỳ 3', 'Kỳ 4', 'Kỳ 5', 'Kỳ 6', 'Kỳ 7', 'Kỳ 8', 'Kỳ 9'];
+    const semesters = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8', 'Semester 9'];
 
     const [courses, setCourses] = useState<Course[]>([
         {
             id: 1,
-            name: 'Programming Fundamentals - Cơ sở lập trình',
+            name: 'Programming Fundamentals',
             code: 'PRF192',
-            semester: 'Kỳ 1',
+            semester: 'Semester 1',
             materials: [
                 {
                     id: 1,
@@ -72,18 +72,18 @@ const ChallengesManagement: React.FC = () => {
                     challenges: [
                         {
                             id: 1,
-                            title: 'Khó hiểu cú pháp ngôn ngữ C',
-                            description: 'Sinh viên gặp khó khăn với cú pháp pointer và memory management',
-                            solution: 'Sử dụng diagram và debug step-by-step để minh họa',
-                            frequency: 'Cao',
+                            title: 'Hard to understand C syntax',
+                            description: 'Students struggle with pointer syntax and memory management',
+                            solution: 'Use diagrams and step-by-step debugging to illustrate',
+                            frequency: 'High',
                             status: 'approved'
                         },
                         {
                             id: 2,
-                            title: 'Logic lập trình chưa rõ ràng',
-                            description: 'Sinh viên khó chuyển từ tư duy thường ngày sang tư duy lập trình',
-                            solution: 'Luyện tập với flowchart và pseudocode trước khi code',
-                            frequency: 'Cao',
+                            title: 'Unclear programming logic',
+                            description: 'Students find it hard to shift from everyday thinking to programming thinking',
+                            solution: 'Practice with flowcharts and pseudocode before coding',
+                            frequency: 'High',
                             status: 'approved'
                         }
                     ]
@@ -97,10 +97,10 @@ const ChallengesManagement: React.FC = () => {
                     challenges: [
                         {
                             id: 3,
-                            title: 'Nhầm lẫn giữa các vòng lặp',
-                            description: 'Sinh viên không biết khi nào dùng for, while, do-while',
-                            solution: 'Tạo bảng so sánh và bài tập thực hành cho từng loại',
-                            frequency: 'Trung bình',
+                            title: 'Confusion between loops',
+                            description: 'Students are unsure when to use for, while, do-while',
+                            solution: 'Create a comparison table and practical exercises for each type',
+                            frequency: 'Medium',
                             status: 'approved'
                         }
                     ]
@@ -109,9 +109,9 @@ const ChallengesManagement: React.FC = () => {
         },
         {
             id: 2,
-            name: 'Mathematics for Engineering - Toán cho ngành kỹ thuật',
+            name: 'Mathematics for Engineering',
             code: 'MAE101',
-            semester: 'Kỳ 1',
+            semester: 'Semester 1',
             materials: [
                 {
                     id: 3,
@@ -122,10 +122,10 @@ const ChallengesManagement: React.FC = () => {
                     challenges: [
                         {
                             id: 4,
-                            title: 'Khó hiểu khái niệm giới hạn',
-                            description: 'Sinh viên gặp khó khăn với định nghĩa epsilon-delta và ứng dụng',
-                            solution: 'Sử dụng đồ thị và ví dụ thực tế để minh họa',
-                            frequency: 'Cao',
+                            title: 'Hard to understand the concept of limits',
+                            description: 'Students struggle with the epsilon-delta definition and applications',
+                            solution: 'Use graphs and real-world examples to illustrate',
+                            frequency: 'High',
                             status: 'approved'
                         }
                     ]
@@ -134,9 +134,9 @@ const ChallengesManagement: React.FC = () => {
         },
         {
             id: 3,
-            name: 'Introduction to Computer - Nhập môn khoa học máy tính',
+            name: 'Introduction to Computer Science',
             code: 'CSI104',
-            semester: 'Kỳ 1',
+            semester: 'Semester 1',
             materials: [
                 {
                     id: 4,
@@ -147,10 +147,10 @@ const ChallengesManagement: React.FC = () => {
                     challenges: [
                         {
                             id: 5,
-                            title: 'Khó hiểu kiến trúc máy tính',
-                            description: 'Sinh viên khó hình dung cách CPU, RAM, và các thành phần hoạt động',
-                            solution: 'Sử dụng mô hình 3D và simulation để minh họa',
-                            frequency: 'Cao',
+                            title: 'Hard to understand computer architecture',
+                            description: 'Students find it hard to visualize how the CPU, RAM, and other components work',
+                            solution: 'Use 3D models and simulations to illustrate',
+                            frequency: 'High',
                             status: 'approved'
                         }
                     ]
@@ -159,9 +159,9 @@ const ChallengesManagement: React.FC = () => {
         },
         {
             id: 4,
-            name: 'Computer Organization and Architecture - Tổ chức và Kiến trúc máy tính',
+            name: 'Computer Organization and Architecture',
             code: 'CEA201',
-            semester: 'Kỳ 1',
+            semester: 'Semester 1',
             materials: [
                 {
                     id: 5,
@@ -172,10 +172,10 @@ const ChallengesManagement: React.FC = () => {
                     challenges: [
                         {
                             id: 6,
-                            title: 'Logic số khó hiểu',
-                            description: 'Sinh viên gặp khó khăn với bảng chân lý và thiết kế mạch',
-                            solution: 'Thực hành với phần mềm mô phỏng mạch điện tử',
-                            frequency: 'Trung bình',
+                            title: 'Digital logic is hard to grasp',
+                            description: 'Students struggle with truth tables and circuit design',
+                            solution: 'Practice with electronic circuit simulation software',
+                            frequency: 'Medium',
                             status: 'approved'
                         }
                     ]
@@ -184,9 +184,9 @@ const ChallengesManagement: React.FC = () => {
         },
         {
             id: 5,
-            name: 'Object-Oriented Programming - Lập trình hướng đối tượng',
+            name: 'Object-Oriented Programming',
             code: 'PRO192',
-            semester: 'Kỳ 2',
+            semester: 'Semester 2',
             materials: [
                 {
                     id: 6,
@@ -197,10 +197,10 @@ const ChallengesManagement: React.FC = () => {
                     challenges: [
                         {
                             id: 7,
-                            title: 'Khó hiểu khái niệm OOP',
-                            description: 'Sinh viên gặp khó khăn với Class, Object, Inheritance, Polymorphism',
-                            solution: 'Sử dụng ví dụ thực tế và UML diagram để minh họa',
-                            frequency: 'Cao',
+                            title: 'Hard to understand OOP concepts',
+                            description: 'Students struggle with Class, Object, Inheritance, Polymorphism',
+                            solution: 'Use real-world examples and UML diagrams to illustrate',
+                            frequency: 'High',
                             status: 'approved'
                         }
                     ]
@@ -214,10 +214,10 @@ const ChallengesManagement: React.FC = () => {
                     challenges: [
                         {
                             id: 8,
-                            title: 'Cú pháp Java phức tạp',
-                            description: 'Sinh viên nhầm lẫn giữa cú pháp Java và C/C++',
-                            solution: 'Tạo bảng so sánh cú pháp và coding convention',
-                            frequency: 'Trung bình',
+                            title: 'Complex Java syntax',
+                            description: 'Students confuse Java syntax with C/C++',
+                            solution: 'Create a syntax comparison table and coding conventions',
+                            frequency: 'Medium',
                             status: 'approved'
                         }
                     ]
@@ -279,7 +279,7 @@ const ChallengesManagement: React.FC = () => {
                                     title: newChallenge.title,
                                     description: '',
                                     solution: '',
-                                    frequency: 'Trung bình' as const,
+                                    frequency: 'Medium' as const,
                                     id: Date.now(), 
                                     status: 'pending' as const 
                                 }]
@@ -426,7 +426,7 @@ const ChallengesManagement: React.FC = () => {
                                             title: originalTitle,
                                             description: originalDescription || '',
                                             solution: originalSolution || '',
-                                            frequency: originalFrequency || 'Trung bình',
+                                            frequency: originalFrequency || 'Medium',
                                             status: 'approved' as const
                                         };
                                     } else if (challenge.status === 'pending' && !challenge.originalTitle) {
@@ -454,9 +454,9 @@ const ChallengesManagement: React.FC = () => {
 
     const getFrequencyColor = (frequency: string) => {
         switch (frequency) {
-            case 'Cao': return 'bg-red-100 text-red-700 border-red-200';
-            case 'Trung bình': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-            case 'Thấp': return 'bg-green-100 text-green-700 border-green-200';
+            case 'High': return 'bg-red-100 text-red-700 border-red-200';
+            case 'Medium': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+            case 'Low': return 'bg-green-100 text-green-700 border-green-200';
             default: return 'bg-slate-100 text-slate-700 border-slate-200';
         }
     };
@@ -470,9 +470,9 @@ const ChallengesManagement: React.FC = () => {
                 <div>
                     <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
                         <AlertCircle className="w-7 h-7 text-orange-600" />
-                        Thách Thức Thường Gặp
+                        Common Learning Challenges
                     </h1>
-                    <p className="text-slate-600 mt-1">Quản lý các thách thức học tập của sinh viên theo môn học</p>
+                    <p className="text-slate-600 mt-1">Manage students' learning challenges by course</p>
                 </div>
             </div>
 
@@ -480,7 +480,7 @@ const ChallengesManagement: React.FC = () => {
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <div className="relative">
                     <label className="block text-sm font-semibold text-slate-700 mb-3">
-                        Chọn Kỳ Học
+                        Select Semester
                     </label>
                     <button
                         onClick={() => setShowSemesterDropdown(!showSemesterDropdown)}
@@ -488,10 +488,10 @@ const ChallengesManagement: React.FC = () => {
                     >
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                                {selectedSemester.replace('Kỳ ', '')}
+                                {selectedSemester.replace('Semester ', '')}
                             </div>
                             <div className="text-left">
-                                <div className="text-sm text-slate-600 font-medium">Đang chọn</div>
+                                <div className="text-sm text-slate-600 font-medium">Selected</div>
                                 <div className="text-lg font-bold text-slate-800">{selectedSemester}</div>
                             </div>
                         </div>
@@ -516,7 +516,7 @@ const ChallengesManagement: React.FC = () => {
                                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold ${
                                             selectedSemester === semester ? 'bg-orange-600' : 'bg-slate-400'
                                         }`}>
-                                            {semester.replace('Kỳ ', '')}
+                                            {semester.replace('Semester ', '')}
                                         </div>
                                         <span className={`font-semibold ${
                                             selectedSemester === semester ? 'text-orange-600' : 'text-slate-600'
@@ -526,7 +526,7 @@ const ChallengesManagement: React.FC = () => {
                                         {selectedSemester === semester && (
                                             <div className="ml-auto flex items-center gap-2 text-orange-600">
                                                 <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse" />
-                                                <span className="text-sm font-medium">Đang chọn</span>
+                                                <span className="text-sm font-medium">Selected</span>
                                             </div>
                                         )}
                                     </button>
@@ -540,7 +540,7 @@ const ChallengesManagement: React.FC = () => {
                 {!selectedCourse && coursesForSemester.length > 0 && (
                     <div className="mt-6">
                         <h3 className="text-sm font-semibold text-slate-700 mb-3">
-                            Chọn Môn Học ({coursesForSemester.length} môn)
+                            Select Course ({coursesForSemester.length} courses)
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {coursesForSemester.map((course) => {
@@ -558,7 +558,7 @@ const ChallengesManagement: React.FC = () => {
                                         <p className="text-sm text-slate-600 mb-2">{course.code}</p>
                                         <div className="flex items-center gap-2 text-xs flex-wrap">
                                             <span className="px-2 py-1 rounded-full font-medium bg-slate-100 text-slate-600">
-                                                {totalChallenges} thách thức
+                                                {totalChallenges} challenges
                                             </span>
                                             {/* <span className="text-slate-400">•</span> */}
                                             {/* <span className="text-slate-600">{course.materials.length} tài liệu</span> */}
@@ -573,7 +573,7 @@ const ChallengesManagement: React.FC = () => {
                 {coursesForSemester.length === 0 && (
                     <div className="mt-6 text-center py-8 text-slate-500">
                         <AlertCircle className="w-12 h-12 mx-auto mb-2 text-slate-300" />
-                        <p>Không có môn học nào trong {selectedSemester}</p>
+                        <p>No courses in {selectedSemester}</p>
                     </div>
                 )}
             </div>
@@ -589,17 +589,17 @@ const ChallengesManagement: React.FC = () => {
                                     className="mb-3 flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold transition-colors"
                                 >
                                     <ChevronRight className="w-4 h-4 rotate-180" />
-                                    Quay lại danh sách môn học
+                                    Back to course list
                                 </button>
                                 <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                                     <AlertCircle className="w-6 h-6 text-orange-600" />
-                                    Thách Thức - {selectedCourse.name}
+                                    Challenges - {selectedCourse.name}
                                 </h2>
                                 <p className="text-sm text-slate-600 mt-1">{selectedCourse.code}</p>
                             </div>
                             <div className="flex items-center gap-3">
                                 <span className="px-4 py-2 bg-orange-100 text-orange-700 rounded-lg text-sm font-semibold">
-                                    {getTotalChallengesCount()} thách thức
+                                    {getTotalChallengesCount()} challenges
                                 </span>
                                 {!showAddForm && (
                                     <button
@@ -607,7 +607,7 @@ const ChallengesManagement: React.FC = () => {
                                         className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold"
                                     >
                                         <Plus className="w-4 h-4" />
-                                        Thêm Thách Thức
+                                        Add Challenge
                                     </button>
                                 )}
                             </div>
@@ -619,19 +619,19 @@ const ChallengesManagement: React.FC = () => {
                         <div className="mb-6 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
                             <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
                                 <Plus className="w-5 h-5 text-orange-600" />
-                                Thêm Thách Thức Mới
+                                Add New Challenge
                             </h3>
 
                             <div className="space-y-3">
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                        Tiêu đề thách thức *
+                                        Challenge title *
                                     </label>
                                     <input
                                         type="text"
                                         value={newChallenge.title}
                                         onChange={(e) => setNewChallenge({ ...newChallenge, title: e.target.value })}
-                                        placeholder="Ví dụ: Khó hiểu khái niệm..."
+                                        placeholder="E.g., Hard to understand concept..."
                                         className="w-full px-4 py-2 border-2 border-orange-200 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none"
                                     />
                                 </div>
@@ -643,7 +643,7 @@ const ChallengesManagement: React.FC = () => {
                                         className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors font-semibold"
                                     >
                                         <Save className="w-4 h-4" />
-                                        Thêm Thách Thức
+                                        Add Challenge
                                     </button>
 
                                     <button
@@ -654,7 +654,7 @@ const ChallengesManagement: React.FC = () => {
                                         className="flex items-center gap-2 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors font-semibold"
                                     >
                                         <X className="w-4 h-4" />
-                                        Hủy
+                                        Cancel
                                     </button>
                                 </div>
                             </div>
@@ -665,8 +665,8 @@ const ChallengesManagement: React.FC = () => {
                     {allChallenges.length === 0 ? (
                         <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-lg">
                             <AlertCircle className="w-12 h-12 mx-auto mb-2 text-slate-300" />
-                            <p className="text-lg font-semibold">Chưa có thách thức nào</p>
-                            <p className="text-sm mt-1">Nhấn nút "Thêm Thách Thức" để bắt đầu</p>
+                            <p className="text-lg font-semibold">No challenges yet</p>
+                            <p className="text-sm mt-1">Click "Add Challenge" to get started</p>
                         </div>
                     ) : (
                         <div className="space-y-6">
@@ -674,8 +674,8 @@ const ChallengesManagement: React.FC = () => {
                             {allChallenges.some(c => c.status === 'pending_delete') && (
                                 <div>
                                     <div className="flex items-center justify-between mb-3">
-                                        <h4 className="font-semibold text-slate-800">Thách thức chờ xóa</h4>
-                                        <span className="text-xs text-slate-500">{allChallenges.filter(c => c.status === 'pending_delete').length} mục</span>
+                                        <h4 className="font-semibold text-slate-800">Challenges awaiting deletion</h4>
+                                        <span className="text-xs text-slate-500">{allChallenges.filter(c => c.status === 'pending_delete').length} items</span>
                                     </div>
                                     <div className="space-y-2">
                                         {allChallenges.filter(c => c.status === 'pending_delete').map((challenge, index) => (
@@ -689,17 +689,17 @@ const ChallengesManagement: React.FC = () => {
                                                 <div className="flex-1 min-w-0">
                                                     <h4 className="font-semibold text-slate-800">
                                                         <span className="line-through">{challenge.title}</span>
-                                                        <span className="text-xs text-red-700 font-medium ml-2">(Chờ xóa)</span>
+                                                        <span className="text-xs text-red-700 font-medium ml-2">(Pending deletion)</span>
                                                     </h4>
                                                 </div>
                                                 <div className="flex gap-1 flex-shrink-0">
                                                     <button
                                                         onClick={() => handleUndoChange(challenge.id, challenge.materialId)}
                                                         className="flex items-center gap-1 px-2 py-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors text-sm font-medium"
-                                                        title="Hoàn tác"
+                                                        title="Undo"
                                                     >
                                                         <Undo className="w-4 h-4" />
-                                                        Hoàn tác
+                                                        Undo
                                                     </button>
                                                 </div>
                                             </div>
@@ -712,8 +712,8 @@ const ChallengesManagement: React.FC = () => {
                             {allChallenges.some(c => c.status === 'pending') && (
                                 <div>
                                     <div className="flex items-center justify-between mb-3">
-                                        <h4 className="font-semibold text-slate-800">Thách thức chờ duyệt</h4>
-                                        <span className="text-xs text-slate-500">{allChallenges.filter(c => c.status === 'pending').length} mục</span>
+                                        <h4 className="font-semibold text-slate-800">Challenges pending approval</h4>
+                                        <span className="text-xs text-slate-500">{allChallenges.filter(c => c.status === 'pending').length} items</span>
                                     </div>
                                     <div className="space-y-2">
                                         {allChallenges.filter(c => c.status === 'pending').map((challenge, index) => (
@@ -727,11 +727,11 @@ const ChallengesManagement: React.FC = () => {
                                                 <div className="flex-1 min-w-0">
                                                     <h4 className="font-semibold text-slate-800">
                                                         {challenge.title}
-                                                        <span className="text-xs text-yellow-700 font-medium ml-2">(Chờ duyệt)</span>
+                                                        <span className="text-xs text-yellow-700 font-medium ml-2">(Pending approval)</span>
                                                     </h4>
                                                     {challenge.originalTitle && (
                                                         <p className="text-xs text-slate-500 mt-1 line-through">
-                                                            Trước: {challenge.originalTitle}
+                                                            Before: {challenge.originalTitle}
                                                         </p>
                                                     )}
                                                 </div>
@@ -739,15 +739,15 @@ const ChallengesManagement: React.FC = () => {
                                                     <button
                                                         onClick={() => handleUndoChange(challenge.id, challenge.materialId)}
                                                         className="flex items-center gap-1 px-2 py-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors text-sm font-medium"
-                                                        title="Hoàn tác"
+                                                        title="Undo"
                                                     >
                                                         <Undo className="w-4 h-4" />
-                                                        Hoàn tác
+                                                        Undo
                                                     </button>
                                                     <button
                                                         onClick={() => handleEditChallenge(challenge)}
                                                         className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                                        title="Chỉnh sửa"
+                                                        title="Edit"
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
@@ -762,8 +762,8 @@ const ChallengesManagement: React.FC = () => {
                             {allChallenges.some(c => c.status === 'approved') && (
                                 <div>
                                     <div className="flex items-center justify-between mb-3">
-                                        <h4 className="font-semibold text-slate-800">Thách thức đã được duyệt</h4>
-                                        <span className="text-xs text-slate-500">{allChallenges.filter(c => c.status === 'approved').length} mục</span>
+                                        <h4 className="font-semibold text-slate-800">Approved challenges</h4>
+                                        <span className="text-xs text-slate-500">{allChallenges.filter(c => c.status === 'approved').length} items</span>
                                     </div>
                                     <div className="space-y-2">
                                         {allChallenges.filter(c => c.status === 'approved').map((challenge, index) => (
@@ -781,14 +781,14 @@ const ChallengesManagement: React.FC = () => {
                                                     <button
                                                         onClick={() => handleEditChallenge(challenge)}
                                                         className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                                        title="Chỉnh sửa"
+                                                        title="Edit"
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteChallenge(challenge.id, challenge.materialId)}
                                                         className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                                        title="Xóa"
+                                                        title="Delete"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
@@ -808,7 +808,7 @@ const ChallengesManagement: React.FC = () => {
                 <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-bold text-slate-800">Chỉnh sửa thách thức</h3>
+                            <h3 className="text-xl font-bold text-slate-800">Edit challenge</h3>
                             <button
                                 onClick={() => { setShowEditModal(false); setEditingItem(null); setFormData({ title: '' }); }}
                                 className="text-slate-400 hover:text-slate-600 transition"
@@ -821,18 +821,18 @@ const ChallengesManagement: React.FC = () => {
 
                         <div className="mb-6">
                             <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                Tiêu đề thách thức
+                                Challenge title
                             </label>
                             <input
                                 type="text"
                                 value={formData.title}
                                 onChange={(e) => setFormData({ title: e.target.value })}
                                 className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-orange-500 focus:outline-none transition"
-                                placeholder="Nhập tiêu đề thách thức..."
+                                placeholder="Enter challenge title..."
                                 autoFocus
                             />
                             <p className="text-xs text-slate-500 mt-2">
-                                Sau khi chỉnh sửa, thách thức sẽ cần được admin duyệt lại
+                                After editing, the challenge will require admin approval again.
                             </p>
                         </div>
 
@@ -841,14 +841,14 @@ const ChallengesManagement: React.FC = () => {
                                 onClick={() => { setShowEditModal(false); setEditingItem(null); setFormData({ title: '' }); }}
                                 className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
                             >
-                                Hủy
+                                Cancel
                             </button>
                             <button
                                 onClick={confirmEdit}
                                 disabled={!formData.title.trim()}
                                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition font-medium"
                             >
-                                Lưu thay đổi
+                                Save changes
                             </button>
                         </div>
                     </div>
@@ -860,7 +860,7 @@ const ChallengesManagement: React.FC = () => {
                 <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-bold text-slate-800">Xác nhận xóa</h3>
+                            <h3 className="text-xl font-bold text-slate-800">Confirm deletion</h3>
                             <button 
                                 onClick={() => { setShowDeleteModal(false); setDeletingChallenge(null); }}
                                 className="text-slate-400 hover:text-slate-600 transition"
@@ -883,12 +883,12 @@ const ChallengesManagement: React.FC = () => {
                                             .find(c => c.id === deletingChallenge.challengeId)?.title}
                                     </p>
                                     <p className="text-sm text-slate-500">
-                                        Thách thức sẽ được đánh dấu chờ xóa
+                                        The challenge will be marked as pending deletion
                                     </p>
                                 </div>
                             </div>
                             <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg">
-                                Thách thức sẽ được đánh dấu là "Chờ xóa" và cần admin duyệt trước khi xóa hoàn toàn.
+                                The challenge will be marked as "Pending deletion" and requires admin approval before permanent removal.
                             </p>
                         </div>
 
@@ -897,13 +897,13 @@ const ChallengesManagement: React.FC = () => {
                                 onClick={() => { setShowDeleteModal(false); setDeletingChallenge(null); }}
                                 className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
                             >
-                                Hủy
+                                Cancel
                             </button>
                             <button
                                 onClick={confirmDelete}
                                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
                             >
-                                Đánh dấu chờ xóa
+                                Mark as pending deletion
                             </button>
                         </div>
                     </div>

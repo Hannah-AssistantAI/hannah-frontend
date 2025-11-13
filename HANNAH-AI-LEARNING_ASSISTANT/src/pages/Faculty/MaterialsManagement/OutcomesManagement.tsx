@@ -32,9 +32,9 @@ const OutcomesManagement: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([
     {
       id: 1,
-      name: 'Programming Fundamentals - Cơ sở lập trình',
+      name: 'Programming Fundamentals',
       code: 'PRF192',
-      semester: 'Kỳ 1',
+      semester: 'Semester 1',
       materials: [
         {
           id: 1,
@@ -43,8 +43,8 @@ const OutcomesManagement: React.FC = () => {
           size: '2.5 MB',
           date: '01/09/2024',
           outcomes: [
-            { id: 1, text: 'Sinh viên hiểu và vận dụng được các khái niệm lập trình cơ bản', status: 'approved' },
-            { id: 2, text: 'Sinh viên viết được các chương trình đơn giản bằng ngôn ngữ C', status: 'approved' },
+            { id: 1, text: 'Students understand and apply basic programming concepts', status: 'approved' },
+            { id: 2, text: 'Students can write simple programs in C', status: 'approved' },
           ]
         },
         {
@@ -54,17 +54,17 @@ const OutcomesManagement: React.FC = () => {
           size: '1.8 MB',
           date: '05/09/2024',
           outcomes: [
-            { id: 3, text: 'Sinh viên sử dụng thành thạo các cấu trúc điều khiển', status: 'approved' },
-            { id: 4, text: 'Sinh viên thiết kế được thuật toán cho bài toán đơn giản', status: 'approved' },
+            { id: 3, text: 'Students use control structures proficiently', status: 'approved' },
+            { id: 4, text: 'Students can design algorithms for simple problems', status: 'approved' },
           ]
         },
       ]
     },
     {
       id: 2,
-      name: 'Mathematics for Engineering - Toán cho ngành kỹ thuật',
+      name: 'Mathematics for Engineering',
       code: 'MAE101',
-      semester: 'Kỳ 1',
+      semester: 'Semester 1',
       materials: [
         {
           id: 3,
@@ -73,17 +73,17 @@ const OutcomesManagement: React.FC = () => {
           size: '3.1 MB',
           date: '02/09/2024',
           outcomes: [
-            { id: 5, text: 'Nắm vững các khái niệm về giới hạn và đạo hàm', status: 'approved' },
-            { id: 6, text: 'Vận dụng toán học vào giải quyết các bài toán kỹ thuật', status: 'approved' },
+            { id: 5, text: 'Master concepts of limits and derivatives', status: 'approved' },
+            { id: 6, text: 'Apply mathematics to solve engineering problems', status: 'approved' },
           ]
         },
       ]
     },
     {
       id: 3,
-      name: 'Introduction to Computer - Nhập môn khoa học máy tính',
+      name: 'Introduction to Computer Science',
       code: 'CSI104',
-      semester: 'Kỳ 1',
+      semester: 'Semester 1',
       materials: [
         {
           id: 4,
@@ -92,17 +92,17 @@ const OutcomesManagement: React.FC = () => {
           size: '2.2 MB',
           date: '03/09/2024',
           outcomes: [
-            { id: 7, text: 'Hiểu được kiến trúc cơ bản của hệ thống máy tính', status: 'approved' },
-            { id: 8, text: 'Nắm được nguyên lý hoạt động của CPU và bộ nhớ', status: 'approved' },
+            { id: 7, text: 'Understand basic computer system architecture', status: 'approved' },
+            { id: 8, text: 'Understand how the CPU and memory operate', status: 'approved' },
           ]
         },
       ]
     },
     {
       id: 4,
-      name: 'Computer Organization and Architecture - Tổ chức và Kiến trúc máy tính',
+      name: 'Computer Organization and Architecture',
       code: 'CEA201',
-      semester: 'Kỳ 1',
+      semester: 'Semester 1',
       materials: [
         {
           id: 5,
@@ -111,17 +111,17 @@ const OutcomesManagement: React.FC = () => {
           size: '1.9 MB',
           date: '04/09/2024',
           outcomes: [
-            { id: 9, text: 'Hiểu được logic số và các cổng logic cơ bản', status: 'approved' },
-            { id: 10, text: 'Thiết kế được các mạch số đơn giản', status: 'approved' },
+            { id: 9, text: 'Understand digital logic and basic logic gates', status: 'approved' },
+            { id: 10, text: 'Design simple digital circuits', status: 'approved' },
           ]
         },
       ]
     },
     {
       id: 5,
-      name: 'Object-Oriented Programming - Lập trình hướng đối tượng',
+      name: 'Object-Oriented Programming',
       code: 'PRO192',
-      semester: 'Kỳ 2',
+      semester: 'Semester 2',
       materials: [
         {
           id: 6,
@@ -130,8 +130,8 @@ const OutcomesManagement: React.FC = () => {
           size: '2.8 MB',
           date: '15/01/2025',
           outcomes: [
-            { id: 11, text: 'Hiểu và vận dụng được các khái niệm OOP: Class, Object, Inheritance', status: 'approved' },
-            { id: 12, text: 'Thiết kế và lập trình ứng dụng Java theo mô hình hướng đối tượng', status: 'approved' },
+            { id: 11, text: 'Understand and apply OOP concepts: Class, Object, Inheritance', status: 'approved' },
+            { id: 12, text: 'Design and implement Java applications using OOP', status: 'approved' },
           ]
         },
         {
@@ -141,20 +141,20 @@ const OutcomesManagement: React.FC = () => {
           size: '4.2 MB',
           date: '20/01/2025',
           outcomes: [
-            { id: 13, text: 'Nắm vững cú pháp và cấu trúc cơ bản của ngôn ngữ Java', status: 'approved' },
-            { id: 14, text: 'Sử dụng thành thạo các thư viện chuẩn của Java', status: 'approved' },
+            { id: 13, text: 'Master Java syntax and basic structures', status: 'approved' },
+            { id: 14, text: 'Use Java standard libraries proficiently', status: 'approved' },
           ]
         },
       ]
     }
   ]);
 
-  const semesters = ['Kỳ 1', 'Kỳ 2', 'Kỳ 3', 'Kỳ 4', 'Kỳ 5', 'Kỳ 6', 'Kỳ 7', 'Kỳ 8', 'Kỳ 9'];
+  const semesters = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8', 'Semester 9'];
 
   // View state
   const [view, setView] = useState<'courses' | 'outcomes'>('courses');
 
-  const [selectedSemester, setSelectedSemester] = useState<string>('Kỳ 1');
+  const [selectedSemester, setSelectedSemester] = useState<string>('Semester 1');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [showSemesterDropdown, setShowSemesterDropdown] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -205,7 +205,7 @@ const OutcomesManagement: React.FC = () => {
     if (!selectedCourse) return;
 
     if (!formData.text.trim()) {
-      alert('Vui lòng nhập nội dung kết quả học tập');
+      alert('Please enter the learning outcome content');
       return;
     }
 
@@ -409,8 +409,8 @@ const OutcomesManagement: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Kết quả Học tập</h1>
-          <p className="text-slate-600">Quản lý kết quả học tập mong đợi cho các môn học</p>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">Learning Outcomes</h1>
+          <p className="text-slate-600">Manage expected learning outcomes for courses</p>
         </div>
 
         {/* Main Container */}
@@ -422,10 +422,10 @@ const OutcomesManagement: React.FC = () => {
                 <div className="flex items-center justify-between mb-3">
                   <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
                     <Target className="w-5 h-5 text-purple-600" />
-                    Chọn kỳ học
+                    Select semester
                   </label>
                   <span className="text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                    {coursesForSemester.length} môn học
+                    {coursesForSemester.length} courses
                   </span>
                 </div>
 
@@ -436,11 +436,11 @@ const OutcomesManagement: React.FC = () => {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
-                        {selectedSemester.replace('Kỳ ', '')}
+                        {selectedSemester.replace('Semester ', '')}
                       </div>
                       <div className="text-left">
                         <span className="font-bold text-slate-800 text-lg block">{selectedSemester}</span>
-                        <span className="text-xs text-slate-600">Năm học 2024-2025</span>
+                        <span className="text-xs text-slate-600">Academic Year 2024-2025</span>
                       </div>
                     </div>
                     <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform duration-200 ${showSemesterDropdown ? 'rotate-180' : ''}`} />
@@ -473,7 +473,7 @@ const OutcomesManagement: React.FC = () => {
                                 <div>
                                   <div className="font-semibold text-slate-800">{semester}</div>
                                   <div className="text-xs text-slate-500">
-                                    {courses.filter(c => c.semester === semester).length} môn học
+                                    {courses.filter(c => c.semester === semester).length} courses
                                   </div>
                                 </div>
                                 {selectedSemester === semester && (
@@ -494,7 +494,7 @@ const OutcomesManagement: React.FC = () => {
               {/* Course Grid */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-bold text-slate-800">Danh sách môn học</h3>
+                  <h3 className="text-base font-bold text-slate-800">Course list</h3>
                   <div className="h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent ml-4"></div>
                 </div>
 
@@ -533,10 +533,8 @@ const OutcomesManagement: React.FC = () => {
                                 ? 'bg-purple-100 text-purple-700'
                                 : 'bg-slate-100 text-slate-600'
                                 }`}>
-                                {totalOutcomes} kết quả
+                                {totalOutcomes} outcomes
                               </span>
-                              {/* <span className="text-slate-400">•</span>
-                            <span className="text-slate-600">{course.materials.length} tài liệu</span> */}
                             </div>
                             {selectedCourse?.id === course.id && (
                               <div className="flex items-center gap-1 text-purple-600 text-xs font-semibold">
@@ -551,8 +549,8 @@ const OutcomesManagement: React.FC = () => {
                 ) : (
                   <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
                     <Target className="w-16 h-16 mx-auto mb-3 text-slate-300" />
-                    <p className="text-lg font-semibold">Không có môn học nào trong kỳ này</p>
-                    <p className="text-sm mt-1">Vui lòng chọn kỳ học khác</p>
+                    <p className="text-lg font-semibold">No courses in this semester</p>
+                    <p className="text-sm mt-1">Please select another semester</p>
                   </div>
                 )}
               </div>
@@ -573,17 +571,17 @@ const OutcomesManagement: React.FC = () => {
                       className="mb-3 flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold transition-colors"
                     >
                       <ChevronRight className="w-4 h-4 rotate-180" />
-                      Quay lại danh sách môn học
+                      Back to course list
                     </button>
                     <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
                       <Target className="w-6 h-6 text-purple-600" />
-                      Kết quả Học tập - {selectedCourse.name}
+                      Learning Outcomes - {selectedCourse.name}
                     </h2>
                     <p className="text-sm text-slate-600 mt-1">{selectedCourse.code}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-semibold">
-                      {getTotalOutcomesCount()} kết quả
+                      {getTotalOutcomesCount()} outcomes
                     </span>
                     {!showForm && (
                       <button
@@ -591,7 +589,7 @@ const OutcomesManagement: React.FC = () => {
                         className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold shadow-sm hover:shadow-md"
                       >
                         <Plus className="w-4 h-4" />
-                        Thêm Kết quả
+                        Add Outcome
                       </button>
                     )}
                   </div>
@@ -602,18 +600,18 @@ const OutcomesManagement: React.FC = () => {
               {showForm && (
                 <div className="mb-6 p-5 bg-purple-50 rounded-lg border-2 border-purple-200">
                   <h3 className="font-bold text-slate-800 mb-4 text-lg">
-                    ➕ Thêm kết quả học tập mới cho môn học
+                    ➕ Add new learning outcome for the course
                   </h3>
 
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
-                        Nội dung kết quả học tập *
+                        Outcome content *
                       </label>
                       <textarea
                         value={formData.text}
                         onChange={(e) => setFormData({ text: e.target.value })}
-                        placeholder="Nhập nội dung kết quả học tập mong đợi..."
+                        placeholder="Enter expected outcome content..."
                         rows={4}
                         className="w-full px-4 py-2.5 border-2 border-purple-200 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none resize-none"
                       />
@@ -626,14 +624,14 @@ const OutcomesManagement: React.FC = () => {
                         className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors font-semibold shadow-sm hover:shadow-md"
                       >
                         <Check className="w-4 h-4" />
-                        Thêm kết quả
+                        Add outcome
                       </button>
                       <button
                         onClick={cancelForm}
                         className="flex items-center gap-2 px-5 py-2.5 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors font-semibold"
                       >
                         <X className="w-4 h-4" />
-                        Hủy
+                        Cancel
                       </button>
                     </div>
                   </div>
@@ -645,8 +643,8 @@ const OutcomesManagement: React.FC = () => {
                 {allOutcomes.length === 0 ? (
                   <div className="text-center py-16 text-slate-500 bg-slate-50 rounded-xl">
                     <Target className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                    <p className="text-lg font-semibold mb-1">Chưa có kết quả học tập nào</p>
-                    <p className="text-sm">Nhấn nút "Thêm Kết quả" để bắt đầu</p>
+                    <p className="text-lg font-semibold mb-1">No learning outcomes yet</p>
+                    <p className="text-sm">Click "Add Outcome" to get started</p>
                   </div>
                 ) : (
                   <div className="space-y-6">
@@ -654,8 +652,8 @@ const OutcomesManagement: React.FC = () => {
                     {allOutcomes.some(o => o.status === 'pending_delete') && (
                       <div>
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-semibold text-slate-800">Kết quả đang chờ xóa</h4>
-                          <span className="text-xs text-slate-500">{allOutcomes.filter(o => o.status === 'pending_delete').length} mục</span>
+                          <h4 className="font-semibold text-slate-800">Outcomes pending deletion</h4>
+                          <span className="text-xs text-slate-500">{allOutcomes.filter(o => o.status === 'pending_delete').length} items</span>
                         </div>
                         <div className="space-y-2">
                           {allOutcomes.filter(o => o.status === 'pending_delete').map((outcome, index) => (
@@ -668,17 +666,18 @@ const OutcomesManagement: React.FC = () => {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-slate-800">
-                                  <span className="line-through">{outcome.text}</span> 
-                                  <span className="text-xs text-red-700 font-medium"> (Chờ xóa)</span></p>
+                                  <span className="line-through">{outcome.text}</span>
+                                  <span className="text-xs text-red-700 font-medium"> (Pending deletion)</span>
+                                </p>
                               </div>
                               <div className="flex gap-1 flex-shrink-0">
                                 <button
                                   onClick={() => handleUndoChange(outcome.id, outcome.materialId)}
                                   className="flex items-center gap-1 px-2 py-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors text-sm font-medium"
-                                  title="Hoàn tác"
+                                  title="Undo"
                                 >
                                   <Undo className="w-4 h-4" />
-                                  Hoàn tác
+                                  Undo
                                 </button>
                               </div>
                             </div>
@@ -691,8 +690,8 @@ const OutcomesManagement: React.FC = () => {
                     {allOutcomes.some(o => o.status === 'pending') && (
                       <div>
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-semibold text-slate-800">Kết quả đang chờ duyệt</h4>
-                          <span className="text-xs text-slate-500">{allOutcomes.filter(o => o.status === 'pending').length} mục</span>
+                          <h4 className="font-semibold text-slate-800">Outcomes pending approval</h4>
+                          <span className="text-xs text-slate-500">{allOutcomes.filter(o => o.status === 'pending').length} items</span>
                         </div>
                         <div className="space-y-2">
                           {allOutcomes.filter(o => o.status === 'pending').map((outcome, index) => (
@@ -706,10 +705,10 @@ const OutcomesManagement: React.FC = () => {
                               <div className="flex-1 min-w-0">
                                 <p className="text-slate-800">
                                   {outcome.text}
-                                  <span className="text-xs text-yellow-700 font-medium"> (Chờ duyệt)</span>
+                                  <span className="text-xs text-yellow-700 font-medium"> (Pending approval)</span>
                                   {outcome.originalText && (
                                     <span className="block text-xs text-slate-500 mt-1 line-through">
-                                      Trước: {outcome.originalText}
+                                      Before: {outcome.originalText}
                                     </span>
                                   )}
                                 </p>
@@ -718,15 +717,15 @@ const OutcomesManagement: React.FC = () => {
                                 <button
                                   onClick={() => handleUndoChange(outcome.id, outcome.materialId)}
                                   className="flex items-center gap-1 px-2 py-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors text-sm font-medium"
-                                  title="Hoàn tác"
+                                  title="Undo"
                                 >
                                   <Undo className="w-4 h-4" />
-                                  Hoàn tác
+                                  Undo
                                 </button>
                                 <button
                                   onClick={() => handleEdit(outcome)}
                                   className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                  title="Chỉnh sửa"
+                                  title="Edit"
                                 >
                                   <Edit2 className="w-4 h-4" />
                                 </button>
@@ -734,7 +733,7 @@ const OutcomesManagement: React.FC = () => {
                                   <button
                                     onClick={() => handleDeleteOutcome(outcome.id, outcome.materialId)}
                                     className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                    title="Xóa"
+                                    title="Delete"
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </button>
@@ -750,8 +749,8 @@ const OutcomesManagement: React.FC = () => {
                     {allOutcomes.some(o => o.status === 'approved') && (
                       <div>
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-semibold text-slate-800">Kết quả đã được duyệt</h4>
-                          <span className="text-xs text-slate-500">{allOutcomes.filter(o => o.status === 'approved').length} mục</span>
+                          <h4 className="font-semibold text-slate-800">Approved outcomes</h4>
+                          <span className="text-xs text-slate-500">{allOutcomes.filter(o => o.status === 'approved').length} items</span>
                         </div>
                         <div className="space-y-2">
                           {allOutcomes.filter(o => o.status === 'approved').map((outcome, index) => (
@@ -769,14 +768,14 @@ const OutcomesManagement: React.FC = () => {
                                 <button
                                   onClick={() => handleEdit(outcome)}
                                   className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                  title="Chỉnh sửa"
+                                  title="Edit"
                                 >
                                   <Edit2 className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteOutcome(outcome.id, outcome.materialId)}
                                   className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                  title="Xóa"
+                                  title="Delete"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -799,7 +798,7 @@ const OutcomesManagement: React.FC = () => {
         <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-slate-800">Chỉnh sửa kết quả học tập</h3>
+              <h3 className="text-xl font-bold text-slate-800">Edit learning outcome</h3>
               <button
                 onClick={() => { setShowEditModal(false); setEditingItem(null); setFormData({ text: '' }); }}
                 className="text-slate-400 hover:text-slate-600 transition"
@@ -812,18 +811,18 @@ const OutcomesManagement: React.FC = () => {
 
             <div className="mb-6">
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Nội dung kết quả học tập
+                Outcome content
               </label>
               <textarea
                 value={formData.text}
                 onChange={(e) => setFormData({ text: e.target.value })}
                 className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-purple-500 focus:outline-none transition resize-none"
-                placeholder="Nhập nội dung kết quả học tập..."
+                placeholder="Enter outcome content..."
                 rows={4}
                 autoFocus
               />
               <p className="text-xs text-slate-500 mt-2">
-                Sau khi chỉnh sửa, kết quả sẽ cần được admin duyệt lại
+                After editing, the outcome will require admin approval again.
               </p>
             </div>
 
@@ -832,13 +831,13 @@ const OutcomesManagement: React.FC = () => {
                 onClick={() => { setShowEditModal(false); setEditingItem(null); setFormData({ text: '' }); }}
                 className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 onClick={confirmEdit}
                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium"
               >
-                Lưu thay đổi
+                Save changes
               </button>
             </div>
           </div>
@@ -850,7 +849,7 @@ const OutcomesManagement: React.FC = () => {
         <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-slate-800">Xác nhận xóa</h3>
+              <h3 className="text-xl font-bold text-slate-800">Confirm deletion</h3>
               <button
                 onClick={() => { setShowDeleteModal(false); setDeletingOutcome(null); }}
                 className="text-slate-400 hover:text-slate-600 transition"
@@ -871,12 +870,12 @@ const OutcomesManagement: React.FC = () => {
                     {allOutcomes.find(o => o.id === deletingOutcome.outcomeId && o.materialId === deletingOutcome.materialId)?.text}
                   </p>
                   <p className="text-sm text-slate-500">
-                    Kết quả học tập sẽ được đánh dấu chờ xóa
+                    The learning outcome will be marked as pending deletion
                   </p>
                 </div>
               </div>
               <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg">
-                Kết quả học tập sẽ được đánh dấu là "Chờ xóa" và cần admin duyệt trước khi xóa hoàn toàn.
+                The learning outcome will be marked as "Pending deletion" and requires admin approval before permanent removal.
               </p>
             </div>
 
@@ -885,13 +884,13 @@ const OutcomesManagement: React.FC = () => {
                 onClick={() => { setShowDeleteModal(false); setDeletingOutcome(null); }}
                 className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 onClick={confirmDelete}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
               >
-                Đánh dấu chờ xóa
+                Mark as pending deletion
               </button>
             </div>
           </div>

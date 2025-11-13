@@ -25,42 +25,42 @@ const DocumentsManagement: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([
     {
       id: 1,
-      name: 'Programming Fundamentals - Cơ sở lập trình',
+      name: 'Programming Fundamentals',
       code: 'PRF192',
-      semester: 'Kỳ 1',
-        materials: [
+      semester: 'Semester 1',
+      materials: [
         { id: 1, name: 'PRF192_Syllabus.pdf', type: 'PDF', size: '1.1 MB', date: '01/09/2024', status: 'approved' },
         { id: 2, name: 'PRF192_Chapter1.docx', type: 'DOCX', size: '2.3 MB', date: '05/09/2024', status: 'approved' },
       ]
     },
     {
       id: 2,
-      name: 'Mathematics for Engineering - Toán cho ngành kỹ thuật',
+      name: 'Mathematics for Engineering',
       code: 'MAE101',
-      semester: 'Kỳ 1',
-        materials: [
+      semester: 'Semester 1',
+      materials: [
         { id: 3, name: 'MAE101_Lecture1.pptx', type: 'PPTX', size: '3.1 MB', date: '02/09/2024', status: 'approved' },
       ]
     },
     {
       id: 3,
-      name: 'Introduction to Computer - Nhập môn khoa học máy tính',
+      name: 'Introduction to Computer Science',
       code: 'CSI104',
-      semester: 'Kỳ 1',
+      semester: 'Semester 1',
       materials: []
     },
     {
       id: 4,
-      name: 'Computer Organization and Architecture - Tổ chức và Kiến trúc máy tính',
+      name: 'Computer Organization and Architecture',
       code: 'CEA201',
-      semester: 'Kỳ 1',
+      semester: 'Semester 1',
       materials: []
     },
     {
       id: 5,
-      name: 'Object-Oriented Programming - Lập trình hướng đối tượng',
+      name: 'Object-Oriented Programming',
       code: 'PRO192',
-      semester: 'Kỳ 2',
+      semester: 'Semester 2',
       materials: [
         { id: 5, name: 'PRO192_OOP_Concepts.pdf', type: 'PDF', size: '2.8 MB', date: '15/01/2025', status: 'approved' },
         { id: 6, name: 'PRO192_Java_Basics.pptx', type: 'PPTX', size: '4.2 MB', date: '20/01/2025', status: 'approved' },
@@ -68,9 +68,9 @@ const DocumentsManagement: React.FC = () => {
     },
     {
       id: 6,
-      name: 'Data Structures and Algorithms - Cấu trúc dữ liệu và giải thuật',
+      name: 'Data Structures and Algorithms',
       code: 'CSD201',
-      semester: 'Kỳ 3',
+      semester: 'Semester 3',
       materials: []
     }
   ]);
@@ -78,9 +78,9 @@ const DocumentsManagement: React.FC = () => {
   // View state: show course grid or materials screen
   const [view, setView] = useState<'courses' | 'materials'>('courses');
 
-  const semesters = ['Kỳ 1', 'Kỳ 2', 'Kỳ 3', 'Kỳ 4', 'Kỳ 5', 'Kỳ 6', 'Kỳ 7', 'Kỳ 8', 'Kỳ 9'];
+  const semesters = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8', 'Semester 9'];
 
-  const [selectedSemester, setSelectedSemester] = useState<string>('Kỳ 1');
+  const [selectedSemester, setSelectedSemester] = useState<string>('Semester 1');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [showSemesterDropdown, setShowSemesterDropdown] = useState(false);
 
@@ -153,7 +153,7 @@ const DocumentsManagement: React.FC = () => {
           name: file.name,
           type: (file.name.split('.').pop() || 'FILE').toUpperCase(),
           size: `${Math.round((file.size || 0) / 1024)} KB`,
-          date: new Date().toLocaleDateString('vi-VN'),
+          date: new Date().toLocaleDateString('en-US'),
           status: 'pending' as const,
         }));
         return { ...course, materials: [...newMats, ...course.materials] };
@@ -243,8 +243,8 @@ const DocumentsManagement: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Tài liệu</h1>
-          <p className="text-slate-600">Quản lý tài liệu học tập cho các môn học</p>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">Documents</h1>
+          <p className="text-slate-600">Manage learning materials for courses</p>
         </div>
 
         {/* Main Container */}
@@ -256,10 +256,10 @@ const DocumentsManagement: React.FC = () => {
                 <div className="flex items-center justify-between mb-3">
                   <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
                     <BookOpen className="w-5 h-5 text-blue-600" />
-                    Chọn kỳ học
+                    Select semester
                   </label>
                   <span className="text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                    {coursesForSemester.length} môn học
+                    {coursesForSemester.length} courses
                   </span>
                 </div>
               
@@ -270,11 +270,11 @@ const DocumentsManagement: React.FC = () => {
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
-                      {selectedSemester.replace('Kỳ ', '')}
+                      {selectedSemester.replace('Semester ', '')}
                     </div>
                     <div className="text-left">
                       <span className="font-bold text-slate-800 text-lg block">{selectedSemester}</span>
-                      <span className="text-xs text-slate-600">Năm học 2024-2025</span>
+                      <span className="text-xs text-slate-600">Academic Year 2024-2025</span>
                     </div>
                   </div>
                   <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform duration-200 ${showSemesterDropdown ? 'rotate-180' : ''}`} />
@@ -309,7 +309,7 @@ const DocumentsManagement: React.FC = () => {
                               <div>
                                 <div className="font-semibold text-slate-800">{semester}</div>
                                 <div className="text-xs text-slate-500">
-                                  {courses.filter(c => c.semester === semester).length} môn học
+                                  {courses.filter(c => c.semester === semester).length} courses
                                 </div>
                               </div>
                               {selectedSemester === semester && (
@@ -330,7 +330,7 @@ const DocumentsManagement: React.FC = () => {
             {/* Course Grid */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-bold text-slate-800">Danh sách môn học</h3>
+                <h3 className="text-base font-bold text-slate-800">Course list</h3>
                 <div className="h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent ml-4"></div>
               </div>
               
@@ -378,13 +378,13 @@ const DocumentsManagement: React.FC = () => {
                           <span className={`font-semibold ${
                             selectedCourse?.id === course.id ? 'text-blue-700' : 'text-slate-600'
                           }`}>
-                            {course.materials.length} tài liệu
+                            {course.materials.length} materials
                           </span>
                         </div>
                         {selectedCourse?.id === course.id && (
                           <div className="flex items-center gap-1 text-blue-600 text-xs font-semibold">
                             <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-                            Đang chọn
+                            Selected
                           </div>
                         )}
                       </div>
@@ -394,8 +394,8 @@ const DocumentsManagement: React.FC = () => {
               ) : (
                 <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
                   <FileText className="w-16 h-16 mx-auto mb-3 text-slate-300" />
-                  <p className="text-lg font-semibold">Không có môn học nào trong kỳ này</p>
-                  <p className="text-sm mt-1">Vui lòng chọn kỳ học khác</p>
+                  <p className="text-lg font-semibold">No courses in this semester</p>
+                  <p className="text-sm mt-1">Please select another semester</p>
                 </div>
               )}
             </div>
@@ -414,21 +414,21 @@ const DocumentsManagement: React.FC = () => {
                       className="mb-3 flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold transition-colors"
                     >
                       <ChevronRight className="w-4 h-4 rotate-180" />
-                      Quay lại danh sách môn học
+                      Back to course list
                     </button>
-                  <h2 className="text-2xl font-bold text-slate-800">Tài liệu - {selectedCourse.name}</h2>
+                  <h2 className="text-2xl font-bold text-slate-800">Materials - {selectedCourse.name}</h2>
                 </div>
                 <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition">
                   <Upload className="w-5 h-5" />
-                  Tải lên File
+                  Upload files
                   <input type="file" className="hidden" multiple onChange={handleFileInput} />
                 </label>
               </div>
 
               <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center mb-6 hover:border-blue-400 transition">
                 <Upload className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-                <p className="text-slate-600 mb-2">Kéo thả file vào đây hoặc click để chọn</p>
-                <p className="text-sm text-slate-500">Hỗ trợ: PDF, DOCX, PPTX, TXT (Max: 50MB)</p>
+                <p className="text-slate-600 mb-2">Drag and drop files here or click to select</p>
+                <p className="text-sm text-slate-500">Supported: PDF, DOCX, PPTX, TXT (Max: 50MB)</p>
               </div>
 
               <div className="space-y-6">
@@ -436,8 +436,8 @@ const DocumentsManagement: React.FC = () => {
                 {selectedCourse.materials.some(m => m.status === 'pending_delete') && (
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-slate-800">Tài liệu đang chờ xóa</h4>
-                      <span className="text-xs text-slate-500">{selectedCourse.materials.filter(m => m.status === 'pending_delete').length} mục</span>
+                      <h4 className="font-semibold text-slate-800">Materials pending deletion</h4>
+                      <span className="text-xs text-slate-500">{selectedCourse.materials.filter(m => m.status === 'pending_delete').length} items</span>
                     </div>
                     <div className="space-y-3">
                       {selectedCourse.materials.filter(m => m.status === 'pending_delete').map(mat => (
@@ -447,7 +447,7 @@ const DocumentsManagement: React.FC = () => {
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold text-slate-800">
                                 <span className="line-through">{mat.name}</span> 
-                                <span className="text-xs text-red-700 font-medium"> (Chờ xóa)</span>
+                                <span className="text-xs text-red-700 font-medium"> (Pending deletion)</span>
                               </p>
                               <p className="text-sm text-slate-500">{mat.type} • {mat.size} • {mat.date}</p>
                             </div>
@@ -455,10 +455,10 @@ const DocumentsManagement: React.FC = () => {
                           <button 
                             onClick={() => handleUndoChange(mat.id)}
                             className="flex items-center gap-1 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition text-sm font-medium flex-shrink-0 ml-2"
-                            title="Hoàn tác"
+                            title="Undo"
                           >
                             <Undo className="w-4 h-4" />
-                            Hoàn tác
+                            Undo
                           </button>
                         </div>
                       ))}
@@ -470,8 +470,8 @@ const DocumentsManagement: React.FC = () => {
                 {selectedCourse.materials.some(m => m.status === 'pending') && (
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-slate-800">Tài liệu đang chờ duyệt</h4>
-                      <span className="text-xs text-slate-500">{selectedCourse.materials.filter(m => m.status === 'pending').length} mục</span>
+                      <h4 className="font-semibold text-slate-800">Materials pending approval</h4>
+                      <span className="text-xs text-slate-500">{selectedCourse.materials.filter(m => m.status === 'pending').length} items</span>
                     </div>
                     <div className="space-y-3">
                       {selectedCourse.materials.filter(m => m.status === 'pending').map(mat => (
@@ -481,11 +481,11 @@ const DocumentsManagement: React.FC = () => {
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold text-slate-800">
                                 {mat.name} 
-                                <span className="text-xs text-yellow-700 font-medium"> (Chờ duyệt)</span>
+                                <span className="text-xs text-yellow-700 font-medium"> (Pending approval)</span>
                               </p>
                               {mat.originalName && (
                                 <p className="text-xs text-slate-500 line-through mt-1">
-                                  Trước: {mat.originalName}
+                                  Before: {mat.originalName}
                                 </p>
                               )}
                               <p className="text-sm text-slate-500">{mat.type} • {mat.size} • {mat.date}</p>
@@ -495,10 +495,10 @@ const DocumentsManagement: React.FC = () => {
                             <button 
                               onClick={() => handleUndoChange(mat.id)}
                               className="flex items-center gap-1 px-2 py-1.5 text-blue-600 hover:bg-blue-50 rounded transition text-sm font-medium"
-                              title="Hoàn tác"
+                              title="Undo"
                             >
                               <Undo className="w-4 h-4" />
-                              Hoàn tác
+                              Undo
                             </button>
                             <button onClick={() => handleEditMaterial(mat.id)} className="p-2 text-slate-600 hover:bg-slate-200 rounded-lg transition">
                               <Edit2 className="w-4 h-4" />
@@ -519,8 +519,8 @@ const DocumentsManagement: React.FC = () => {
                 {selectedCourse.materials.some(m => m.status === 'approved') ? (
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-slate-800">Tài liệu đã được duyệt</h4>
-                      <span className="text-xs text-slate-500">{selectedCourse.materials.filter(m => m.status === 'approved').length} mục</span>
+                      <h4 className="font-semibold text-slate-800">Approved materials</h4>
+                      <span className="text-xs text-slate-500">{selectedCourse.materials.filter(m => m.status === 'approved').length} items</span>
                     </div>
                     <div className="space-y-3">
                       {selectedCourse.materials.filter(m => m.status === 'approved').map(mat => (
@@ -548,7 +548,7 @@ const DocumentsManagement: React.FC = () => {
                   !selectedCourse.materials.some(m => m.status === 'pending') && (
                     <div className="text-center py-8 text-slate-500">
                       <FileText className="w-12 h-12 mx-auto mb-2 text-slate-300" />
-                      <p>Chưa có tài liệu nào cho môn học này</p>
+                      <p>No materials for this course yet</p>
                     </div>
                   )
                 )}
@@ -563,7 +563,7 @@ const DocumentsManagement: React.FC = () => {
         <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-slate-800">Chỉnh sửa tài liệu</h3>
+              <h3 className="text-xl font-bold text-slate-800">Edit material</h3>
               <button 
                 onClick={() => { setShowEditModal(false); setEditingMaterial(null); setEditName(''); }}
                 className="text-slate-400 hover:text-slate-600 transition"
@@ -576,19 +576,19 @@ const DocumentsManagement: React.FC = () => {
             
             <div className="mb-6">
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Tên tài liệu
+                Material name
               </label>
               <input
                 type="text"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:outline-none transition"
-                placeholder="Nhập tên tài liệu..."
+                placeholder="Enter material name..."
                 autoFocus
                 onKeyPress={(e) => e.key === 'Enter' && confirmEdit()}
               />
               <p className="text-xs text-slate-500 mt-2">
-                Sau khi chỉnh sửa, tài liệu sẽ cần được admin duyệt lại
+                After editing, the material will require admin approval again.
               </p>
             </div>
 
@@ -597,13 +597,13 @@ const DocumentsManagement: React.FC = () => {
                 onClick={() => { setShowEditModal(false); setEditingMaterial(null); setEditName(''); }}
                 className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 onClick={confirmEdit}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
               >
-                Lưu thay đổi
+                Save changes
               </button>
             </div>
           </div>
@@ -615,7 +615,7 @@ const DocumentsManagement: React.FC = () => {
         <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-slate-800">Xác nhận xóa</h3>
+              <h3 className="text-xl font-bold text-slate-800">Confirm deletion</h3>
               <button 
                 onClick={() => { setShowDeleteModal(false); setDeletingMaterialId(null); }}
                 className="text-slate-400 hover:text-slate-600 transition"
@@ -636,12 +636,12 @@ const DocumentsManagement: React.FC = () => {
                     {selectedCourse?.materials.find(m => m.id === deletingMaterialId)?.name}
                   </p>
                   <p className="text-sm text-slate-500">
-                    Tài liệu sẽ được đánh dấu chờ xóa
+                    The material will be marked as pending deletion
                   </p>
                 </div>
               </div>
               <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg">
-                Tài liệu sẽ được đánh dấu là "Chờ xóa" và cần admin duyệt trước khi xóa hoàn toàn.
+                The material will be marked as "Pending deletion" and requires admin approval before permanent removal.
               </p>
             </div>
 
@@ -650,13 +650,13 @@ const DocumentsManagement: React.FC = () => {
                 onClick={() => { setShowDeleteModal(false); setDeletingMaterialId(null); }}
                 className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 onClick={confirmDelete}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
               >
-                Đánh dấu chờ xóa
+                Mark as pending deletion
               </button>
             </div>
           </div>
