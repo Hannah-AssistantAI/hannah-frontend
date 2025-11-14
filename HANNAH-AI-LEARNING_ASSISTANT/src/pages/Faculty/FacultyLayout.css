@@ -25,3 +25,10 @@ body.sidebar-collapsed .faculty-content {
     padding: 16px;
   }
 }
+
+
+/* Override for embedded profile page to remove wrapper styles */
+.faculty-content:has(.profile-page.embedded) {
+    padding: 0;
+    background-color: transparent;
+}
