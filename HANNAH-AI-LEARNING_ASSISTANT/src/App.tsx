@@ -1,4 +1,6 @@
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
+import ThemeToggle from './components/ThemeToggle'
+import ThemedPage from './components/ThemedPage'
 import Home from './pages/home/Home'
 import Learn from './pages/Learn/Learn'
 import Chat from './pages/Chat/Chat'
@@ -25,12 +27,16 @@ import SemesterManagement from './pages/Admin/SemesterManagement/SemesterManagem
 import QuizAttemptDetail from './pages/Faculty/QuestionAnalytics/QuizAttemptDetail'
 
 function App() {
+  const location = useLocation();
+  const showToggle = ['/learn', '/chat', '/profile'].some(p => location.pathname.startsWith(p));
+
   return (
+    <>
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/learn" element={<Learn />} />
-      <Route path="/chat" element={<Chat />} />
-      <Route path="/profile" element={<Profile />} />
+      <Route path="/learn" element={<ThemedPage><Learn /></ThemedPage>} />
+      <Route path="/chat" element={<ThemedPage><Chat /></ThemedPage>} />
+      <Route path="/profile" element={<ThemedPage><Profile /></ThemedPage>} />
 
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminLayout />}>
@@ -63,6 +69,8 @@ function App() {
         <Route path="questions" element={<QuestionStatistics />} />
       </Route>
     </Routes>
+    {showToggle && <ThemeToggle />}
+    </>
   )
 }
 

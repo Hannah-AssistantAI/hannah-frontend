@@ -29,7 +29,7 @@ export default function Learn() {
 
 
     return (
-        <div className="learn-container dark-theme">
+        <div className="learn-container">
             {/* Header */}
             <header className="learn-header">
                 <div className="learn-header-left">

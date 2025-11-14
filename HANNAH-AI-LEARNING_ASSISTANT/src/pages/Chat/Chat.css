@@ -6,6 +6,23 @@
     overflow: hidden;
 }
 
+/* Ensure the main area fills the remaining height and prevents double scroll */
+.chat-main {
+    flex: 1;
+    overflow: visible; /* allow page to scroll normally */
+}
+
+/* Make chat content a vertical layout: messages scroll, input stays visible */
+.chat-content {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Scroll only the messages list */
+.messages-container {
+    overflow: visible; /* scroll with the page, not internally */
+}
+
 /* Header */
 .chat-header {
     background-color: #1a1a1a;
@@ -1283,25 +1300,13 @@
     gap: 16px;
     overflow-x: auto;
     padding-bottom: 8px;
-    scrollbar-width: thin;
-    scrollbar-color: #dadce0 transparent;
+    scroll-snap-type: x proximity;
+    -ms-overflow-style: none; /* IE/Edge - hide scrollbar */
+    scrollbar-width: none;    /* Firefox - hide scrollbar */
 }
 
 .related-content-carousel::-webkit-scrollbar {
-    height: 8px;
-}
-
-.related-content-carousel::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.related-content-carousel::-webkit-scrollbar-thumb {
-    background-color: #dadce0;
-    border-radius: 4px;
-}
-
-.related-content-carousel::-webkit-scrollbar-thumb:hover {
-    background-color: #bdc1c6;
+    display: none;           /* Chrome/Safari - hide scrollbar */
 }
 
 .related-content-card {
@@ -1399,6 +1404,20 @@
     letter-spacing: 0.2px;
 }
 
+/* Light mode readability for related-content */
+.theme-light .related-content-title,
+.theme-light .related-content-card .related-card-title,
+.theme-light .related-content-card .related-card-description,
+.theme-light .related-card-short-title {
+    /* Cancel parent inversion so we can set true colors */
+    filter: invert(1) hue-rotate(180deg);
+}
+
+.theme-light .related-content-title { color: #111827; }
+.theme-light .related-content-card .related-card-title { color: #111827; }
+.theme-light .related-content-card .related-card-description { color: #374151; }
+.theme-light .related-card-short-title { color: #111827; }
+
 .related-card-source {
     display: flex;
     align-items: center;
@@ -1438,6 +1457,9 @@
 
 /* Input Area in Chat Content */
 .chat-input-container {
+    position: sticky; /* keep visible at bottom of scrolling area */
+    bottom: 0;
+    z-index: 10;
     padding-top: 16px;
     background-color: #0f0f0f;
     padding-bottom: 16px;

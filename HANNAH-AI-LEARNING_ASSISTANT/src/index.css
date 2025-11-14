@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./styles/dark-theme.css";
 
 body {
   margin: 0;
@@ -90,4 +91,47 @@ body {
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
+
+/* Scoped light theme approximation for dark-designed pages */
+.theme-light {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Revert media and icons so they look normal under inversion */
+.theme-light img,
+.theme-light video,
+.theme-light svg,
+.theme-light canvas,
+.theme-light iframe {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Fix Interactive List (Chat) readability in light mode */
+.theme-light .message-sources .source-item {
+  /* cancel parent inversion so cards stay light */
+  filter: invert(1) hue-rotate(180deg);
+}
+
+.theme-light .message-sources .source-item svg,
+.theme-light .message-sources .source-item img,
+.theme-light .message-sources .source-item video,
+.theme-light .message-sources .source-item canvas,
+.theme-light .message-sources .source-item iframe {
+  /* prevent triple inversion for media inside reverted cards */
+  filter: none;
+}
+
+/* Related-content readability tweaks (light mode only) */
+.theme-light .related-content-title,
+.theme-light .related-content-card .related-card-title,
+.theme-light .related-content-card .related-card-description,
+.theme-light .related-card-short-title {
+  /* Un-invert text so we can control its real color */
+  filter: invert(1) hue-rotate(180deg);
+}
+
+.theme-light .related-content-title { color: #111827; }
+.theme-light .related-content-card .related-card-title { color: #111827; }
+.theme-light .related-content-card .related-card-description { color: #374151; }
+.theme-light .related-card-short-title { color: #111827; }
 
