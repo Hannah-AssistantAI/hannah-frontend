@@ -144,7 +144,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
     }, [editedProfile.avatar]);
 
     return (
-        <div className="profile-page">
+        <div className={`profile-page ${embedded ? 'embedded' : ''}`}>
             <input
                 type="file"
                 ref={fileInputRef}
@@ -169,7 +169,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
             </header>
             )}
 
-            <div className={`profile-container ${embedded ? 'embedded' : ''}`}>
+            <div className="profile-container">
                 {/* Sidebar */}
                 {!embedded && (
                 <aside className="profile-sidebar">

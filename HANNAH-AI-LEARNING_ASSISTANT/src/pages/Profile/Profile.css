@@ -77,8 +77,20 @@
     gap: 2rem;
 }
 
-.profile-container.embedded {
+.profile-page.embedded {
+    background: none;
+    padding: 0;
+    min-height: auto; /* Remove the 100vh height to prevent scrolling */
+}
+
+.profile-page.embedded .profile-card {
+    border: 1px solid #e5e7eb; /* Add a subtle border */
+}
+
+.profile-page.embedded .profile-container {
     grid-template-columns: 1fr;
+    gap: 0;
+    margin-top: 0; /* Remove top margin to prevent overflow */
 }
 
 

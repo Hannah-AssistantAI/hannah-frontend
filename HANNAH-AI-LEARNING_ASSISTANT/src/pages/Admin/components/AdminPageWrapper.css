@@ -24,7 +24,7 @@
     padding: 16px;
     margin-bottom: 16px;
   }
-  
+
   .admin-page-title {
     font-size: 24px;
     margin-bottom: 16px;
@@ -35,9 +35,20 @@
   .admin-page-wrapper {
     padding: 12px;
   }
-  
+
   .admin-page-title {
     font-size: 20px;
     margin-bottom: 12px;
   }
 }
+
+/* Override for embedded profile page to remove wrapper styles */
+.admin-page-wrapper:has(.profile-page.embedded) {
+    padding: 0;
+    background-color: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    margin-bottom: 0;
+    min-height: auto;
+}
+
