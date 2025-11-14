@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import {
     User,
     Mail,
@@ -27,15 +28,33 @@ import {
 } from 'lucide-react'
 import './Profile.css'
 
+// Dựa theo DB schema
 interface UserProfile {
-    name: string
-    email: string
-    phone: string
-    location: string
-    bio: string
-    role: string
-    joinDate: string
-    avatar: string
+    name: string; // từ bảng users
+    email: string; // từ bảng users
+    role: 'Student' | 'Faculty' | 'Admin';
+    avatar: string;
+    joinDate: string;
+
+    // Personal Information
+    phone?: string;
+    date_of_birth?: string;
+    bio?: string;
+
+    // Student-specific fields
+    student_id?: string;
+    student_specialty?: 'SE' | 'IS' | 'AI' | 'DS';
+
+    // Faculty-specific fields
+    faculty_specialty?: string;
+    years_of_experience?: number;
+
+    // Preferences
+    notification_preferences: {
+        emailUpdates: boolean;
+        appEvents: boolean;
+        weeklyReports: boolean;
+    };
 }
 
 interface LearningStats {
@@ -45,37 +64,48 @@ interface LearningStats {
     totalPoints: number
 }
 
-export default function Profile() {
-    const navigate = useNavigate()
-    const [activeTab, setActiveTab] = useState<'profile' | 'settings' | 'learning'>('profile')
+interface ProfileProps {
+  embedded?: boolean;
+}
+
+export default function Profile({ embedded = false }: ProfileProps) {
+    const navigate = useNavigate();
+    const { user } = useAuth();
+    const [activeTab, setActiveTab] = useState<'profile'>('profile')
     const [isEditing, setIsEditing] = useState(false)
 
     const [userProfile, setUserProfile] = useState<UserProfile>({
-        name: 'Nguyễn Văn A',
-        email: 'nguyenvana@example.com',
-        phone: '+84 123 456 789',
-        location: 'Hồ Chí Minh, Việt Nam',
-        bio: 'Sinh viên ngành Công nghệ thông tin, đam mê lập trình và học tập công nghệ mới.',
-        role: 'Học viên',
+        name: 'Lưu Quang Trí',
+        email: 'trilqse170000@fpt.edu.vn',
+        role: 'Admin', // Change this to 'Faculty' or 'Student' to test different views
+        avatar: 'https://ui-avatars.com/api/?name=Luu+Quang+Tri&background=4285F4&color=fff&size=200',
         joinDate: 'Tháng 1, 2024',
-        avatar: 'https://ui-avatars.com/api/?name=Nguyen+Van+A&background=4285F4&color=fff&size=200'
+
+        // Personal Information
+        phone: '0912345678',
+        date_of_birth: '2003-10-25',
+        bio: 'Sinh viên năm 3 chuyên ngành Kỹ thuật phần mềm tại Đại học FPT. Đam mê phát triển web và trí tuệ nhân tạo.',
+
+        // Student-specific fields
+        student_id: 'SE170000',
+        student_specialty: 'SE',
+
+        // Faculty-specific fields (null for student)
+        faculty_specialty: undefined,
+        years_of_experience: undefined,
+
+        // Preferences
+        notification_preferences: {
+            emailUpdates: true,
+            appEvents: true,
+            weeklyReports: false,
+        },
     })
 
-    const [editedProfile, setEditedProfile] = useState<UserProfile>(userProfile)
+    const [editedProfile, setEditedProfile] = useState<UserProfile>(userProfile);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const learningStats: LearningStats = {
-        coursesCompleted: 12,
-        totalHours: 156,
-        currentStreak: 7,
-        totalPoints: 2450
-    }
 
-    const recentActivities = [
-        { id: 1, title: 'Hoàn thành khóa học OOP', date: '2 ngày trước', icon: CheckCircle, color: '#34A853' },
-        { id: 2, title: 'Đạt 100 điểm trong Quiz', date: '3 ngày trước', icon: Award, color: '#FBBC04' },
-        { id: 3, title: 'Tạo 5 bản đồ tư duy', date: '5 ngày trước', icon: Target, color: '#4285F4' },
-        { id: 4, title: 'Học liên tục 7 ngày', date: '1 tuần trước', icon: TrendingUp, color: '#EA4335' }
-    ]
 
     const handleSave = () => {
         setUserProfile(editedProfile)
@@ -88,27 +118,60 @@ export default function Profile() {
     }
 
     const handleAvatarChange = () => {
-        // Simulate avatar upload
-        alert('Tính năng tải ảnh đại diện sẽ được triển khai sau')
-    }
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files && event.target.files[0]) {
+            const file = event.target.files[0];
+            // Tạo URL tạm thời để xem trước ảnh
+            const newAvatarUrl = URL.createObjectURL(file);
+            setEditedProfile(prev => ({ ...prev, avatar: newAvatarUrl }));
+            // Trong ứng dụng thực tế, bạn sẽ lưu đối tượng `file` này
+            // để gửi lên server khi người dùng nhấn "Lưu".
+        }
+    };
+
+    useEffect(() => {
+        const avatarUrl = editedProfile.avatar;
+
+        // Cleanup function to revoke the object URL to prevent memory leaks
+        return () => {
+            if (avatarUrl && avatarUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(avatarUrl);
+            }
+        };
+    }, [editedProfile.avatar]);
 
     return (
         <div className="profile-page">
-            {/* Header */}
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+                accept="image/*"
+            />
+            {/* Header - Conditionally render based on embedded prop */}
+            {!embedded && (
             <header className="profile-header">
-                <div className="profile-header-content">
-                    <div className="profile-logo" onClick={() => navigate('/learn')}>
-                        <Sparkles size={24} className="text-blue-500" />
-                        <span className="profile-logo-text">Hannah Assistant</span>
+                    <div className="profile-header-left">
+                        <div className="profile-logo" onClick={() => navigate('/learn')}>
+                            <Sparkles size={24} className="text-blue-500" />
+                            <span className="profile-logo-text">Hannah Assistant</span>
+                        </div>
                     </div>
-                    <button className="profile-back-btn" onClick={() => navigate(-1)}>
-                        Quay lại
-                    </button>
-                </div>
+                    <div className="profile-header-right">
+                        <button className="profile-back-btn" onClick={() => navigate(-1)}>
+                            Quay lại
+                        </button>
+                    </div>
             </header>
+            )}
 
-            <div className="profile-container">
+            <div className={`profile-container ${embedded ? 'embedded' : ''}`}>
                 {/* Sidebar */}
+                {!embedded && (
                 <aside className="profile-sidebar">
                     <div className="profile-nav">
                         <button
@@ -119,31 +182,19 @@ export default function Profile() {
                             <span>Thông tin cá nhân</span>
                             <ChevronRight size={18} className="ml-auto" />
                         </button>
-                        <button
-                            className={`profile-nav-item ${activeTab === 'learning' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('learning')}
-                        >
-                            <BookOpen size={20} />
-                            <span>Quá trình học tập</span>
-                            <ChevronRight size={18} className="ml-auto" />
-                        </button>
-                        <button
-                            className={`profile-nav-item ${activeTab === 'settings' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('settings')}
-                        >
-                            <Settings size={20} />
-                            <span>Cài đặt</span>
-                            <ChevronRight size={18} className="ml-auto" />
-                        </button>
+
                     </div>
 
                     <div className="profile-sidebar-footer">
-                        <button className="profile-logout-btn">
-                            <LogOut size={20} />
-                            <span>Đăng xuất</span>
-                        </button>
+                        {user?.role === 'student' && (
+                            <button className="profile-logout-btn">
+                                <LogOut size={20} />
+                                <span>Đăng xuất</span>
+                            </button>
+                        )}
                     </div>
                 </aside>
+            )}
 
                 {/* Main Content */}
                 <main className="profile-main">
@@ -178,7 +229,7 @@ export default function Profile() {
                                     <div className="profile-avatar-section">
                                         <div className="profile-avatar-wrapper">
                                             <img
-                                                src={userProfile.avatar}
+                                                src={editedProfile.avatar}
                                                 alt="Avatar"
                                                 className="profile-avatar-img"
                                             />
@@ -236,18 +287,18 @@ export default function Profile() {
 
                                         <div className="profile-detail-item">
                                             <label className="profile-detail-label">
-                                                <MapPin size={18} />
-                                                Địa chỉ
+                                                <Calendar size={18} />
+                                                Ngày sinh
                                             </label>
                                             {isEditing ? (
                                                 <input
-                                                    type="text"
+                                                    type="date"
                                                     className="profile-detail-input"
-                                                    value={editedProfile.location}
-                                                    onChange={(e) => setEditedProfile({ ...editedProfile, location: e.target.value })}
+                                                    value={editedProfile.date_of_birth}
+                                                    onChange={(e) => setEditedProfile({ ...editedProfile, date_of_birth: e.target.value })}
                                                 />
                                             ) : (
-                                                <p className="profile-detail-value">{userProfile.location}</p>
+                                                <p className="profile-detail-value">{userProfile.date_of_birth}</p>
                                             )}
                                         </div>
 
@@ -267,208 +318,93 @@ export default function Profile() {
                                                 <p className="profile-detail-value">{userProfile.bio}</p>
                                             )}
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
-                    {/* Learning Tab */}
-                    {activeTab === 'learning' && (
-                        <div className="profile-content">
-                            {/* Learning Stats */}
-                            <div className="profile-card">
-                                <div className="profile-card-header">
-                                    <h2 className="profile-card-title">Thống kê học tập</h2>
-                                </div>
-                                <div className="profile-card-body">
-                                    <div className="learning-stats-grid">
-                                        <div className="stat-card stat-card-blue">
-                                            <div className="stat-icon">
-                                                <BookOpen size={24} />
-                                            </div>
-                                            <div className="stat-info">
-                                                <p className="stat-value">{learningStats.coursesCompleted}</p>
-                                                <p className="stat-label">Khóa học hoàn thành</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="stat-card stat-card-green">
-                                            <div className="stat-icon">
-                                                <Clock size={24} />
-                                            </div>
-                                            <div className="stat-info">
-                                                <p className="stat-value">{learningStats.totalHours}</p>
-                                                <p className="stat-label">Giờ học tập</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="stat-card stat-card-orange">
-                                            <div className="stat-icon">
-                                                <TrendingUp size={24} />
-                                            </div>
-                                            <div className="stat-info">
-                                                <p className="stat-value">{learningStats.currentStreak}</p>
-                                                <p className="stat-label">Ngày liên tiếp</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="stat-card stat-card-purple">
-                                            <div className="stat-icon">
-                                                <Award size={24} />
-                                            </div>
-                                            <div className="stat-info">
-                                                <p className="stat-value">{learningStats.totalPoints}</p>
-                                                <p className="stat-label">Tổng điểm</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Recent Activities */}
-                            <div className="profile-card">
-                                <div className="profile-card-header">
-                                    <h2 className="profile-card-title">Hoạt động gần đây</h2>
-                                </div>
-                                <div className="profile-card-body">
-                                    <div className="activities-list">
-                                        {recentActivities.map((activity) => {
-                                            const IconComponent = activity.icon
-                                            return (
-                                                <div key={activity.id} className="activity-item">
-                                                    <div className="activity-icon" style={{ backgroundColor: `${activity.color}20`, color: activity.color }}>
-                                                        <IconComponent size={20} />
-                                                    </div>
-                                                    <div className="activity-content">
-                                                        <p className="activity-title">{activity.title}</p>
-                                                        <p className="activity-date">{activity.date}</p>
-                                                    </div>
+                                        {/* Role-specific fields */}
+                                        {userProfile.role === 'Student' && (
+                                            <>
+                                                <div className="profile-detail-item">
+                                                    <label className="profile-detail-label">
+                                                        <Award size={18} />
+                                                        Mã số sinh viên
+                                                    </label>
+                                                    {isEditing ? (
+                                                        <input
+                                                            type="text"
+                                                            className="profile-detail-input"
+                                                            value={editedProfile.student_id || ''}
+                                                            onChange={(e) => setEditedProfile({ ...editedProfile, student_id: e.target.value })}
+                                                        />
+                                                    ) : (
+                                                        <p className="profile-detail-value">{userProfile.student_id}</p>
+                                                    )}
                                                 </div>
-                                            )
-                                        })}
+                                                <div className="profile-detail-item">
+                                                    <label className="profile-detail-label">
+                                                        <BookOpen size={18} />
+                                                        Chuyên ngành
+                                                    </label>
+                                                    {isEditing ? (
+                                                        <select
+                                                            className="profile-detail-input"
+                                                            value={editedProfile.student_specialty || ''}
+                                                            onChange={(e) => setEditedProfile({ ...editedProfile, student_specialty: e.target.value as any })}
+                                                        >
+                                                            <option value="SE">Kỹ thuật phần mềm (SE)</option>
+                                                            <option value="IS">An toàn thông tin (IS)</option>
+                                                            <option value="AI">Trí tuệ nhân tạo (AI)</option>
+                                                            <option value="DS">Khoa học dữ liệu (DS)</option>
+                                                        </select>
+                                                    ) : (
+                                                        <p className="profile-detail-value">{userProfile.student_specialty}</p>
+                                                    )}
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {userProfile.role === 'Faculty' && (
+                                            <>
+                                                <div className="profile-detail-item">
+                                                    <label className="profile-detail-label">
+                                                        <Briefcase size={18} />
+                                                        Chuyên môn giảng dạy
+                                                    </label>
+                                                    {isEditing ? (
+                                                        <input
+                                                            type="text"
+                                                            className="profile-detail-input"
+                                                            value={editedProfile.faculty_specialty || ''}
+                                                            onChange={(e) => setEditedProfile({ ...editedProfile, faculty_specialty: e.target.value })}
+                                                        />
+                                                    ) : (
+                                                        <p className="profile-detail-value">{userProfile.faculty_specialty}</p>
+                                                    )}
+                                                </div>
+                                                <div className="profile-detail-item">
+                                                    <label className="profile-detail-label">
+                                                        <Clock size={18} />
+                                                        Năm kinh nghiệm
+                                                    </label>
+                                                    {isEditing ? (
+                                                        <input
+                                                            type="number"
+                                                            className="profile-detail-input"
+                                                            value={editedProfile.years_of_experience || 0}
+                                                            onChange={(e) => setEditedProfile({ ...editedProfile, years_of_experience: parseInt(e.target.value, 10) })}
+                                                        />
+                                                    ) : (
+                                                        <p className="profile-detail-value">{userProfile.years_of_experience} năm</p>
+                                                    )}
+                                                </div>
+                                            </>
+                                        )}
+
                                     </div>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {/* Settings Tab */}
-                    {activeTab === 'settings' && (
-                        <div className="profile-content">
-                            {/* Notifications */}
-                            <div className="profile-card">
-                                <div className="profile-card-header">
-                                    <h2 className="profile-card-title">
-                                        <Bell size={20} />
-                                        Thông báo
-                                    </h2>
-                                </div>
-                                <div className="profile-card-body">
-                                    <div className="settings-list">
-                                        <div className="setting-item">
-                                            <div className="setting-info">
-                                                <p className="setting-title">Thông báo email</p>
-                                                <p className="setting-description">Nhận thông báo qua email về hoạt động của bạn</p>
-                                            </div>
-                                            <label className="toggle-switch">
-                                                <input type="checkbox" defaultChecked />
-                                                <span className="toggle-slider"></span>
-                                            </label>
-                                        </div>
 
-                                        <div className="setting-item">
-                                            <div className="setting-info">
-                                                <p className="setting-title">Thông báo push</p>
-                                                <p className="setting-description">Nhận thông báo trên trình duyệt</p>
-                                            </div>
-                                            <label className="toggle-switch">
-                                                <input type="checkbox" />
-                                                <span className="toggle-slider"></span>
-                                            </label>
-                                        </div>
-
-                                        <div className="setting-item">
-                                            <div className="setting-info">
-                                                <p className="setting-title">Nhắc nhở học tập</p>
-                                                <p className="setting-description">Nhận nhắc nhở hàng ngày về việc học</p>
-                                            </div>
-                                            <label className="toggle-switch">
-                                                <input type="checkbox" defaultChecked />
-                                                <span className="toggle-slider"></span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Security */}
-                            <div className="profile-card">
-                                <div className="profile-card-header">
-                                    <h2 className="profile-card-title">
-                                        <Shield size={20} />
-                                        Bảo mật
-                                    </h2>
-                                </div>
-                                <div className="profile-card-body">
-                                    <div className="settings-list">
-                                        <button className="setting-button">
-                                            <div className="setting-info">
-                                                <p className="setting-title">Đổi mật khẩu</p>
-                                                <p className="setting-description">Cập nhật mật khẩu của bạn</p>
-                                            </div>
-                                            <ChevronRight size={20} />
-                                        </button>
-
-                                        <button className="setting-button">
-                                            <div className="setting-info">
-                                                <p className="setting-title">Xác thực hai yếu tố</p>
-                                                <p className="setting-description">Tăng cường bảo mật tài khoản</p>
-                                            </div>
-                                            <ChevronRight size={20} />
-                                        </button>
-
-                                        <button className="setting-button">
-                                            <div className="setting-info">
-                                                <p className="setting-title">Thiết bị đã đăng nhập</p>
-                                                <p className="setting-description">Quản lý các thiết bị của bạn</p>
-                                            </div>
-                                            <ChevronRight size={20} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Payment */}
-                            <div className="profile-card">
-                                <div className="profile-card-header">
-                                    <h2 className="profile-card-title">
-                                        <CreditCard size={20} />
-                                        Thanh toán
-                                    </h2>
-                                </div>
-                                <div className="profile-card-body">
-                                    <div className="settings-list">
-                                        <button className="setting-button">
-                                            <div className="setting-info">
-                                                <p className="setting-title">Phương thức thanh toán</p>
-                                                <p className="setting-description">Quản lý thẻ và phương thức thanh toán</p>
-                                            </div>
-                                            <ChevronRight size={20} />
-                                        </button>
-
-                                        <button className="setting-button">
-                                            <div className="setting-info">
-                                                <p className="setting-title">Lịch sử giao dịch</p>
-                                                <p className="setting-description">Xem các giao dịch trước đây</p>
-                                            </div>
-                                            <ChevronRight size={20} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </main>
             </div>
         </div>
