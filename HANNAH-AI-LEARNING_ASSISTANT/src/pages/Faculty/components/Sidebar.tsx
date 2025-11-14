@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { MessageSquare, FileText, BarChart3, HelpCircle, TrendingDown, ChevronDown, ChevronRight } from "lucide-react";
+import { MessageSquare, FileText, BarChart3, HelpCircle, TrendingDown, ChevronDown, ChevronRight, User } from "lucide-react";
 import { useFacultyContext } from "../../../contexts/FacultyContext";
 import ReusableSidebar from "../../../components/Sidebar/Sidebar";
 
@@ -29,8 +29,8 @@ const FacultySidebarContent: React.FC<FacultySidebarContentProps> = ({
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   const toggleExpand = (path: string) => {
-    setExpandedItems(prev => 
-      prev.includes(path) 
+    setExpandedItems(prev =>
+      prev.includes(path)
         ? prev.filter(p => p !== path)
         : [...prev, path]
     );
@@ -77,7 +77,9 @@ const FacultySidebarContent: React.FC<FacultySidebarContentProps> = ({
     //   description: "Question statistics and trends",
     //   icon: BarChart3,
     // },
+  
   ];
+
 
   return (
     <div className="nav-section">
@@ -142,7 +144,7 @@ const FacultySidebarContent: React.FC<FacultySidebarContentProps> = ({
                     key={subItem.path}
                     to={subItem.path}
                     className="sidebar-link"
-                    style={{ 
+                    style={{
                       fontSize: "0.9em",
                       paddingTop: "8px",
                       paddingBottom: "8px"

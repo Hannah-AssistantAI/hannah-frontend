@@ -1,7 +1,7 @@
 /* Profile Page Styles */
 .profile-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-color: rgb(21, 185, 214);
     font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -11,6 +11,9 @@
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -18,11 +21,12 @@
 }
 
 .profile-header-content {
-    max-width: 1400px;
-    margin: 0 auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
+    max-width: 100%; /* Override any potential max-width */
+    margin: 0; /* Override any potential margin */
 }
 
 .profile-logo {
@@ -72,6 +76,11 @@
     grid-template-columns: 280px 1fr;
     gap: 2rem;
 }
+
+.profile-container.embedded {
+    grid-template-columns: 1fr;
+}
+
 
 /* Sidebar */
 .profile-sidebar {
@@ -336,7 +345,8 @@
 }
 
 .profile-detail-input,
-.profile-detail-textarea {
+.profile-detail-textarea,
+.profile-detail-select {
     font-size: 1rem;
     color: #202124;
     padding: 0.75rem 1rem;

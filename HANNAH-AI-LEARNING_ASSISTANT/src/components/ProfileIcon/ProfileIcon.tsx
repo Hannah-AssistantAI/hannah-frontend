@@ -34,9 +34,14 @@ const ProfileIcon: React.FC<ProfileIconProps> = React.memo(({ className = '' }) 
 
   const handleProfileView = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Có thể thêm navigation đến trang profile ở đây
-    console.log('Navigate to profile');
     setIsDropdownOpen(false);
+    console.log('Checking user role for navigation:', user?.role); // For debugging
+    if (user?.role === 'student') { // Corrected to lowercase 'student'
+      navigate('/profile');
+    } else {
+      // For Admin/Faculty, profile is in their layout, so no global navigation needed here.
+      console.log('Not a student, role:', user?.role);
+    }
   };
 
   if (!user) {

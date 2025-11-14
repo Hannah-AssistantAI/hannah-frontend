@@ -54,6 +54,7 @@ function App() {
         <Route path="semester-management" element={<SemesterManagement />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path='configuration' element={<Configuration />} />
+        <Route path="profile" element={<Profile embedded={true} />} />
       </Route>
 
       {/* Faculty Routes */}
@@ -71,6 +72,7 @@ function App() {
         <Route path="analytics" element={<QuestionAnalytics />} />
         <Route path="analytics/quiz/:id" element={<QuizAttemptDetail />} />
         <Route path="questions" element={<QuestionStatistics />} />
+        <Route path="profile" element={<Profile embedded={true} />} />
       </Route>
     </Routes>
     {showToggle && <ThemeToggle />}

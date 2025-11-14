@@ -88,7 +88,11 @@ const Sidebar: React.FC<SidebarProps> = ({ children, title, subtitle }) => {
 
       <div className="sidebar-footer">
         {user && (
-          <div className="sidebar-user">
+          <NavLink
+            to={`/${user.role}/profile`}
+            className={({ isActive }) => `sidebar-user${isActive ? ' active' : ''}`}
+            title="Xem hồ sơ"
+          >
             <div className="user-avatar">
               <User size={20} />
             </div>
@@ -98,7 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, title, subtitle }) => {
                 <p className="user-role">{getRoleInVietnamese(user.role)}</p>
               </div>
             )}
-          </div>
+          </NavLink>
         )}
         <button
           className="logout-btn"

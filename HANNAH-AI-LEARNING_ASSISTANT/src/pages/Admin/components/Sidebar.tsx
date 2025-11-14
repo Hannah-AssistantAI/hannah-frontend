@@ -119,6 +119,7 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ isCollapsed =
         <Monitor size={20} />
         {!isCollapsed && <span className="sidebar-label">System Monitoring</span>}
       </NavLink>
+
       {/* <NavLink to="/admin/semester-management" className="sidebar-link" title={isCollapsed ? "Quản lý Kỳ học" : ""}>
         <Calendar size={20} />
         {!isCollapsed && <span className="sidebar-label">Quản lý Kỳ học</span>}
