@@ -44,6 +44,7 @@ export default function Learn() {
                     <button className="learn-logo" onClick={() => navigate("/learn")}>
                         <span className="learn-logo-text">Hannah Assistant</span>
                     </button>
+                    <img src="https://daihoc.fpt.edu.vn/wp-content/uploads/2023/04/cropped-cropped-2021-FPTU-Long.png" alt="Hannah Logo" className="header-logo-image" />
                 </div>
                 <div className="learn-header-right">
                     <ProfileIcon />

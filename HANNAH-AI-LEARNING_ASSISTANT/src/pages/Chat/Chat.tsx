@@ -619,6 +619,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
                         <Sparkles size={24} color="#4285F4" />
                         <span className="chat-logo-text">Hannah Assistant</span>
                     </div>
+                    <img src="https://daihoc.fpt.edu.vn/wp-content/uploads/2023/04/cropped-cropped-2021-FPTU-Long.png" alt="Hannah Logo" className="header-logo-image" />
                 </div>
                 <div className="chat-header-right">
                     <button className="share-btn" onClick={() => setShowShareModal(true)}>

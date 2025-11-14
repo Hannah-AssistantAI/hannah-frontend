@@ -119,9 +119,20 @@ header {
 .header-logo {
     display: flex;
     align-items: center;
-    gap: clamp(4px, 4px + 2 * (100vw - 375px) / 455, 6px);
+    gap: clamp(6px, 6px + 4 * (100vw - 375px) / 455, 10px);
     white-space: nowrap;
     margin-left: clamp(18px, 8px + 4 * (100vw - 375px) / 455, 12px);
+}
+
+.header-logo-image {
+    width: clamp(44px, 44px + 10 * (100vw - 375px) / 455, 54px);
+    height: auto;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    transition: transform 0.2s ease;
+}
+
+.header-logo:hover .header-logo-image {
+    transform: scale(1.05);
 }
 
 .header-logo-text {
