@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Users, Settings, Book, ChevronDown, ChevronRight, Key, Monitor } from 'lucide-react';
+import { Users, Settings, Book, ChevronDown, ChevronRight, Key, Monitor, MessageSquare } from 'lucide-react';
 import ReusableSidebar from '../../../components/Sidebar/Sidebar';
 import '../style.css';
 
@@ -46,6 +46,14 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ isCollapsed =
       >
         <Users size={20} />
         {!isCollapsed && <span className="sidebar-label">User Management</span>}
+      </NavLink>
+      <NavLink
+        to="/admin/custom-messages"
+        className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+        title={isCollapsed ? "Custom Messages" : ""}
+      >
+        <MessageSquare size={20} />
+        {!isCollapsed && <span className="sidebar-label">Custom Messages</span>}
       </NavLink>
       <div>
         <a
