@@ -191,10 +191,11 @@
 .action-buttons {
   display: flex;
   gap: 4px;
+  align-items: center;
 }
 
-.btn-icon {
-  display: flex;
+.users-table .btn-icon {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 32px;
@@ -203,33 +204,73 @@
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
-.btn-edit {
-  background: #fff3cd;
-  color: #856404;
+.users-table .btn-icon svg {
+  width: 16px;
+  height: 16px;
+  /* Use lucide defaults: stroke=currentColor, fill=none. Avoid overriding to prevent invisibility. */
 }
 
-.btn-edit:hover {
-  background: #ffeaa7;
+.users-table .btn-edit {
+  background: #fff3cd !important;
+  color: #856404 !important;
 }
 
-.btn-toggle {
-  background: #d1ecf1;
-  color: #0c5460;
+.users-table .btn-edit svg {
+  color: #856404 !important;
+  stroke: #856404 !important;
 }
 
-.btn-toggle:hover {
-  background: #bee5eb;
+.users-table .btn-edit:hover {
+  background: #ffeaa7 !important;
+  transform: scale(1.05);
 }
 
-.btn-delete {
-  background: #f8d7da;
-  color: #721c24;
+/* Unicode character icons alignment */
+.char-icon {
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.btn-delete:hover {
-  background: #f5c6cb;
+/* Red color for deactivate (X) icon */
+.char-icon.icon-danger {
+  color: #d32f2f;
+}
+
+.users-table .btn-toggle {
+  background: #d1ecf1 !important;
+  color: #0c5460 !important;
+}
+
+.users-table .btn-toggle svg {
+  color: #0c5460 !important;
+  stroke: #0c5460 !important;
+}
+
+.users-table .btn-toggle:hover {
+  background: #bee5eb !important;
+  transform: scale(1.05);
+}
+
+.users-table .btn-delete {
+  background: #f8d7da !important;
+  color: #721c24 !important;
+}
+
+.users-table .btn-delete svg {
+  color: #721c24 !important;
+  stroke: #721c24 !important;
+}
+
+.users-table .btn-delete:hover {
+  background: #f5c6cb !important;
+  transform: scale(1.05);
 }
 
 .no-data {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, Plus, Edit, Trash2, UserCheck, Filter, Upload, Download, AlertTriangle } from 'lucide-react';
+// Replaced lucide-react icons with Unicode characters for simplicity
 import AdminPageWrapper from './components/AdminPageWrapper';
 import './UserManagement.css';
 import { parseUsersFromFile, type ParsedResult, generateUserTemplateCSV, downloadCSV } from '../../utils/userImport';
@@ -186,7 +186,7 @@ const UserManagement: React.FC = () => {
       </div>
       <div className="filters-section">
         <div className="search-box">
-          <Search size={16} />
+          <span className="char-icon" aria-hidden>🔍</span>
           <input
             type="text"
             placeholder="Search by name, email, student code..."
@@ -195,7 +195,7 @@ const UserManagement: React.FC = () => {
           />
         </div>
         <div className="filter-box">
-          <Filter size={16} />
+          <span className="char-icon" aria-hidden>⚙️</span>
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
@@ -211,7 +211,7 @@ const UserManagement: React.FC = () => {
           onClick={() => downloadCSV(generateUserTemplateCSV())}
           title="Download CSV template"
         >
-          <Download size={16} />
+          <span className="char-icon" aria-hidden>⬇️</span>
           Download CSV template
         </button>
         <button
@@ -219,14 +219,14 @@ const UserManagement: React.FC = () => {
           onClick={openFilePicker}
           title="Import from Excel/CSV"
         >
-          <Upload size={16} />
+          <span className="char-icon" aria-hidden>⬆️</span>
           Import
         </button>
         <button
           className="btn btn-primary add-user-btn"
           onClick={() => setShowCreateForm(true)}
         >
-          <Plus size={16} />
+          <span className="char-icon" aria-hidden>➕</span>
           Add user
         </button>
         <input
@@ -276,21 +276,26 @@ const UserManagement: React.FC = () => {
                       onClick={() => setEditingUser(user)}
                       title="Edit"
                     >
-                      <Edit size={14} />
+                      <span className="char-icon" aria-hidden>✏️</span>
                     </button>
                     <button
                       className="btn-icon btn-toggle"
                       onClick={() => handleToggleStatus(user.id)}
                       title={user.status === 'Active' ? 'Deactivate' : 'Activate'}
                     >
-                      <UserCheck size={14} />
+                      <span
+                        className={`char-icon ${user.status === 'Active' ? 'icon-danger' : ''}`}
+                        aria-hidden
+                      >
+                        {user.status === 'Active' ? 'X' : '✔️'}
+                      </span>
                     </button>
                     <button
                       className="btn-icon btn-delete"
                       onClick={() => requestDeleteUser(user)}
                       title="Delete"
                     >
-                      <Trash2 size={14} />
+                      <span className="char-icon" aria-hidden>🗑️</span>
                     </button>
                   </div>
                 </td>
@@ -384,7 +389,7 @@ const UserManagement: React.FC = () => {
             <div className="modal-content">
               <div className="modal-header">
                 <div className="danger-title">
-                  <AlertTriangle size={20} />
+                  <span className="char-icon" aria-hidden style={{fontSize: 20}}>⚠️</span>
                   <div>
                     <div className="modal-title">Delete user</div>
                     <div className="modal-subtext">This action cannot be undone.</div>
