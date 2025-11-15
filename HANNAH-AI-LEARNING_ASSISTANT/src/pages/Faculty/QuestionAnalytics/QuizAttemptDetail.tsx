@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getQuizAttemptDetail } from '../../../service/mockApi';
 import { useApp } from '../../../contexts/AppContext';
-import { ArrowLeft, CheckCircle2, XCircle, User, BookOpen, Calendar, ListChecks, Gauge, Award, Printer } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle, User, BookOpen, Calendar, ListChecks, Gauge, Award } from 'lucide-react';
+import { flagQuizAttempt, isQuizFlagged, unflagQuizAttempt } from '../../../service/mockApi';
 
 interface AttemptQuestion {
   id: string;
@@ -50,10 +51,12 @@ export default function QuizAttemptDetail() {
   const navigate = useNavigate();
   const { setLoading, showNotification } = useApp();
   const [detail, setDetail] = useState<AttemptDetail | null>(null);
+  const [flagModalOpen, setFlagModalOpen] = useState(false);
+  const [unflagModalOpen, setUnflagModalOpen] = useState(false);
+  const [flagReason, setFlagReason] = useState('');
+  const [isFlagged, setIsFlagged] = useState(false);
   
-  const handlePrint = () => {
-    window.print();
-  };
+  // Printing not currently used; removed handler.
 
   useEffect(() => {
     const load = async () => {
@@ -72,7 +75,45 @@ export default function QuizAttemptDetail() {
       }
     };
     load();
+    // Check flagged status
+    const chk = isQuizFlagged(String(id));
+    if (chk.success) setIsFlagged(true);
   }, [id, setLoading, showNotification]);
+
+  const openFlagModal = () => setFlagModalOpen(true);
+  const closeFlagModal = () => { setFlagModalOpen(false); setFlagReason(''); };
+  const openUnflagModal = () => setUnflagModalOpen(true);
+  const closeUnflagModal = () => setUnflagModalOpen(false);
+
+  const confirmFlag = async () => {
+    if (!detail) return;
+    try {
+      const r = await flagQuizAttempt(detail.id, flagReason.trim());
+      if (r.success) {
+        setIsFlagged(true);
+        showNotification('Quiz attempt flagged for admin review', 'success');
+      } else {
+        showNotification('Failed to flag attempt', 'error');
+      }
+    } finally {
+      closeFlagModal();
+    }
+  };
+
+  const confirmUnflag = async () => {
+    if (!detail) return;
+    try {
+      const r = await unflagQuizAttempt(detail.id);
+      if (r.success) {
+        setIsFlagged(false);
+        showNotification('Flag removed', 'success');
+      } else {
+        showNotification('Failed to remove flag', 'error');
+      }
+    } finally {
+      closeUnflagModal();
+    }
+  };
 
   if (!detail) {
     return (
@@ -85,6 +126,7 @@ export default function QuizAttemptDetail() {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
       <div className="max-w-6xl mx-auto">
         {/* Top bar */}
@@ -99,14 +141,27 @@ export default function QuizAttemptDetail() {
             </button>
             {/* <div className="text-sm text-slate-500">Khoa • Phân tích kiến thức • Chi tiết bài làm</div> */}
           </div>
-          {/* <div className="flex items-center gap-2">
-            <button
-              onClick={handlePrint}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200 shadow-sm text-slate-700 hover:bg-slate-50"
-            >
-              <Printer className="w-4 h-4" /> In
-            </button>
-          </div> */}
+          <div className="flex items-center gap-2">
+            {!isFlagged && (
+              <button
+                onClick={openFlagModal}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 shadow-sm text-red-700 hover:bg-red-100"
+              >
+                <span className="text-sm">🚩 Flag quiz</span>
+              </button>
+            )}
+            {isFlagged && (
+              <div className="inline-flex items-center gap-2">
+                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-100 border border-red-200 text-red-700 text-sm">
+                  🚩 Flagged
+                </div>
+                <button
+                  onClick={openUnflagModal}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 border border-slate-200 shadow-sm text-slate-700 hover:bg-slate-200 text-sm"
+                >Unflag</button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Header card */}
@@ -264,5 +319,49 @@ export default function QuizAttemptDetail() {
         </div>
       </div>
     </div>
+    {flagModalOpen && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white w-full max-w-md rounded-lg shadow-lg p-6">
+          <h3 className="text-lg font-semibold text-slate-800 mb-2">Confirm flag</h3>
+          <p className="text-sm text-slate-600 mb-4">Provide a brief reason why this quiz attempt is not OK for admin review.</p>
+          <textarea
+            className="w-full h-28 border rounded p-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200"
+            value={flagReason}
+            onChange={(e) => setFlagReason(e.target.value)}
+            placeholder="Reason (optional but helps admin)"
+          />
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              onClick={closeFlagModal}
+              className="px-3 py-2 text-sm rounded border bg-slate-50 hover:bg-slate-100"
+            >Cancel</button>
+            <button
+              onClick={confirmFlag}
+              disabled={isFlagged}
+              className="px-3 py-2 text-sm rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+            >Submit flag</button>
+          </div>
+        </div>
+      </div>
+    )}
+    {unflagModalOpen && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white w-full max-w-md rounded-lg shadow-lg p-6">
+          <h3 className="text-lg font-semibold text-slate-800 mb-2">Remove flag</h3>
+          <p className="text-sm text-slate-600 mb-4">Bạn có chắc muốn gỡ cờ khỏi bài quiz này?</p>
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              onClick={closeUnflagModal}
+              className="px-3 py-2 text-sm rounded border bg-slate-50 hover:bg-slate-100"
+            >Cancel</button>
+            <button
+              onClick={confirmUnflag}
+              className="px-3 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700"
+            >Remove flag</button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

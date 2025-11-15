@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Users, Settings, Book, ChevronDown, ChevronRight, Key, Monitor, MessageSquare } from 'lucide-react';
+import { Users, Settings, Book, ChevronDown, ChevronRight, Key, Monitor, MessageSquare, Flag } from 'lucide-react';
 import ReusableSidebar from '../../../components/Sidebar/Sidebar';
 import '../style.css';
 
@@ -54,6 +54,14 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ isCollapsed =
       >
         <MessageSquare size={20} />
         {!isCollapsed && <span className="sidebar-label">Custom Messages</span>}
+      </NavLink>
+      <NavLink
+        to="/admin/flagged-quizzes"
+        className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+        title={isCollapsed ? "Flagged Quizzes" : ""}
+      >
+        <Flag size={20} />
+        {!isCollapsed && <span className="sidebar-label">Flagged Quizzes</span>}
       </NavLink>
       <div>
         <a
@@ -119,6 +127,7 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ isCollapsed =
         <Monitor size={20} />
         {!isCollapsed && <span className="sidebar-label">System Monitoring</span>}
       </NavLink>
+
 
       {/* <NavLink to="/admin/semester-management" className="sidebar-link" title={isCollapsed ? "Quản lý Kỳ học" : ""}>
         <Calendar size={20} />

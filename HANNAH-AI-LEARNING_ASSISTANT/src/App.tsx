@@ -27,6 +27,8 @@ import { SystemMonitoring } from './pages/Admin/SystemMonitoring/SystemMonitorin
 import { Configuration } from './pages/Admin/Configuration'
 import SemesterManagement from './pages/Admin/SemesterManagement/SemesterManagement'
 import QuizAttemptDetail from './pages/Faculty/QuestionAnalytics/QuizAttemptDetail'
+import FlaggedQuizzes from './pages/Admin/FlaggedQuizzes'
+import FlaggedQuizDetail from './pages/Admin/FlaggedQuizDetail'
 
 function App() {
   const location = useLocation();
@@ -34,48 +36,50 @@ function App() {
 
   return (
     <>
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/learn" element={<ThemedPage><Learn /></ThemedPage>} />
-      <Route path="/chat" element={<ThemedPage><Chat /></ThemedPage>} />
-      <Route path="/profile" element={<ThemedPage><Profile /></ThemedPage>} />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/learn" element={<ThemedPage><Learn /></ThemedPage>} />
+        <Route path="/chat" element={<ThemedPage><Chat /></ThemedPage>} />
+        <Route path="/profile" element={<ThemedPage><Profile /></ThemedPage>} />
 
-      {/* Admin Routes */}
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<UserManagement />} />
-        <Route path="user-management" element={<UserManagement />} />
-        <Route path="custom-messages" element={<CustomMessages />} />
-        <Route path="custom-messages/:id" element={<CustomMessageDetail />} />
-        <Route path="system-monitoring/usage" element={<SystemMonitoring />} />
-        <Route path="system-monitoring/api-keys" element={<APIKeys />} />
-        <Route path="system-settings" element={<SystemMonitoring />} />
-        <Route path="course-management" element={<CourseManagement />} />
-  <Route path="course-management/:id" element={<CourseDetail />} />
-        <Route path="semester-management" element={<SemesterManagement />} />
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path='configuration' element={<Configuration />} />
-        <Route path="profile" element={<Profile embedded={true} />} />
-      </Route>
-
-      {/* Faculty Routes */}
-      <Route path="/faculty" element={<FacultyLayout />}>
-        <Route index element={<FAQManagement />} />
-        <Route path="faq" element={<FAQManagement />} />
-        <Route path="conversations" element={<ConversationMonitoring />} />
-        <Route path="conversations/:id" element={<ConversationDetail />} />
-        <Route path="materials" element={<MaterialsLayout />}>
-          <Route index element={<DocumentsManagement />} />
-          <Route path="documents" element={<DocumentsManagement />} />
-          <Route path="outcomes" element={<OutcomesManagement />} />
-          <Route path="challenges" element={<ChallengesManagement />} />
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<UserManagement />} />
+          <Route path="user-management" element={<UserManagement />} />
+          <Route path="custom-messages" element={<CustomMessages />} />
+          <Route path="custom-messages/:id" element={<CustomMessageDetail />} />
+          <Route path="system-monitoring/usage" element={<SystemMonitoring />} />
+          <Route path="system-monitoring/api-keys" element={<APIKeys />} />
+          <Route path="system-settings" element={<SystemMonitoring />} />
+          <Route path="course-management" element={<CourseManagement />} />
+          <Route path="course-management/:id" element={<CourseDetail />} />
+          <Route path="semester-management" element={<SemesterManagement />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path='configuration' element={<Configuration />} />
+          <Route path="profile" element={<Profile embedded={true} />} />
+          <Route path="flagged-quizzes" element={<FlaggedQuizzes />} />
+          <Route path="flagged-quizzes/:id" element={<FlaggedQuizDetail />} />
         </Route>
-        <Route path="analytics" element={<QuestionAnalytics />} />
-        <Route path="analytics/quiz/:id" element={<QuizAttemptDetail />} />
-        <Route path="questions" element={<QuestionStatistics />} />
-        <Route path="profile" element={<Profile embedded={true} />} />
-      </Route>
-    </Routes>
-    {showToggle && <ThemeToggle />}
+
+        {/* Faculty Routes */}
+        <Route path="/faculty" element={<FacultyLayout />}>
+          <Route index element={<FAQManagement />} />
+          <Route path="faq" element={<FAQManagement />} />
+          <Route path="conversations" element={<ConversationMonitoring />} />
+          <Route path="conversations/:id" element={<ConversationDetail />} />
+          <Route path="materials" element={<MaterialsLayout />}>
+            <Route index element={<DocumentsManagement />} />
+            <Route path="documents" element={<DocumentsManagement />} />
+            <Route path="outcomes" element={<OutcomesManagement />} />
+            <Route path="challenges" element={<ChallengesManagement />} />
+          </Route>
+          <Route path="analytics" element={<QuestionAnalytics />} />
+          <Route path="analytics/quiz/:id" element={<QuizAttemptDetail />} />
+          <Route path="questions" element={<QuestionStatistics />} />
+          <Route path="profile" element={<Profile embedded={true} />} />
+        </Route>
+      </Routes>
+      {showToggle && <ThemeToggle />}
     </>
   )
 }

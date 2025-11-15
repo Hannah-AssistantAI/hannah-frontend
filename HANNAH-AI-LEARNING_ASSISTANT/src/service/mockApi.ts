@@ -12,6 +12,37 @@ import {
 // Simulate API delay
 const delay = (ms = 500) => new Promise(resolve => setTimeout(resolve, ms));
 
+// In-memory store for flagged quiz attempts (faculty -> admin workflow)
+interface FlaggedQuizMeta {
+  reason: string;
+  flaggedAt: string;
+  status: 'pending' | 'resolved';
+  resolutionNote?: string;
+  fixAction?: string;
+  resolvedAt?: string;
+}
+const flaggedQuizAttempts: Record<string, FlaggedQuizMeta> = {
+  // Seed demo data so admin page has initial rows
+  '1': {
+    reason: 'Question 3 explanation seems incorrect',
+    flaggedAt: '2024-10-23T09:15:00Z',
+    status: 'pending'
+  },
+  '4': {
+    reason: 'Low score – potential misleading wording',
+    flaggedAt: '2024-10-22T16:45:00Z',
+    status: 'pending'
+  },
+  '2': {
+    reason: 'Need review of JOIN definitions',
+    flaggedAt: '2024-10-21T11:05:00Z',
+    status: 'resolved',
+    resolutionNote: 'Reviewed JOIN definitions; no incorrect statements found.',
+    fixAction: 'Provided clarification in course materials.',
+    resolvedAt: '2024-10-23T10:00:00Z'
+  }
+};
+
 // FAQ API
 export const getFAQs = async (filters: any = {}) => {
   await delay();
@@ -494,6 +525,60 @@ export const getQuizAttemptDetail = async (attemptId: string) => {
     return { success: false, error: 'Quiz attempt not found' };
   }
   return { success: true, data: found };
+};
+
+// Quiz attempt flagging APIs
+export const flagQuizAttempt = async (attemptId: string, reason: string) => {
+  await delay(200);
+  flaggedQuizAttempts[attemptId] = {
+    reason,
+    flaggedAt: new Date().toISOString(),
+    status: 'pending'
+  };
+  return { success: true };
+};
+
+export const isQuizFlagged = (attemptId: string) => {
+  return flaggedQuizAttempts[attemptId] ? { success: true, data: flaggedQuizAttempts[attemptId] } : { success: false };
+};
+
+export const getFlaggedQuizAttempts = async () => {
+  await delay(200);
+  // Build enriched list with basic attempt info (without incurring extra delays per attempt)
+  const enriched = Object.entries(flaggedQuizAttempts).map(([id, meta]) => {
+    // Reuse quick map structure from getQuizAttemptDetail (duplicate for simplicity) - could refactor later.
+    // We call getQuizAttemptDetail synchronously by accessing internal data via another quick call.
+    // Since original implementation builds a map each call, we replicate minimal fields here.
+    return {
+      id,
+      ...meta,
+    };
+  });
+  return { success: true, data: enriched };
+};
+
+export function getFlaggedQuizAttemptMeta(attemptId: number): FlaggedQuizMeta | undefined {
+  return flaggedQuizAttempts[attemptId.toString()];
+}
+
+export const resolveFlaggedQuizAttempt = async (attemptId: string, resolutionNote: string, fixAction: string) => {
+  await delay(200);
+  const meta = flaggedQuizAttempts[attemptId];
+  if (!meta) return { success: false, error: 'Not flagged' };
+  meta.status = 'resolved';
+  meta.resolutionNote = resolutionNote;
+  meta.fixAction = fixAction;
+  meta.resolvedAt = new Date().toISOString();
+  return { success: true, data: meta };
+};
+
+export const unflagQuizAttempt = async (attemptId: string) => {
+  await delay(150);
+  if (!flaggedQuizAttempts[attemptId]) {
+    return { success: false, error: 'Not flagged' };
+  }
+  delete flaggedQuizAttempts[attemptId];
+  return { success: true };
 };
 
 // Learning Outcomes API

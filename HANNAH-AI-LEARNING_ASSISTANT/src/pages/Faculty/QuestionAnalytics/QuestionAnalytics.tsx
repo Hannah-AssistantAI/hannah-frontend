@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../../contexts/AppContext';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { getFlaggedQuizAttempts } from '../../../service/mockApi';
 import QuestionAnalyticsFilter from './QuestionAnalyticsFilter';
 
 // Knowledge Gap Analytics - Based on Quiz Performance from Learn Studio
@@ -84,6 +85,17 @@ const KnowledgeGapAnalysis = () => {
   useEffect(() => {
     loadGapData();
   }, [filters]);
+
+  const [flaggedMap, setFlaggedMap] = useState<Record<string, { reason: string; status: string }>>({});
+  const refreshFlags = async () => {
+    const res = await getFlaggedQuizAttempts();
+    if (res.success) {
+      const map: Record<string, { reason: string; status: string }> = {};
+      res.data.forEach((f: any) => { map[f.id] = { reason: f.reason, status: f.status }; });
+      setFlaggedMap(map);
+    }
+  };
+  useEffect(() => { refreshFlags(); }, [gapData]);
 
   const loadGapData = async () => {
     try {
@@ -319,8 +331,9 @@ const KnowledgeGapAnalysis = () => {
 
         {/* Recent Quizzes List */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="p-6 border-b border-slate-200">
+          <div className="p-6 border-b border-slate-200 flex items-center justify-between">
             <h2 className="text-2xl font-bold text-slate-800">📋 Recently Attempted Quizzes</h2>
+            <button onClick={refreshFlags} className="text-sm px-3 py-1 rounded bg-slate-100 hover:bg-slate-200 border border-slate-300">Refresh Flags</button>
           </div>
 
           <div className="overflow-x-auto">
@@ -346,7 +359,14 @@ const KnowledgeGapAnalysis = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-medium text-slate-700">{quiz.topic}</span>
+                      <span className="font-medium text-slate-700 flex items-center gap-2">
+                        {quiz.topic}
+                        {flaggedMap[quiz.id] && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs" title={flaggedMap[quiz.id].reason || 'Flagged'}>
+                            🚩 Flagged
+                          </span>
+                        )}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-slate-600">{quiz.course}</span>
