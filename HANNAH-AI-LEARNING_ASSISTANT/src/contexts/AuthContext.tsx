@@ -5,6 +5,7 @@ interface AuthContextType {
   user: UserData | null;
   login: (email: string, password: string) => Promise<UserData>;
   logout: () => void;
+  updateUser: (updatedData: Partial<UserData>) => void;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -35,6 +36,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Logout failed but clearing session anyway:', error);
     } finally {
       setUser(null);
+    }
+  };
+
+  const updateUser = (updatedData: Partial<UserData>) => {
+    if (user) {
+      const updatedUser = { ...user, ...updatedData };
+      setUser(updatedUser);
+      authService.saveUserData(updatedUser); // Save to localStorage
     }
   };
 
@@ -79,6 +88,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     login,
     logout,
+    updateUser,
     isAuthenticated: !!user,
     isLoading
   };

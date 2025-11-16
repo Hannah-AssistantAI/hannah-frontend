@@ -85,6 +85,30 @@ export const buildApiUrl = (endpoint: string): string => {
 };
 
 /**
+ * Helper function to build full avatar URL
+ * @param avatarPath - Avatar path (can be relative or full URL)
+ * @returns Full avatar URL
+ */
+export const buildAvatarUrl = (avatarPath: string | null | undefined): string => {
+  if (!avatarPath) {
+    return '';
+  }
+
+  // If it's already a full URL (starts with http:// or https://), return as is
+  if (avatarPath.startsWith('http://') || avatarPath.startsWith('https://')) {
+    return avatarPath;
+  }
+
+  // If it starts with a slash, it's an absolute path from the server root
+  if (avatarPath.startsWith('/')) {
+    return `${API_BASE_URL}${avatarPath}`;
+  }
+
+  // Otherwise, assume it's a relative path and prepend the base URL
+  return `${API_BASE_URL}/${avatarPath}`;
+};
+
+/**
  * HTTP Methods
  */
 export const HTTP_METHODS = {

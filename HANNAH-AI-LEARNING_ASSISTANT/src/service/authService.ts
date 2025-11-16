@@ -3,6 +3,7 @@
  * Handles all authentication-related API calls
  */
 
+import apiClient from './apiClient';
 import {
   API_ENDPOINTS,
   buildApiUrl,
@@ -41,6 +42,14 @@ export interface UserData {
   isActive: boolean;
   lastLoginAt: string;
   createdAt: string;
+  // Profile fields from login response
+  phone?: string | null;
+  dateOfBirth?: string | null;
+  bio?: string | null;
+  studentId?: string | null;
+  studentSpecialty?: string | null;
+  notificationPreferences?: string | null;
+  updatedAt?: string | null;
 }
 
 export interface ChangePasswordRequest {
@@ -98,10 +107,51 @@ class AuthService {
 
       const result = await response.json();
 
-      // Save tokens to localStorage
+      // Save tokens to localStorage first
       this.saveTokens(result.accessToken, result.refreshToken);
-      this.saveUserData(result.user);
 
+      // Fetch full profile data after login
+      try {
+        const profileResponse = await fetch(
+          buildApiUrl(`/api/Users/${result.user.userId}/profile`),
+          {
+            method: 'GET',
+            headers: {
+              ...getAuthHeaders(),
+              'Authorization': `Bearer ${result.accessToken}`,
+            },
+          }
+        );
+
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          // Merge login user data with profile data
+          const fullUserData = {
+            ...result.user,
+            phone: profileData.phone,
+            dateOfBirth: profileData.dateOfBirth,
+            bio: profileData.bio,
+            studentId: profileData.studentId,
+            studentSpecialty: profileData.studentSpecialty,
+            notificationPreferences: profileData.notificationPreferences,
+            updatedAt: profileData.updatedAt,
+          };
+
+          // Save the merged user data
+          this.saveUserData(fullUserData);
+
+          // Return the result with full user data
+          return {
+            ...result,
+            user: fullUserData,
+          };
+        }
+      } catch (profileError) {
+        console.warn('Failed to fetch profile data, using basic user data:', profileError);
+      }
+
+      // Fallback: save basic user data if profile fetch fails
+      this.saveUserData(result.user);
       return result;
     } catch (error) {
       console.error('Login error:', error);
@@ -175,43 +225,21 @@ class AuthService {
   async getCurrentUser(tokenOverride?: string): Promise<UserData> {
     try {
       const token = tokenOverride || this.getAccessToken();
-
       if (!token) {
         throw new Error('No access token available');
       }
 
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.AUTH.ME), {
-        method: 'GET',
-        headers: getAuthHeaders(token),
-      });
+      // Use apiClient which has automatic token refresh logic
+      const response = await apiClient.get<UserData>(API_ENDPOINTS.AUTH.ME);
+      const userData = response.data;
 
-      if (response.status === HTTP_STATUS.UNAUTHORIZED) {
-        // This could be a place to try refreshing the token
-        console.warn('Access token expired or invalid.');
-        this.clearTokens(); // Clear invalid tokens
-        throw new Error('Unauthorized');
-      }
-
-      if (!response.ok) {
-        const errorBody = await response.text();
-        console.error('Failed to get user info, status:', response.status, 'body:', errorBody);
-        throw new Error(`Failed to get user info: ${response.statusText}`);
-      }
-
-      const userData = await response.json();
       this.saveUserData(userData); // Keep user data in sync
-
       return userData;
+
     } catch (error) {
       console.error('Get current user error:', error);
-      // Don't re-throw 'No access token available' to avoid unhandled promise rejections in some cases
-      if ((error as Error).message === 'No access token available') {
-        // Silently fail or handle as needed, for now, just log
-      } else {
-        throw error;
-      }
-      // Return a rejected promise to be caught by callers
-      return Promise.reject(error);
+      // Re-throw the error to be handled by the caller (e.g., AuthContext)
+      throw error;
     }
   }
 

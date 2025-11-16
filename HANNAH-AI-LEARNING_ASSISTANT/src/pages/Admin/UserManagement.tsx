@@ -1,30 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { createPortal } from 'react-dom';
 // Replaced lucide-react icons with Unicode characters for simplicity
 import AdminPageWrapper from './components/AdminPageWrapper';
 import './UserManagement.css';
-import { parseUsersFromFile, type ParsedResult, generateUserTemplateCSV, downloadCSV } from '../../utils/userImport';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'Student' | 'Faculty' | 'Admin';
-  studentCode?: string;
-  status: 'Active' | 'Inactive';
-  createdAt: string;
-}
+import { parseUsersFromFile, type ParsedResult } from '../../utils/userImport';
+import userService, { type User } from '../../service/userService'; // Import user service and types
 
 const UserManagement: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const { user: currentUser } = useAuth();
+  const [allUsers, setAllUsers] = useState<User[]>([]); // To store the full list
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]); // To store the displayed list
+  const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState<string>('All');
+  const [roleFilter, setRoleFilter] = useState<string>(''); // Default to empty string for 'All'
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [importResult, setImportResult] = useState<ParsedResult | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
-  const [importing, setImporting] = useState(false);
+
   const [selectedFileName, setSelectedFileName] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   type Toast = { id: number; type: 'success' | 'error' | 'info'; message: string };
@@ -37,66 +31,44 @@ const UserManagement: React.FC = () => {
     setTimeout(() => setToasts((prev) => prev.filter((x) => x.id !== id)), 2500);
   };
 
-  // Mock data
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const usersData = await userService.getAllUsers();
+      setAllUsers(usersData);
+      setFilteredUsers(usersData);
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+      addToast({ type: 'error', message: 'Failed to load user data.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch all users on component mount
   useEffect(() => {
-    const mockUsers: User[] = [
-      {
-        id: '1',
-        name: 'Nguyễn Văn A',
-        email: 'nguyenvana@example.com',
-        role: 'Student',
-        studentCode: 'SV001',
-        status: 'Active',
-        createdAt: '2024-01-15'
-      },
-      {
-        id: '2',
-        name: 'Trần Thị B',
-        email: 'tranthib@example.com',
-        role: 'Faculty',
-        status: 'Active',
-        createdAt: '2024-01-10'
-      },
-      {
-        id: '3',
-        name: 'Lê Văn C',
-        email: 'levanc@example.com',
-        role: 'Admin',
-        status: 'Active',
-        createdAt: '2024-01-05'
-      },
-      {
-        id: '4',
-        name: 'Phạm Thị D',
-        email: 'phamthid@example.com',
-        role: 'Student',
-        studentCode: 'SV002',
-        status: 'Inactive',
-        createdAt: '2024-01-20'
-      }
-    ];
-    setUsers(mockUsers);
-    setFilteredUsers(mockUsers);
+    fetchUsers();
   }, []);
 
-  // Filter and search functionality
+  // Client-side filtering
   useEffect(() => {
-    let filtered = users;
+    let usersToFilter = [...allUsers];
 
-    if (roleFilter !== 'All') {
-      filtered = filtered.filter(user => user.role === roleFilter);
+    if (roleFilter) {
+      usersToFilter = usersToFilter.filter(user => user.role.toLowerCase() === roleFilter.toLowerCase());
     }
 
     if (searchTerm) {
-      filtered = filtered.filter(user =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (user.studentCode && user.studentCode.toLowerCase().includes(searchTerm.toLowerCase()))
+      const lowercasedSearch = searchTerm.toLowerCase();
+      usersToFilter = usersToFilter.filter(user =>
+        user.fullName.toLowerCase().includes(lowercasedSearch) ||
+        user.email.toLowerCase().includes(lowercasedSearch) ||
+        user.username.toLowerCase().includes(lowercasedSearch)
       );
     }
 
-    setFilteredUsers(filtered);
-  }, [users, roleFilter, searchTerm]);
+    setFilteredUsers(usersToFilter);
+  }, [searchTerm, roleFilter, allUsers]);
 
   const openFilePicker = () => {
     fileInputRef.current?.click();
@@ -119,55 +91,103 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  const applyImport = async () => {
-    if (!importResult) return;
-    setImporting(true);
+  const handleDownloadTemplate = async () => {
     try {
-      const now = Date.now();
-      const newUsers: User[] = importResult.valid.map((row, idx) => ({
-        id: String(now + idx),
-        name: row.name,
-        email: row.email,
-        role: row.role,
-        studentCode: row.studentCode,
-        status: row.status ?? 'Active',
-        createdAt: row.createdAt ?? new Date().toISOString(),
-      }));
-      setUsers(prev => [...newUsers, ...prev]);
+      const blob = await userService.getImportTemplate();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'user_import_template.xlsx'; // Or get the name from headers if possible
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      addToast({ type: 'success', message: 'Template downloaded successfully.' });
+    } catch (error) {
+      console.error('Failed to download template:', error);
+      addToast({ type: 'error', message: 'Failed to download template.' });
+    }
+  };
+
+  const applyImport = async () => {
+    const file = fileInputRef.current?.files?.[0];
+    if (!file) {
+      addToast({ type: 'error', message: 'No file selected for import.' });
+      return;
+    }
+
+    try {
+      const result = await userService.importFaculty(file);
+      addToast({ type: 'success', message: `${result.importedCount} users imported successfully!` });
       setShowImportModal(false);
-      setImportResult(null);
-      setSelectedFileName('');
-      addToast({ type: 'success', message: `Added ${newUsers.length} users` });
-    } finally {
-      setImporting(false);
+      fetchUsers(); // Refresh the user list
+    } catch (error) {
+      console.error('Failed to import users:', error);
+      addToast({ type: 'error', message: 'Failed to import users. Please check the file and try again.' });
     }
   };
 
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [userToDeactivate, setUserToDeactivate] = useState<User | null>(null);
+  const [deactivationReason, setDeactivationReason] = useState('');
 
   const requestDeleteUser = (user: User) => {
     setUserToDelete(user);
   };
 
-  const confirmDeleteUser = () => {
+  const confirmDeleteUser = async () => {
     if (!userToDelete) return;
-    setUsers(prev => prev.filter(u => u.id !== userToDelete.id));
-    setUserToDelete(null);
-    addToast({ type: 'success', message: 'User deleted' });
+    try {
+      await userService.deleteUser(userToDelete.userId.toString());
+      addToast({ type: 'success', message: `User ${userToDelete.fullName} deleted successfully.` });
+      setUserToDelete(null);
+      fetchUsers(); // Refresh the user list
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      addToast({ type: 'error', message: 'Failed to delete user.' });
+    }
   };
 
   const cancelDeleteUser = () => setUserToDelete(null);
 
-  const handleToggleStatus = (userId: string) => {
-    setUsers(users.map(user =>
-      user.id === userId
-        ? { ...user, status: user.status === 'Active' ? 'Inactive' : 'Active' }
-        : user
-    ));
-    const u = users.find(u => u.id === userId);
-    if (u) {
-      const next = u.status === 'Active' ? 'Inactive' : 'Active';
-      addToast({ type: 'info', message: `Changed status of ${u.name} to ${next}` });
+  const confirmDeactivateUser = async () => {
+    if (deactivationReason.trim() === '') {
+      addToast({ type: 'error', message: 'Vui lòng nhập lý do để vô hiệu hóa.' });
+      return;
+    }
+
+    if (!userToDeactivate) return;
+    try {
+      await userService.deactivateUser(userToDeactivate.userId.toString(), deactivationReason);
+      addToast({ type: 'success', message: `User ${userToDeactivate.fullName} has been deactivated.` });
+      setUserToDeactivate(null);
+      setDeactivationReason('');
+      fetchUsers(); // Refresh the user list
+    } catch (error) {
+      console.error('Failed to deactivate user:', error);
+      addToast({ type: 'error', message: 'Failed to deactivate user.' });
+    }
+  };
+
+  const cancelDeactivateUser = () => {
+    setUserToDeactivate(null);
+    setDeactivationReason('');
+  };
+
+  const handleToggleStatus = async (user: User) => {
+    if (user.isActive) {
+      // If user is active, we want to deactivate them. Show the modal.
+      setUserToDeactivate(user);
+    } else {
+      // If user is inactive, activate them directly.
+      try {
+        await userService.activateUser(user.userId.toString());
+        addToast({ type: 'success', message: `User ${user.fullName} has been activated.` });
+        fetchUsers(); // Refresh the user list
+      } catch (error) {
+        console.error('Failed to activate user:', error);
+        addToast({ type: 'error', message: 'Failed to activate user.' });
+      }
     }
   };
 
@@ -200,7 +220,7 @@ const UserManagement: React.FC = () => {
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
           >
-            <option value="All">All roles</option>
+            <option value="">All roles</option>
             <option value="Student">Student</option>
             <option value="Faculty">Faculty</option>
             <option value="Admin">Admin</option>
@@ -208,7 +228,7 @@ const UserManagement: React.FC = () => {
         </div>
         <button
           className="btn btn-secondary add-user-btn"
-          onClick={() => downloadCSV(generateUserTemplateCSV())}
+          onClick={handleDownloadTemplate}
           title="Download CSV template"
         >
           <span className="char-icon" aria-hidden>⬇️</span>
@@ -221,13 +241,6 @@ const UserManagement: React.FC = () => {
         >
           <span className="char-icon" aria-hidden>⬆️</span>
           Import
-        </button>
-        <button
-          className="btn btn-primary add-user-btn"
-          onClick={() => setShowCreateForm(true)}
-        >
-          <span className="char-icon" aria-hidden>➕</span>
-          Add user
         </button>
         <input
           ref={fileInputRef}
@@ -245,71 +258,79 @@ const UserManagement: React.FC = () => {
               <th>Name</th>
               <th>Email</th>
               <th>Role</th>
-              <th>Student Code</th>
+              <th>Username</th>
               <th>Status</th>
               <th>Created at</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map(user => (
-              <tr key={user.id}>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td>
-                  <span className={`role-badge role-${user.role.toLowerCase()}`}>
-                    {user.role === 'Student' ? 'Student' :
-                     user.role === 'Faculty' ? 'Faculty' : 'Admin'}
-                  </span>
-                </td>
-                <td>{user.studentCode || '-'}</td>
-                <td>
-                  <span className={`status-badge status-${user.status.toLowerCase()}`}>
-                    {user.status === 'Active' ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td>{new Date(user.createdAt).toLocaleDateString('en-US')}</td>
-                <td>
-                  <div className="action-buttons">
-                    <button
-                      className="btn-icon btn-edit"
-                      onClick={() => setEditingUser(user)}
-                      title="Edit"
-                    >
-                      <span className="char-icon" aria-hidden>✏️</span>
-                    </button>
-                    <button
-                      className="btn-icon btn-toggle"
-                      onClick={() => handleToggleStatus(user.id)}
-                      title={user.status === 'Active' ? 'Deactivate' : 'Activate'}
-                    >
-                      <span
-                        className={`char-icon ${user.status === 'Active' ? 'icon-danger' : ''}`}
-                        aria-hidden
-                      >
-                        {user.status === 'Active' ? 'X' : '✔️'}
-                      </span>
-                    </button>
-                    <button
-                      className="btn-icon btn-delete"
-                      onClick={() => requestDeleteUser(user)}
-                      title="Delete"
-                    >
-                      <span className="char-icon" aria-hidden>🗑️</span>
-                    </button>
-                  </div>
-                </td>
+            {isLoading && (
+              <tr>
+                <td colSpan={7} className="loading-cell">Loading...</td>
               </tr>
-            ))}
+            )}
+            {!isLoading &&
+              filteredUsers.map(user => (
+                <tr key={user.userId}>
+                  <td>{user.fullName}</td>
+                  <td>{user.email}</td>
+                  <td>
+                    <span className={`role-badge role-${user.role.toLowerCase()}`}>
+                      {user.role}
+                    </span>
+                  </td>
+                  <td>{user.username}</td> {/* Displaying username instead of studentCode for now */}
+                  <td>
+                    <span className={`status-badge ${user.isActive ? 'status-active' : 'status-inactive'}`}>
+                      {user.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td>{new Date(user.createdAt).toLocaleDateString('vi-VN')}</td>
+                  <td>
+                    <div className="action-buttons">
+                      <button
+                        className="btn-icon btn-edit"
+                        onClick={() => setEditingUser(user)}
+                        title="Edit"
+                      >
+                        <span className="char-icon" aria-hidden>✏️</span>
+                      </button>
+                      <button
+                        className="btn-icon btn-toggle"
+                        onClick={() => handleToggleStatus(user)}
+                        title={user.isActive ? 'Deactivate' : 'Activate'}
+                        disabled={user.role === 'Admin' || user.userId === currentUser?.userId}
+                      >
+                        <span
+                          className={`char-icon ${user.isActive ? 'icon-danger' : ''}`}
+                          aria-hidden
+                        >
+                          {user.isActive ? 'X' : '✔️'}
+                        </span>
+                      </button>
+                      <button
+                        className="btn-icon btn-delete"
+                        onClick={() => requestDeleteUser(user)} // Assuming requestDeleteUser will be updated
+                        title="Delete"
+                      >
+                        <span className="char-icon" aria-hidden>🗑️</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
 
-      {filteredUsers.length === 0 && (
+      {!isLoading && filteredUsers.length === 0 && (
         <div className="no-data">
-          <p>No users found</p>
+          <p>No users found matching your criteria.</p>
         </div>
       )}
+
+
 
       {/* Import Preview Modal */}
       {showImportModal && importResult && createPortal(
@@ -349,10 +370,10 @@ const UserManagement: React.FC = () => {
                 </button>
                 <button
                   className="btn btn-primary"
-                  disabled={importing || importResult.valid.length === 0}
+                  disabled={importResult.valid.length === 0}
                   onClick={applyImport}
                 >
-                  {importing ? 'Importing...' : `Add ${importResult.valid.length} users`}
+                  {`Add ${importResult.valid.length} users`}
                 </button>
               </div>
             </div>
@@ -394,22 +415,93 @@ const UserManagement: React.FC = () => {
                     <div className="modal-title">Delete user</div>
                     <div className="modal-subtext">This action cannot be undone.</div>
                   </div>
+
+      {/* Deactivate Confirmation Modal */}
+      {userToDeactivate && createPortal(
+        (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <div className="modal-header">
+                <div className="danger-title">
+                  <span className="char-icon" aria-hidden style={{fontSize: 20}}>⚠️</span>
+                  <div>
+                    <div className="modal-title">Deactivate user</div>
+                    <div className="modal-subtext">User will be temporarily suspended.</div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-body">
+                <p>You are about to deactivate <strong>{userToDeactivate.fullName}</strong>. Please provide a reason (optional).</p>
+                <textarea
+                  className="reason-textarea"
+                  placeholder="Enter reason for deactivation..."
+                  value={deactivationReason}
+                  onChange={(e) => setDeactivationReason(e.target.value)}
+                />
+              </div>
+              <div className="modal-actions" style={{ padding: '0 20px 20px' }}>
+                <button className="btn btn-secondary" onClick={cancelDeactivateUser}>Cancel</button>
+                <button
+                  className="btn btn-danger"
+                  style={{justifyContent: 'center'}}
+                  onClick={confirmDeactivateUser}
+                >
+                  Deactivate
+                </button>
+              </div>
+            </div>
+          </div>
+        ),
+        document.body
+      )}
+
                 </div>
               </div>
               <div className="modal-body">
                 <div className="confirm-box">
                   <ul style={{ margin: 0, paddingLeft: 18 }}>
-                    <li><strong>Name:</strong> {userToDelete.name}</li>
+                    <li><strong>Name:</strong> {userToDelete.fullName}</li>
                     <li><strong>Email:</strong> {userToDelete.email}</li>
-                    {userToDelete.studentCode && (
-                      <li><strong>Student Code:</strong> {userToDelete.studentCode}</li>
-                    )}
+                    <li><strong>Username:</strong> {userToDelete.username}</li>
                   </ul>
                 </div>
               </div>
               <div className="modal-actions" style={{ padding: '0 20px 20px' }}>
                 <button className="btn btn-secondary" onClick={cancelDeleteUser}>Cancel</button>
                 <button className="btn btn-danger" style={{justifyContent: 'center'}} onClick={confirmDeleteUser}>Delete</button>
+              </div>
+            </div>
+          </div>
+        ),
+        document.body
+      )}
+
+      {/* Deactivate Confirmation Modal */}
+      {userToDeactivate && createPortal(
+        (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <div className="modal-header">
+                <div className="danger-title">
+                  <span className="char-icon" aria-hidden style={{fontSize: 20}}>⚠️</span>
+                  <div>
+                    <div className="modal-title">Deactivate user</div>
+                    <div className="modal-subtext">Please provide a reason for deactivation.</div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-body">
+                <p>You are about to deactivate <strong>{userToDeactivate.fullName}</strong>.</p>
+                <textarea
+                  className="reason-textarea"
+                  placeholder="Enter reason for deactivation (optional)"
+                  value={deactivationReason}
+                  onChange={(e) => setDeactivationReason(e.target.value)}
+                />
+              </div>
+              <div className="modal-actions" style={{ padding: '0 20px 20px' }}>
+                <button className="btn btn-secondary" onClick={cancelDeactivateUser}>Cancel</button>
+                <button className="btn btn-danger" style={{justifyContent: 'center'}} onClick={confirmDeactivateUser}>Deactivate</button>
               </div>
             </div>
           </div>

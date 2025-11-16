@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ChangePasswordForm from './ChangePasswordForm'; // Import the new component
 import { useAuth } from '../../contexts/AuthContext';
 import authService from '../../service/authService';
+import userService from '../../service/userService';
 import type { UserData } from '../../service/authService';
 import toast from 'react-hot-toast'; // Import toast for notifications
 import {
@@ -74,68 +75,115 @@ interface ProfileProps {
 
 export default function Profile({ embedded = false }: ProfileProps) {
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
+    const { user, logout, updateUser } = useAuth();
     const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [editedProfile, setEditedProfile] = useState<UserProfile | null>(null);
+    const [showAvatarModal, setShowAvatarModal] = useState(false);
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        const fetchUserProfile = async () => {
+        const loadUserProfile = async () => {
+            if (!user) {
+                setIsLoading(false);
+                toast.error("Không tìm thấy thông tin người dùng.");
+                return;
+            }
+
             setIsLoading(true);
             try {
-                const userData = await authService.getCurrentUser();
-                if (userData) {
-                    // Format join date from createdAt
-                    const joinDate = new Date(userData.createdAt).toLocaleDateString('vi-VN', {
-                        month: 'long',
-                        year: 'numeric'
-                    });
+                // Fetch fresh profile data from API
+                const profileData = await userService.getUserProfile(user.userId.toString());
 
-                    // Use avatarUrl from API or generate a default one
-                    const avatarUrl = userData.avatarUrl ||
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName)}&background=4285F4&color=fff&size=200`;
+                // Format join date from user data
+                const joinDate = new Date(profileData.createdAt || user.createdAt).toLocaleDateString('vi-VN', {
+                    month: 'long',
+                    year: 'numeric'
+                });
 
-                    const profileData: UserProfile = {
-                        name: userData.fullName,
-                        email: userData.email,
-                        role: userData.role as 'Student' | 'Faculty' | 'Admin',
-                        avatar: avatarUrl,
-                        joinDate: joinDate,
-                        notification_preferences: {
-                            emailUpdates: true,
-                            appEvents: true,
-                            weeklyReports: false,
-                        },
-                    };
-                    setUserProfile(profileData);
-                    setEditedProfile(profileData);
-                }
+                // Use avatarUrl from user data or generate a default one
+                const avatarUrl = user.avatarUrl ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=4285F4&color=fff&size=200`;
+
+                // Build profile from API response
+                const fullProfile: UserProfile = {
+                    name: user.fullName,
+                    email: user.email,
+                    role: user.role as 'Student' | 'Faculty' | 'Admin',
+                    avatar: avatarUrl,
+                    joinDate: joinDate,
+                    phone: profileData.phone || undefined,
+                    date_of_birth: profileData.dateOfBirth ? profileData.dateOfBirth.split('T')[0] : undefined,
+                    bio: profileData.bio || undefined,
+                    student_id: profileData.studentId || undefined,
+                    student_specialty: profileData.studentSpecialty as any,
+                    notification_preferences: profileData.notificationPreferences || {
+                        emailUpdates: true,
+                        appEvents: true,
+                        weeklyReports: false,
+                    },
+                };
+
+                setUserProfile(fullProfile);
+                setEditedProfile(fullProfile);
             } catch (error) {
-                console.error("Failed to fetch user profile:", error);
+                console.error("Failed to load user profile:", error);
                 toast.error("Không thể tải thông tin hồ sơ.");
-                if ((error as Error).message === 'Unauthorized') {
-                    logout();
-                    navigate('/');
-                }
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchUserProfile();
-    }, [navigate, logout]);
+        loadUserProfile();
+    }, [user, navigate]);
 
 
 
-    const handleSave = () => {
-        if (editedProfile) {
-            setUserProfile(editedProfile);
+    const handleSave = async () => {
+        if (!editedProfile || !user) {
+            toast.error("Dữ liệu không hợp lệ để cập nhật.");
+            return;
+        }
+
+        try {
+            // Compare original and edited profiles to find changes
+            const updateData: any = {};
+            if (editedProfile.phone !== userProfile?.phone) {
+                updateData.phone = editedProfile.phone;
+            }
+            if (editedProfile.date_of_birth !== userProfile?.date_of_birth) {
+                updateData.dateOfBirth = editedProfile.date_of_birth;
+            }
+            if (editedProfile.bio !== userProfile?.bio) {
+                updateData.bio = editedProfile.bio;
+            }
+            if (editedProfile.student_specialty !== userProfile?.student_specialty) {
+                updateData.studentSpecialty = editedProfile.student_specialty;
+            }
+
+            // Only call API if there are actual changes
+            if (Object.keys(updateData).length > 0) {
+                const response = await userService.updateUserProfile(user.userId.toString(), updateData);
+
+                // Create the updated profile object for local state
+                const updatedProfileData = { ...userProfile, ...response.data };
+
+                setUserProfile(updatedProfileData as UserProfile);
+                setEditedProfile(updatedProfileData as UserProfile);
+                toast.success("Cập nhật hồ sơ thành công!");
+            } else {
+                toast.success("Không có thay đổi nào để lưu.");
+            }
+
             setIsEditing(false);
-            toast.success("Cập nhật hồ sơ thành công!");
-            // TODO: Call API to update profile on backend
+
+
+        } catch (error) {
+            console.error("Failed to update profile:", error);
+            toast.error("Cập nhật hồ sơ thất bại. Vui lòng thử lại.");
         }
     };
 
@@ -144,18 +192,50 @@ export default function Profile({ embedded = false }: ProfileProps) {
         setIsEditing(false);
     };
 
+    const handleAvatarClick = () => {
+        setShowAvatarModal(true);
+    };
+
     const handleAvatarChange = () => {
         fileInputRef.current?.click();
     };
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files[0] && editedProfile) {
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files && event.target.files[0] && user) {
             const file = event.target.files[0];
-            // Tạo URL tạm thời để xem trước ảnh
-            const newAvatarUrl = URL.createObjectURL(file);
-            setEditedProfile({ ...editedProfile, avatar: newAvatarUrl });
-            // Trong ứng dụng thực tế, bạn sẽ lưu đối tượng `file` này
-            // để gửi lên server khi người dùng nhấn "Lưu".
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                toast.error('Vui lòng chọn file ảnh hợp lệ');
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Kích thước ảnh không được vượt quá 5MB');
+                return;
+            }
+
+            setIsUploadingAvatar(true);
+            try {
+                // Upload avatar to server
+                const response = await userService.uploadAvatar(user.userId.toString(), file);
+
+                // Update local state with new avatar URL
+                const newAvatarUrl = response.avatarUrl;
+                if (userProfile && editedProfile) {
+                    const updatedProfile = { ...userProfile, avatar: newAvatarUrl };
+                    setUserProfile(updatedProfile);
+                    setEditedProfile(updatedProfile);
+                }
+
+                toast.success('Đã cập nhật avatar thành công!');
+            } catch (error) {
+                console.error('Failed to upload avatar:', error);
+                toast.error('Cập nhật avatar thất bại. Vui lòng thử lại.');
+            } finally {
+                setIsUploadingAvatar(false);
+            }
         }
     };
 
@@ -287,12 +367,16 @@ export default function Profile({ embedded = false }: ProfileProps) {
                                                 src={editedProfile.avatar}
                                                 alt="Avatar"
                                                 className="profile-avatar-img"
+                                                onClick={handleAvatarClick}
+                                                style={{ cursor: 'pointer' }}
                                             />
-                                            {isEditing && (
-                                                <button className="profile-avatar-change" onClick={handleAvatarChange}>
-                                                    <Camera size={20} />
-                                                </button>
-                                            )}
+                                            <button
+                                                className="profile-avatar-change"
+                                                onClick={handleAvatarChange}
+                                                disabled={isUploadingAvatar}
+                                            >
+                                                <Camera size={20} />
+                                            </button>
                                         </div>
                                         <div className="profile-avatar-info">
                                             <h3 className="profile-name">{userProfile.name}</h3>

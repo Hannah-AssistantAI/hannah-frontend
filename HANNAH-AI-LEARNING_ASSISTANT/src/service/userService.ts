@@ -4,19 +4,19 @@
  */
 
 import apiClient from './apiClient';
-import { API_ENDPOINTS, buildApiUrl, getAuthHeaders, STORAGE_KEYS } from '../config/apiConfig';
+import { API_ENDPOINTS } from '../config/apiConfig';
 
 // Type definitions for User API
 export interface User {
-  id: string;
+  userId: number;
   username: string;
   email: string;
   fullName: string;
   role: string;
   isActive: boolean;
-  avatarUrl?: string;
+  avatarUrl: string | null;
   createdAt: string;
-  updatedAt: string;
+  lastLoginAt: string;
 }
 
 export interface CreateUserRequest {
@@ -35,20 +35,22 @@ export interface UpdateUserRequest {
 }
 
 export interface UserProfile {
-  id: string;
-  userId: string;
-  bio?: string;
-  phoneNumber?: string;
-  address?: string;
-  dateOfBirth?: string;
-  avatarUrl?: string;
+  userId: number;
+  phone: string | null;
+  dateOfBirth: string | null;
+  bio: string | null;
+  studentId: string | null;
+  studentSpecialty: string | null;
+  notificationPreferences: any | null; // Adjust based on actual structure
+  createdAt: string;
+  updatedAt: string | null;
 }
 
 export interface UpdateProfileRequest {
-  bio?: string;
-  phoneNumber?: string;
-  address?: string;
+  phone?: string;
   dateOfBirth?: string;
+  bio?: string;
+  studentSpecialty?: string;
 }
 
 export interface UserPreferences {
@@ -75,6 +77,25 @@ export interface UserQuiz {
   completedAt: string;
 }
 
+export interface GetUsersParams {
+  pageNumber?: number;
+  pageSize?: number;
+  role?: string;
+  specialty?: string;
+  search?: string;
+  isActive?: boolean;
+}
+
+export interface PaginatedUsersResponse {
+  items: User[];
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  totalCount: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+}
+
 /**
  * User Service Class
  */
@@ -85,6 +106,11 @@ class UserService {
   async getAllUsers(): Promise<User[]> {
     try {
       const response = await apiClient.get<User[]>(API_ENDPOINTS.USER.GET_ALL);
+      // The API might return a paginated object even if we don't ask it to.
+      // If so, we extract the 'items' array. If not, we assume the response is the array itself.
+      if (response.data && Array.isArray((response.data as any).items)) {
+        return (response.data as any).items;
+      }
       return response.data;
     } catch (error) {
       console.error('Get all users error:', error);
@@ -221,9 +247,11 @@ class UserService {
   /**
    * Deactivate user
    */
-  async deactivateUser(userId: string): Promise<void> {
+  async deactivateUser(userId: string, reason?: string): Promise<void> {
     try {
-      await apiClient.put(API_ENDPOINTS.USER.DEACTIVATE(userId));
+      // Only send a body if a reason is provided.
+      const payload = reason ? { reason } : undefined;
+      await apiClient.put(API_ENDPOINTS.USER.DEACTIVATE(userId), payload);
     } catch (error) {
       console.error('Deactivate user error:', error);
       throw error;
@@ -235,25 +263,13 @@ class UserService {
    */
   async uploadAvatar(userId: string, file: File): Promise<{ avatarUrl: string }> {
     try {
-      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       const formData = new FormData();
-      formData.append('avatar', file);
-
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.USER.UPLOAD_AVATAR(userId)), {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          // Don't set Content-Type for FormData, browser will set it automatically
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Avatar upload failed');
-      }
-
-      return await response.json();
+      formData.append('Avatar', file); // Changed to 'Avatar' with capital A to match API
+      const response = await apiClient.postFormData<{ avatarUrl: string }>(
+        API_ENDPOINTS.USER.UPLOAD_AVATAR(userId),
+        formData
+      );
+      return response.data;
     } catch (error) {
       console.error('Upload avatar error:', error);
       throw error;
@@ -290,19 +306,7 @@ class UserService {
    */
   async getImportTemplate(): Promise<Blob> {
     try {
-      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.USER.GET_IMPORT_TEMPLATE), {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to download template');
-      }
-
-      return await response.blob();
+      return await apiClient.getBlob(API_ENDPOINTS.USER.GET_IMPORT_TEMPLATE);
     } catch (error) {
       console.error('Get import template error:', error);
       throw error;
@@ -314,24 +318,13 @@ class UserService {
    */
   async importFaculty(file: File): Promise<{ message: string; importedCount: number }> {
     try {
-      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.USER.IMPORT_FACULTY), {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Faculty import failed');
-      }
-
-      return await response.json();
+      formData.append('ExcelFile', file); // Match the API parameter name 'ExcelFile'
+      const response = await apiClient.postFormData<{ message: string; importedCount: number }>(
+        API_ENDPOINTS.USER.IMPORT_FACULTY,
+        formData
+      );
+      return response.data;
     } catch (error) {
       console.error('Import faculty error:', error);
       throw error;

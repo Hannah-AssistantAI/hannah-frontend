@@ -29,15 +29,24 @@ class ApiClient {
    */
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    isRetry: boolean = false
   ): Promise<ApiResponse<T>> {
     const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
     const url = `${this.baseURL}${endpoint}`;
 
+    const baseHeaders = getAuthHeaders(token || undefined);
+
+    // When the body is FormData, we must not set the 'Content-Type' header.
+    // The browser will automatically set it to 'multipart/form-data' with the correct boundary.
+    if (options.body instanceof FormData) {
+      delete baseHeaders['Content-Type'];
+    }
+
     const config: RequestInit = {
       ...options,
       headers: {
-        ...getAuthHeaders(token || undefined),
+        ...baseHeaders,
         ...options.headers,
       },
     };
@@ -46,12 +55,12 @@ class ApiClient {
       const response = await fetch(url, config);
 
       // Handle different response statuses
-      if (response.status === HTTP_STATUS.UNAUTHORIZED) {
-        // Try to refresh token
+      if (response.status === HTTP_STATUS.UNAUTHORIZED && !isRetry) {
+        // Try to refresh token (only if this is not already a retry)
         const refreshed = await this.handleTokenRefresh();
         if (refreshed) {
-          // Retry the original request
-          return this.request<T>(endpoint, options);
+          // Retry the original request with the new token
+          return this.request<T>(endpoint, options, true);
         } else {
           // Redirect to login
           this.handleAuthError();
@@ -141,6 +150,39 @@ class ApiClient {
   }
 
   /**
+   * POST request for FormData
+   */
+  async postFormData<T>(endpoint: string, formData: FormData): Promise<ApiResponse<T>> {
+    // For FormData, we don't stringify the body and we let the browser set the Content-Type header
+    const response = await this.request<T>(endpoint, {
+      method: 'POST',
+      body: formData,
+    });
+    return response;
+  }
+
+  /**
+   * GET request for Blob responses (file downloads)
+   */
+  async getBlob(endpoint: string): Promise<Blob> {
+    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    const url = `${this.baseURL}${endpoint}`;
+
+    const config: RequestInit = {
+      method: 'GET',
+      headers: getAuthHeaders(token || undefined),
+    };
+
+    const response = await fetch(url, config);
+
+    if (!response.ok) {
+      throw await this.handleError(response);
+    }
+
+    return response.blob();
+  }
+
+  /**
    * Handle token refresh
    */
   private async handleTokenRefresh(): Promise<boolean> {
@@ -148,20 +190,29 @@ class ApiClient {
       const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
 
       if (!refreshToken) {
+        console.error('No refresh token found in storage.');
         return false;
       }
 
       const response = await fetch(`${this.baseURL}/api/Auth/refresh-token`, {
         method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ refreshToken }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }), // Explicitly match the API spec
       });
 
       if (!response.ok) {
+        console.error(`Token refresh API call failed with status: ${response.status}`);
         return false;
       }
 
       const data = await response.json();
+
+      if (!data.accessToken || !data.refreshToken) {
+        console.error('Token refresh response is missing tokens.');
+        return false;
+      }
 
       // Save new tokens
       localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
@@ -169,7 +220,7 @@ class ApiClient {
 
       return true;
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      console.error('An exception occurred during token refresh:', error);
       return false;
     }
   }
@@ -184,7 +235,7 @@ class ApiClient {
     localStorage.removeItem(STORAGE_KEYS.USER_DATA);
 
     // Redirect to login page
-    window.location.href = '/login';
+    window.location.href = '/'; // Redirect to home page
   }
 
   /**
