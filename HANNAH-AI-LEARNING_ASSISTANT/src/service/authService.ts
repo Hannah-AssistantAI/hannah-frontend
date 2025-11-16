@@ -32,11 +32,15 @@ export interface LoginResponse {
 }
 
 export interface UserData {
-  id: string;
-  username: string;
+  userId: number;
   email: string;
+  username: string;
   fullName: string;
   role: string;
+  avatarUrl: string | null;
+  isActive: boolean;
+  lastLoginAt: string;
+  createdAt: string;
 }
 
 export interface ChangePasswordRequest {
@@ -275,6 +279,6 @@ class AuthService {
 }
 
 // Export singleton instance
-export const authService = new AuthService();
+const authService = new AuthService();
 export default authService;
 

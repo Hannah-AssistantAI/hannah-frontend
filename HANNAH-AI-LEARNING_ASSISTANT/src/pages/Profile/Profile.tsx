@@ -1,6 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
+import ChangePasswordForm from './ChangePasswordForm'; // Import the new component
 import { useAuth } from '../../contexts/AuthContext';
+import authService from '../../service/authService';
+import type { UserData } from '../../service/authService';
+import toast from 'react-hot-toast'; // Import toast for notifications
 import {
     User,
     Mail,
@@ -70,70 +74,93 @@ interface ProfileProps {
 
 export default function Profile({ embedded = false }: ProfileProps) {
     const navigate = useNavigate();
-    const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState<'profile'>('profile')
-    const [isEditing, setIsEditing] = useState(false)
-
-    const [userProfile, setUserProfile] = useState<UserProfile>({
-        name: 'Lưu Quang Trí',
-        email: 'trilqse170000@fpt.edu.vn',
-        role: 'Admin', // Change this to 'Faculty' or 'Student' to test different views
-        avatar: 'https://ui-avatars.com/api/?name=Luu+Quang+Tri&background=4285F4&color=fff&size=200',
-        joinDate: 'Tháng 1, 2024',
-
-        // Personal Information
-        phone: '0912345678',
-        date_of_birth: '2003-10-25',
-        bio: 'Sinh viên năm 3 chuyên ngành Kỹ thuật phần mềm tại Đại học FPT. Đam mê phát triển web và trí tuệ nhân tạo.',
-
-        // Student-specific fields
-        student_id: 'SE170000',
-        student_specialty: 'SE',
-
-        // Faculty-specific fields (null for student)
-        faculty_specialty: undefined,
-        years_of_experience: undefined,
-
-        // Preferences
-        notification_preferences: {
-            emailUpdates: true,
-            appEvents: true,
-            weeklyReports: false,
-        },
-    })
-
-    const [editedProfile, setEditedProfile] = useState<UserProfile>(userProfile);
+    const { user, logout } = useAuth();
+    const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
+    const [isEditing, setIsEditing] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+    const [editedProfile, setEditedProfile] = useState<UserProfile | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            setIsLoading(true);
+            try {
+                const userData = await authService.getCurrentUser();
+                if (userData) {
+                    // Format join date from createdAt
+                    const joinDate = new Date(userData.createdAt).toLocaleDateString('vi-VN', {
+                        month: 'long',
+                        year: 'numeric'
+                    });
+
+                    // Use avatarUrl from API or generate a default one
+                    const avatarUrl = userData.avatarUrl ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName)}&background=4285F4&color=fff&size=200`;
+
+                    const profileData: UserProfile = {
+                        name: userData.fullName,
+                        email: userData.email,
+                        role: userData.role as 'Student' | 'Faculty' | 'Admin',
+                        avatar: avatarUrl,
+                        joinDate: joinDate,
+                        notification_preferences: {
+                            emailUpdates: true,
+                            appEvents: true,
+                            weeklyReports: false,
+                        },
+                    };
+                    setUserProfile(profileData);
+                    setEditedProfile(profileData);
+                }
+            } catch (error) {
+                console.error("Failed to fetch user profile:", error);
+                toast.error("Không thể tải thông tin hồ sơ.");
+                if ((error as Error).message === 'Unauthorized') {
+                    logout();
+                    navigate('/');
+                }
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchUserProfile();
+    }, [navigate, logout]);
 
 
 
     const handleSave = () => {
-        setUserProfile(editedProfile)
-        setIsEditing(false)
-    }
+        if (editedProfile) {
+            setUserProfile(editedProfile);
+            setIsEditing(false);
+            toast.success("Cập nhật hồ sơ thành công!");
+            // TODO: Call API to update profile on backend
+        }
+    };
 
     const handleCancel = () => {
-        setEditedProfile(userProfile)
-        setIsEditing(false)
-    }
+        setEditedProfile(userProfile);
+        setIsEditing(false);
+    };
 
     const handleAvatarChange = () => {
         fileInputRef.current?.click();
     };
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files[0]) {
+        if (event.target.files && event.target.files[0] && editedProfile) {
             const file = event.target.files[0];
             // Tạo URL tạm thời để xem trước ảnh
             const newAvatarUrl = URL.createObjectURL(file);
-            setEditedProfile(prev => ({ ...prev, avatar: newAvatarUrl }));
+            setEditedProfile({ ...editedProfile, avatar: newAvatarUrl });
             // Trong ứng dụng thực tế, bạn sẽ lưu đối tượng `file` này
             // để gửi lên server khi người dùng nhấn "Lưu".
         }
     };
 
     useEffect(() => {
-        const avatarUrl = editedProfile.avatar;
+        const avatarUrl = editedProfile?.avatar;
 
         // Cleanup function to revoke the object URL to prevent memory leaks
         return () => {
@@ -141,7 +168,26 @@ export default function Profile({ embedded = false }: ProfileProps) {
                 URL.revokeObjectURL(avatarUrl);
             }
         };
-    }, [editedProfile.avatar]);
+    }, [editedProfile?.avatar]);
+
+    if (isLoading) {
+        return (
+            <div className="profile-page-loading">
+                <Sparkles size={48} className="text-blue-500 animate-pulse" />
+                <h2>Đang tải hồ sơ...</h2>
+            </div>
+        );
+    }
+
+    if (!userProfile || !editedProfile) {
+        return (
+            <div className="profile-page-error">
+                <h2>Không thể tải hồ sơ</h2>
+                <p>Đã xảy ra lỗi khi tải thông tin người dùng. Vui lòng thử lại.</p>
+                <button onClick={() => navigate('/')}>Về trang chủ</button>
+            </div>
+        );
+    }
 
     return (
         <div className={`profile-page ${embedded ? 'embedded' : ''}`}>
@@ -183,6 +229,15 @@ export default function Profile({ embedded = false }: ProfileProps) {
                             <ChevronRight size={18} className="ml-auto" />
                         </button>
 
+                        <button
+                            className={`profile-nav-item ${activeTab === 'security' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('security')}
+                        >
+                            <Shield size={20} />
+                            <span>Bảo mật & Đăng nhập</span>
+                            <ChevronRight size={18} className="ml-auto" />
+                        </button>
+
                     </div>
 
                     <div className="profile-sidebar-footer">
@@ -198,7 +253,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
 
                 {/* Main Content */}
                 <main className="profile-main">
-                    {/* Profile Tab */}
+                    {/* Conditional Rendering based on activeTab */}
                     {activeTab === 'profile' && (
                         <div className="profile-content">
                             {/* Profile Card */}
@@ -404,7 +459,9 @@ export default function Profile({ embedded = false }: ProfileProps) {
                         </div>
                     )}
 
-
+                    {activeTab === 'security' && (
+                        <ChangePasswordForm />
+                    )}
                 </main>
             </div>
         </div>

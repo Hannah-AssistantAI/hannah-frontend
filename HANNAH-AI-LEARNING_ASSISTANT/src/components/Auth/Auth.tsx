@@ -50,10 +50,11 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, initialTab = 'login' }) =>
       // Close modal first
       onClose();
 
-      // Redirect based on user role
-      if (user.role === 'admin') {
+      // Redirect based on user role (case-insensitive comparison)
+      const userRole = user.role.toLowerCase();
+      if (userRole === 'admin') {
         navigate('/admin');
-      } else if (user.role === 'faculty') {
+      } else if (userRole === 'faculty') {
         navigate('/faculty');
       }
       // For students or other roles, just close the modal and stay on current page
