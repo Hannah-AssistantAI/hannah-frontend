@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 
 interface LoginFormProps {
-  onSubmit: (email: string, password: string) => void;
+  onSubmit: (email: string, password: string) => Promise<void>;
   isLoading?: boolean;
+  apiError?: string | null;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading = false }) => {
@@ -68,6 +69,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading = false }) =>
 
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
+
+
       <div className="form-group">
         <label htmlFor="login-email" className="form-label">
           Email

@@ -1,18 +1,12 @@
-import React, { createContext, useContext, useState, type ReactNode } from 'react';
-import { findUserByCredentials } from '../data/mockUsers';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'admin' | 'student' | 'faculty';
-}
+import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import authService, { type UserData } from '../service/authService';
 
 interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  user: UserData | null;
+  login: (email: string, password: string) => Promise<UserData>;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,55 +16,71 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserData | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // Start true to check session
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<UserData> => {
+    // No try-catch here, let the caller handle it.
+    const response = await authService.login({ email, password });
+    // After successful login, authService saves user data. We can trust it's in localStorage.
+    // Or better, just use the response directly.
+    setUser(response.user);
+    return response.user;
+  };
+
+  const logout = async () => {
     try {
-      // Kiểm tra tài khoản mẫu
-      const mockUser = findUserByCredentials(email, password);
-      if (mockUser) {
-        const userData: User = {
-          id: Math.random().toString(36).substr(2, 9),
-          email: mockUser.email,
-          name: mockUser.name,
-          role: mockUser.role
-        };
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-        return true;
-      }
-
-      // Nếu không phải tài khoản mẫu, có thể thêm logic xác thực khác ở đây
-      return false;
+      await authService.logout();
     } catch (error) {
-      console.error('Login error:', error);
-      return false;
+      console.error('Logout failed but clearing session anyway:', error);
+    } finally {
+      setUser(null);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-  };
+  useEffect(() => {
+    let isMounted = true; // Prevent state updates on unmounted component
 
-  // Khôi phục user từ localStorage khi component mount
-  React.useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+    const checkSession = async () => {
+      setIsLoading(true);
       try {
-        setUser(JSON.parse(savedUser));
+        // First, try to get user data from local storage for a faster UI response
+        const cachedUser = authService.getUserData();
+        if (isMounted && cachedUser) {
+          setUser(cachedUser);
+        }
+
+        // Then, verify with the server
+        const freshUser = await authService.getCurrentUser();
+        if (isMounted) {
+          setUser(freshUser);
+        }
       } catch (error) {
-        console.error('Error parsing saved user:', error);
-        localStorage.removeItem('user');
+        // If token is invalid or expired, clear session
+        if (isMounted) {
+          setUser(null);
+          authService.clearTokens(); // Ensure everything is cleared
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-    }
+    };
+
+    checkSession();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const value: AuthContextType = {
     user,
     login,
     logout,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    isLoading
   };
 
   return (

@@ -49,7 +49,10 @@ const ProfileIcon: React.FC<ProfileIconProps> = React.memo(({ className = '' }) 
   }
 
   // Lấy chữ cái đầu của tên để làm avatar
-  const getInitials = (name: string) => {
+  const getInitials = (name: string | undefined) => {
+    if (!name || typeof name !== 'string') {
+      return 'U'; // Default fallback
+    }
     return name
       .split(' ')
       .map(word => word.charAt(0))
@@ -69,7 +72,7 @@ const ProfileIcon: React.FC<ProfileIconProps> = React.memo(({ className = '' }) 
         aria-label="User profile menu"
       >
         <div className="avatar-circle">
-          {getInitials(user.name)}
+          {getInitials(user.fullName)}
         </div>
       </div>
 

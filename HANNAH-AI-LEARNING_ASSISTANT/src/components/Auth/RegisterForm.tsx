@@ -1,22 +1,25 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
+import authService from '../../service/authService';
 
 interface RegisterFormProps {
-  onSubmit: (name: string, email: string, password: string) => void;
-  isLoading?: boolean;
+  onSuccess: () => void; // Callback for successful registration
 }
 
-const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading = false }) => {
+const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
+  const [isLoading, setIsLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
+    username: '',
     email: '',
-    password: '',
-    confirmPassword: ''
+    password: ''
   });
   const [errors, setErrors] = useState({
     name: '',
+    username: '',
     email: '',
-    password: '',
-    confirmPassword: ''
+    password: ''
   });
 
   const validateEmail = (email: string) => {
@@ -40,14 +43,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading = false
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+
+
     const newErrors = {
       name: '',
+      username: '',
       email: '',
-      password: '',
-      confirmPassword: ''
+      password: ''
     };
 
     // Validate name
@@ -55,6 +60,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading = false
       newErrors.name = 'Tên là bắt buộc';
     } else if (formData.name.trim().length < 2) {
       newErrors.name = 'Tên phải có ít nhất 2 ký tự';
+    }
+
+    // Validate username
+    if (!formData.username.trim()) {
+      newErrors.username = 'Tên đăng nhập là bắt buộc';
+    } else if (formData.username.trim().length < 3) {
+      newErrors.username = 'Tên đăng nhập phải có ít nhất 3 ký tự';
     }
 
     // Validate email
@@ -71,23 +83,54 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading = false
       newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
     }
 
-    // Validate confirm password
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Xác nhận mật khẩu là bắt buộc';
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
-    }
-
     setErrors(newErrors);
 
     // If no errors, submit form
-    if (!newErrors.name && !newErrors.email && !newErrors.password && !newErrors.confirmPassword) {
-      onSubmit(formData.name.trim(), formData.email, formData.password);
+    if (!newErrors.name && !newErrors.username && !newErrors.email && !newErrors.password) {
+      setIsLoading(true);
+
+      try {
+        // Call register API
+        await authService.register({
+          email: formData.email,
+          username: formData.username.trim(),
+          password: formData.password,
+          fullName: formData.name.trim(),
+          role: 'student', // Default role
+        });
+
+        // Registration successful
+        toast.success('Đăng ký thành công! Vui lòng đăng nhập.', {
+          duration: 3000,
+          icon: '✅',
+        });
+        onSuccess();
+      } catch (error: any) {
+        console.error('Registration error:', error);
+
+        // Handle API errors
+        let errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.';
+
+        if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        toast.error(errorMessage, {
+          duration: 4000,
+          icon: '❌',
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
+
+
       <div className="form-group">
         <label htmlFor="register-name" className="form-label">
           Họ và tên
@@ -103,6 +146,23 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading = false
           disabled={isLoading}
         />
         {errors.name && <span className="form-error">{errors.name}</span>}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="register-username" className="form-label">
+          Tên đăng nhập
+        </label>
+        <input
+          id="register-username"
+          name="username"
+          type="text"
+          value={formData.username}
+          onChange={handleChange}
+          className={`form-input ${errors.username ? 'error' : ''}`}
+          placeholder="Nhập tên đăng nhập"
+          disabled={isLoading}
+        />
+        {errors.username && <span className="form-error">{errors.username}</span>}
       </div>
 
       <div className="form-group">
@@ -139,25 +199,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading = false
         {errors.password && <span className="form-error">{errors.password}</span>}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="register-confirm-password" className="form-label">
-          Xác nhận mật khẩu
-        </label>
-        <input
-          id="register-confirm-password"
-          name="confirmPassword"
-          type="password"
-          value={formData.confirmPassword}
-          onChange={handleChange}
-          className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
-          placeholder="Nhập lại mật khẩu"
-          disabled={isLoading}
-        />
-        {errors.confirmPassword && <span className="form-error">{errors.confirmPassword}</span>}
-      </div>
 
-      <button 
-        type="submit" 
+
+      <button
+        type="submit"
         className="auth-button"
         disabled={isLoading}
       >

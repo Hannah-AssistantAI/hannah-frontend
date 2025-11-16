@@ -1,4 +1,5 @@
 import { Route, Routes, useLocation } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 import ThemeToggle from './components/ThemeToggle'
 import ThemedPage from './components/ThemedPage'
 import Home from './pages/home/Home'
@@ -36,6 +37,45 @@ function App() {
 
   return (
     <>
+      <Toaster
+        position="top-right"
+        reverseOrder={false}
+        gutter={8}
+        toastOptions={{
+          // Default options
+          duration: 3000,
+          style: {
+            padding: '16px',
+            borderRadius: '10px',
+            fontSize: '15px',
+            fontWeight: '500',
+          },
+          // Success - Màu xanh lá
+          success: {
+            duration: 3000,
+            style: {
+              background: '#10b981',
+              color: '#fff',
+            },
+            iconTheme: {
+              primary: '#fff',
+              secondary: '#10b981',
+            },
+          },
+          // Error - Màu đỏ
+          error: {
+            duration: 4000,
+            style: {
+              background: '#ef4444',
+              color: '#fff',
+            },
+            iconTheme: {
+              primary: '#fff',
+              secondary: '#ef4444',
+            },
+          },
+        }}
+      />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/learn" element={<ThemedPage><Learn /></ThemedPage>} />

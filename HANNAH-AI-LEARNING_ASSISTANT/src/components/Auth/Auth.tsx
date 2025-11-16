@@ -4,6 +4,7 @@ import Modal from '../Modal/Modal';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import { useAuth } from '../../contexts/AuthContext';
+import toast from 'react-hot-toast';
 import './Auth.css';
 
 interface AuthProps {
@@ -14,10 +15,11 @@ interface AuthProps {
 
 const Auth: React.FC<AuthProps> = ({ isOpen, onClose, initialTab = 'login' }) => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialTab);
   const [isLoading, setIsLoading] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const { login, user } = useAuth();
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -37,48 +39,39 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, initialTab = 'login' }) =>
 
   const handleLogin = async (email: string, password: string) => {
     setIsLoading(true);
+    setLoginError(null); // Keep this to clear previous errors from the form
     try {
-      const success = await login(email, password);
-      if (success) {
-        onClose(); // Đóng modal khi đăng nhập thành công
+      const user = await login(email, password);
+      toast.success('Đăng nhập thành công!', {
+        duration: 3000,
+        icon: '🎉',
+      });
 
-        // Kiểm tra role của user sau khi đăng nhập thành công
-        // Cần delay một chút để đảm bảo user state đã được cập nhật
-        setTimeout(() => {
-          const savedUser = localStorage.getItem('user');
-          if (savedUser) {
-            const userData = JSON.parse(savedUser);
-            if (userData.role === 'admin') {
-              navigate('/admin');
-            } else if (userData.role === 'faculty') {
-              navigate('/faculty');
-            }
-          }
-        }, 100);
-      } else {
-        alert('Email hoặc mật khẩu không đúng!');
+      // Close modal first
+      onClose();
+
+      // Redirect based on user role
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else if (user.role === 'faculty') {
+        navigate('/faculty');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      alert('Có lỗi xảy ra khi đăng nhập!');
+      // For students or other roles, just close the modal and stay on current page
+    } catch (error: any) {
+      const errorMessage = error.message || 'Email hoặc mật khẩu không đúng.';
+      toast.error(errorMessage, {
+        duration: 4000,
+        icon: '❌',
+      });
+      setLoginError(errorMessage); // Also set local error for inline display
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleRegister = async (name: string, email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      // TODO: Implement actual register logic
-      console.log('Register:', { name, email, password });
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      onClose();
-    } catch (error) {
-      console.error('Register error:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleRegisterSuccess = () => {
+    // Switch to login tab after successful registration
+    setActiveTab('login');
   };
 
   return (
@@ -111,9 +104,9 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, initialTab = 'login' }) =>
             }}
           >
             {activeTab === 'login' ? (
-              <LoginForm onSubmit={handleLogin} isLoading={isLoading} />
+              <LoginForm onSubmit={handleLogin} isLoading={isLoading} apiError={loginError} />
             ) : (
-              <RegisterForm onSubmit={handleRegister} isLoading={isLoading} />
+              <RegisterForm onSuccess={handleRegisterSuccess} />
             )}
           </div>
         </div>
