@@ -4,6 +4,7 @@ import { Map, Plus, Search, Filter, Edit, Trash2, Eye, Clock, Loader, X, Save } 
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
 import { toast } from 'react-hot-toast';
+import ConfirmModal from '../../../components/ConfirmModal/ConfirmModal';
 import './CourseManagement.css';
 
 const initialFormState: Partial<Subject> = {
@@ -27,6 +28,17 @@ export default function CourseManagement() {
   // State for filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSemester, setSelectedSemester] = useState('all');
+
+  // State for delete confirmation modal
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    subjectId: number | null;
+    subjectName: string;
+  }>({
+    isOpen: false,
+    subjectId: null,
+    subjectName: '',
+  });
 
   const fetchSubjects = async () => {
     setLoading(true);
@@ -53,22 +65,42 @@ export default function CourseManagement() {
     setView('create');
   };
 
-  const handleEditClick = (subject: Subject) => {
-    // Coalesce nullish values to their empty state to prevent uncontrolled component warnings
-    const populatedData = {
-      ...initialFormState,
-      ...subject,
-      description: subject.description ?? '',
-      timeAllocation: subject.timeAllocation ?? '',
-      tools: subject.tools ?? '',
-      decisionNo: subject.decisionNo ?? '',
-      prerequisites: subject.prerequisites ?? [],
-      learningOutcomes: subject.learningOutcomes ?? [],
-      commonChallenges: subject.commonChallenges ?? [],
-    };
-    setFormData(populatedData);
-    setEditingSubjectId(subject.subjectId);
-    setView('edit');
+  const handleEditClick = async (subject: Subject) => {
+    try {
+      console.log('=== EDIT CLICK - Fetching Subject Details ===');
+      console.log('Subject ID:', subject.subjectId);
+
+      // Fetch full subject details from API
+      const fullSubject = await subjectService.getSubjectById(subject.subjectId);
+
+      console.log('Full subject from API:', fullSubject);
+      console.log('Prerequisites:', fullSubject.prerequisites);
+      console.log('Learning Outcomes:', fullSubject.learningOutcomes);
+      console.log('Common Challenges:', fullSubject.commonChallenges);
+
+      // Coalesce nullish values to their empty state to prevent uncontrolled component warnings
+      const populatedData = {
+        ...initialFormState,
+        ...fullSubject,
+        description: fullSubject.description ?? '',
+        timeAllocation: fullSubject.timeAllocation ?? '',
+        tools: fullSubject.tools ?? '',
+        decisionNo: fullSubject.decisionNo ?? '',
+        prerequisites: fullSubject.prerequisites ?? [],
+        learningOutcomes: fullSubject.learningOutcomes ?? [],
+        commonChallenges: fullSubject.commonChallenges ?? [],
+      };
+
+      console.log('Populated form data:', populatedData);
+      console.log('=================================');
+
+      setFormData(populatedData);
+      setEditingSubjectId(fullSubject.subjectId);
+      setView('edit');
+    } catch (error) {
+      console.error('Error fetching subject details:', error);
+      toast.error('Failed to load subject details');
+    }
   };
 
   const handleCancel = () => {
@@ -215,8 +247,13 @@ export default function CourseManagement() {
         console.log('Create result:', result);
         toast.success('Course created successfully!');
       }
+
+      // Fetch updated data
+      await fetchSubjects();
+
       setView('list');
       setFieldErrors({});
+      setFormData(initialFormState);
     } catch (error: any) {
       // Parse API validation errors if available
       if (error.response?.data?.errors) {
@@ -243,17 +280,33 @@ export default function CourseManagement() {
     }
   };
 
-  const handleDelete = async (subjectId: number) => {
-    if (window.confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
-      try {
-        await subjectService.deleteSubject(subjectId);
-        toast.success('Course deleted successfully!');
-        await fetchSubjects(); // Refresh the list
-      } catch (error) {
-        toast.error('Failed to delete course.');
-        console.error('Error deleting subject:', error);
-      }
+  const handleDeleteClick = (subject: Subject) => {
+    setDeleteModal({
+      isOpen: true,
+      subjectId: subject.subjectId,
+      subjectName: subject.name,
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.subjectId) return;
+
+    try {
+      await subjectService.deleteSubject(deleteModal.subjectId);
+      toast.success('Course deleted successfully!');
+      await fetchSubjects(); // Refresh the list
+    } catch (error) {
+      toast.error('Failed to delete course.');
+      console.error('Error deleting subject:', error);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModal({
+      isOpen: false,
+      subjectId: null,
+      subjectName: '',
+    });
   };
 
   const filteredSubjects = subjects.filter(subject => {
@@ -295,7 +348,7 @@ export default function CourseManagement() {
                     <div className="course-card-actions">
                       <Link to={`/admin/course-management/${subject.subjectId}`} className="btn-view"><Eye size={20} /></Link>
                       <button onClick={() => handleEditClick(subject)} className="btn-edit"><Edit size={20} /></button>
-                      <button onClick={() => handleDelete(subject.subjectId)} className="btn-delete"><Trash2 size={20} /></button>
+                      <button onClick={() => handleDeleteClick(subject)} className="btn-delete"><Trash2 size={20} /></button>
                     </div>
                   </div>
                   <div className="course-badges">
@@ -487,50 +540,55 @@ export default function CourseManagement() {
               </div>
             </div>
           </div>
-          {['prerequisites', 'learningOutcomes', 'commonChallenges'].map(field => (
-            <div className="form-section" key={field}>
-              <div className="form-section-header">
-                <h3 className="form-section-title">{field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}</h3>
-                <button type="button" onClick={() => setShowInput(prev => ({ ...prev, [field]: true }))} className="btn-add-item"><Plus size={16} /></button>
-              </div>
-              <div className="form-content">
-                {showInput[field] && (
-                  <div className="input-with-button">
-                    <input
-                      type="text"
-                      placeholder={`Add a ${field.slice(0, -1)}...`}
-                      className="form-input"
-                      value={inputValue[field] || ''}
-                      onChange={(e) => setInputValue(prev => ({ ...prev, [field]: e.target.value }))}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleArrayChange(field as any);
-                        }
-                      }}
-                      autoFocus
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleArrayChange(field as any)}
-                      className="btn-add-confirm"
-                      style={{ marginLeft: '8px' }}
-                    >
-                      Add
-                    </button>
-                  </div>
-                )}
-                <div className="tags-list">
-                  {(formData[field as keyof typeof formData] as string[])?.map((item, idx) => (
-                    <div key={idx} className="tag-item">
-                      <span>{item}</span>
-                      <button type="button" onClick={() => handleRemoveFromArray(idx, field as any)} className="btn-remove-tag"><X size={14} /></button>
+          {['prerequisites', 'learningOutcomes', 'commonChallenges'].map(field => {
+            const fieldData = formData[field as keyof typeof formData] as string[];
+            console.log(`🔍 Rendering ${field}:`, fieldData);
+
+            return (
+              <div className="form-section" key={field}>
+                <div className="form-section-header">
+                  <h3 className="form-section-title">{field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}</h3>
+                  <button type="button" onClick={() => setShowInput(prev => ({ ...prev, [field]: true }))} className="btn-add-item"><Plus size={16} /></button>
+                </div>
+                <div className="form-content">
+                  {showInput[field] && (
+                    <div className="input-with-button">
+                      <input
+                        type="text"
+                        placeholder={`Add a ${field.slice(0, -1)}...`}
+                        className="form-input"
+                        value={inputValue[field] || ''}
+                        onChange={(e) => setInputValue(prev => ({ ...prev, [field]: e.target.value }))}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleArrayChange(field as any);
+                          }
+                        }}
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleArrayChange(field as any)}
+                        className="btn-add-confirm"
+                        style={{ marginLeft: '8px' }}
+                      >
+                        Add
+                      </button>
                     </div>
-                  ))}
+                  )}
+                  <div className="tags-list">
+                    {fieldData?.map((item, idx) => (
+                      <div key={idx} className="tag-item">
+                        <span>{item}</span>
+                        <button type="button" onClick={() => handleRemoveFromArray(idx, field as any)} className="btn-remove-tag"><X size={14} /></button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div className="create-sidebar">
           <div className="preview-card">
@@ -554,6 +612,18 @@ export default function CourseManagement() {
       <div className="course-container">
         {view === 'list' ? renderListView() : renderCreateEditView()}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Course"
+        message={`Are you sure you want to delete "${deleteModal.subjectName}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
     </AdminPageWrapper>
   );
 }

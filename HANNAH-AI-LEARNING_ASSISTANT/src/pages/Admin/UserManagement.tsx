@@ -16,6 +16,11 @@ const UserManagement: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState<string>(''); // Default to empty string for 'All'
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    fullName: '',
+    email: '',
+    role: ''
+  });
   const [importResult, setImportResult] = useState<ParsedResult | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // State to hold the selected file
@@ -195,6 +200,61 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  // Handle opening edit modal
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setEditFormData({
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role
+    });
+  };
+
+  // Handle edit form changes
+  const handleEditFormChange = (field: string, value: string) => {
+    setEditFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Handle saving edited user
+  const handleSaveEditUser = async () => {
+    if (!editingUser) return;
+
+    // Validation
+    if (!editFormData.fullName.trim()) {
+      addToast({ type: 'error', message: 'Full name is required.' });
+      return;
+    }
+    if (!editFormData.email.trim()) {
+      addToast({ type: 'error', message: 'Email is required.' });
+      return;
+    }
+    if (!editFormData.role) {
+      addToast({ type: 'error', message: 'Role is required.' });
+      return;
+    }
+
+    try {
+      await userService.updateUser(editingUser.userId.toString(), {
+        fullName: editFormData.fullName,
+        email: editFormData.email,
+        role: editFormData.role
+      });
+      addToast({ type: 'success', message: `User ${editFormData.fullName} has been updated.` });
+      setEditingUser(null);
+      setEditFormData({ fullName: '', email: '', role: '' });
+      fetchUsers(); // Refresh the user list
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      addToast({ type: 'error', message: 'Failed to update user.' });
+    }
+  };
+
+  // Handle canceling edit
+  const handleCancelEdit = () => {
+    setEditingUser(null);
+    setEditFormData({ fullName: '', email: '', role: '' });
+  };
+
   return (
     <AdminPageWrapper title="User Management">
       {/* Toast notifications */}
@@ -295,31 +355,36 @@ const UserManagement: React.FC = () => {
                     <div className="action-buttons">
                       <button
                         className="btn-icon btn-edit"
-                        onClick={() => setEditingUser(user)}
+                        onClick={() => handleEditUser(user)}
                         title="Edit"
                       >
                         <span className="char-icon" aria-hidden>✏️</span>
                       </button>
-                      <button
-                        className="btn-icon btn-toggle"
-                        onClick={() => handleToggleStatus(user)}
-                        title={user.isActive ? 'Deactivate' : 'Activate'}
-                        disabled={user.role === 'Admin' || user.userId === currentUser?.userId}
-                      >
-                        <span
-                          className={`char-icon ${user.isActive ? 'icon-danger' : ''}`}
-                          aria-hidden
-                        >
-                          {user.isActive ? 'X' : '✔️'}
-                        </span>
-                      </button>
-                      <button
-                        className="btn-icon btn-delete"
-                        onClick={() => requestDeleteUser(user)} // Assuming requestDeleteUser will be updated
-                        title="Delete"
-                      >
-                        <span className="char-icon" aria-hidden>🗑️</span>
-                      </button>
+
+                      {/* Hide toggle and delete buttons for Admin role */}
+                      {user.role !== 'admin' && (
+                        <>
+                          <button
+                            className="btn-icon btn-toggle"
+                            onClick={() => handleToggleStatus(user)}
+                            title={user.isActive ? 'Deactivate' : 'Activate'}
+                          >
+                            <span
+                              className={`char-icon ${user.isActive ? 'icon-danger' : ''}`}
+                              aria-hidden
+                            >
+                              {user.isActive ? 'X' : '✔️'}
+                            </span>
+                          </button>
+                          <button
+                            className="btn-icon btn-delete"
+                            onClick={() => requestDeleteUser(user)}
+                            title="Delete"
+                          >
+                            <span className="char-icon" aria-hidden>🗑️</span>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -386,19 +451,70 @@ const UserManagement: React.FC = () => {
         document.body
       )}
 
-      {/* Create/Edit Form Modal - Placeholder */}
-      {(showCreateForm || editingUser) && (
+      {/* Edit User Modal */}
+      {editingUser && createPortal(
+        (
+          <div className="modal-overlay">
+            <div className="modal-content" style={{ maxWidth: '500px' }}>
+              <div className="modal-header">
+                <div className="modal-title">Edit User</div>
+              </div>
+              <div className="modal-body">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 500 }}>
+                      Full Name <span style={{ color: 'red' }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={editFormData.fullName}
+                      onChange={(e) => handleEditFormChange('fullName', e.target.value)}
+                      placeholder="Enter full name"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 500 }}>
+                      Email <span style={{ color: 'red' }}>*</span>
+                    </label>
+                    <input
+                      type="email"
+                      className="form-input"
+                      value={editFormData.email}
+                      onChange={(e) => handleEditFormChange('email', e.target.value)}
+                      placeholder="Enter email"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="modal-actions" style={{ padding: '0 20px 20px' }}>
+                <button className="btn btn-secondary" onClick={handleCancelEdit}>
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-primary"
+                  style={{ justifyContent: 'center' }}
+                  onClick={handleSaveEditUser}
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        ),
+        document.body
+      )}
+
+      {/* Create Form Modal - Placeholder */}
+      {showCreateForm && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>{editingUser ? 'Edit user' : 'Add new user'}</h3>
+            <h3>Add new user</h3>
             <p>The form will be developed in the next version</p>
             <div className="modal-actions">
               <button
                 className="btn btn-secondary"
-                onClick={() => {
-                  setShowCreateForm(false);
-                  setEditingUser(null);
-                }}
+                onClick={() => setShowCreateForm(false)}
               >
                 Close
               </button>
