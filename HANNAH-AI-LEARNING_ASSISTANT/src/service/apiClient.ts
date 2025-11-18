@@ -29,8 +29,7 @@ class ApiClient {
    */
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {},
-    isRetry: boolean = false
+    options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
     const url = `${this.baseURL}${endpoint}`;
@@ -55,17 +54,11 @@ class ApiClient {
       const response = await fetch(url, config);
 
       // Handle different response statuses
-      if (response.status === HTTP_STATUS.UNAUTHORIZED && !isRetry) {
-        // Try to refresh token (only if this is not already a retry)
-        const refreshed = await this.handleTokenRefresh();
-        if (refreshed) {
-          // Retry the original request with the new token
-          return this.request<T>(endpoint, options, true);
-        } else {
-          // Redirect to login
-          this.handleAuthError();
-          throw new Error('Unauthorized');
-        }
+      if (response.status === HTTP_STATUS.UNAUTHORIZED) {
+        // Since the refresh token API is not available, we log the user out directly.
+        this.handleAuthError();
+        // Throw an error to prevent further processing of the failed request.
+        throw new Error('Unauthorized: Access token expired or invalid.');
       }
 
       if (!response.ok) {
@@ -180,49 +173,6 @@ class ApiClient {
     }
 
     return response.blob();
-  }
-
-  /**
-   * Handle token refresh
-   */
-  private async handleTokenRefresh(): Promise<boolean> {
-    try {
-      const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
-
-      if (!refreshToken) {
-        console.error('No refresh token found in storage.');
-        return false;
-      }
-
-      const response = await fetch(`${this.baseURL}/api/Auth/refresh-token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken }), // Explicitly match the API spec
-      });
-
-      if (!response.ok) {
-        console.error(`Token refresh API call failed with status: ${response.status}`);
-        return false;
-      }
-
-      const data = await response.json();
-
-      if (!data.accessToken || !data.refreshToken) {
-        console.error('Token refresh response is missing tokens.');
-        return false;
-      }
-
-      // Save new tokens
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
-      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
-
-      return true;
-    } catch (error) {
-      console.error('An exception occurred during token refresh:', error);
-      return false;
-    }
   }
 
   /**

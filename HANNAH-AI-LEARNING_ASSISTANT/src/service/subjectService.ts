@@ -56,9 +56,16 @@ const getSubjectById = async (id: number): Promise<Subject> => {
   return response.data;
 };
 
+
+const createSubject = async (subjectData: Partial<Subject>): Promise<Subject> => {
+  const response = await apiClient.post<Subject>(API_ENDPOINTS.SUBJECT.CREATE, subjectData);
+  return response.data;
+};
+
 const subjectService = {
   getAllSubjects,
   getSubjectById,
+  createSubject,
 };
 
 export default subjectService;
