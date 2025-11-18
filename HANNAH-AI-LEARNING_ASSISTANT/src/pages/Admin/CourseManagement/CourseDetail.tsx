@@ -107,13 +107,36 @@ export default function CourseDetail() {
               </div>
 
               <div className="form-section">
+                <h3 className="form-section-title">Prerequisites</h3>
+                <div className="form-content">
+                  <div className="tags-wrapper">
+                    {subject.prerequisites && subject.prerequisites.length > 0
+                      ? subject.prerequisites.map((p, i) => <span key={i} className="tag tag-prerequisite">{p}</span>)
+                      : <p className="empty-description" style={{ margin: 0 }}>None available.</p>}
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-section">
                 <h3 className="form-section-title">Learning Outcomes</h3>
-                <div className="form-content"><div className="tags-wrapper">{subject.learningOutcomes?.map((o, i) => <span key={i} className="tag tag-outcome">{o}</span>) || 'None'}</div></div>
+                <div className="form-content">
+                  <div className="tags-wrapper">
+                    {subject.learningOutcomes && subject.learningOutcomes.length > 0
+                      ? subject.learningOutcomes.map((o, i) => <span key={i} className="tag tag-outcome">{o}</span>)
+                      : <p className="empty-description" style={{ margin: 0 }}>None available.</p>}
+                  </div>
+                </div>
               </div>
 
               <div className="form-section">
                 <h3 className="form-section-title">Common Challenges</h3>
-                <div className="form-content"><div className="tags-wrapper">{subject.commonChallenges?.map((c, i) => <span key={i} className="tag tag-challenge">{c}</span>) || 'None'}</div></div>
+                <div className="form-content">
+                  <div className="tags-wrapper">
+                    {subject.commonChallenges && subject.commonChallenges.length > 0
+                      ? subject.commonChallenges.map((c, i) => <span key={i} className="tag tag-challenge">{c}</span>)
+                      : <p className="empty-description" style={{ margin: 0 }}>None available.</p>}
+                  </div>
+                </div>
               </div>
 
               <div className="form-section">

@@ -58,7 +58,35 @@ const getSubjectById = async (id: number): Promise<Subject> => {
 
 
 const createSubject = async (subjectData: Partial<Subject>): Promise<Subject> => {
-  const response = await apiClient.post<Subject>(API_ENDPOINTS.SUBJECT.CREATE, subjectData);
+  console.log('=== CREATE SUBJECT REQUEST ===');
+  console.log('Endpoint:', API_ENDPOINTS.SUBJECT.CREATE);
+  console.log('Data being sent:', JSON.stringify(subjectData, null, 2));
+  console.log('==============================');
+
+  try {
+    const response = await apiClient.post<Subject>(API_ENDPOINTS.SUBJECT.CREATE, subjectData);
+
+    console.log('=== CREATE SUBJECT RESPONSE ===');
+    console.log('Response data:', JSON.stringify(response.data, null, 2));
+    console.log('===============================');
+
+    return response.data;
+  } catch (error: any) {
+    console.error('=== CREATE SUBJECT ERROR ===');
+    console.error('Error response:', error.response?.data);
+    console.error('Error status:', error.response?.status);
+    console.error('Error details:', JSON.stringify(error.response?.data, null, 2));
+    console.error('============================');
+    throw error;
+  }
+};
+
+const deleteSubject = async (id: number): Promise<void> => {
+  await apiClient.delete(`${API_ENDPOINTS.SUBJECT.GET_ALL}/${id}`);
+};
+
+const updateSubject = async (id: number, subjectData: Partial<Subject>): Promise<Subject> => {
+  const response = await apiClient.put<Subject>(`${API_ENDPOINTS.SUBJECT.GET_ALL}/${id}`, subjectData);
   return response.data;
 };
 
@@ -66,6 +94,8 @@ const subjectService = {
   getAllSubjects,
   getSubjectById,
   createSubject,
+  deleteSubject,
+  updateSubject,
 };
 
 export default subjectService;
