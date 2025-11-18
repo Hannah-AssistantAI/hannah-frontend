@@ -73,6 +73,28 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/api/FAQ/${id}`,
     DELETE: (id: string) => `/api/FAQ/${id}`,
   },
+
+  // Subject endpoints
+  SUBJECT: {
+    GET_ALL: '/api/subjects',
+    GET_BY_ID: (id: string) => `/api/subjects/${id}`,
+    CREATE: '/api/subjects',
+    UPDATE: (id: string) => `/api/subjects/${id}`,
+    DELETE: (id: string) => `/api/subjects/${id}`,
+    GET_PENDING_APPROVAL: '/api/subjects/pending-approval',
+    GET_APPROVED: '/api/subjects/approved',
+    GET_BY_DEGREE_LEVEL: (degreeLevel: string) => `/api/subjects/by-degree-level/${degreeLevel}`,
+    SEARCH: '/api/subjects/search',
+    GET_PREREQUISITES: (subjectId: string) => `/api/subjects/${subjectId}/prerequisites`,
+    UPDATE_PREREQUISITES: (subjectId: string) => `/api/subjects/${subjectId}/prerequisites`,
+    GET_DEPENDENTS: (subjectId: string) => `/api/subjects/${subjectId}/dependents`,
+    GET_LEARNING_OUTCOMES: (subjectId: string) => `/api/subjects/${subjectId}/learning-outcomes`,
+    UPDATE_LEARNING_OUTCOMES: (subjectId: string) => `/api/subjects/${subjectId}/learning-outcomes`,
+    GET_COMMON_CHALLENGES: (subjectId: string) => `/api/subjects/${subjectId}/common-challenges`,
+    UPDATE_COMMON_CHALLENGES: (subjectId: string) => `/api/subjects/${subjectId}/common-challenges`,
+    APPROVE: (subjectId: string) => `/api/subjects/${subjectId}/approve`,
+    REJECT: (subjectId: string) => `/api/subjects/${subjectId}/reject`,
+  },
 };
 
 /**

@@ -1,7 +1,10 @@
-import { Route, Routes, useLocation } from 'react-router-dom'
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useAuth } from './contexts/AuthContext';
 import { Toaster } from 'react-hot-toast'
 import ThemeToggle from './components/ThemeToggle'
 import ThemedPage from './components/ThemedPage'
+import ProtectedRoute from './components/ProtectedRoute' // Import ProtectedRoute
 import Home from './pages/home/Home'
 import Learn from './pages/Learn/Learn'
 import Chat from './pages/Chat/Chat'
@@ -31,12 +34,38 @@ import QuizAttemptDetail from './pages/Faculty/QuestionAnalytics/QuizAttemptDeta
 import FlaggedQuizzes from './pages/Admin/FlaggedQuizzes'
 import FlaggedQuizDetail from './pages/Admin/FlaggedQuizDetail'
 
+const AuthRedirectHandler = () => {
+  const { isAuthenticated, user, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (isLoading || !isAuthenticated || !user) {
+      return;
+    }
+
+    // Only redirect if the user is on the homepage after logging in
+    if (location.pathname === '/') {
+      const role = user.role.toLowerCase();
+      if (role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else if (role === 'faculty') {
+        navigate('/faculty', { replace: true });
+      }
+      // For students, do nothing and let them stay on the homepage.
+    }
+  }, [isAuthenticated, user, isLoading, navigate, location]);
+
+  return null; // This component renders nothing, it's only for side effects
+};
+
 function App() {
   const location = useLocation();
   const showToggle = ['/learn', '/chat', '/profile'].some(p => location.pathname.startsWith(p));
 
   return (
     <>
+      <AuthRedirectHandler />
       <Toaster
         position="top-right"
         reverseOrder={false}
@@ -78,45 +107,54 @@ function App() {
       />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/learn" element={<ThemedPage><Learn /></ThemedPage>} />
-        <Route path="/chat" element={<ThemedPage><Chat /></ThemedPage>} />
-        <Route path="/profile" element={<ThemedPage><Profile /></ThemedPage>} />
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<UserManagement />} />
-          <Route path="user-management" element={<UserManagement />} />
-          <Route path="custom-messages" element={<CustomMessages />} />
-          <Route path="custom-messages/:id" element={<CustomMessageDetail />} />
-          <Route path="system-monitoring/usage" element={<SystemMonitoring />} />
-          <Route path="system-monitoring/api-keys" element={<APIKeys />} />
-          <Route path="system-settings" element={<SystemMonitoring />} />
-          <Route path="course-management" element={<CourseManagement />} />
-          <Route path="course-management/:id" element={<CourseDetail />} />
-          <Route path="semester-management" element={<SemesterManagement />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path='configuration' element={<Configuration />} />
-          <Route path="profile" element={<Profile embedded={true} />} />
-          <Route path="flagged-quizzes" element={<FlaggedQuizzes />} />
-          <Route path="flagged-quizzes/:id" element={<FlaggedQuizDetail />} />
+        {/* Protected Routes - Require Login */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/learn" element={<ThemedPage><Learn /></ThemedPage>} />
+          <Route path="/chat" element={<ThemedPage><Chat /></ThemedPage>} />
+          <Route path="/profile" element={<ThemedPage><Profile /></ThemedPage>} />
         </Route>
 
-        {/* Faculty Routes */}
-        <Route path="/faculty" element={<FacultyLayout />}>
-          <Route index element={<FAQManagement />} />
-          <Route path="faq" element={<FAQManagement />} />
-          <Route path="conversations" element={<ConversationMonitoring />} />
-          <Route path="conversations/:id" element={<ConversationDetail />} />
-          <Route path="materials" element={<MaterialsLayout />}>
-            <Route index element={<DocumentsManagement />} />
-            <Route path="documents" element={<DocumentsManagement />} />
-            <Route path="outcomes" element={<OutcomesManagement />} />
-            <Route path="challenges" element={<ChallengesManagement />} />
+        {/* Admin Routes - Require 'Admin' role */}
+        <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<UserManagement />} />
+            <Route path="user-management" element={<UserManagement />} />
+            <Route path="custom-messages" element={<CustomMessages />} />
+            <Route path="custom-messages/:id" element={<CustomMessageDetail />} />
+            <Route path="system-monitoring/usage" element={<SystemMonitoring />} />
+            <Route path="system-monitoring/api-keys" element={<APIKeys />} />
+            <Route path="system-settings" element={<SystemMonitoring />} />
+            <Route path="course-management" element={<CourseManagement />} />
+            <Route path="course-management/:id" element={<CourseDetail />} />
+
+            <Route path="semester-management" element={<SemesterManagement />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path='configuration' element={<Configuration />} />
+            <Route path="profile" element={<Profile embedded={true} />} />
+            <Route path="flagged-quizzes" element={<FlaggedQuizzes />} />
+            <Route path="flagged-quizzes/:id" element={<FlaggedQuizDetail />} />
           </Route>
-          <Route path="analytics" element={<QuestionAnalytics />} />
-          <Route path="analytics/quiz/:id" element={<QuizAttemptDetail />} />
-          <Route path="questions" element={<QuestionStatistics />} />
-          <Route path="profile" element={<Profile embedded={true} />} />
+        </Route>
+
+        {/* Faculty Routes - Require 'Faculty' role */}
+        <Route element={<ProtectedRoute allowedRoles={['Faculty']} />}>
+          <Route path="/faculty" element={<FacultyLayout />}>
+            <Route index element={<FAQManagement />} />
+            <Route path="faq" element={<FAQManagement />} />
+            <Route path="conversations" element={<ConversationMonitoring />} />
+            <Route path="conversations/:id" element={<ConversationDetail />} />
+            <Route path="materials" element={<MaterialsLayout />}>
+              <Route index element={<DocumentsManagement />} />
+              <Route path="documents" element={<DocumentsManagement />} />
+              <Route path="outcomes" element={<OutcomesManagement />} />
+              <Route path="challenges" element={<ChallengesManagement />} />
+            </Route>
+            <Route path="analytics" element={<QuestionAnalytics />} />
+            <Route path="analytics/quiz/:id" element={<QuizAttemptDetail />} />
+            <Route path="questions" element={<QuestionStatistics />} />
+            <Route path="profile" element={<Profile embedded={true} />} />
+          </Route>
         </Route>
       </Routes>
       {showToggle && <ThemeToggle />}

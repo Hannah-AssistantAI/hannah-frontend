@@ -6,6 +6,7 @@ import authService from '../../service/authService';
 import userService from '../../service/userService';
 import type { UserData } from '../../service/authService';
 import toast from 'react-hot-toast'; // Import toast for notifications
+import { buildAvatarUrl } from '../../config/apiConfig'; // Import the helper function
 import {
     User,
     Mail,
@@ -104,8 +105,8 @@ export default function Profile({ embedded = false }: ProfileProps) {
                     year: 'numeric'
                 });
 
-                // Use avatarUrl from user data or generate a default one
-                const avatarUrl = user.avatarUrl ||
+                // Build a full, valid URL for the avatar
+                const avatarUrl = buildAvatarUrl(user.avatarUrl) ||
                     `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=4285F4&color=fff&size=200`;
 
                 // Build profile from API response
@@ -221,8 +222,8 @@ export default function Profile({ embedded = false }: ProfileProps) {
                 // Upload avatar to server
                 const response = await userService.uploadAvatar(user.userId.toString(), file);
 
-                // Update local state with new avatar URL
-                const newAvatarUrl = response.avatarUrl;
+                // Build a full URL for the new avatar and update the state
+                const newAvatarUrl = buildAvatarUrl(response.avatarUrl);
                 if (userProfile && editedProfile) {
                     const updatedProfile = { ...userProfile, avatar: newAvatarUrl };
                     setUserProfile(updatedProfile);

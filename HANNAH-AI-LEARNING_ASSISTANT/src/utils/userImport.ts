@@ -17,13 +17,19 @@ export interface ParsedResult {
 }
 
 const headerAliases: Record<string, keyof ImportedUserRow> = {
-  // English
-  name: 'name',
-  email: 'email',
-  role: 'role',
-  studentcode: 'studentCode',
-  status: 'status',
-  createdat: 'createdAt',
+  // English - Canonical and common variations
+  'name': 'name',
+  'fullname': 'name',
+  'full name': 'name',
+  'email': 'email',
+  'role': 'role',
+  'studentcode': 'studentCode',
+  'student id': 'studentCode',
+  'status': 'status',
+  'createdat': 'createdAt',
+  'created at': 'createdAt',
+  'username': 'name', // Assuming username can be used as name if 'name' is missing
+
   // Vietnamese
   'tên': 'name',
   'ho va ten': 'name',

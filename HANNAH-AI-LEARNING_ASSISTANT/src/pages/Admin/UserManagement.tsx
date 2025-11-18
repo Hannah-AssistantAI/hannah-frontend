@@ -18,6 +18,7 @@ const UserManagement: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [importResult, setImportResult] = useState<ParsedResult | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // State to hold the selected file
 
   const [selectedFileName, setSelectedFileName] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -77,7 +78,10 @@ const UserManagement: React.FC = () => {
   const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    setSelectedFile(file); // Save the file to state
     setSelectedFileName(file.name);
+
     try {
       const result = await parseUsersFromFile(file);
       setImportResult(result);
@@ -86,7 +90,7 @@ const UserManagement: React.FC = () => {
       alert('Cannot read the file. Please check the format (Excel/CSV) and try again.');
       console.error(err);
     } finally {
-      // reset input value so selecting the same file again still triggers change
+      // Reset input value so selecting the same file again still triggers change
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -110,16 +114,16 @@ const UserManagement: React.FC = () => {
   };
 
   const applyImport = async () => {
-    const file = fileInputRef.current?.files?.[0];
-    if (!file) {
+    if (!selectedFile) { // Use the file from state
       addToast({ type: 'error', message: 'No file selected for import.' });
       return;
     }
 
     try {
-      const result = await userService.importFaculty(file);
+      const result = await userService.importFaculty(selectedFile);
       addToast({ type: 'success', message: `${result.importedCount} users imported successfully!` });
       setShowImportModal(false);
+      setSelectedFile(null); // Clear the file from state after import
       fetchUsers(); // Refresh the user list
     } catch (error) {
       console.error('Failed to import users:', error);

@@ -319,7 +319,7 @@ class UserService {
   async importFaculty(file: File): Promise<{ message: string; importedCount: number }> {
     try {
       const formData = new FormData();
-      formData.append('ExcelFile', file); // Match the API parameter name 'ExcelFile'
+      formData.append('ExcelFile', file); // Match the API parameter name 'ExcelFile' from Swagger
       const response = await apiClient.postFormData<{ message: string; importedCount: number }>(
         API_ENDPOINTS.USER.IMPORT_FACULTY,
         formData

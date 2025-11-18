@@ -21,12 +21,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true); // Start true to check session
 
   const login = async (email: string, password: string): Promise<UserData> => {
-    // No try-catch here, let the caller handle it.
-    const response = await authService.login({ email, password });
-    // After successful login, authService saves user data. We can trust it's in localStorage.
-    // Or better, just use the response directly.
-    setUser(response.user);
-    return response.user;
+    // Let the calling component handle errors (e.g., to show a toast)
+    const loginResponse = await authService.login({ email, password });
+
+    // Set the user state with the data from the response
+    setUser(loginResponse.user);
+
+    // Return the user data so the caller can use it (e.g., for role-based redirect)
+    return loginResponse.user;
   };
 
   const logout = async () => {

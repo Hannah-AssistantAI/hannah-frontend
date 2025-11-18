@@ -14,7 +14,6 @@ interface AuthProps {
 }
 
 const Auth: React.FC<AuthProps> = ({ isOpen, onClose, initialTab = 'login' }) => {
-  const navigate = useNavigate();
   const { login } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialTab);
   const [isLoading, setIsLoading] = useState(false);
@@ -39,32 +38,15 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, initialTab = 'login' }) =>
 
   const handleLogin = async (email: string, password: string) => {
     setIsLoading(true);
-    setLoginError(null); // Keep this to clear previous errors from the form
+    setLoginError(null);
     try {
-      const user = await login(email, password);
-      toast.success('Đăng nhập thành công!', {
-        duration: 3000,
-        icon: '🎉',
-      });
-
-      // Close modal first
-      onClose();
-
-      // Redirect based on user role (case-insensitive comparison)
-      const userRole = user.role.toLowerCase();
-      if (userRole === 'admin') {
-        navigate('/admin');
-      } else if (userRole === 'faculty') {
-        navigate('/faculty');
-      }
-      // For students or other roles, just close the modal and stay on current page
+      await login(email, password);
+      toast.success('Đăng nhập thành công!');
+      onClose(); // Close the modal. Home.tsx will handle the redirect.
     } catch (error: any) {
       const errorMessage = error.message || 'Email hoặc mật khẩu không đúng.';
-      toast.error(errorMessage, {
-        duration: 4000,
-        icon: '❌',
-      });
-      setLoginError(errorMessage); // Also set local error for inline display
+      toast.error(errorMessage);
+      setLoginError(errorMessage);
     } finally {
       setIsLoading(false);
     }
