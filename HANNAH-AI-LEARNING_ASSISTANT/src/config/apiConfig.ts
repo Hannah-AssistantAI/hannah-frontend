@@ -95,6 +95,21 @@ export const API_ENDPOINTS = {
     APPROVE: (subjectId: string) => `/api/subjects/${subjectId}/approve`,
     REJECT: (subjectId: string) => `/api/subjects/${subjectId}/reject`,
   },
+
+  // Document endpoints
+  DOCUMENT: {
+    GET_ALL: '/api/Documents',
+    CREATE: '/api/Documents',
+    GET_BY_ID: (documentId: string) => `/api/Documents/${documentId}`,
+    UPDATE: (documentId: string) => `/api/Documents/${documentId}`,
+    DELETE: (documentId: string) => `/api/Documents/${documentId}`,
+    UPDATE_STATUS: (documentId: string) => `/api/Documents/${documentId}/status`,
+    GET_STATUS: (documentId: string) => `/api/Documents/${documentId}/status`,
+    REPROCESS: (documentId: string) => `/api/Documents/${documentId}/reprocess`,
+    DOWNLOAD: (documentId: string) => `/api/Documents/${documentId}/download`,
+    GET_BY_SUBJECT: (subjectId: string) => `/api/Documents/subject/${subjectId}`,
+    GET_BY_USER: (userId: string) => `/api/Documents/user/${userId}`,
+  },
 };
 
 /**
