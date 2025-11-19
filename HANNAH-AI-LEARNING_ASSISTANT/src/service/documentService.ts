@@ -11,17 +11,26 @@ export interface Document {
   documentId: number;
   title: string;
   description: string | null;
-  filePath: string;
+  fileUrl: string; // Changed from filePath to match backend
   fileSize: number;
-  fileType: string;
-  uploadedBy: number;
-  uploadedByName?: string;
+  mimeType: string; // Changed from fileType to match backend
+  uploadedBy: {
+    userId: number;
+    fullName: string;
+  };
   subjectId: number;
   subjectName?: string;
-  status: 'Pending' | 'Processing' | 'Completed' | 'Failed';
-  uploadedAt: string;
-  processedAt: string | null;
-  lastModifiedAt: string | null;
+  processingStatus: string; // Changed from status to match backend
+  isProcessed: boolean;
+  processingError: string | null;
+  // Approval fields
+  approvalStatus?: string; // pending, approved, rejected
+  approvedBy?: number;
+  approvedAt?: string;
+  rejectionReason?: string;
+  metadata: any;
+  createdAt: string; // Changed from uploadedAt to match backend
+  updatedAt: string | null; // Changed from lastModifiedAt to match backend
 }
 
 export interface CreateDocumentRequest {
@@ -38,14 +47,15 @@ export interface UpdateDocumentRequest {
 }
 
 export interface UpdateDocumentStatusRequest {
-  status: 'Pending' | 'Processing' | 'Completed' | 'Failed';
+  processingStatus: string; // Changed from status to match backend
 }
 
 export interface DocumentStatus {
   documentId: number;
-  status: string;
-  processedAt: string | null;
-  errorMessage: string | null;
+  processingStatus: string; // Changed from status to match backend
+  isProcessed: boolean;
+  processingError: string | null;
+  updatedAt: string | null;
 }
 
 export interface GetDocumentsParams {
@@ -251,8 +261,8 @@ class DocumentService {
   /**
    * Helper: Get status badge color
    */
-  getStatusColor(status: string): string {
-    switch (status.toLowerCase()) {
+  getStatusColor(processingStatus: string): string {
+    switch (processingStatus?.toLowerCase()) {
       case 'completed':
         return '#28a745';
       case 'processing':
@@ -263,6 +273,186 @@ class DocumentService {
         return '#dc3545';
       default:
         return '#6c757d';
+    }
+  }
+
+  /**
+   * LUỒNG 4: Document Processing Flow
+   * Poll document status until processing is complete
+   */
+  async pollDocumentStatus(
+    documentId: string,
+    onStatusChange?: (status: DocumentStatus) => void,
+    maxAttempts: number = 60,
+    intervalMs: number = 2000
+  ): Promise<DocumentStatus> {
+    let attempts = 0;
+
+    return new Promise((resolve, reject) => {
+      const pollInterval = setInterval(async () => {
+        try {
+          attempts++;
+          const status = await this.getDocumentStatus(documentId);
+
+          if (onStatusChange) {
+            onStatusChange(status);
+          }
+
+          // Check if processing is complete
+          if (status.processingStatus === 'completed' || status.processingStatus === 'failed') {
+            clearInterval(pollInterval);
+            resolve(status);
+            return;
+          }
+
+          // Check max attempts
+          if (attempts >= maxAttempts) {
+            clearInterval(pollInterval);
+            reject(new Error('Document processing timeout'));
+            return;
+          }
+        } catch (error) {
+          clearInterval(pollInterval);
+          reject(error);
+        }
+      }, intervalMs);
+    });
+  }
+
+  /**
+   * Get processing statistics
+   */
+  async getProcessingStatistics(): Promise<{
+    total: number;
+    pending: number;
+    processing: number;
+    completed: number;
+    failed: number;
+    averageProcessingTime: number;
+  }> {
+    try {
+      const response = await apiClient.get<{
+        total: number;
+        pending: number;
+        processing: number;
+        completed: number;
+        failed: number;
+        averageProcessingTime: number;
+      }>('/api/Documents/statistics');
+      return response.data;
+    } catch (error) {
+      console.error('Get processing statistics error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get recent document processing activities
+   */
+  async getRecentProcessingActivities(limit: number = 10): Promise<{
+    documentId: number;
+    title: string;
+    status: string;
+    uploadedAt: string;
+    processedAt: string | null;
+    processingTime: number | null;
+  }[]> {
+    try {
+      const response = await apiClient.get<{
+        documentId: number;
+        title: string;
+        status: string;
+        uploadedAt: string;
+        processedAt: string | null;
+        processingTime: number | null;
+      }[]>(`/api/Documents/recent-activities?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      console.error('Get recent processing activities error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * APPROVAL FLOW: Get pending documents (Admin only)
+   */
+  async getPendingDocuments(subjectId?: number): Promise<Document[]> {
+    try {
+      const url = subjectId
+        ? `/api/documents/pending?subjectId=${subjectId}`
+        : '/api/documents/pending';
+      const response = await apiClient.get<Document[]>(url);
+      return response.data;
+    } catch (error) {
+      console.error('Get pending documents error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * APPROVAL FLOW: Approve document (Admin only)
+   */
+  async approveDocument(documentId: number): Promise<{
+    documentId: number;
+    approvalStatus: string;
+    approvedAt: string;
+    message: string;
+  }> {
+    try {
+      const response = await apiClient.post<{
+        documentId: number;
+        approvalStatus: string;
+        approvedAt: string;
+        message: string;
+      }>(`/api/documents/${documentId}/approve`, {
+        isApproved: true
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Approve document error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * APPROVAL FLOW: Reject document (Admin only)
+   */
+  async rejectDocument(documentId: number, rejectionReason: string): Promise<{
+    documentId: number;
+    approvalStatus: string;
+    approvedAt: string;
+    message: string;
+  }> {
+    try {
+      const response = await apiClient.post<{
+        documentId: number;
+        approvalStatus: string;
+        approvedAt: string;
+        message: string;
+      }>(`/api/documents/${documentId}/approve`, {
+        isApproved: false,
+        rejectionReason
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Reject document error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Helper: Get approval status badge color
+   */
+  getApprovalStatusColor(approvalStatus: string): string {
+    switch (approvalStatus?.toLowerCase()) {
+      case 'approved':
+        return '#28a745'; // green
+      case 'rejected':
+        return '#dc3545'; // red
+      case 'pending':
+        return '#ffc107'; // yellow
+      default:
+        return '#6c757d'; // gray
     }
   }
 }

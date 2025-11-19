@@ -13,6 +13,8 @@ interface Material {
   fileSize: number;
   uploadedAt: string;
   status: 'Pending' | 'Processing' | 'Completed' | 'Failed';
+  approvalStatus?: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
   description?: string;
   filePath: string;
 }
@@ -89,16 +91,30 @@ const DocumentsManagement: React.FC = () => {
       const documents = await documentService.getAllDocuments({ subjectId });
 
       // Transform documents to materials format
-      const materials: Material[] = documents.items.map(doc => ({
-        documentId: doc.documentId,
-        title: doc.title,
-        fileType: doc.fileType,
-        fileSize: doc.fileSize,
-        uploadedAt: doc.uploadedAt,
-        status: doc.status,
-        description: doc.description || undefined,
-        filePath: doc.filePath
-      }));
+      const materials: Material[] = documents.items.map(doc => {
+        // Map processingStatus to Material status with proper capitalization
+        let status: Material['status'] = 'Pending';
+        if (doc.processingStatus) {
+          const statusLower = doc.processingStatus.toLowerCase();
+          if (statusLower === 'completed') status = 'Completed';
+          else if (statusLower === 'processing') status = 'Processing';
+          else if (statusLower === 'failed') status = 'Failed';
+          else status = 'Pending';
+        }
+
+        return {
+          documentId: doc.documentId,
+          title: doc.title,
+          fileType: doc.mimeType,
+          fileSize: doc.fileSize,
+          uploadedAt: doc.createdAt,
+          status: status,
+          approvalStatus: doc.approvalStatus as 'pending' | 'approved' | 'rejected' | undefined,
+          rejectionReason: doc.rejectionReason,
+          description: doc.description || undefined,
+          filePath: doc.fileUrl
+        };
+      });
 
       // Update the selected course with materials
       setCourses(prev => prev.map(course =>
@@ -570,14 +586,33 @@ const DocumentsManagement: React.FC = () => {
                             <div className="flex items-center gap-3 flex-1 min-w-0">
                               <File className="w-5 h-5 text-gray-600 flex-shrink-0" />
                               <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-slate-800">
-                                  {mat.title}
-                                  <span className="text-xs text-gray-700 font-medium ml-2">(Pending)</span>
-                                </p>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <p className="font-semibold text-slate-800">{mat.title}</p>
+                                  {mat.approvalStatus === 'pending' && (
+                                    <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-medium">
+                                      ⏳ Awaiting Approval
+                                    </span>
+                                  )}
+                                  {mat.approvalStatus === 'approved' && (
+                                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                                      ✓ Approved
+                                    </span>
+                                  )}
+                                  {mat.approvalStatus === 'rejected' && (
+                                    <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
+                                      ✗ Rejected
+                                    </span>
+                                  )}
+                                </div>
+                                {mat.rejectionReason && (
+                                  <p className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded mt-1">
+                                    Reason: {mat.rejectionReason}
+                                  </p>
+                                )}
                                 {mat.description && (
                                   <p className="text-xs text-slate-500 mt-1">{mat.description}</p>
                                 )}
-                                <p className="text-sm text-slate-500">
+                                <p className="text-sm text-slate-500 mt-1">
                                   {mat.fileType} • {documentService.formatFileSize(mat.fileSize)} • {new Date(mat.uploadedAt).toLocaleDateString()}
                                 </p>
                               </div>

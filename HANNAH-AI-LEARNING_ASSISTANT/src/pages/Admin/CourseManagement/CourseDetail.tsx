@@ -1,9 +1,10 @@
 import { Link, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader } from 'lucide-react';
+import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X, Download } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
+import documentService, { type Document } from '../../../service/documentService';
 import './CourseManagement.css';
 
 export default function CourseDetail() {
@@ -11,6 +12,9 @@ export default function CourseDetail() {
   const [subject, setSubject] = useState<Subject | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'document' | 'outcome' | 'challenge'>('document');
+  const [pendingDocuments, setPendingDocuments] = useState<Document[]>([]);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
+  const [processingDocId, setProcessingDocId] = useState<number | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -29,6 +33,59 @@ export default function CourseDetail() {
       fetchSubjectDetail();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (id && activeTab === 'document') {
+      fetchPendingDocuments();
+    }
+  }, [id, activeTab]);
+
+  const fetchPendingDocuments = async () => {
+    if (!id) return;
+    try {
+      setLoadingDocuments(true);
+      const docs = await documentService.getPendingDocuments(parseInt(id, 10));
+      setPendingDocuments(docs);
+    } catch (error) {
+      console.error('Error fetching pending documents:', error);
+      toast.error('Failed to fetch pending documents');
+    } finally {
+      setLoadingDocuments(false);
+    }
+  };
+
+  const handleApprove = async (documentId: number) => {
+    try {
+      setProcessingDocId(documentId);
+      await documentService.approveDocument(documentId);
+      toast.success('Document approved successfully!');
+      // Refresh the list
+      await fetchPendingDocuments();
+    } catch (error) {
+      console.error('Error approving document:', error);
+      toast.error('Failed to approve document');
+    } finally {
+      setProcessingDocId(null);
+    }
+  };
+
+  const handleReject = async (documentId: number) => {
+    const reason = prompt('Please enter rejection reason:');
+    if (!reason) return;
+
+    try {
+      setProcessingDocId(documentId);
+      await documentService.rejectDocument(documentId, reason);
+      toast.success('Document rejected');
+      // Refresh the list
+      await fetchPendingDocuments();
+    } catch (error) {
+      console.error('Error rejecting document:', error);
+      toast.error('Failed to reject document');
+    } finally {
+      setProcessingDocId(null);
+    }
+  };
 
   if (loading) {
     return <AdminPageWrapper title="Loading..."><div className="loading-state"><Loader className="animate-spin" size={48} /><p>Loading Course...</p></div></AdminPageWrapper>;
@@ -143,11 +200,116 @@ export default function CourseDetail() {
                 <h3 className="form-section-title">Teacher Upload Requests</h3>
                 <div className="form-content">
                   <div className="tabs">
-                    <button className={`tab ${activeTab === 'document' ? 'active' : ''}`} onClick={() => setActiveTab('document')}><FileText size={16} /> Documents <span className="count-chip">0</span></button>
-                    <button className={`tab ${activeTab === 'outcome' ? 'active' : ''}`} onClick={() => setActiveTab('outcome')}><CheckSquare size={16} /> Learning Outcome <span className="count-chip">0</span></button>
-                    <button className={`tab ${activeTab === 'challenge' ? 'active' : ''}`} onClick={() => setActiveTab('challenge')}><AlertTriangle size={16} /> Common Challenge <span className="count-chip">0</span></button>
+                    <button className={`tab ${activeTab === 'document' ? 'active' : ''}`} onClick={() => setActiveTab('document')}>
+                      <FileText size={16} /> Documents <span className="count-chip">{pendingDocuments.length}</span>
+                    </button>
+                    <button className={`tab ${activeTab === 'outcome' ? 'active' : ''}`} onClick={() => setActiveTab('outcome')}>
+                      <CheckSquare size={16} /> Learning Outcome <span className="count-chip">0</span>
+                    </button>
+                    <button className={`tab ${activeTab === 'challenge' ? 'active' : ''}`} onClick={() => setActiveTab('challenge')}>
+                      <AlertTriangle size={16} /> Common Challenge <span className="count-chip">0</span>
+                    </button>
                   </div>
-                  <p className="empty-description">No documents yet.</p>
+
+                  {activeTab === 'document' && (
+                    <div style={{ marginTop: '1rem' }}>
+                      {loadingDocuments ? (
+                        <div style={{ textAlign: 'center', padding: '2rem' }}>
+                          <Loader className="animate-spin" size={24} style={{ margin: '0 auto' }} />
+                          <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>Loading documents...</p>
+                        </div>
+                      ) : pendingDocuments.length === 0 ? (
+                        <p className="empty-description">No pending documents.</p>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {pendingDocuments.map((doc) => (
+                            <div key={doc.documentId} style={{
+                              border: '1px solid var(--border-color)',
+                              borderRadius: '8px',
+                              padding: '1rem',
+                              backgroundColor: 'var(--bg-secondary)'
+                            }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
+                                <div style={{ flex: 1 }}>
+                                  <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{doc.title}</h4>
+                                  {doc.description && (
+                                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                      {doc.description}
+                                    </p>
+                                  )}
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
+                                  <button
+                                    onClick={() => handleApprove(doc.documentId)}
+                                    disabled={processingDocId === doc.documentId}
+                                    className="btn-primary"
+                                    style={{
+                                      padding: '0.5rem 1rem',
+                                      fontSize: '0.875rem',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.25rem',
+                                      backgroundColor: '#28a745',
+                                      borderColor: '#28a745'
+                                    }}
+                                    title="Approve document"
+                                  >
+                                    {processingDocId === doc.documentId ? (
+                                      <Loader size={16} className="animate-spin" />
+                                    ) : (
+                                      <Check size={16} />
+                                    )}
+                                    Approve
+                                  </button>
+                                  <button
+                                    onClick={() => handleReject(doc.documentId)}
+                                    disabled={processingDocId === doc.documentId}
+                                    className="btn-secondary"
+                                    style={{
+                                      padding: '0.5rem 1rem',
+                                      fontSize: '0.875rem',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.25rem',
+                                      backgroundColor: '#dc3545',
+                                      borderColor: '#dc3545',
+                                      color: 'white'
+                                    }}
+                                    title="Reject document"
+                                  >
+                                    <X size={16} />
+                                    Reject
+                                  </button>
+                                </div>
+                              </div>
+                              <div style={{
+                                display: 'flex',
+                                gap: '1rem',
+                                fontSize: '0.75rem',
+                                color: 'var(--text-secondary)',
+                                marginTop: '0.5rem',
+                                paddingTop: '0.5rem',
+                                borderTop: '1px solid var(--border-color)'
+                              }}>
+                                <span>📁 {doc.mimeType}</span>
+                                <span>📊 {documentService.formatFileSize(doc.fileSize)}</span>
+                                <span>👤 {doc.uploadedByName || 'Unknown'}</span>
+                                <span>🕒 {new Date(doc.createdAt).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {activeTab === 'outcome' && (
+                    <p className="empty-description">No learning outcome requests yet.</p>
+                  )}
+
+                  {activeTab === 'challenge' && (
+                    <p className="empty-description">No common challenge requests yet.</p>
+                  )}
                 </div>
               </div>
             </div>
