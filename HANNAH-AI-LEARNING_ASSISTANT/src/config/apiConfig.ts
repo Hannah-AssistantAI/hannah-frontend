@@ -110,6 +110,14 @@ export const API_ENDPOINTS = {
     GET_BY_SUBJECT: (subjectId: string) => `/api/Documents/subject/${subjectId}`,
     GET_BY_USER: (userId: string) => `/api/Documents/user/${userId}`,
   },
+
+  // Suggestion endpoints
+  SUGGESTION: {
+    CREATE: '/api/suggestions',
+    GET_ALL: '/api/suggestions',
+        APPROVE: (id: string) => `/api/suggestions/${id}/approve`,
+        REJECT: (id: string) => `/api/suggestions/${id}/reject`
+  },
 };
 
 /**

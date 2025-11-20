@@ -1,170 +1,73 @@
-import React, { useState, useMemo } from 'react';
-import { Target, Trash2, Edit2, ChevronDown, Plus, X, Check, Undo, ChevronRight } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Target, ChevronDown, Plus, X, Check, ChevronRight, Loader2 } from 'lucide-react';
+import subjectService, { type Subject } from '../../../service/subjectService';
+
+import suggestionService, { SuggestionContentType, SuggestionStatus, type Suggestion } from '../../../service/suggestionService';
+import { toast } from 'react-hot-toast';
 
 // Define types
-interface Outcome {
-  id: number;
-  text: string;
-  materialId: number;
-  materialName: string;
-  status: 'pending' | 'approved' | 'pending_delete';
-  originalText?: string; // Store original text for undo
-}
-
-interface Material {
-  id: number;
-  name: string;
-  type: string;
-  size: string;
-  date: string;
-  outcomes: Omit<Outcome, 'materialId' | 'materialName'>[];
-}
-
 interface Course {
   id: number;
   name: string;
   code: string;
   semester: string;
-  materials: Material[];
 }
 
 const OutcomesManagement: React.FC = () => {
-  const [courses, setCourses] = useState<Course[]>([
-    {
-      id: 1,
-      name: 'Programming Fundamentals',
-      code: 'PRF192',
-      semester: 'Semester 1',
-      materials: [
-        {
-          id: 1,
-          name: 'PRF192_Programming_Basics.pdf',
-          type: 'PDF',
-          size: '2.5 MB',
-          date: '01/09/2024',
-          outcomes: [
-            { id: 1, text: 'Students understand and apply basic programming concepts', status: 'approved' },
-            { id: 2, text: 'Students can write simple programs in C', status: 'approved' },
-          ]
-        },
-        {
-          id: 2,
-          name: 'PRF192_Control_Structures.pptx',
-          type: 'PPTX',
-          size: '1.8 MB',
-          date: '05/09/2024',
-          outcomes: [
-            { id: 3, text: 'Students use control structures proficiently', status: 'approved' },
-            { id: 4, text: 'Students can design algorithms for simple problems', status: 'approved' },
-          ]
-        },
-      ]
-    },
-    {
-      id: 2,
-      name: 'Mathematics for Engineering',
-      code: 'MAE101',
-      semester: 'Semester 1',
-      materials: [
-        {
-          id: 3,
-          name: 'MAE101_Calculus_Basics.pdf',
-          type: 'PDF',
-          size: '3.1 MB',
-          date: '02/09/2024',
-          outcomes: [
-            { id: 5, text: 'Master concepts of limits and derivatives', status: 'approved' },
-            { id: 6, text: 'Apply mathematics to solve engineering problems', status: 'approved' },
-          ]
-        },
-      ]
-    },
-    {
-      id: 3,
-      name: 'Introduction to Computer Science',
-      code: 'CSI104',
-      semester: 'Semester 1',
-      materials: [
-        {
-          id: 4,
-          name: 'CSI104_Computer_Architecture.pdf',
-          type: 'PDF',
-          size: '2.2 MB',
-          date: '03/09/2024',
-          outcomes: [
-            { id: 7, text: 'Understand basic computer system architecture', status: 'approved' },
-            { id: 8, text: 'Understand how the CPU and memory operate', status: 'approved' },
-          ]
-        },
-      ]
-    },
-    {
-      id: 4,
-      name: 'Computer Organization and Architecture',
-      code: 'CEA201',
-      semester: 'Semester 1',
-      materials: [
-        {
-          id: 5,
-          name: 'CEA201_Digital_Logic.pptx',
-          type: 'PPTX',
-          size: '1.9 MB',
-          date: '04/09/2024',
-          outcomes: [
-            { id: 9, text: 'Understand digital logic and basic logic gates', status: 'approved' },
-            { id: 10, text: 'Design simple digital circuits', status: 'approved' },
-          ]
-        },
-      ]
-    },
-    {
-      id: 5,
-      name: 'Object-Oriented Programming',
-      code: 'PRO192',
-      semester: 'Semester 2',
-      materials: [
-        {
-          id: 6,
-          name: 'PRO192_OOP_Concepts.pdf',
-          type: 'PDF',
-          size: '2.8 MB',
-          date: '15/01/2025',
-          outcomes: [
-            { id: 11, text: 'Understand and apply OOP concepts: Class, Object, Inheritance', status: 'approved' },
-            { id: 12, text: 'Design and implement Java applications using OOP', status: 'approved' },
-          ]
-        },
-        {
-          id: 7,
-          name: 'PRO192_Java_Basics.pptx',
-          type: 'PPTX',
-          size: '4.2 MB',
-          date: '20/01/2025',
-          outcomes: [
-            { id: 13, text: 'Master Java syntax and basic structures', status: 'approved' },
-            { id: 14, text: 'Use Java standard libraries proficiently', status: 'approved' },
-          ]
-        },
-      ]
-    }
-  ]);
+  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [learningOutcomes, setLearningOutcomes] = useState<Suggestion[]>([]);
+  const [outcomesLoading, setOutcomesLoading] = useState(false);
 
   const semesters = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8', 'Semester 9'];
 
   // View state
-  const [view, setView] = useState<'courses' | 'outcomes'>('courses');
+    const [view, setView] = useState<'courses' | 'outcomes'>('courses');
+    
+
+
 
   const [selectedSemester, setSelectedSemester] = useState<string>('Semester 1');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [showSemesterDropdown, setShowSemesterDropdown] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ text: '' });
-  const [editingItem, setEditingItem] = useState<Outcome | null>(null);
+    
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Modal states
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deletingOutcome, setDeletingOutcome] = useState<{ outcomeId: number; materialId: number } | null>(null);
+
+
+  const fetchSubjects = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await subjectService.getAllSubjects();
+
+      const transformedCourses: Course[] = response.items.map((subject: Subject) => ({
+        id: subject.subjectId,
+        name: subject.name,
+        code: subject.code,
+        semester: `Semester ${subject.semester || 1}`,
+
+      }));
+
+      setCourses(transformedCourses);
+    } catch (err: any) {
+      console.error('Error fetching subjects:', err);
+      setError(err.message || 'Failed to load subjects');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch subjects on mount
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
+
+
 
   // Get courses for selected semester
   const coursesForSemester = useMemo(() => {
@@ -172,6 +75,28 @@ const OutcomesManagement: React.FC = () => {
   }, [courses, selectedSemester]);
 
   // Auto-select first course when semester changes
+  const fetchLearningOutcomes = async (subjectId: number) => {
+    try {
+      setOutcomesLoading(true);
+      const outcomes = await suggestionService.getSuggestions({
+        subjectId: subjectId,
+        contentType: SuggestionContentType.LearningOutcome
+      });
+      setLearningOutcomes(outcomes);
+    } catch (err) {
+      toast.error('Failed to load learning outcomes.');
+      console.error(err);
+    } finally {
+      setOutcomesLoading(false);
+    }
+  };
+
+  const handleCourseSelect = async (course: Course) => {
+    setSelectedCourse(course);
+    setView('outcomes');
+    await fetchLearningOutcomes(course.id);
+  };
+
   const handleSemesterChange = (semester: string) => {
     setSelectedSemester(semester);
     setShowSemesterDropdown(false);
@@ -179,230 +104,43 @@ const OutcomesManagement: React.FC = () => {
     setSelectedCourse(semesterCourses.length > 0 ? semesterCourses[0] : null);
   };
 
-  // Get all outcomes from all materials in the selected course
-  const getAllOutcomesForCourse = (): Outcome[] => {
-    if (!selectedCourse) return [];
 
-    const allOutcomes: Outcome[] = [];
-    selectedCourse.materials.forEach(material => {
-      material.outcomes.forEach(outcome => {
-        allOutcomes.push({
-          ...outcome,
-          materialId: material.id,
-          materialName: material.name
-        });
-      });
-    });
-    return allOutcomes;
-  };
 
-  const getTotalOutcomesCount = (): number => {
-    if (!selectedCourse) return 0;
-    return selectedCourse.materials.reduce((sum, material) => sum + material.outcomes.length, 0);
-  };
-
-  const handleAddOutcome = () => {
-    if (!selectedCourse) return;
-
+  const handleAddOutcome = async () => {
     if (!formData.text.trim()) {
-      alert('Please enter the learning outcome content');
+      toast.error('Please enter the learning outcome content');
       return;
     }
 
-    // Add to first material or create a default material entry
-    const updatedCourses = courses.map(course => {
-      if (course.id === selectedCourse.id) {
-        // If course has materials, add to first one, otherwise we'll need to handle this differently
-        if (course.materials.length > 0) {
-          const updatedMaterials = course.materials.map((material, index) => {
-            if (index === 0) { // Add to first material
-              if (editingItem) {
-                // Find and update existing outcome across all materials
-                const hasOutcome = material.outcomes.some(o => o.id === editingItem.id);
-                if (hasOutcome) {
-                  return {
-                    ...material,
-                    outcomes: material.outcomes.map(outcome =>
-                      outcome.id === editingItem.id ? { ...outcome, text: formData.text, status: 'pending' as const } : outcome
-                    )
-                  };
-                }
-                return material;
-              } else {
-                // Add new outcome
-                const newOutcome = {
-                  id: Date.now(),
-                  text: formData.text,
-                  status: 'pending' as const
-                };
-                return {
-                  ...material,
-                  outcomes: [...material.outcomes, newOutcome]
-                };
-              }
-            }
+    setIsSubmitting(true);
+    try {
+      await suggestionService.createSuggestion({
+        contentType: SuggestionContentType.LearningOutcome,
+        content: formData.text,
+      });
 
-            // Check other materials for editing
-            if (editingItem) {
-              const hasOutcome = material.outcomes.some(o => o.id === editingItem.id);
-              if (hasOutcome) {
-                return {
-                  ...material,
-                  outcomes: material.outcomes.map(outcome =>
-                    outcome.id === editingItem.id ? { ...outcome, text: formData.text, status: 'pending' as const } : outcome
-                  )
-                };
-              }
-            }
-            return material;
-          });
-          return { ...course, materials: updatedMaterials };
-        }
-        return course;
+      toast.success('Learning outcome submitted for review!');
+      cancelForm();
+      if (selectedCourse) {
+        await fetchLearningOutcomes(selectedCourse.id);
       }
-      return course;
-    });
-
-    setCourses(updatedCourses);
-    const updatedCourse = updatedCourses.find(c => c.id === selectedCourse.id);
-    if (updatedCourse) {
-      setSelectedCourse(updatedCourse);
+    } catch (err: any) {
+      console.error('Error submitting suggestion:', err);
+      toast.error(err.message || 'Failed to submit suggestion.');
+    } finally {
+      setIsSubmitting(false);
     }
-    cancelForm();
   };
 
-  const handleDeleteOutcome = (outcomeId: number, materialId: number) => {
-    if (!selectedCourse) return;
-    setDeletingOutcome({ outcomeId, materialId });
-    setShowDeleteModal(true);
-  };
 
-  const confirmDelete = () => {
-    if (!selectedCourse || !deletingOutcome) return;
-
-    const updatedCourses = courses.map(course => {
-      if (course.id === selectedCourse.id) {
-        const updatedMaterials = course.materials.map(material => {
-          if (material.id === deletingOutcome.materialId) {
-            return {
-              ...material,
-              outcomes: material.outcomes.map(outcome =>
-                outcome.id === deletingOutcome.outcomeId
-                  ? { ...outcome, status: 'pending_delete' as const, originalText: outcome.text }
-                  : outcome
-              )
-            };
-          }
-          return material;
-        });
-        return { ...course, materials: updatedMaterials };
-      }
-      return course;
-    });
-
-    setCourses(updatedCourses);
-    const updatedCourse = updatedCourses.find(c => c.id === selectedCourse.id);
-    if (updatedCourse) {
-      setSelectedCourse(updatedCourse);
-    }
-    setShowDeleteModal(false);
-    setDeletingOutcome(null);
-  };
-
-  const handleEdit = (outcome: Outcome) => {
-    setEditingItem(outcome);
-    setFormData({ text: outcome.text });
-    setShowEditModal(true);
-  };
-
-  const confirmEdit = () => {
-    if (!selectedCourse || !editingItem) return;
-
-    if (!formData.text.trim() || formData.text === editingItem.text) {
-      setShowEditModal(false);
-      return;
-    }
-
-    const updatedCourses = courses.map(course => {
-      if (course.id === selectedCourse.id) {
-        const updatedMaterials = course.materials.map(material => {
-          const hasOutcome = material.outcomes.some(o => o.id === editingItem.id);
-          if (hasOutcome) {
-            return {
-              ...material,
-              outcomes: material.outcomes.map(outcome =>
-                outcome.id === editingItem.id
-                  ? { ...outcome, text: formData.text, status: 'pending' as const, originalText: editingItem.text }
-                  : outcome
-              )
-            };
-          }
-          return material;
-        });
-        return { ...course, materials: updatedMaterials };
-      }
-      return course;
-    });
-
-    setCourses(updatedCourses);
-    const updatedCourse = updatedCourses.find(c => c.id === selectedCourse.id);
-    if (updatedCourse) {
-      setSelectedCourse(updatedCourse);
-    }
-    setShowEditModal(false);
-    setEditingItem(null);
-    setFormData({ text: '' });
-  };
 
   const cancelForm = () => {
     setShowForm(false);
     setFormData({ text: '' });
-    setEditingItem(null);
+    
   };
 
-  const handleUndoChange = (outcomeId: number, materialId: number) => {
-    if (!selectedCourse) return;
 
-    const updatedCourses = courses.map(course => {
-      if (course.id === selectedCourse.id) {
-        const updatedMaterials = course.materials.map(material => {
-          if (material.id === materialId) {
-            return {
-              ...material,
-              outcomes: material.outcomes.map(outcome => {
-                if (outcome.id === outcomeId) {
-                  if (outcome.status === 'pending_delete') {
-                    // Undo delete - restore to approved
-                    const { originalText, ...rest } = outcome;
-                    return { ...rest, status: 'approved' as const };
-                  } else if (outcome.status === 'pending' && outcome.originalText) {
-                    // Undo edit - restore original text and set to approved
-                    const { originalText, ...rest } = outcome;
-                    return { ...rest, text: originalText, status: 'approved' as const };
-                  } else if (outcome.status === 'pending' && !outcome.originalText) {
-                    // This is a newly added item - mark for removal
-                    return null as any;
-                  }
-                }
-                return outcome;
-              }).filter((o): o is Omit<Outcome, 'materialId' | 'materialName'> => o !== null)
-            };
-          }
-          return material;
-        });
-        return { ...course, materials: updatedMaterials };
-      }
-      return course;
-    });
-
-    setCourses(updatedCourses);
-    const updatedCourse = updatedCourses.find(c => c.id === selectedCourse.id);
-    if (updatedCourse) {
-      setSelectedCourse(updatedCourse);
-    }
-  };
-
-  const allOutcomes = getAllOutcomesForCourse();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
@@ -413,8 +151,34 @@ const OutcomesManagement: React.FC = () => {
           <p className="text-slate-600">Manage expected learning outcomes for courses</p>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
+            <span className="ml-3 text-slate-600">Loading subjects...</span>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 mb-6">
+            <div className="flex items-center gap-3">
+              <div>
+                <h3 className="font-semibold text-red-900">Error loading data</h3>
+                <p className="text-red-700 text-sm mt-1">{error}</p>
+              </div>
+            </div>
+            <button
+              onClick={fetchSubjects}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
         {/* Main Container */}
-        {view === 'courses' && (
+        {!loading && !error && view === 'courses' && (
           <div className="bg-white rounded-xl shadow-lg border border-slate-200">
             <div className="p-6">
               {/* Semester Selector */}
@@ -501,11 +265,11 @@ const OutcomesManagement: React.FC = () => {
                 {coursesForSemester.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {coursesForSemester.map((course) => {
-                      const totalOutcomes = course.materials.reduce((sum, m) => sum + m.outcomes.length, 0);
+                      
                       return (
                         <button
                           key={course.id}
-                          onClick={() => { setSelectedCourse(course); setView('outcomes'); }}
+                          onClick={() => handleCourseSelect(course)}
                           className={`group text-left p-5 rounded-xl border-2 transition-all duration-200 ${selectedCourse?.id === course.id
                             ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-lg scale-105'
                             : 'border-slate-200 bg-white hover:border-purple-300 hover:shadow-md hover:-translate-y-1'
@@ -529,12 +293,7 @@ const OutcomesManagement: React.FC = () => {
 
                           <div className="flex items-center justify-between pt-3 border-t border-slate-200">
                             <div className="flex items-center gap-2 text-sm flex-wrap">
-                              <span className={`px-2 py-1 rounded-lg font-semibold ${selectedCourse?.id === course.id
-                                ? 'bg-purple-100 text-purple-700'
-                                : 'bg-slate-100 text-slate-600'
-                                }`}>
-                                {totalOutcomes} outcomes
-                              </span>
+
                             </div>
                             {selectedCourse?.id === course.id && (
                               <div className="flex items-center gap-1 text-purple-600 text-xs font-semibold">
@@ -580,9 +339,7 @@ const OutcomesManagement: React.FC = () => {
                     <p className="text-sm text-slate-600 mt-1">{selectedCourse.code}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-semibold">
-                      {getTotalOutcomesCount()} outcomes
-                    </span>
+
                     {!showForm && (
                       <button
                         onClick={() => setShowForm(true)}
@@ -620,11 +377,20 @@ const OutcomesManagement: React.FC = () => {
                     <div className="flex gap-3 pt-2">
                       <button
                         onClick={handleAddOutcome}
-                        disabled={!formData.text.trim()}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors font-semibold shadow-sm hover:shadow-md"
+                        disabled={!formData.text.trim() || isSubmitting}
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors font-semibold shadow-sm hover:shadow-md w-40"
                       >
-                        <Check className="w-4 h-4" />
-                        Add outcome
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Submitting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4" />
+                            <span>Add outcome</span>
+                          </>
+                        )}
                       </button>
                       <button
                         onClick={cancelForm}
@@ -639,152 +405,40 @@ const OutcomesManagement: React.FC = () => {
               )}
 
               {/* Outcomes List */}
-              <div>
-                {allOutcomes.length === 0 ? (
-                  <div className="text-center py-16 text-slate-500 bg-slate-50 rounded-xl">
-                    <Target className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                    <p className="text-lg font-semibold mb-1">No learning outcomes yet</p>
-                    <p className="text-sm">Click "Add Outcome" to get started</p>
+              <div className="mt-8">
+                <h3 className="text-xl font-bold text-slate-800 mb-4">Current Learning Outcomes</h3>
+                {outcomesLoading ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+                    <span className="ml-2 text-slate-600">Loading outcomes...</span>
+                  </div>
+                ) : learningOutcomes.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border-2 border-dashed">
+                    <p>No learning outcomes found for this course.</p>
                   </div>
                 ) : (
-                  <div className="space-y-6">
-                    {/* Pending Delete */}
-                    {allOutcomes.some(o => o.status === 'pending_delete') && (
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-semibold text-slate-800">Outcomes pending deletion</h4>
-                          <span className="text-xs text-slate-500">{allOutcomes.filter(o => o.status === 'pending_delete').length} items</span>
-                        </div>
-                        <div className="space-y-2">
-                          {allOutcomes.filter(o => o.status === 'pending_delete').map((outcome, index) => (
-                            <div
-                              key={`${outcome.materialId}-${outcome.id}`}
-                              className="flex items-center gap-3 p-3 border border-red-200 rounded-lg hover:border-red-300 hover:bg-red-50 transition-all bg-red-50 group"
-                            >
-                              <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-red-200 transition-colors">
-                                <span className="font-bold text-red-600">{index + 1}</span>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-slate-800">
-                                  <span className="line-through">{outcome.text}</span>
-                                  <span className="text-xs text-red-700 font-medium"> (Pending deletion)</span>
-                                </p>
-                              </div>
-                              <div className="flex gap-1 flex-shrink-0">
-                                <button
-                                  onClick={() => handleUndoChange(outcome.id, outcome.materialId)}
-                                  className="flex items-center gap-1 px-2 py-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors text-sm font-medium"
-                                  title="Undo"
-                                >
-                                  <Undo className="w-4 h-4" />
-                                  Undo
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                  <div className="space-y-3">
+                    {learningOutcomes.map((outcome) => (
+                      <div key={outcome.id} className={`p-4 rounded-lg border flex items-center gap-4 ${
+                        outcome.status === SuggestionStatus.Approved ? 'bg-green-50 border-green-200' :
+                        outcome.status === SuggestionStatus.Pending ? 'bg-yellow-50 border-yellow-200' :
+                        'bg-red-50 border-red-200'
+                      }`}>
+                        <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                          outcome.status === SuggestionStatus.Approved ? 'bg-green-500' :
+                          outcome.status === SuggestionStatus.Pending ? 'bg-yellow-500' :
+                          'bg-red-500'
+                        }`}></span>
+                        <p className="flex-1 text-slate-800">{outcome.content}</p>
+                        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                          outcome.status === SuggestionStatus.Approved ? 'bg-green-100 text-green-800' :
+                          outcome.status === SuggestionStatus.Pending ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {outcome.status === SuggestionStatus.Approved ? 'Approved' : outcome.status === SuggestionStatus.Pending ? 'Pending' : 'Rejected'}
+                        </span>
                       </div>
-                    )}
-
-                    {/* Pending */}
-                    {allOutcomes.some(o => o.status === 'pending') && (
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-semibold text-slate-800">Outcomes pending approval</h4>
-                          <span className="text-xs text-slate-500">{allOutcomes.filter(o => o.status === 'pending').length} items</span>
-                        </div>
-                        <div className="space-y-2">
-                          {allOutcomes.filter(o => o.status === 'pending').map((outcome, index) => (
-                            <div
-                              key={`${outcome.materialId}-${outcome.id}`}
-                              className="flex items-center gap-3 p-3 border border-yellow-200 rounded-lg hover:border-yellow-300 hover:bg-yellow-50 transition-all bg-yellow-50 group"
-                            >
-                              <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-yellow-200 transition-colors">
-                                <span className="font-bold text-yellow-600">{index + 1}</span>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-slate-800">
-                                  {outcome.text}
-                                  <span className="text-xs text-yellow-700 font-medium"> (Pending approval)</span>
-                                  {outcome.originalText && (
-                                    <span className="block text-xs text-slate-500 mt-1 line-through">
-                                      Before: {outcome.originalText}
-                                    </span>
-                                  )}
-                                </p>
-                              </div>
-                              <div className="flex gap-1 flex-shrink-0">
-                                <button
-                                  onClick={() => handleUndoChange(outcome.id, outcome.materialId)}
-                                  className="flex items-center gap-1 px-2 py-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors text-sm font-medium"
-                                  title="Undo"
-                                >
-                                  <Undo className="w-4 h-4" />
-                                  Undo
-                                </button>
-                                <button
-                                  onClick={() => handleEdit(outcome)}
-                                  className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                  title="Edit"
-                                >
-                                  <Edit2 className="w-4 h-4" />
-                                </button>
-                                {outcome.originalText && (
-                                  <button
-                                    onClick={() => handleDeleteOutcome(outcome.id, outcome.materialId)}
-                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                    title="Delete"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Approved */}
-                    {allOutcomes.some(o => o.status === 'approved') && (
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-semibold text-slate-800">Approved outcomes</h4>
-                          <span className="text-xs text-slate-500">{allOutcomes.filter(o => o.status === 'approved').length} items</span>
-                        </div>
-                        <div className="space-y-2">
-                          {allOutcomes.filter(o => o.status === 'approved').map((outcome, index) => (
-                            <div
-                              key={`${outcome.materialId}-${outcome.id}`}
-                              className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all bg-white group"
-                            >
-                              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 transition-colors">
-                                <span className="font-bold text-purple-600">{index + 1}</span>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-slate-800">{outcome.text}</p>
-                              </div>
-                              <div className="flex gap-1 flex-shrink-0">
-                                <button
-                                  onClick={() => handleEdit(outcome)}
-                                  className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                  title="Edit"
-                                >
-                                  <Edit2 className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteOutcome(outcome.id, outcome.materialId)}
-                                  className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                  title="Delete"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    ))}
                   </div>
                 )}
               </div>
@@ -793,109 +447,7 @@ const OutcomesManagement: React.FC = () => {
         )}
       </div>
 
-      {/* Edit Modal */}
-      {showEditModal && editingItem && (
-        <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-slate-800">Edit learning outcome</h3>
-              <button
-                onClick={() => { setShowEditModal(false); setEditingItem(null); setFormData({ text: '' }); }}
-                className="text-slate-400 hover:text-slate-600 transition"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
 
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Outcome content
-              </label>
-              <textarea
-                value={formData.text}
-                onChange={(e) => setFormData({ text: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-purple-500 focus:outline-none transition resize-none"
-                placeholder="Enter outcome content..."
-                rows={4}
-                autoFocus
-              />
-              <p className="text-xs text-slate-500 mt-2">
-                After editing, the outcome will require admin approval again.
-              </p>
-            </div>
-
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => { setShowEditModal(false); setEditingItem(null); setFormData({ text: '' }); }}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmEdit}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium"
-              >
-                Save changes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Modal */}
-      {showDeleteModal && deletingOutcome && (
-        <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-slate-800">Confirm deletion</h3>
-              <button
-                onClick={() => { setShowDeleteModal(false); setDeletingOutcome(null); }}
-                className="text-slate-400 hover:text-slate-600 transition"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="mb-6">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Trash2 className="w-6 h-6 text-red-600" />
-                </div>
-                <div>
-                  <p className="text-slate-800 font-semibold">
-                    {allOutcomes.find(o => o.id === deletingOutcome.outcomeId && o.materialId === deletingOutcome.materialId)?.text}
-                  </p>
-                  <p className="text-sm text-slate-500">
-                    The learning outcome will be marked as pending deletion
-                  </p>
-                </div>
-              </div>
-              <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg">
-                The learning outcome will be marked as "Pending deletion" and requires admin approval before permanent removal.
-              </p>
-            </div>
-
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => { setShowDeleteModal(false); setDeletingOutcome(null); }}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
-              >
-                Mark as pending deletion
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

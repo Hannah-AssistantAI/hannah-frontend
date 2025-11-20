@@ -14,10 +14,8 @@ export interface Document {
   fileUrl: string; // Changed from filePath to match backend
   fileSize: number;
   mimeType: string; // Changed from fileType to match backend
-  uploadedBy: {
-    userId: number;
-    fullName: string;
-  };
+  uploadedBy: number;
+  uploadedByName?: string;
   subjectId: number;
   subjectName?: string;
   processingStatus: string; // Changed from status to match backend

@@ -66,12 +66,16 @@ class ApiClient {
         throw error;
       }
 
-      // Handle no content response
-      if (response.status === HTTP_STATUS.NO_CONTENT) {
-        return {
-          data: null as T,
-          status: response.status,
-        };
+      // Handle responses that might not have a body (e.g., 201, 204)
+      if (response.status === HTTP_STATUS.NO_CONTENT || response.status === HTTP_STATUS.CREATED) {
+        // Check if there's a content-length header or if the body is actually empty
+        const contentLength = response.headers.get('content-length');
+        if (!contentLength || parseInt(contentLength, 10) === 0) {
+          return {
+            data: null as T, // Return null for the data as there's no body
+            status: response.status,
+          };
+        }
       }
 
       const data = await response.json();

@@ -133,7 +133,7 @@ function App() {
             <Route path='configuration' element={<Configuration />} />
             <Route path="profile" element={<Profile embedded={true} />} />
             <Route path="flagged-quizzes" element={<FlaggedQuizzes />} />
-            <Route path="flagged-quizzes/:id" element={<FlaggedQuizDetail />} />
+                        <Route path="flagged-quizzes/:id" element={<FlaggedQuizDetail />} />
           </Route>
         </Route>
 

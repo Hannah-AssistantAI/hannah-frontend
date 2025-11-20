@@ -5,6 +5,7 @@ import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader,
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
 import documentService, { type Document } from '../../../service/documentService';
+import suggestionService, { type Suggestion, SuggestionStatus, SuggestionContentType } from '../../../service/suggestionService';
 import './CourseManagement.css';
 
 export default function CourseDetail() {
@@ -14,24 +15,30 @@ export default function CourseDetail() {
   const [activeTab, setActiveTab] = useState<'document' | 'outcome' | 'challenge'>('document');
   const [pendingDocuments, setPendingDocuments] = useState<Document[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
-  const [processingDocId, setProcessingDocId] = useState<number | null>(null);
+    const [processingDocId, setProcessingDocId] = useState<number | null>(null);
+
+  // State for suggestions
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [suggestionsError, setSuggestionsError] = useState<string | null>(null);
+  const [processingSuggestionId, setProcessingSuggestionId] = useState<number | null>(null);
+
+  const fetchSubjectDetail = async () => {
+    if (!id) return;
+    try {
+      setLoading(true);
+      const data = await subjectService.getSubjectById(parseInt(id, 10));
+      setSubject(data);
+    } catch (error) {
+      toast.error('Failed to fetch subject details.');
+      console.error('Error fetching subject details:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (id) {
-      const fetchSubjectDetail = async () => {
-        try {
-          setLoading(true);
-          const data = await subjectService.getSubjectById(parseInt(id, 10));
-          setSubject(data);
-        } catch (error) {
-          toast.error('Failed to fetch subject details.');
-          console.error('Error fetching subject details:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchSubjectDetail();
-    }
+    fetchSubjectDetail();
   }, [id]);
 
   useEffect(() => {
@@ -77,13 +84,63 @@ export default function CourseDetail() {
       setProcessingDocId(documentId);
       await documentService.rejectDocument(documentId, reason);
       toast.success('Document rejected');
-      // Refresh the list
       await fetchPendingDocuments();
     } catch (error) {
       console.error('Error rejecting document:', error);
       toast.error('Failed to reject document');
     } finally {
       setProcessingDocId(null);
+    }
+  };
+
+  const fetchSuggestions = async () => {
+    try {
+      setSuggestionsLoading(true);
+            const response = await suggestionService.getSuggestions({ status: SuggestionStatus.Pending });
+      setSuggestions(response);
+      setSuggestionsError(null);
+    } catch (err: any) {
+      setSuggestionsError('Failed to load suggestions.');
+      toast.error('Failed to load suggestions.');
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  };
+
+  // Fetch suggestions when the relevant tab is active
+  useEffect(() => {
+    if (activeTab === 'outcome' || activeTab === 'challenge') {
+      fetchSuggestions();
+    }
+  }, [activeTab]);
+
+  const handleApproveSuggestion = async (suggestionId: number) => {
+    if (!id) return;
+    try {
+      setProcessingSuggestionId(suggestionId);
+      await suggestionService.approveSuggestion(suggestionId, { subjectIds: [parseInt(id, 10)] });
+      toast.success('Suggestion approved and applied!');
+      await fetchSuggestions(); // Refresh suggestion list
+      await fetchSubjectDetail(); // Refresh subject details to show the new outcome/challenge
+    } catch (error) {
+      console.error('Error approving suggestion:', error);
+      toast.error('Failed to approve suggestion.');
+    } finally {
+      setProcessingSuggestionId(null);
+    }
+  };
+
+  const handleRejectSuggestion = async (suggestionId: number) => {
+    try {
+      setProcessingSuggestionId(suggestionId);
+      await suggestionService.rejectSuggestion(suggestionId);
+      toast.success('Suggestion rejected.');
+      await fetchSuggestions(); // Refresh list
+    } catch (error) {
+      console.error('Error rejecting suggestion:', error);
+      toast.error('Failed to reject suggestion.');
+    } finally {
+      setProcessingSuggestionId(null);
     }
   };
 
@@ -204,10 +261,10 @@ export default function CourseDetail() {
                       <FileText size={16} /> Documents <span className="count-chip">{pendingDocuments.length}</span>
                     </button>
                     <button className={`tab ${activeTab === 'outcome' ? 'active' : ''}`} onClick={() => setActiveTab('outcome')}>
-                      <CheckSquare size={16} /> Learning Outcome <span className="count-chip">0</span>
+                      <CheckSquare size={16} /> Learning Outcome <span className="count-chip">{suggestions.filter(s => s.contentType === SuggestionContentType.LearningOutcome).length}</span>
                     </button>
                     <button className={`tab ${activeTab === 'challenge' ? 'active' : ''}`} onClick={() => setActiveTab('challenge')}>
-                      <AlertTriangle size={16} /> Common Challenge <span className="count-chip">0</span>
+                      <AlertTriangle size={16} /> Common Challenge <span className="count-chip">{suggestions.filter(s => s.contentType === SuggestionContentType.CommonChallenge).length}</span>
                     </button>
                   </div>
 
@@ -303,12 +360,63 @@ export default function CourseDetail() {
                     </div>
                   )}
 
-                  {activeTab === 'outcome' && (
-                    <p className="empty-description">No learning outcome requests yet.</p>
-                  )}
-
-                  {activeTab === 'challenge' && (
-                    <p className="empty-description">No common challenge requests yet.</p>
+                  {(activeTab === 'outcome' || activeTab === 'challenge') && (
+                    <div style={{ marginTop: '1rem' }}>
+                      {suggestionsLoading ? (
+                        <div style={{ textAlign: 'center', padding: '2rem' }}>
+                          <Loader className="animate-spin" size={24} style={{ margin: '0 auto' }} />
+                          <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>Loading suggestions...</p>
+                        </div>
+                      ) : suggestionsError ? (
+                        <p className="empty-description" style={{ color: 'red' }}>{suggestionsError}</p>
+                      ) : suggestions.filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge)).length === 0 ? (
+                        <p className="empty-description">No pending suggestions of this type.</p>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {suggestions
+                            .filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge))
+                            .map(suggestion => (
+                              <div key={suggestion.id} style={{
+                                border: '1px solid var(--border-color)',
+                                borderRadius: '8px',
+                                padding: '1rem',
+                                backgroundColor: 'var(--bg-secondary)'
+                              }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
+                                  <div style={{ flex: 1 }}>
+                                    <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{suggestion.content}</p>
+                                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                      Suggested by: <strong>{suggestion.suggestedByUserName || 'Unknown'}</strong>
+                                    </p>
+                                  </div>
+                                  <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
+                                    <button
+                                      onClick={() => handleApproveSuggestion(suggestion.id)}
+                                      disabled={processingSuggestionId === suggestion.id}
+                                      className="btn-primary"
+                                      style={{ backgroundColor: '#28a745', borderColor: '#28a745' }}
+                                      title="Approve suggestion"
+                                    >
+                                      {processingSuggestionId === suggestion.id ? <Loader size={16} className="animate-spin" /> : <Check size={16} />}
+                                      Approve
+                                    </button>
+                                    <button
+                                      onClick={() => handleRejectSuggestion(suggestion.id)}
+                                      disabled={processingSuggestionId === suggestion.id}
+                                      className="btn-secondary"
+                                      style={{ backgroundColor: '#dc3545', borderColor: '#dc3545', color: 'white' }}
+                                      title="Reject suggestion"
+                                    >
+                                      <X size={16} />
+                                      Reject
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

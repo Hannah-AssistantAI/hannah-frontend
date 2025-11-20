@@ -3,7 +3,7 @@ import { Upload, File, Trash2, Edit2, FileText, BookOpen, ChevronDown, Undo, Che
 import subjectService from '../../../service/subjectService';
 import type { Subject } from '../../../service/subjectService';
 import documentService from '../../../service/documentService';
-import type { Document } from '../../../service/documentService';
+
 
 // Define types
 interface Material {
@@ -30,7 +30,7 @@ interface Course {
 
 const DocumentsManagement: React.FC = () => {
   // State management
-  const [subjects, setSubjects] = useState<Subject[]>([]);
+  
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +63,7 @@ const DocumentsManagement: React.FC = () => {
       setLoading(true);
       setError(null);
       const response = await subjectService.getAllSubjects();
-      setSubjects(response.items);
+      
 
       // Transform subjects to courses format
       const transformedCourses: Course[] = response.items.map((subject: Subject) => ({
@@ -181,6 +181,7 @@ const DocumentsManagement: React.FC = () => {
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!selectedCourse) return;
     const files = Array.from(e.target.files || []);
+    const inputElement = e.currentTarget;
     if (files.length === 0) return;
 
     try {
@@ -197,12 +198,14 @@ const DocumentsManagement: React.FC = () => {
       // Refresh documents
       await fetchDocuments(selectedCourse.subjectId);
 
-      // Clear input
-      e.currentTarget.value = '';
     } catch (err: any) {
       console.error('Error uploading documents:', err);
       alert(err.message || 'Failed to upload documents');
-      e.currentTarget.value = '';
+    } finally {
+        // Clear input
+        if(inputElement) {
+            inputElement.value = '';
+        }
     }
   };
 
