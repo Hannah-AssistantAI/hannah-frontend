@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X, Download } from 'lucide-react';
+import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
 import documentService, { type Document } from '../../../service/documentService';
@@ -15,7 +15,7 @@ export default function CourseDetail() {
   const [activeTab, setActiveTab] = useState<'document' | 'outcome' | 'challenge'>('document');
   const [pendingDocuments, setPendingDocuments] = useState<Document[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
-    const [processingDocId, setProcessingDocId] = useState<number | null>(null);
+  const [processingDocId, setProcessingDocId] = useState<number | null>(null);
 
   // State for suggestions
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -42,10 +42,11 @@ export default function CourseDetail() {
   }, [id]);
 
   useEffect(() => {
-    if (id && activeTab === 'document') {
+    if (id) {
       fetchPendingDocuments();
+      fetchSuggestions();
     }
-  }, [id, activeTab]);
+  }, [id]);
 
   const fetchPendingDocuments = async () => {
     if (!id) return;
@@ -96,7 +97,7 @@ export default function CourseDetail() {
   const fetchSuggestions = async () => {
     try {
       setSuggestionsLoading(true);
-            const response = await suggestionService.getSuggestions({ status: SuggestionStatus.Pending });
+      const response = await suggestionService.getSuggestions({ status: SuggestionStatus.Pending });
       setSuggestions(response);
       setSuggestionsError(null);
     } catch (err: any) {
@@ -106,13 +107,6 @@ export default function CourseDetail() {
       setSuggestionsLoading(false);
     }
   };
-
-  // Fetch suggestions when the relevant tab is active
-  useEffect(() => {
-    if (activeTab === 'outcome' || activeTab === 'challenge') {
-      fetchSuggestions();
-    }
-  }, [activeTab]);
 
   const handleApproveSuggestion = async (suggestionId: number) => {
     if (!id) return;
@@ -299,16 +293,23 @@ export default function CourseDetail() {
                                   <button
                                     onClick={() => handleApprove(doc.documentId)}
                                     disabled={processingDocId === doc.documentId}
-                                    className="btn-primary"
                                     style={{
-                                      padding: '0.5rem 1rem',
+                                      padding: '0.6rem 1.2rem',
                                       fontSize: '0.875rem',
+                                      fontWeight: 600,
                                       display: 'flex',
                                       alignItems: 'center',
-                                      gap: '0.25rem',
-                                      backgroundColor: '#28a745',
-                                      borderColor: '#28a745'
+                                      gap: '0.5rem',
+                                      backgroundColor: '#10b981',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '8px',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s ease',
+                                      boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.3)',
                                     }}
+                                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#059669')}
+                                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#10b981')}
                                     title="Approve document"
                                   >
                                     {processingDocId === doc.documentId ? (
@@ -321,17 +322,23 @@ export default function CourseDetail() {
                                   <button
                                     onClick={() => handleReject(doc.documentId)}
                                     disabled={processingDocId === doc.documentId}
-                                    className="btn-secondary"
                                     style={{
-                                      padding: '0.5rem 1rem',
+                                      padding: '0.6rem 1.2rem',
                                       fontSize: '0.875rem',
+                                      fontWeight: 600,
                                       display: 'flex',
                                       alignItems: 'center',
-                                      gap: '0.25rem',
-                                      backgroundColor: '#dc3545',
-                                      borderColor: '#dc3545',
-                                      color: 'white'
+                                      gap: '0.5rem',
+                                      backgroundColor: '#ef4444',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '8px',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s ease',
+                                      boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.3)',
                                     }}
+                                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
+                                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#ef4444')}
                                     title="Reject document"
                                   >
                                     <X size={16} />
@@ -393,8 +400,23 @@ export default function CourseDetail() {
                                     <button
                                       onClick={() => handleApproveSuggestion(suggestion.id)}
                                       disabled={processingSuggestionId === suggestion.id}
-                                      className="btn-primary"
-                                      style={{ backgroundColor: '#28a745', borderColor: '#28a745' }}
+                                      style={{
+                                        padding: '0.6rem 1.2rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        backgroundColor: '#10b981',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.3)',
+                                      }}
+                                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#059669')}
+                                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#10b981')}
                                       title="Approve suggestion"
                                     >
                                       {processingSuggestionId === suggestion.id ? <Loader size={16} className="animate-spin" /> : <Check size={16} />}
@@ -403,8 +425,23 @@ export default function CourseDetail() {
                                     <button
                                       onClick={() => handleRejectSuggestion(suggestion.id)}
                                       disabled={processingSuggestionId === suggestion.id}
-                                      className="btn-secondary"
-                                      style={{ backgroundColor: '#dc3545', borderColor: '#dc3545', color: 'white' }}
+                                      style={{
+                                        padding: '0.6rem 1.2rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        backgroundColor: '#ef4444',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.3)',
+                                      }}
+                                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
+                                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#ef4444')}
                                       title="Reject suggestion"
                                     >
                                       <X size={16} />

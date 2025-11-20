@@ -519,16 +519,16 @@ const DocumentsManagement: React.FC = () => {
               {!documentsLoading && (
                 <div className="space-y-6">
                   {/* Processing/Failed Documents */}
-                  {selectedCourse.materials.some(m => m.status === 'Processing' || m.status === 'Failed') && (
+                  {selectedCourse.materials.some(m => (m.status === 'Processing' && m.approvalStatus !== 'approved') || m.status === 'Failed') && (
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="font-semibold text-slate-800">Processing Status</h4>
                         <span className="text-xs text-slate-500">
-                          {selectedCourse.materials.filter(m => m.status === 'Processing' || m.status === 'Failed').length} items
+                          {selectedCourse.materials.filter(m => (m.status === 'Processing' && m.approvalStatus !== 'approved') || m.status === 'Failed').length} items
                         </span>
                       </div>
                       <div className="space-y-3">
-                        {selectedCourse.materials.filter(m => m.status === 'Processing' || m.status === 'Failed').map(mat => (
+                        {selectedCourse.materials.filter(m => (m.status === 'Processing' && m.approvalStatus !== 'approved') || m.status === 'Failed').map(mat => (
                           <div
                             key={mat.documentId}
                             className={`flex items-center justify-between p-4 rounded-lg border transition ${
@@ -575,22 +575,28 @@ const DocumentsManagement: React.FC = () => {
                   )}
 
                   {/* Pending Documents */}
-                  {selectedCourse.materials.some(m => m.status === 'Pending') && (
+                  {selectedCourse.materials.some(m => m.status === 'Pending' || (m.status === 'Processing' && m.approvalStatus === 'approved')) && (
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="font-semibold text-slate-800">Pending Documents</h4>
                         <span className="text-xs text-slate-500">
-                          {selectedCourse.materials.filter(m => m.status === 'Pending').length} items
+                          {selectedCourse.materials.filter(m => m.status === 'Pending' || (m.status === 'Processing' && m.approvalStatus === 'approved')).length} items
                         </span>
                       </div>
                       <div className="space-y-3">
-                        {selectedCourse.materials.filter(m => m.status === 'Pending').map(mat => (
+                        {selectedCourse.materials.filter(m => m.status === 'Pending' || (m.status === 'Processing' && m.approvalStatus === 'approved')).map(mat => (
                           <div key={mat.documentId} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition border border-gray-200">
                             <div className="flex items-center gap-3 flex-1 min-w-0">
                               <File className="w-5 h-5 text-gray-600 flex-shrink-0" />
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
                                   <p className="font-semibold text-slate-800">{mat.title}</p>
+                                  {mat.status === 'Processing' && (
+                                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium flex items-center gap-1">
+                                      <Loader2 className="w-3 h-3 animate-spin" />
+                                      Processing
+                                    </span>
+                                  )}
                                   {mat.approvalStatus === 'pending' && (
                                     <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-medium">
                                       ⏳ Awaiting Approval

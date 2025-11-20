@@ -112,9 +112,15 @@ const OutcomesManagement: React.FC = () => {
       return;
     }
 
+    if (!selectedCourse) {
+      toast.error('No course selected');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await suggestionService.createSuggestion({
+        subjectId: selectedCourse.id,
         contentType: SuggestionContentType.LearningOutcome,
         content: formData.text,
       });

@@ -19,6 +19,7 @@ export type SuggestionStatus = typeof SuggestionStatus[keyof typeof SuggestionSt
 // Interface for a single suggestion
 export interface Suggestion {
   id: number;
+  subjectId: number;
   contentType: SuggestionContentType;
   content: string;
   status: SuggestionStatus;
@@ -32,6 +33,7 @@ export interface Suggestion {
 
 // Interface for creating a suggestion
 export interface CreateSuggestionDto {
+  subjectId: number;
   contentType: SuggestionContentType;
   content: string;
 }

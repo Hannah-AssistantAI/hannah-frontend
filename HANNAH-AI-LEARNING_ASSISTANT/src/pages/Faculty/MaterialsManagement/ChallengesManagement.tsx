@@ -1,916 +1,440 @@
-import React, { useState, useMemo } from 'react';
-import { AlertCircle, Plus, Edit2, Trash2, Save, X, ChevronRight, Undo } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { AlertCircle, ChevronDown, Plus, X, Check, ChevronRight, Loader2 } from 'lucide-react';
+import subjectService, { type Subject } from '../../../service/subjectService';
+import suggestionService, { SuggestionContentType, SuggestionStatus, type Suggestion } from '../../../service/suggestionService';
+import { toast } from 'react-hot-toast';
 
-interface Challenge {
-    id: number;
-    title: string;
-    description: string;
-    solution: string;
-    frequency: 'High' | 'Medium' | 'Low';
-    materialId: number;
-    materialName: string;
-    status: 'pending' | 'approved' | 'pending_delete';
-    originalTitle?: string;
-    originalDescription?: string;
-    originalSolution?: string;
-    originalFrequency?: 'High' | 'Medium' | 'Low';
-}
-
-interface Material {
-    id: number;
-    name: string;
-    type: string;
-    size: string;
-    date: string;
-    challenges: Omit<Challenge, 'materialId' | 'materialName'>[];
-}
-
+// Define types
 interface Course {
-    id: number;
-    name: string;
-    code: string;
-    semester: string;
-    materials: Material[];
+  id: number;
+  name: string;
+  code: string;
+  semester: string;
 }
 
 const ChallengesManagement: React.FC = () => {
-    // View state
-    const [view, setView] = useState<'courses' | 'challenges'>('courses');
-    
-    const [selectedSemester, setSelectedSemester] = useState<string>('Semester 1');
-    const [showSemesterDropdown, setShowSemesterDropdown] = useState<boolean>(false);
-    const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-    const [showAddForm, setShowAddForm] = useState<boolean>(false);
-    const [newChallenge, setNewChallenge] = useState<{
-        title: string;
-    }>({
-        title: ''
-    });
-    const [editingItem, setEditingItem] = useState<Challenge | null>(null);
-    const [formData, setFormData] = useState<{ title: string }>({ title: '' });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [challenges, setChallenges] = useState<Suggestion[]>([]);
+  const [challengesLoading, setChallengesLoading] = useState(false);
 
-    // Modal states
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [deletingChallenge, setDeletingChallenge] = useState<{ challengeId: number; materialId: number } | null>(null);
+  const semesters = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8', 'Semester 9'];
 
-    const semesters = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8', 'Semester 9'];
+  // View state
+  const [view, setView] = useState<'courses' | 'challenges'>('courses');
 
-    const [courses, setCourses] = useState<Course[]>([
-        {
-            id: 1,
-            name: 'Programming Fundamentals',
-            code: 'PRF192',
-            semester: 'Semester 1',
-            materials: [
-                {
-                    id: 1,
-                    name: 'PRF192_Programming_Basics.pdf',
-                    type: 'PDF',
-                    size: '2.5 MB',
-                    date: '01/09/2024',
-                    challenges: [
-                        {
-                            id: 1,
-                            title: 'Hard to understand C syntax',
-                            description: 'Students struggle with pointer syntax and memory management',
-                            solution: 'Use diagrams and step-by-step debugging to illustrate',
-                            frequency: 'High',
-                            status: 'approved'
-                        },
-                        {
-                            id: 2,
-                            title: 'Unclear programming logic',
-                            description: 'Students find it hard to shift from everyday thinking to programming thinking',
-                            solution: 'Practice with flowcharts and pseudocode before coding',
-                            frequency: 'High',
-                            status: 'approved'
-                        }
-                    ]
-                },
-                {
-                    id: 2,
-                    name: 'PRF192_Control_Structures.pptx',
-                    type: 'PPTX',
-                    size: '1.8 MB',
-                    date: '05/09/2024',
-                    challenges: [
-                        {
-                            id: 3,
-                            title: 'Confusion between loops',
-                            description: 'Students are unsure when to use for, while, do-while',
-                            solution: 'Create a comparison table and practical exercises for each type',
-                            frequency: 'Medium',
-                            status: 'approved'
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            id: 2,
-            name: 'Mathematics for Engineering',
-            code: 'MAE101',
-            semester: 'Semester 1',
-            materials: [
-                {
-                    id: 3,
-                    name: 'MAE101_Calculus_Basics.pdf',
-                    type: 'PDF',
-                    size: '3.1 MB',
-                    date: '02/09/2024',
-                    challenges: [
-                        {
-                            id: 4,
-                            title: 'Hard to understand the concept of limits',
-                            description: 'Students struggle with the epsilon-delta definition and applications',
-                            solution: 'Use graphs and real-world examples to illustrate',
-                            frequency: 'High',
-                            status: 'approved'
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            id: 3,
-            name: 'Introduction to Computer Science',
-            code: 'CSI104',
-            semester: 'Semester 1',
-            materials: [
-                {
-                    id: 4,
-                    name: 'CSI104_Computer_Architecture.pdf',
-                    type: 'PDF',
-                    size: '2.2 MB',
-                    date: '03/09/2024',
-                    challenges: [
-                        {
-                            id: 5,
-                            title: 'Hard to understand computer architecture',
-                            description: 'Students find it hard to visualize how the CPU, RAM, and other components work',
-                            solution: 'Use 3D models and simulations to illustrate',
-                            frequency: 'High',
-                            status: 'approved'
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            id: 4,
-            name: 'Computer Organization and Architecture',
-            code: 'CEA201',
-            semester: 'Semester 1',
-            materials: [
-                {
-                    id: 5,
-                    name: 'CEA201_Digital_Logic.pptx',
-                    type: 'PPTX',
-                    size: '1.9 MB',
-                    date: '04/09/2024',
-                    challenges: [
-                        {
-                            id: 6,
-                            title: 'Digital logic is hard to grasp',
-                            description: 'Students struggle with truth tables and circuit design',
-                            solution: 'Practice with electronic circuit simulation software',
-                            frequency: 'Medium',
-                            status: 'approved'
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            id: 5,
-            name: 'Object-Oriented Programming',
-            code: 'PRO192',
-            semester: 'Semester 2',
-            materials: [
-                {
-                    id: 6,
-                    name: 'PRO192_OOP_Concepts.pdf',
-                    type: 'PDF',
-                    size: '2.8 MB',
-                    date: '15/01/2025',
-                    challenges: [
-                        {
-                            id: 7,
-                            title: 'Hard to understand OOP concepts',
-                            description: 'Students struggle with Class, Object, Inheritance, Polymorphism',
-                            solution: 'Use real-world examples and UML diagrams to illustrate',
-                            frequency: 'High',
-                            status: 'approved'
-                        }
-                    ]
-                },
-                {
-                    id: 7,
-                    name: 'PRO192_Java_Basics.pptx',
-                    type: 'PPTX',
-                    size: '4.2 MB',
-                    date: '20/01/2025',
-                    challenges: [
-                        {
-                            id: 8,
-                            title: 'Complex Java syntax',
-                            description: 'Students confuse Java syntax with C/C++',
-                            solution: 'Create a syntax comparison table and coding conventions',
-                            frequency: 'Medium',
-                            status: 'approved'
-                        }
-                    ]
-                }
-            ]
-        }
-    ]);
+  const [selectedSemester, setSelectedSemester] = useState<string>('Semester 1');
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [showSemesterDropdown, setShowSemesterDropdown] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({ text: '' });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const coursesForSemester = useMemo(
-        () => courses.filter((course) => course.semester === selectedSemester),
-        [courses, selectedSemester]
-    );
+  const fetchSubjects = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await subjectService.getAllSubjects();
 
-    const handleSemesterChange = (semester: string) => {
-        setSelectedSemester(semester);
-        setShowSemesterDropdown(false);
-        setSelectedCourse(null);
-    };
+      const transformedCourses: Course[] = response.items.map((subject: Subject) => ({
+        id: subject.subjectId,
+        name: subject.name,
+        code: subject.code,
+        semester: `Semester ${subject.semester || 1}`,
+      }));
 
-    const handleCourseSelect = (course: Course) => {
-        setSelectedCourse(course);
-    };
+      setCourses(transformedCourses);
+    } catch (err: any) {
+      console.error('Error fetching subjects:', err);
+      setError(err.message || 'Failed to load subjects');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Get all challenges from all materials in the selected course
-    const getAllChallengesForCourse = (): Challenge[] => {
-        if (!selectedCourse) return [];
-        
-        const allChallenges: Challenge[] = [];
-        selectedCourse.materials.forEach(material => {
-            material.challenges.forEach(challenge => {
-                allChallenges.push({
-                    ...challenge,
-                    materialId: material.id,
-                    materialName: material.name
-                });
-            });
-        });
-        return allChallenges;
-    };
+  // Fetch subjects on mount
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
 
-    const getTotalChallengesCount = (): number => {
-        if (!selectedCourse) return 0;
-        return selectedCourse.materials.reduce((sum, material) => sum + material.challenges.length, 0);
-    };
+  // Get courses for selected semester
+  const coursesForSemester = useMemo(() => {
+    return courses.filter(course => course.semester === selectedSemester);
+  }, [courses, selectedSemester]);
 
-    const handleAddChallenge = () => {
-        if (!newChallenge.title.trim() || !selectedCourse) return;
+  const fetchChallenges = async (subjectId: number) => {
+    try {
+      setChallengesLoading(true);
+      const fetchedChallenges = await suggestionService.getSuggestions({
+        subjectId: subjectId,
+        contentType: SuggestionContentType.CommonChallenge
+      });
+      setChallenges(fetchedChallenges);
+    } catch (err) {
+      toast.error('Failed to load challenges.');
+      console.error(err);
+    } finally {
+      setChallengesLoading(false);
+    }
+  };
 
-        const updatedCourses = courses.map(course => {
-            if (course.id === selectedCourse.id) {
-                // Add to the first material
-                const updatedMaterials = course.materials.length > 0 
-                    ? course.materials.map((material, index) => {
-                        if (index === 0) {
-                            // Add new challenge to first material
-                            return {
-                                ...material,
-                                challenges: [...material.challenges, { 
-                                    title: newChallenge.title,
-                                    description: '',
-                                    solution: '',
-                                    frequency: 'Medium' as const,
-                                    id: Date.now(), 
-                                    status: 'pending' as const 
-                                }]
-                            };
-                        }
-                        return material;
-                    })
-                    : course.materials;
-                return { ...course, materials: updatedMaterials };
-            }
-            return course;
-        });
+  const handleCourseSelect = async (course: Course) => {
+    setSelectedCourse(course);
+    setView('challenges');
+    await fetchChallenges(course.id);
+  };
 
-        setCourses(updatedCourses);
+  const handleSemesterChange = (semester: string) => {
+    setSelectedSemester(semester);
+    setShowSemesterDropdown(false);
+    const semesterCourses = courses.filter(c => c.semester === semester);
+    setSelectedCourse(semesterCourses.length > 0 ? semesterCourses[0] : null);
+  };
 
-        // Update selected course
-        const updatedCourse = updatedCourses.find(c => c.id === selectedCourse.id);
-        if (updatedCourse) {
-            setSelectedCourse(updatedCourse);
-        }
+  const handleAddChallenge = async () => {
+    if (!formData.text.trim()) {
+      toast.error('Please enter the challenge content');
+      return;
+    }
 
-        setNewChallenge({ title: '' });
-        setShowAddForm(false);
-    };
+    if (!selectedCourse) {
+      toast.error('No course selected');
+      return;
+    }
 
-    const handleEditChallenge = (challenge: Challenge) => {
-        setEditingItem(challenge);
-        setFormData({ title: challenge.title });
-        setShowEditModal(true);
-    };
+    setIsSubmitting(true);
+    try {
+      await suggestionService.createSuggestion({
+        subjectId: selectedCourse.id,
+        contentType: SuggestionContentType.CommonChallenge,
+        content: formData.text,
+      });
 
-    const confirmEdit = () => {
-        if (!formData.title.trim() || !selectedCourse || !editingItem) return;
+      toast.success('Challenge submitted for review!');
+      cancelForm();
+      if (selectedCourse) {
+        await fetchChallenges(selectedCourse.id);
+      }
+    } catch (err: any) {
+      console.error('Error submitting suggestion:', err);
+      toast.error(err.message || 'Failed to submit suggestion.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-        const updatedCourses = courses.map(course => {
-            if (course.id === selectedCourse.id) {
-                const updatedMaterials = course.materials.map(material => {
-                    if (material.id === editingItem.materialId) {
-                        return {
-                            ...material,
-                            challenges: material.challenges.map(c =>
-                                c.id === editingItem.id
-                                    ? {
-                                        ...c,
-                                        title: formData.title,
-                                        status: 'pending' as const,
-                                        originalTitle: editingItem.title,
-                                        originalDescription: editingItem.description,
-                                        originalSolution: editingItem.solution,
-                                        originalFrequency: editingItem.frequency
-                                    }
-                                    : c
-                            )
-                        };
-                    }
-                    return material;
-                });
-                return { ...course, materials: updatedMaterials };
-            }
-            return course;
-        });
+  const cancelForm = () => {
+    setShowForm(false);
+    setFormData({ text: '' });
+  };
 
-        setCourses(updatedCourses);
-
-        // Update selected course
-        const updatedCourse = updatedCourses.find(c => c.id === selectedCourse.id);
-        if (updatedCourse) {
-            setSelectedCourse(updatedCourse);
-        }
-
-        setShowEditModal(false);
-        setEditingItem(null);
-        setFormData({ title: '' });
-    };
-
-    const handleDeleteChallenge = (challengeId: number, materialId: number) => {
-        if (!selectedCourse) return;
-        setDeletingChallenge({ challengeId, materialId });
-        setShowDeleteModal(true);
-    };
-
-    const confirmDelete = () => {
-        if (!selectedCourse || !deletingChallenge) return;
-
-        const updatedCourses = courses.map(course => {
-            if (course.id === selectedCourse.id) {
-                const updatedMaterials = course.materials.map(material => {
-                    if (material.id === deletingChallenge.materialId) {
-                        return {
-                            ...material,
-                            challenges: material.challenges.map(c =>
-                              c.id === deletingChallenge.challengeId
-                                ? {
-                                    ...c,
-                                    status: 'pending_delete' as const,
-                                    originalTitle: c.title,
-                                    originalDescription: c.description,
-                                    originalSolution: c.solution,
-                                    originalFrequency: c.frequency
-                                  }
-                                : c
-                            )
-                        };
-                    }
-                    return material;
-                });
-                return { ...course, materials: updatedMaterials };
-            }
-            return course;
-        });
-
-        setCourses(updatedCourses);
-
-        // Update selected course
-        const updatedCourse = updatedCourses.find(c => c.id === selectedCourse.id);
-        if (updatedCourse) {
-            setSelectedCourse(updatedCourse);
-        }
-
-        setShowDeleteModal(false);
-        setDeletingChallenge(null);
-    };
-
-    const handleUndoChange = (challengeId: number, materialId: number) => {
-        if (!selectedCourse) return;
-
-        const updatedCourses = courses.map(course => {
-            if (course.id === selectedCourse.id) {
-                const updatedMaterials = course.materials.map(material => {
-                    if (material.id === materialId) {
-                        return {
-                            ...material,
-                            challenges: material.challenges.map(challenge => {
-                                if (challenge.id === challengeId) {
-                                    if (challenge.status === 'pending_delete') {
-                                        // Undo delete - restore to approved
-                                        const { originalTitle, originalDescription, originalSolution, originalFrequency, ...rest } = challenge;
-                                        return { ...rest, status: 'approved' as const };
-                                    } else if (challenge.status === 'pending' && challenge.originalTitle) {
-                                        // Undo edit - restore original and set to approved
-                                        const { originalTitle, originalDescription, originalSolution, originalFrequency, ...rest } = challenge;
-                                        return {
-                                            ...rest,
-                                            title: originalTitle,
-                                            description: originalDescription || '',
-                                            solution: originalSolution || '',
-                                            frequency: originalFrequency || 'Medium',
-                                            status: 'approved' as const
-                                        };
-                                    } else if (challenge.status === 'pending' && !challenge.originalTitle) {
-                                        // Newly added - remove it
-                                        return null as any;
-                                    }
-                                }
-                                return challenge;
-                            }).filter((c): c is Omit<Challenge, 'materialId' | 'materialName'> => c !== null)
-                        };
-                    }
-                    return material;
-                });
-                return { ...course, materials: updatedMaterials };
-            }
-            return course;
-        });
-
-        setCourses(updatedCourses);
-        const updatedCourse = updatedCourses.find(c => c.id === selectedCourse.id);
-        if (updatedCourse) {
-            setSelectedCourse(updatedCourse);
-        }
-    };
-
-    const getFrequencyColor = (frequency: string) => {
-        switch (frequency) {
-            case 'High': return 'bg-red-100 text-red-700 border-red-200';
-            case 'Medium': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-            case 'Low': return 'bg-green-100 text-green-700 border-green-200';
-            default: return 'bg-slate-100 text-slate-700 border-slate-200';
-        }
-    };
-
-    const allChallenges = getAllChallengesForCourse();
-
-    return (
-        <div className="p-6 space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                        <AlertCircle className="w-7 h-7 text-orange-600" />
-                        Common Learning Challenges
-                    </h1>
-                    <p className="text-slate-600 mt-1">Manage students' learning challenges by course</p>
-                </div>
-            </div>
-
-            {/* Semester Selector */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div className="relative">
-                    <label className="block text-sm font-semibold text-slate-700 mb-3">
-                        Select Semester
-                    </label>
-                    <button
-                        onClick={() => setShowSemesterDropdown(!showSemesterDropdown)}
-                        className="w-full flex items-center justify-between px-5 py-4 bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl hover:shadow-md transition-all duration-200 group"
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                                {selectedSemester.replace('Semester ', '')}
-                            </div>
-                            <div className="text-left">
-                                <div className="text-sm text-slate-600 font-medium">Selected</div>
-                                <div className="text-lg font-bold text-slate-800">{selectedSemester}</div>
-                            </div>
-                        </div>
-                        <ChevronRight
-                            className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${showSemesterDropdown ? 'rotate-90' : ''}`}
-                        />
-                    </button>
-
-                    {showSemesterDropdown && (
-                        <div className="absolute z-10 mt-2 w-full bg-white border-2 border-orange-200 rounded-xl shadow-xl overflow-hidden">
-                            <div className="max-h-96 overflow-y-auto">
-                                {semesters.map((semester) => (
-                                    <button
-                                        key={semester}
-                                        onClick={() => handleSemesterChange(semester)}
-                                        className={`w-full px-5 py-4 flex items-center gap-4 transition-all duration-150 ${
-                                            selectedSemester === semester
-                                                ? 'bg-gradient-to-r from-orange-50 to-red-50 border-l-4 border-orange-600'
-                                                : 'hover:bg-orange-50 border-l-4 border-transparent'
-                                        }`}
-                                    >
-                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold ${
-                                            selectedSemester === semester ? 'bg-orange-600' : 'bg-slate-400'
-                                        }`}>
-                                            {semester.replace('Semester ', '')}
-                                        </div>
-                                        <span className={`font-semibold ${
-                                            selectedSemester === semester ? 'text-orange-600' : 'text-slate-600'
-                                        }`}>
-                                            {semester}
-                                        </span>
-                                        {selectedSemester === semester && (
-                                            <div className="ml-auto flex items-center gap-2 text-orange-600">
-                                                <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse" />
-                                                <span className="text-sm font-medium">Selected</span>
-                                            </div>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Course Grid - Hide when a course is selected */}
-                {!selectedCourse && coursesForSemester.length > 0 && (
-                    <div className="mt-6">
-                        <h3 className="text-sm font-semibold text-slate-700 mb-3">
-                            Select Course ({coursesForSemester.length} courses)
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {coursesForSemester.map((course) => {
-                                const totalChallenges = course.materials.reduce((sum, m) => sum + m.challenges.length, 0);
-                                return (
-                                    <button
-                                        key={course.id}
-                                        onClick={() => handleCourseSelect(course)}
-                                        className="p-4 rounded-xl border-2 transition-all duration-200 text-left border-slate-200 bg-white hover:border-orange-300 hover:shadow-md hover:scale-105 hover:-translate-y-1"
-                                    >
-                                        <div className="flex items-start justify-between mb-2">
-                                            <AlertCircle className="w-5 h-5 text-slate-400" />
-                                        </div>
-                                        <h4 className="font-bold text-slate-800 mb-1">{course.name}</h4>
-                                        <p className="text-sm text-slate-600 mb-2">{course.code}</p>
-                                        <div className="flex items-center gap-2 text-xs flex-wrap">
-                                            <span className="px-2 py-1 rounded-full font-medium bg-slate-100 text-slate-600">
-                                                {totalChallenges} challenges
-                                            </span>
-                                            {/* <span className="text-slate-400">•</span> */}
-                                            {/* <span className="text-slate-600">{course.materials.length} tài liệu</span> */}
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
-
-                {coursesForSemester.length === 0 && (
-                    <div className="mt-6 text-center py-8 text-slate-500">
-                        <AlertCircle className="w-12 h-12 mx-auto mb-2 text-slate-300" />
-                        <p>No courses in {selectedSemester}</p>
-                    </div>
-                )}
-            </div>
-
-            {/* Challenges List by Course - Show when course is selected */}
-            {selectedCourse && (
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                    <div className="mb-6">
-                        <div className="flex items-center justify-between">
-                            <div style={{maxWidth: '70%'}}>
-                                <button
-                                    onClick={() => setSelectedCourse(null)}
-                                    className="mb-3 flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold transition-colors"
-                                >
-                                    <ChevronRight className="w-4 h-4 rotate-180" />
-                                    Back to course list
-                                </button>
-                                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                                    <AlertCircle className="w-6 h-6 text-orange-600" />
-                                    Challenges - {selectedCourse.name}
-                                </h2>
-                                <p className="text-sm text-slate-600 mt-1">{selectedCourse.code}</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <span className="px-4 py-2 bg-orange-100 text-orange-700 rounded-lg text-sm font-semibold">
-                                    {getTotalChallengesCount()} challenges
-                                </span>
-                                {!showAddForm && (
-                                    <button
-                                        onClick={() => setShowAddForm(true)}
-                                        className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        Add Challenge
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Add Challenge Form */}
-                    {showAddForm && (
-                        <div className="mb-6 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
-                            <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                <Plus className="w-5 h-5 text-orange-600" />
-                                Add New Challenge
-                            </h3>
-
-                            <div className="space-y-3">
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                        Challenge title *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={newChallenge.title}
-                                        onChange={(e) => setNewChallenge({ ...newChallenge, title: e.target.value })}
-                                        placeholder="E.g., Hard to understand concept..."
-                                        className="w-full px-4 py-2 border-2 border-orange-200 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none"
-                                    />
-                                </div>
-
-                                <div className="flex gap-2 pt-2">
-                                    <button
-                                        onClick={handleAddChallenge}
-                                        disabled={!newChallenge.title.trim()}
-                                        className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors font-semibold"
-                                    >
-                                        <Save className="w-4 h-4" />
-                                        Add Challenge
-                                    </button>
-
-                                    <button
-                                        onClick={() => {
-                                            setShowAddForm(false);
-                                            setNewChallenge({ title: '' });
-                                        }}
-                                        className="flex items-center gap-2 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors font-semibold"
-                                    >
-                                        <X className="w-4 h-4" />
-                                        Cancel
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Challenges List */}
-                    {allChallenges.length === 0 ? (
-                        <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-lg">
-                            <AlertCircle className="w-12 h-12 mx-auto mb-2 text-slate-300" />
-                            <p className="text-lg font-semibold">No challenges yet</p>
-                            <p className="text-sm mt-1">Click "Add Challenge" to get started</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-6">
-                            {/* Pending Delete */}
-                            {allChallenges.some(c => c.status === 'pending_delete') && (
-                                <div>
-                                    <div className="flex items-center justify-between mb-3">
-                                        <h4 className="font-semibold text-slate-800">Challenges awaiting deletion</h4>
-                                        <span className="text-xs text-slate-500">{allChallenges.filter(c => c.status === 'pending_delete').length} items</span>
-                                    </div>
-                                    <div className="space-y-2">
-                                        {allChallenges.filter(c => c.status === 'pending_delete').map((challenge, index) => (
-                                            <div
-                                                key={`${challenge.materialId}-${challenge.id}`}
-                                                className="flex items-center gap-3 p-3 border border-red-200 rounded-lg bg-red-50 group"
-                                            >
-                                                <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-red-200 transition-colors">
-                                                    <span className="font-bold text-red-600">{index + 1}</span>
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <h4 className="font-semibold text-slate-800">
-                                                        <span className="line-through">{challenge.title}</span>
-                                                        <span className="text-xs text-red-700 font-medium ml-2">(Pending deletion)</span>
-                                                    </h4>
-                                                </div>
-                                                <div className="flex gap-1 flex-shrink-0">
-                                                    <button
-                                                        onClick={() => handleUndoChange(challenge.id, challenge.materialId)}
-                                                        className="flex items-center gap-1 px-2 py-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors text-sm font-medium"
-                                                        title="Undo"
-                                                    >
-                                                        <Undo className="w-4 h-4" />
-                                                        Undo
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Pending */}
-                            {allChallenges.some(c => c.status === 'pending') && (
-                                <div>
-                                    <div className="flex items-center justify-between mb-3">
-                                        <h4 className="font-semibold text-slate-800">Challenges pending approval</h4>
-                                        <span className="text-xs text-slate-500">{allChallenges.filter(c => c.status === 'pending').length} items</span>
-                                    </div>
-                                    <div className="space-y-2">
-                                        {allChallenges.filter(c => c.status === 'pending').map((challenge, index) => (
-                                            <div
-                                                key={`${challenge.materialId}-${challenge.id}`}
-                                                className="flex items-center gap-3 p-3 border border-yellow-200 rounded-lg bg-yellow-50 group"
-                                            >
-                                                <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-yellow-200 transition-colors">
-                                                    <span className="font-bold text-yellow-600">{index + 1}</span>
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <h4 className="font-semibold text-slate-800">
-                                                        {challenge.title}
-                                                        <span className="text-xs text-yellow-700 font-medium ml-2">(Pending approval)</span>
-                                                    </h4>
-                                                    {challenge.originalTitle && (
-                                                        <p className="text-xs text-slate-500 mt-1 line-through">
-                                                            Before: {challenge.originalTitle}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                                <div className="flex gap-1 flex-shrink-0">
-                                                    <button
-                                                        onClick={() => handleUndoChange(challenge.id, challenge.materialId)}
-                                                        className="flex items-center gap-1 px-2 py-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors text-sm font-medium"
-                                                        title="Undo"
-                                                    >
-                                                        <Undo className="w-4 h-4" />
-                                                        Undo
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleEditChallenge(challenge)}
-                                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                                        title="Edit"
-                                                    >
-                                                        <Edit2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Approved */}
-                            {allChallenges.some(c => c.status === 'approved') && (
-                                <div>
-                                    <div className="flex items-center justify-between mb-3">
-                                        <h4 className="font-semibold text-slate-800">Approved challenges</h4>
-                                        <span className="text-xs text-slate-500">{allChallenges.filter(c => c.status === 'approved').length} items</span>
-                                    </div>
-                                    <div className="space-y-2">
-                                        {allChallenges.filter(c => c.status === 'approved').map((challenge, index) => (
-                                            <div
-                                                key={`${challenge.materialId}-${challenge.id}`}
-                                                className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-all bg-white group"
-                                            >
-                                                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-orange-200 transition-colors">
-                                                    <span className="font-bold text-orange-600">{index + 1}</span>
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <h4 className="font-semibold text-slate-800">{challenge.title}</h4>
-                                                </div>
-                                                <div className="flex gap-1 flex-shrink-0">
-                                                    <button
-                                                        onClick={() => handleEditChallenge(challenge)}
-                                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                                        title="Edit"
-                                                    >
-                                                        <Edit2 className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteChallenge(challenge.id, challenge.materialId)}
-                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                                        title="Delete"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* Edit Modal */}
-            {showEditModal && editingItem && (
-                <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-bold text-slate-800">Edit challenge</h3>
-                            <button
-                                onClick={() => { setShowEditModal(false); setEditingItem(null); setFormData({ title: '' }); }}
-                                className="text-slate-400 hover:text-slate-600 transition"
-                            >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div className="mb-6">
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                Challenge title
-                            </label>
-                            <input
-                                type="text"
-                                value={formData.title}
-                                onChange={(e) => setFormData({ title: e.target.value })}
-                                className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-orange-500 focus:outline-none transition"
-                                placeholder="Enter challenge title..."
-                                autoFocus
-                            />
-                            <p className="text-xs text-slate-500 mt-2">
-                                After editing, the challenge will require admin approval again.
-                            </p>
-                        </div>
-
-                        <div className="flex gap-3 justify-end">
-                            <button
-                                onClick={() => { setShowEditModal(false); setEditingItem(null); setFormData({ title: '' }); }}
-                                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={confirmEdit}
-                                disabled={!formData.title.trim()}
-                                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition font-medium"
-                            >
-                                Save changes
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Delete Modal */}
-            {showDeleteModal && deletingChallenge && selectedCourse && (
-                <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-bold text-slate-800">Confirm deletion</h3>
-                            <button 
-                                onClick={() => { setShowDeleteModal(false); setDeletingChallenge(null); }}
-                                className="text-slate-400 hover:text-slate-600 transition"
-                            >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-                        
-                        <div className="mb-6">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <Trash2 className="w-6 h-6 text-red-600" />
-                                </div>
-                                <div>
-                                    <p className="text-slate-800 font-semibold">
-                                        {selectedCourse.materials
-                                            .find(m => m.id === deletingChallenge.materialId)?.challenges
-                                            .find(c => c.id === deletingChallenge.challengeId)?.title}
-                                    </p>
-                                    <p className="text-sm text-slate-500">
-                                        The challenge will be marked as pending deletion
-                                    </p>
-                                </div>
-                            </div>
-                            <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg">
-                                The challenge will be marked as "Pending deletion" and requires admin approval before permanent removal.
-                            </p>
-                        </div>
-
-                        <div className="flex gap-3 justify-end">
-                            <button
-                                onClick={() => { setShowDeleteModal(false); setDeletingChallenge(null); }}
-                                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={confirmDelete}
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
-                            >
-                                Mark as pending deletion
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">Common Challenges</h1>
+          <p className="text-slate-600">Manage common challenges for courses</p>
         </div>
-    );
+
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-orange-600 animate-spin" />
+            <span className="ml-3 text-slate-600">Loading subjects...</span>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 mb-6">
+            <div className="flex items-center gap-3">
+              <div>
+                <h3 className="font-semibold text-red-900">Error loading data</h3>
+                <p className="text-red-700 text-sm mt-1">{error}</p>
+              </div>
+            </div>
+            <button
+              onClick={fetchSubjects}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {/* Main Container */}
+        {!loading && !error && view === 'courses' && (
+          <div className="bg-white rounded-xl shadow-lg border border-slate-200">
+            <div className="p-6">
+              {/* Semester Selector */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                    <AlertCircle className="w-5 h-5 text-orange-600" />
+                    Select semester
+                  </label>
+                  <span className="text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                    {coursesForSemester.length} courses
+                  </span>
+                </div>
+
+                <div className="relative">
+                  <button
+                    onClick={() => setShowSemesterDropdown(!showSemesterDropdown)}
+                    className="w-full flex items-center justify-between px-5 py-4 bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl hover:border-orange-400 hover:shadow-md transition-all duration-200 group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
+                        {selectedSemester.replace('Semester ', '')}
+                      </div>
+                      <div className="text-left">
+                        <span className="font-bold text-slate-800 text-lg block">{selectedSemester}</span>
+                        <span className="text-xs text-slate-600">Academic Year 2024-2025</span>
+                      </div>
+                    </div>
+                    <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform duration-200 ${showSemesterDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {showSemesterDropdown && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setShowSemesterDropdown(false)}
+                      />
+                      <div className="absolute z-20 w-full mt-2 bg-white border-2 border-slate-200 rounded-xl shadow-2xl overflow-hidden">
+                        <div className="max-h-80 overflow-y-auto">
+                          {semesters.map((semester, index) => (
+                            <button
+                              key={semester}
+                              onClick={() => handleSemesterChange(semester)}
+                              className={`w-full text-left px-5 py-4 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 transition-all duration-150 border-b border-slate-100 last:border-b-0 ${selectedSemester === semester
+                                ? 'bg-gradient-to-r from-orange-100 to-red-100 border-l-4 border-l-orange-600'
+                                : ''
+                                }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shadow-sm ${selectedSemester === semester
+                                  ? 'bg-orange-600 text-white'
+                                  : 'bg-slate-200 text-slate-600'
+                                  }`}>
+                                  {index + 1}
+                                </div>
+                                <div>
+                                  <div className="font-semibold text-slate-800">{semester}</div>
+                                  <div className="text-xs text-slate-500">
+                                    {courses.filter(c => c.semester === semester).length} courses
+                                  </div>
+                                </div>
+                                {selectedSemester === semester && (
+                                  <div className="ml-auto">
+                                    <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse" />
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Course Grid */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-bold text-slate-800">Course list</h3>
+                  <div className="h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent ml-4"></div>
+                </div>
+
+                {coursesForSemester.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {coursesForSemester.map((course) => {
+                      return (
+                        <button
+                          key={course.id}
+                          onClick={() => handleCourseSelect(course)}
+                          className={`group text-left p-5 rounded-xl border-2 transition-all duration-200 ${selectedCourse?.id === course.id
+                            ? 'border-orange-500 bg-gradient-to-br from-orange-50 to-red-50 shadow-lg scale-105'
+                            : 'border-slate-200 bg-white hover:border-orange-300 hover:shadow-md hover:-translate-y-1'
+                            }`}
+                        >
+                          <div className="flex items-start gap-3 mb-3">
+                            <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 transition-all ${selectedCourse?.id === course.id
+                              ? 'bg-orange-600 text-white shadow-lg'
+                              : 'bg-slate-100 text-slate-600 group-hover:bg-orange-100 group-hover:text-orange-600'
+                              }`}>
+                              <AlertCircle className="w-6 h-6" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className={`font-bold mb-1 line-clamp-2 ${selectedCourse?.id === course.id ? 'text-orange-900' : 'text-slate-800'
+                                }`}>
+                                {course.name}
+                              </h4>
+                              <p className="text-sm text-slate-500 font-medium">{course.code}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+                            <div className="flex items-center gap-2 text-sm flex-wrap">
+
+                            </div>
+                            {selectedCourse?.id === course.id && (
+                              <div className="flex items-center gap-1 text-orange-600 text-xs font-semibold">
+                                <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse" />
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+                    <AlertCircle className="w-16 h-16 mx-auto mb-3 text-slate-300" />
+                    <p className="text-lg font-semibold">No courses in this semester</p>
+                    <p className="text-sm mt-1">Please select another semester</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Challenges List by Course */}
+        {view === 'challenges' && selectedCourse && (
+          <div className="bg-white rounded-xl shadow-lg border border-slate-200 mt-6">
+            <div className="p-6">
+              {/* Header */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between">
+                  <div className='max-w-9/12'>
+                    <button
+                      onClick={() => { setView('courses'); setSelectedCourse(null); }}
+                      className="mb-3 flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold transition-colors"
+                    >
+                      <ChevronRight className="w-4 h-4 rotate-180" />
+                      Back to course list
+                    </button>
+                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                      <AlertCircle className="w-6 h-6 text-orange-600" />
+                      Common Challenges - {selectedCourse.name}
+                    </h2>
+                    <p className="text-sm text-slate-600 mt-1">{selectedCourse.code}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+
+                    {!showForm && (
+                      <button
+                        onClick={() => setShowForm(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold shadow-sm hover:shadow-md"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Challenge
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Add/Edit Form */}
+              {showForm && (
+                <div className="mb-6 p-5 bg-orange-50 rounded-lg border-2 border-orange-200">
+                  <h3 className="font-bold text-slate-800 mb-4 text-lg">
+                    ➕ Add new challenge for the course
+                  </h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Challenge content *
+                      </label>
+                      <textarea
+                        value={formData.text}
+                        onChange={(e) => setFormData({ text: e.target.value })}
+                        placeholder="Enter challenge content..."
+                        rows={4}
+                        className="w-full px-4 py-2.5 border-2 border-orange-200 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none resize-none"
+                      />
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                      <button
+                        onClick={handleAddChallenge}
+                        disabled={!formData.text.trim() || isSubmitting}
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors font-semibold shadow-sm hover:shadow-md w-40"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Submitting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4" />
+                            <span>Add challenge</span>
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={cancelForm}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors font-semibold"
+                      >
+                        <X className="w-4 h-4" />
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Challenges List */}
+              <div className="mt-8">
+                <h3 className="text-xl font-bold text-slate-800 mb-4">Current Common Challenges</h3>
+                {challengesLoading ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-orange-600" />
+                    <span className="ml-2 text-slate-600">Loading challenges...</span>
+                  </div>
+                ) : challenges.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border-2 border-dashed">
+                    <p>No challenges found for this course.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {challenges.map((challenge) => (
+                      <div key={challenge.id} className={`p-4 rounded-lg border flex items-center gap-4 ${
+                        challenge.status === SuggestionStatus.Approved ? 'bg-green-50 border-green-200' :
+                        challenge.status === SuggestionStatus.Pending ? 'bg-yellow-50 border-yellow-200' :
+                        'bg-red-50 border-red-200'
+                      }`}>
+                        <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                          challenge.status === SuggestionStatus.Approved ? 'bg-green-500' :
+                          challenge.status === SuggestionStatus.Pending ? 'bg-yellow-500' :
+                          'bg-red-500'
+                        }`}></span>
+                        <p className="flex-1 text-slate-800">{challenge.content}</p>
+                        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                          challenge.status === SuggestionStatus.Approved ? 'bg-green-100 text-green-800' :
+                          challenge.status === SuggestionStatus.Pending ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {challenge.status === SuggestionStatus.Approved ? 'Approved' : challenge.status === SuggestionStatus.Pending ? 'Pending' : 'Rejected'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default ChallengesManagement;

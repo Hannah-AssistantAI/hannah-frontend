@@ -113,10 +113,10 @@ export const API_ENDPOINTS = {
 
   // Suggestion endpoints
   SUGGESTION: {
-    CREATE: '/api/suggestions',
-    GET_ALL: '/api/suggestions',
-        APPROVE: (id: string) => `/api/suggestions/${id}/approve`,
-        REJECT: (id: string) => `/api/suggestions/${id}/reject`
+    CREATE: '/api/Suggestions',
+    GET_ALL: '/api/Suggestions',
+    APPROVE: (id: string) => `/api/Suggestions/${id}/approve`,
+    REJECT: (id: string) => `/api/Suggestions/${id}/reject`,
   },
 };
 
@@ -201,4 +201,3 @@ export const STORAGE_KEYS = {
   REFRESH_TOKEN: 'refresh_token',
   USER_DATA: 'user_data',
 } as const;
-
