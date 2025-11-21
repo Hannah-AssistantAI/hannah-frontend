@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Sparkles, Send, ThumbsUp, ThumbsDown, Share2, Upload, Book, PanelLeftClose, PanelLeft, PanelRightClose, PanelRight, Wand2, GitBranch, FileText, ClipboardCheck, StickyNote, Loader2, MoreVertical, Trash2, ChevronDown, ChevronUp, Link as LinkIcon, List, Pencil, Maximize2, Minimize2, User, LogOut, Share } from 'lucide-react'
 import ProfileIcon from '../../components/ProfileIcon'
+import { studioService } from '../../service/studioService'
+import subjectService from '../../service/subjectService'
+import type { Subject } from '../../service/subjectService'
 import './Chat.css'
 
 interface StudioItem {
@@ -11,6 +14,7 @@ interface StudioItem {
     subtitle: string
     status: 'loading' | 'completed'
     timestamp: string
+    content?: any  // Store generated content to avoid re-fetching
 }
 
 interface Source {
@@ -47,6 +51,7 @@ export default function Chat() {
     const [isBigPictureOpen, setIsBigPictureOpen] = useState(true)
     const [isStudioOpen, setIsStudioOpen] = useState(true)
     const [studioItems, setStudioItems] = useState<StudioItem[]>([])
+    const [subjects, setSubjects] = useState<Subject[]>([]) // Store fetched subjects
     const [showReportModal, setShowReportModal] = useState(false)
     const [showReportFormatModal, setShowReportFormatModal] = useState(false)
     const [showMindmapModal, setShowMindmapModal] = useState(false)
@@ -62,6 +67,14 @@ export default function Chat() {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
     const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: string }>({})
     const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+
+    // Studio Content State
+    const [mindmapContent, setMindmapContent] = useState<any>(null)
+    const [reportContent, setReportContent] = useState<any>(null)
+    const [quizContent, setQuizContent] = useState<any>(null)
+    const [flashcardContent, setFlashcardContent] = useState<any>(null)
+    const [isLoadingContent, setIsLoadingContent] = useState(false)
+
     const [expandedSources, setExpandedSources] = useState<{ [key: string]: boolean }>({})
     const [showCustomizeModal, setShowCustomizeModal] = useState(false)
     const [showShareModal, setShowShareModal] = useState(false)
@@ -78,6 +91,7 @@ export default function Chat() {
     const [cardDifficulty, setCardDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
     const [cardTopic, setCardTopic] = useState('')
     const [selectedCourseCode, setSelectedCourseCode] = useState('')
+    const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([])
     const [courseSearchQuery, setCourseSearchQuery] = useState('')
     const [showCourseDropdown, setShowCourseDropdown] = useState(false)
     const [messages, setMessages] = useState<Message[]>([
@@ -132,7 +146,8 @@ OOP mang lại nhiều lợi thế, bao gồm:
         { code: 'WEB', name: 'Phát triển Web' },
         { code: 'MAD', name: 'Phát triển ứng dụng di động' },
         { code: 'DBI', name: 'Thiết kế cơ sở dữ liệu' },
-        { code: 'OSG', name: 'Hệ điều hành' }
+        { code: 'OSG', name: 'Hệ điều hành' },
+        { code: 'SUB101', name: 'Tự học' }
     ]
 
     const bigPictureTopics = [
@@ -170,6 +185,23 @@ OOP mang lại nhiều lợi thế, bao gồm:
         { icon: ClipboardCheck, title: 'Bài kiểm tra', description: 'Quiz', type: 'quiz' as const, note: 'Tạo bài kiểm tra dựa vào nội dung cuộc trò chuyện' }
     ]
 
+    // Fetch subjects on component mount
+    useEffect(() => {
+        const fetchSubjects = async () => {
+            try {
+                const response = await subjectService.getAllSubjects();
+                if (response && response.items) {
+                    setSubjects(response.items);
+                    console.log('Fetched subjects:', response.items);
+                }
+            } catch (error) {
+                console.error('Failed to fetch subjects:', error);
+            }
+        };
+
+        fetchSubjects();
+    }, []);
+
     const getIconForType = (type: string) => {
         switch (type) {
             case 'mindmap': return GitBranch
@@ -180,6 +212,11 @@ OOP mang lại nhiều lợi thế, bao gồm:
         }
     }
 
+    const handleReportFormatSelect = (format: string) => {
+        createStudioItem('report', `Báo cáo ${format}`)
+        setShowReportFormatModal(false)
+    }
+
     const handleStudioFeatureClick = (type: 'mindmap' | 'report' | 'notecard' | 'quiz', title: string) => {
         if (type === 'report') {
             setShowReportFormatModal(true)
@@ -188,32 +225,252 @@ OOP mang lại nhiều lợi thế, bao gồm:
         }
     }
 
-    const createStudioItem = (type: 'mindmap' | 'report' | 'notecard' | 'quiz', title: string) => {
+    const createStudioItem = async (
+        type: 'mindmap' | 'report' | 'notecard' | 'quiz',
+        title: string,
+        options?: {
+            quantity?: number;
+            topic?: string;
+            courseCode?: string;
+            documentIds?: number[];
+            sourceType?: 'conversation' | 'documents' | 'hybrid';
+        }
+    ) => {
+        const tempId = Date.now().toString()
         const newItem: StudioItem = {
-            id: Date.now().toString(),
+            id: tempId,
             type,
             title,
-            subtitle: 'Hãy quay lại sau vài phút',
+            subtitle: 'Đang tạo...',
             status: 'loading',
-            timestamp: '1 phút trước'
+            timestamp: 'Vừa xong'
         }
 
         setStudioItems(prev => [newItem, ...prev])
 
-        // Simulate completion after 3 seconds
-        setTimeout(() => {
+        try {
+            // Hardcoded conversationId for now as per plan
+            const conversationId = 3;
+            let response;
+
+            // Determine effective title with course code if provided
+            let effectiveTitle = title;
+            let generationContext = undefined;
+            const effectiveCourseCode = options?.courseCode;
+
+            if (effectiveCourseCode) {
+                // When course code is selected, always include it in the title
+                if (options?.topic) {
+                    effectiveTitle = `${effectiveCourseCode} - ${options.topic}`;
+                    generationContext = options.topic;
+                } else {
+                    // If no topic is provided, use course code as both title and context
+                    effectiveTitle = effectiveCourseCode;
+                    generationContext = effectiveCourseCode;
+                }
+            } else if (options?.topic) {
+                // Normal conversation mode with topic
+                effectiveTitle = options.topic;
+                generationContext = options.topic;
+            }
+
+            const effectiveQuantity = options?.quantity || (type === 'quiz' ? 15 : 10);
+
+            // Determine source type and documents
+            let sourceDocumentIds: number[] | undefined = undefined;
+            let sourceType: 'conversation' | 'documents' | 'hybrid' = 'conversation';
+
+            // TEMPORARY: Force conversation mode to avoid Gemini API quota errors
+            // TODO: Re-enable documents mode when quota is available
+            // Use explicitly selected documentIds from dropdown
+            // if (options?.documentIds && options.documentIds.length > 0) {
+            //     sourceDocumentIds = options.documentIds;
+            //     sourceType = 'documents';
+            //     console.log('Using selected document IDs:', sourceDocumentIds);
+            // }
+
+            const sourceSubjectIds = undefined; // Will need to implement subject ID mapping
+
+            switch (type) {
+                case 'mindmap':
+                    response = await studioService.generateMindMap({
+                        conversationId,
+                        title: effectiveTitle,
+                        topic: generationContext || effectiveTitle,
+                        sourceType,
+                        documentIds: sourceDocumentIds,
+                        topKChunks: 5
+                    });
+                    break;
+                case 'report':
+                    response = await studioService.generateReport({
+                        conversationId,
+                        title: effectiveTitle,
+                        reportType: 'standard', // Default report type
+                        sourceSubjectIds,
+                        sourceDocumentIds
+                    });
+                    break;
+                case 'quiz':
+                    response = await studioService.generateQuiz({
+                        conversationId,
+                        title: effectiveTitle,
+                        difficulty: 'medium',
+                        questionCount: effectiveQuantity,
+                        topics: generationContext ? [generationContext] : [],
+                        sourceSubjectIds,
+                        sourceDocumentIds
+                    });
+                    break;
+                case 'notecard':
+                    response = await studioService.generateFlashcard({
+                        conversationId,
+                        title: effectiveTitle,
+                        cardCount: effectiveQuantity,
+                        sourceSubjectIds,
+                        sourceDocumentIds
+                    });
+                    break;
+            }
+
+            console.log('=== STUDIO API RESPONSE ===');
+            console.log('Full response:', response);
+            console.log('Response.data:', response?.data);
+            console.log('===========================');
+
+            if (response && response.data) {
+                // Handle both mindmapId and mindmapIdMongo (Python API uses MongoDB IDs)
+                // Also handle wrapped data structure (response.data.data)
+                const responseData = response.data.data || response.data;
+
+                const realId = responseData.mindmapId ||
+                    responseData.mindmapIdMongo ||
+                    responseData.reportId ||
+                    responseData.quizId ||
+                    responseData.flashcardSetId ||
+                    tempId;
+
+                console.log('Extracted ID:', realId);
+
+                // Store content directly to avoid re-fetching
+                setStudioItems(prev => prev.map(item => {
+                    if (item.id === tempId) {
+                        return {
+                            ...item,
+                            id: realId.toString(),
+                            status: 'completed' as const,
+                            subtitle: 'Đã tạo xong',
+                            content: responseData  // Save the unwrapped data
+                        };
+                    }
+                    return item;
+                }));
+            }
+        } catch (error) {
+            console.error("=== STUDIO API ERROR ===");
+            console.error("Error object:", error);
+            console.error("Error message:", (error as any)?.message);
+            console.error("Error status:", (error as any)?.status);
+            console.error("========================");
             setStudioItems(prev => prev.map(item =>
-                item.id === newItem.id
-                    ? { ...item, status: 'completed' as const, subtitle: 'Đã tạo xong' }
+                item.id === tempId
+                    ? { ...item, subtitle: 'Lỗi tạo nội dung', status: 'completed' }
                     : item
-            ))
-        }, 3000)
+            ));
+        }
     }
 
-    const handleReportFormatSelect = (format: string) => {
-        createStudioItem('report', `Báo cáo - ${format}`)
-        setShowReportFormatModal(false)
+    const handleStudioItemClick = async (item: StudioItem) => {
+        if (item.status !== 'completed') return;
+
+        setIsLoadingContent(true);
+        try {
+            if (item.type === 'mindmap') {
+                setSelectedMindmapId(item.id);
+
+                // Use cached content if available, otherwise fetch from API
+                if (item.content) {
+                    console.log('Using cached mindmap content:', item.content);
+                    setMindmapContent(item.content);
+                } else {
+                    console.log('Fetching mindmap content from API:', item.id);
+                    const response = await studioService.getMindMapContent(item.id);
+                    if (response.data) setMindmapContent(response.data.data || response.data);
+                }
+                setShowMindmapModal(true);
+            } else if (item.type === 'notecard') {
+                setSelectedNotecardId(item.id);
+
+                // Use cached content if available
+                if (item.content) {
+                    console.log('Using cached flashcard content:', item.content);
+                    setFlashcardContent(item.content);
+                } else {
+                    console.log('Fetching flashcard content from API:', item.id);
+                    const response = await studioService.getFlashcardContent(item.id);
+                    if (response.data) setFlashcardContent(response.data.data || response.data);
+                }
+                setCurrentCardIndex(0);
+                setIsCardFlipped(false);
+                setShowNotecardModal(true);
+            } else if (item.type === 'quiz') {
+                setSelectedQuizId(item.id);
+
+                // Use cached content if available
+                if (item.content) {
+                    console.log('Using cached quiz content:', item.content);
+                    setQuizContent(item.content);
+                } else {
+                    console.log('Fetching quiz content from API:', item.id);
+                    const response = await studioService.getQuizContent(item.id);
+                    if (response.data) setQuizContent(response.data.data || response.data);
+                }
+                setCurrentQuestionIndex(0);
+                setSelectedAnswers({});
+                setShowQuizSideModal(true);
+            } else if (item.type === 'report') {
+                setSelectedReportId(item.id);
+                const response = await studioService.getReportContent(item.id);
+                if (response.data) setReportContent(response.data.data);
+                setShowReportModal(true);
+            }
+        } catch (error) {
+            console.error("Failed to load content:", error);
+        } finally {
+            setIsLoadingContent(false);
+        }
     }
+
+    // Helper to build mindmap tree structure
+    const getMindmapTree = () => {
+        if (!mindmapContent?.content?.nodes) return null;
+
+        const nodes = mindmapContent.content.nodes;
+        const edges = mindmapContent.content.edges || [];
+
+        // Find root: node with type 'root' or no incoming edges
+        let root = nodes.find((n: any) => n.type === 'root');
+
+        // If no explicit root type, find node with no incoming edges
+        if (!root && edges.length > 0) {
+            const targetIds = new Set(edges.map((e: any) => e.to || e.to_node));
+            root = nodes.find((n: any) => !targetIds.has(n.id));
+        }
+
+        // Fallback to first node if still not found
+        if (!root && nodes.length > 0) root = nodes[0];
+
+        if (!root) return null;
+
+        // Find direct children of root
+        const childrenIds = edges
+            .filter((e: any) => (e.from === root.id || e.from_node === root.id))
+            .map((e: any) => e.to || e.to_node);
+
+        const children = nodes.filter((n: any) => childrenIds.includes(n.id));
+
+        return { root, children };
+    };
 
     const handleCustomizeSubmit = () => {
         if (selectedFeatureType) {
@@ -222,14 +479,24 @@ OOP mang lại nhiều lợi thế, bao gồm:
                 'notecard': 'Thẻ ghi nhớ',
                 'quiz': 'Bài kiểm tra'
             }
-            createStudioItem(selectedFeatureType, featureTitles[selectedFeatureType])
+
+            const options = {
+                quantity: cardQuantity,
+                topic: cardTopic,
+                courseCode: customizeTab === 'course' ? selectedCourseCode : undefined,
+                documentIds: customizeTab === 'course' && selectedSubjectIds.length > 0 ? selectedSubjectIds : undefined,
+                sourceType: (customizeTab === 'course' && selectedSubjectIds.length > 0) ? 'documents' as const : 'conversation' as const
+            };
+
+            createStudioItem(selectedFeatureType, featureTitles[selectedFeatureType], options)
 
             // Log the settings for debugging (remove in production)
             console.log('Creating item with settings:', {
                 type: selectedFeatureType,
                 quantity: cardQuantity,
                 difficulty: cardDifficulty,
-                topic: cardTopic
+                topic: cardTopic,
+                documentIds: selectedSubjectIds
             })
         }
         setShowCustomizeModal(false)
@@ -239,6 +506,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
         setCardDifficulty('medium')
         setCardTopic('')
         setSelectedCourseCode('')
+        setSelectedSubjectIds([])
         setCourseSearchQuery('')
         setShowCourseDropdown(false)
     }
@@ -631,9 +899,9 @@ OOP mang lại nhiều lợi thế, bao gồm:
             </header>
 
             {/* Main Chat Area */}
-            <main className="chat-main" style={{display: 'flex', gap: '0', padding: '24px', alignItems: 'stretch'}}>
+            <main className="chat-main" style={{ display: 'flex', gap: '0', padding: '24px', alignItems: 'stretch' }}>
                 {/* Big Picture Sidebar - Left */}
-                <aside className={`big-picture-sidebar ${isBigPictureOpen ? 'open' : 'closed'}`} style={{order: 1, width: isBigPictureOpen ? '356px' : '56px', padding: '0 24px 0 0', flexShrink: 0}}>
+                <aside className={`big-picture-sidebar ${isBigPictureOpen ? 'open' : 'closed'}`} style={{ order: 1, width: isBigPictureOpen ? '356px' : '56px', padding: '0 24px 0 0', flexShrink: 0 }}>
                     {/* Floating Toggle Button - Only show when sidebar is closed */}
                     {!isBigPictureOpen && (
                         <button
@@ -707,7 +975,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
                     </div>
                 </aside>
 
-                <div className="chat-content" style={{order: 2, flex: 1, padding: '0', minWidth: 0}}>
+                <div className="chat-content" style={{ order: 2, flex: 1, padding: '0', minWidth: 0 }}>
                     {/* Welcome Banner */}
                     <div className="welcome-banner">
                         <div className="welcome-banner-icon">
@@ -810,7 +1078,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
                 </div>
 
                 {/* Studio Sidebar - Right */}
-                <aside className={`studio-sidebar ${isStudioOpen ? 'open' : 'closed'}`} style={{order: 1, width: isStudioOpen ? '356px' : '56px', padding: '0 0 0 24px', flexShrink: 0}}>
+                <aside className={`studio-sidebar ${isStudioOpen ? 'open' : 'closed'}`} style={{ order: 1, width: isStudioOpen ? '356px' : '56px', padding: '0 0 0 24px', flexShrink: 0 }}>
                     <div className="studio-content">
                         <div className="studio-header">
                             <Wand2 size={20} color="#5f6368" />
@@ -865,27 +1133,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                         <div key={item.id} className="studio-item">
                                             <div
                                                 className="studio-item-clickable"
-                                                onClick={() => {
-                                                    if (item.status === 'completed') {
-                                                        if (item.type === 'mindmap') {
-                                                            setSelectedMindmapId(item.id)
-                                                            setShowMindmapModal(true)
-                                                        } else if (item.type === 'notecard') {
-                                                            setSelectedNotecardId(item.id)
-                                                            setCurrentCardIndex(0)
-                                                            setIsCardFlipped(false)
-                                                            setShowNotecardModal(true)
-                                                        } else if (item.type === 'quiz') {
-                                                            setSelectedQuizId(item.id)
-                                                            setCurrentQuestionIndex(0)
-                                                            setSelectedAnswers({})
-                                                            setShowQuizSideModal(true)
-                                                        } else if (item.type === 'report') {
-                                                            setSelectedReportId(item.id)
-                                                            setShowReportModal(true)
-                                                        }
-                                                    }
-                                                }}
+                                                onClick={() => handleStudioItemClick(item)}
                                                 style={{ cursor: item.status === 'completed' && (item.type === 'mindmap' || item.type === 'notecard' || item.type === 'quiz' || item.type === 'report') ? 'pointer' : 'default' }}
                                             >
                                                 <div className="studio-item-icon">
@@ -979,8 +1227,8 @@ OOP mang lại nhiều lợi thế, bao gồm:
                 <div className="report-modal-overlay" onClick={() => setShowReportModal(false)}>
                     <div className="report-modal-content" onClick={(e) => e.stopPropagation()}>
                         <div className="report-modal-header">
-                            <h2 className="report-modal-title">Báo cáo - Tổng quan</h2>
-                            <p className="report-modal-subtitle">Dựa trên 1 nguồn</p>
+                            <h2 className="report-modal-title">{reportContent?.title || 'Báo cáo'}</h2>
+                            <p className="report-modal-subtitle">Được tạo bởi AI</p>
                             <button
                                 className="report-modal-close"
                                 onClick={() => setShowReportModal(false)}
@@ -992,108 +1240,10 @@ OOP mang lại nhiều lợi thế, bao gồm:
 
                         <div className="report-content-container">
                             <div className="report-section">
-                                <h3 className="report-section-title">Tóm tắt chính</h3>
-                                <p className="report-text">
-                                    Lập trình hướng đối tượng (OOP) là một mô hình lập trình cấu trúc phần mềm xung quanh các đối tượng,
-                                    thay vì các hàm hoặc logic. Đây là cách mô hình hóa các thực thể trong thế giới thực và các tương tác
-                                    của chúng trong code của bạn.
-                                </p>
-                            </div>
-
-                            <div className="report-section">
-                                <h3 className="report-section-title">Khái niệm cốt lõi</h3>
-                                <div className="report-subsection">
-                                    <h4 className="report-subsection-title">1. Chuyển đổi mô hình (Paradigm Shift)</h4>
-                                    <p className="report-text">
-                                        OOP đại diện cho một cách suy nghĩ khác về lập trình - tập trung vào dữ liệu và hành vi cùng nhau.
-                                        Thay vì viết các hàm riêng lẻ xử lý dữ liệu, OOP kết hợp dữ liệu và các phương thức hoạt động
-                                        trên dữ liệu đó thành các đơn vị độc lập gọi là đối tượng.
-                                    </p>
+                                <h3 className="report-section-title">Nội dung báo cáo</h3>
+                                <div className="report-text" style={{ whiteSpace: 'pre-wrap' }}>
+                                    {reportContent?.content || 'Đang tải nội dung...'}
                                 </div>
-
-                                <div className="report-subsection">
-                                    <h4 className="report-subsection-title">2. Mô hình hóa thực tế (Modeling Reality)</h4>
-                                    <p className="report-text">
-                                        Các đối tượng phản ánh các thực thể trong thế giới thực, làm cho code trở nên trực quan và dễ bảo trì hơn.
-                                        Ví dụ, một đối tượng "Xe" có thể có thuộc tính như màu sắc, tốc độ và các phương thức như khởi động, dừng.
-                                    </p>
-                                </div>
-
-                                <div className="report-subsection">
-                                    <h4 className="report-subsection-title">3. Lợi ích của OOP</h4>
-                                    <ul className="report-list">
-                                        <li>Tổ chức code tốt hơn: Mã nguồn được cấu trúc rõ ràng và logic</li>
-                                        <li>Tái sử dụng thông qua kế thừa: Giảm thiểu code trùng lặp</li>
-                                        <li>Dễ bảo trì và cập nhật: Thay đổi cục bộ không ảnh hưởng toàn hệ thống</li>
-                                        <li>Thiết kế trực quan hơn: Dễ hiểu và phát triển</li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <div className="report-section">
-                                <h3 className="report-section-title">Các khối xây dựng cơ bản</h3>
-                                <div className="report-subsection">
-                                    <h4 className="report-subsection-title">Objects (Đối tượng)</h4>
-                                    <p className="report-text">
-                                        Đối tượng là các thực thể có trạng thái (thuộc tính) và hành vi (phương thức).
-                                        Chúng đại diện cho các khái niệm cụ thể trong chương trình của bạn.
-                                    </p>
-                                </div>
-
-                                <div className="report-subsection">
-                                    <h4 className="report-subsection-title">Classes (Lớp)</h4>
-                                    <p className="report-text">
-                                        Lớp là bản thiết kế hoặc mẫu để tạo đối tượng. Chúng định nghĩa cấu trúc và hành vi
-                                        mà các đối tượng của lớp đó sẽ có.
-                                    </p>
-                                </div>
-
-                                <div className="report-subsection">
-                                    <h4 className="report-subsection-title">Instances (Thực thể)</h4>
-                                    <p className="report-text">
-                                        Thực thể là các đối tượng cụ thể được tạo ra từ một lớp. Mỗi thực thể có giá trị
-                                        riêng cho các thuộc tính của nó.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="report-section">
-                                <h3 className="report-section-title">Các nguyên tắc chính</h3>
-                                <div className="report-principles">
-                                    <div className="report-principle-card">
-                                        <h4 className="report-principle-title">Encapsulation</h4>
-                                        <p className="report-principle-text">
-                                            Đóng gói dữ liệu và phương thức trong một đơn vị, ẩn chi tiết bên trong
-                                        </p>
-                                    </div>
-                                    <div className="report-principle-card">
-                                        <h4 className="report-principle-title">Abstraction</h4>
-                                        <p className="report-principle-text">
-                                            Ẩn các chi tiết phức tạp, chỉ hiển thị các tính năng cần thiết
-                                        </p>
-                                    </div>
-                                    <div className="report-principle-card">
-                                        <h4 className="report-principle-title">Inheritance</h4>
-                                        <p className="report-principle-text">
-                                            Lớp con kế thừa thuộc tính và phương thức từ lớp cha
-                                        </p>
-                                    </div>
-                                    <div className="report-principle-card">
-                                        <h4 className="report-principle-title">Polymorphism</h4>
-                                        <p className="report-principle-text">
-                                            Các đối tượng khác nhau có thể phản hồi cùng một thông điệp theo cách khác nhau
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="report-section">
-                                <h3 className="report-section-title">Kết luận</h3>
-                                <p className="report-text">
-                                    OOP là một mô hình lập trình mạnh mẽ giúp tạo ra code dễ hiểu, dễ bảo trì và có thể mở rộng.
-                                    Bằng cách tổ chức code xung quanh các đối tượng và áp dụng các nguyên tắc cốt lõi,
-                                    lập trình viên có thể xây dựng các hệ thống phần mềm phức tạp một cách hiệu quả hơn.
-                                </p>
                             </div>
                         </div>
 
@@ -1120,7 +1270,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
                 <div className="mindmap-modal-overlay" onClick={() => setShowMindmapModal(false)}>
                     <div className="mindmap-modal-content" onClick={(e) => e.stopPropagation()}>
                         <div className="mindmap-modal-header">
-                            <h2 className="mindmap-modal-title">NỘI DUNG</h2>
+                            <h2 className="mindmap-modal-title">{mindmapContent?.title || 'NỘI DUNG'}</h2>
                             <p className="mindmap-modal-subtitle">Dựa trên 1 nguồn</p>
                             <button
                                 className="mindmap-modal-close"
@@ -1132,38 +1282,70 @@ OOP mang lại nhiều lợi thế, bao gồm:
                         </div>
                         <div className="mindmap-container">
                             <div className="mindmap-canvas">
-                                {/* Central Node */}
-                                <div className="mindmap-central-node">
+                                {/* Root Node - Left Side */}
+                                <div className="mindmap-root-node">
                                     <div className="mindmap-node mindmap-node-central">
-                                        NỘI DUNG
+                                        {getMindmapTree()?.root?.label || mindmapContent?.title || 'NỘI DUNG'}
                                     </div>
                                 </div>
 
-                                {/* Branch 1 - Top */}
-                                <div className="mindmap-branch mindmap-branch-top">
-                                    <div className="mindmap-connector mindmap-connector-top"></div>
-                                    <div className="mindmap-node mindmap-node-primary">
-                                        NỘI DUNG
-                                        <button className="mindmap-expand-btn">›</button>
-                                    </div>
-                                </div>
+                                {/* SVG for drawing edges */}
+                                <svg className="mindmap-svg">
+                                    {getMindmapTree()?.children?.map((node: any, index: number) => {
+                                        const children = getMindmapTree()?.children;
+                                        const totalChildren = children?.length ?? 1;
+                                        
+                                        // Root position (left side, centered vertically)
+                                        const rootX = 150;
+                                        const rootY = 50; // percentage
+                                        
+                                        // Child nodes position (right side, distributed vertically)
+                                        const childY = ((index + 1) / (totalChildren + 1)) * 100; // percentage
+                                        const childX = 450;
+                                        
+                                        return (
+                                            <line
+                                                key={`edge-${index}`}
+                                                x1={`${rootX}px`}
+                                                y1={`${rootY}%`}
+                                                x2={`${childX}px`}
+                                                y2={`${childY}%`}
+                                                stroke="#667eea"
+                                                strokeWidth="2"
+                                                opacity="0.6"
+                                            />
+                                        );
+                                    })}
+                                </svg>
 
-                                {/* Branch 2 - Middle */}
-                                <div className="mindmap-branch mindmap-branch-middle">
-                                    <div className="mindmap-connector mindmap-connector-middle"></div>
-                                    <div className="mindmap-node mindmap-node-primary">
-                                        NỘI DUNG
-                                        <button className="mindmap-expand-btn">›</button>
-                                    </div>
-                                </div>
+                                {/* Child Nodes - Right Side */}
+                                <div className="mindmap-children-container">
+                                    {getMindmapTree()?.children?.map((node: any, index: number) => {
+                                        const children = getMindmapTree()?.children;
+                                        const totalChildren = children?.length ?? 1;
+                                        const yPosition = ((index + 1) / (totalChildren + 1)) * 100;
+                                        
+                                        return (
+                                            <div
+                                                key={index}
+                                                className="mindmap-child-wrapper"
+                                                style={{
+                                                    top: `${yPosition}%`,
+                                                }}
+                                            >
+                                                <div className="mindmap-node mindmap-node-primary">
+                                                    {node.label}
+                                                    <button className="mindmap-expand-btn">›</button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
 
-                                {/* Branch 3 - Bottom */}
-                                <div className="mindmap-branch mindmap-branch-bottom">
-                                    <div className="mindmap-connector mindmap-connector-bottom"></div>
-                                    <div className="mindmap-node mindmap-node-primary">
-                                        NỘI DUNG
-                                        <button className="mindmap-expand-btn">›</button>
-                                    </div>
+                                    {(!getMindmapTree()?.children || getMindmapTree()?.children.length === 0) && (
+                                        <div className="mindmap-loading">
+                                            {mindmapContent ? 'Không có nhánh con' : 'Đang tải...'}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -1189,8 +1371,8 @@ OOP mang lại nhiều lợi thế, bao gồm:
                 <div className="notecard-modal-overlay" onClick={() => setShowNotecardModal(false)}>
                     <div className="notecard-modal-content" onClick={(e) => e.stopPropagation()}>
                         <div className="notecard-modal-header">
-                            <h2 className="notecard-modal-title">Triết học Bộ thể</h2>
-                            <p className="notecard-modal-subtitle">Dựa trên 1 nguồn</p>
+                            <h2 className="notecard-modal-title">{flashcardContent?.title || 'Thẻ ghi nhớ'}</h2>
+                            <p className="notecard-modal-subtitle">Dựa trên {flashcardContent?.cardCount || 0} thẻ</p>
                             <button
                                 className="notecard-modal-close"
                                 onClick={() => setShowNotecardModal(false)}
@@ -1223,13 +1405,13 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                 <div className="notecard-inner">
                                     <div className="notecard-front">
                                         <p className="notecard-text">
-                                            CÂU HỎI?
+                                            {flashcardContent?.cards?.[currentCardIndex]?.front || 'Đang tải...'}
                                         </p>
                                         <button className="notecard-flip-hint">Xem câu trả lời</button>
                                     </div>
                                     <div className="notecard-back">
                                         <p className="notecard-text">
-                                            TRẢ LỜI
+                                            {flashcardContent?.cards?.[currentCardIndex]?.back || ''}
                                         </p>
                                     </div>
                                 </div>
@@ -1238,10 +1420,10 @@ OOP mang lại nhiều lợi thế, bao gồm:
                             <button
                                 className="notecard-nav-btn notecard-nav-next"
                                 onClick={() => {
-                                    setCurrentCardIndex(prev => Math.min(104, prev + 1))
+                                    setCurrentCardIndex(prev => Math.min((flashcardContent?.cards?.length || 1) - 1, prev + 1))
                                     setIsCardFlipped(false)
                                 }}
-                                disabled={currentCardIndex === 104}
+                                disabled={currentCardIndex === (flashcardContent?.cards?.length || 1) - 1}
                             >
                                 →
                             </button>
@@ -1306,57 +1488,33 @@ OOP mang lại nhiều lợi thế, bao gồm:
 
                         <div className="quiz-progress-bar">
                             <div className="quiz-progress-indicator">
-                                {currentQuestionIndex + 1} / 15
+                                {currentQuestionIndex + 1} / {quizContent?.questions?.length || 0}
                             </div>
                         </div>
 
                         <div className="quiz-container">
                             <div className="quiz-question">
                                 <p className="quiz-question-text">
-                                    CÂU HỎI?
+                                    {quizContent?.questions?.[currentQuestionIndex]?.question || 'Đang tải câu hỏi...'}
                                 </p>
                             </div>
 
                             <div className="quiz-answers">
-                                <button
-                                    className={`quiz-answer-option ${selectedAnswers[currentQuestionIndex] === 'A' ? 'selected' : ''}`}
-                                    onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: 'A' })}
-                                >
-                                    <span className="quiz-answer-label">A.</span>
-                                    <span className="quiz-answer-text">
-                                        TRẢ LỜI.
-                                    </span>
-                                </button>
-
-                                <button
-                                    className={`quiz-answer-option ${selectedAnswers[currentQuestionIndex] === 'B' ? 'selected' : ''}`}
-                                    onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: 'B' })}
-                                >
-                                    <span className="quiz-answer-label">B.</span>
-                                    <span className="quiz-answer-text">
-                                        TRẢ LỜI.
-                                    </span>
-                                </button>
-
-                                <button
-                                    className={`quiz-answer-option ${selectedAnswers[currentQuestionIndex] === 'C' ? 'selected' : ''}`}
-                                    onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: 'C' })}
-                                >
-                                    <span className="quiz-answer-label">C.</span>
-                                    <span className="quiz-answer-text">
-                                        TRẢ LỜI.
-                                    </span>
-                                </button>
-
-                                <button
-                                    className={`quiz-answer-option ${selectedAnswers[currentQuestionIndex] === 'D' ? 'selected' : ''}`}
-                                    onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: 'D' })}
-                                >
-                                    <span className="quiz-answer-label">D.</span>
-                                    <span className="quiz-answer-text">
-                                        TRẢ LỜI.
-                                    </span>
-                                </button>
+                                {quizContent?.questions?.[currentQuestionIndex]?.options?.map((option: string, idx: number) => {
+                                    const label = String.fromCharCode(65 + idx); // A, B, C, D...
+                                    return (
+                                        <button
+                                            key={idx}
+                                            className={`quiz-answer-option ${selectedAnswers[currentQuestionIndex] === label ? 'selected' : ''}`}
+                                            onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: label })}
+                                        >
+                                            <span className="quiz-answer-label">{label}.</span>
+                                            <span className="quiz-answer-text">
+                                                {option}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -1372,7 +1530,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
                             <button
                                 className="quiz-nav-btn quiz-next-btn"
                                 onClick={() => {
-                                    if (currentQuestionIndex < 14) {
+                                    if (currentQuestionIndex < (quizContent?.questions?.length || 1) - 1) {
                                         setCurrentQuestionIndex(prev => prev + 1)
                                     }
                                 }}
@@ -1428,57 +1586,33 @@ OOP mang lại nhiều lợi thế, bao gồm:
 
                         <div className="quiz-side-progress-bar">
                             <div className="quiz-side-progress-text">
-                                Câu {currentQuestionIndex + 1} / 15
+                                Câu {currentQuestionIndex + 1} / {quizContent?.questions?.length || 0}
                             </div>
                         </div>
 
                         <div className="quiz-side-container">
                             <div className="quiz-side-question">
                                 <p className="quiz-side-question-text">
-                                    CÂU HỎI?
+                                    {quizContent?.questions?.[currentQuestionIndex]?.question || 'Đang tải câu hỏi...'}
                                 </p>
                             </div>
 
                             <div className="quiz-side-answers">
-                                <button
-                                    className={`quiz-side-answer-option ${selectedAnswers[currentQuestionIndex] === 'A' ? 'selected' : ''}`}
-                                    onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: 'A' })}
-                                >
-                                    <span className="quiz-side-answer-label">A.</span>
-                                    <span className="quiz-side-answer-text">
-                                        TRẢ LỜI.
-                                    </span>
-                                </button>
-
-                                <button
-                                    className={`quiz-side-answer-option ${selectedAnswers[currentQuestionIndex] === 'B' ? 'selected' : ''}`}
-                                    onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: 'B' })}
-                                >
-                                    <span className="quiz-side-answer-label">B.</span>
-                                    <span className="quiz-side-answer-text">
-                                        TRẢ LỜI.
-                                    </span>
-                                </button>
-
-                                <button
-                                    className={`quiz-side-answer-option ${selectedAnswers[currentQuestionIndex] === 'C' ? 'selected' : ''}`}
-                                    onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: 'C' })}
-                                >
-                                    <span className="quiz-side-answer-label">C.</span>
-                                    <span className="quiz-side-answer-text">
-                                        TRẢ LỜI.
-                                    </span>
-                                </button>
-
-                                <button
-                                    className={`quiz-side-answer-option ${selectedAnswers[currentQuestionIndex] === 'D' ? 'selected' : ''}`}
-                                    onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: 'D' })}
-                                >
-                                    <span className="quiz-side-answer-label">D.</span>
-                                    <span className="quiz-side-answer-text">
-                                        TRẢ LỜI.
-                                    </span>
-                                </button>
+                                {quizContent?.questions?.[currentQuestionIndex]?.options?.map((option: string, idx: number) => {
+                                    const label = String.fromCharCode(65 + idx); // A, B, C, D...
+                                    return (
+                                        <button
+                                            key={idx}
+                                            className={`quiz-side-answer-option ${selectedAnswers[currentQuestionIndex] === label ? 'selected' : ''}`}
+                                            onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: label })}
+                                        >
+                                            <span className="quiz-side-answer-label">{label}.</span>
+                                            <span className="quiz-side-answer-text">
+                                                {option}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -1494,7 +1628,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
                             <button
                                 className="quiz-side-nav-btn quiz-side-next-btn"
                                 onClick={() => {
-                                    if (currentQuestionIndex < 14) {
+                                    if (currentQuestionIndex < (quizContent?.questions?.length || 1) - 1) {
                                         setCurrentQuestionIndex(prev => prev + 1)
                                     }
                                 }}
@@ -1621,14 +1755,15 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                             </div>
                                         </div>
 
-                                        {/* Mã môn học */}
+
+                                        {/* Môn học */}
                                         <div className="customize-section">
-                                            <h4 className="customize-section-title">Chọn mã môn học</h4>
+                                            <h4 className="customize-section-title">Chọn môn học</h4>
                                             <div className="course-code-dropdown">
                                                 <input
                                                     type="text"
                                                     className="course-code-search"
-                                                    placeholder="Tìm kiếm mã môn học (VD: CSD, PRO, CSI...)"
+                                                    placeholder="Tìm kiếm môn học (VD: SUB101, PRO...)"
                                                     value={courseSearchQuery}
                                                     onChange={(e) => {
                                                         setCourseSearchQuery(e.target.value)
@@ -1638,32 +1773,33 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                                 />
                                                 {courseSearchQuery && showCourseDropdown && (
                                                     <div className="course-code-options">
-                                                        {courseCodes
-                                                            .filter(course =>
-                                                                course.code.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
-                                                                course.name.toLowerCase().includes(courseSearchQuery.toLowerCase())
+                                                        {subjects
+                                                            .filter((subject: Subject) =>
+                                                                subject.code?.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
+                                                                subject.name?.toLowerCase().includes(courseSearchQuery.toLowerCase())
                                                             )
-                                                            .map(course => (
+                                                            .map((subject: Subject) => (
                                                                 <button
-                                                                    key={course.code}
+                                                                    key={subject.subjectId}
                                                                     className="course-code-option"
                                                                     onClick={() => {
-                                                                        setSelectedCourseCode(course.code)
-                                                                        setCourseSearchQuery(`${course.code} - ${course.name}`)
+                                                                        setSelectedSubjectIds([subject.subjectId])
+                                                                        setSelectedCourseCode(subject.code)
+                                                                        setCourseSearchQuery(`${subject.code} - ${subject.name}`)
                                                                         setShowCourseDropdown(false)
                                                                     }}
                                                                 >
-                                                                    <span className="course-code">{course.code}</span>
-                                                                    <span className="course-name">{course.name}</span>
+                                                                    <span className="course-code">{subject.code}</span>
+                                                                    <span className="course-name">{subject.name}</span>
                                                                 </button>
                                                             ))
                                                         }
-                                                        {courseCodes.filter(course =>
-                                                            course.code.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
-                                                            course.name.toLowerCase().includes(courseSearchQuery.toLowerCase())
+                                                        {subjects.filter((subject: Subject) =>
+                                                            subject.code?.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
+                                                            subject.name?.toLowerCase().includes(courseSearchQuery.toLowerCase())
                                                         ).length === 0 && (
                                                                 <div className="course-code-no-results">
-                                                                    Không tìm thấy mã môn học
+                                                                    Không tìm thấy môn học
                                                                 </div>
                                                             )}
                                                     </div>
@@ -1709,8 +1845,8 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                 <Share2 size={20} color="#5f6368" />
                                 <h3 className="share-modal-title">Chia sẻ cuộc trò chuyện</h3>
                             </div>
-                            <button 
-                                className="share-modal-close" 
+                            <button
+                                className="share-modal-close"
                                 onClick={() => setShowShareModal(false)}
                                 aria-label="Đóng"
                             >
@@ -1735,8 +1871,8 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                 <h4 className="share-section-title">Người có quyền truy cập</h4>
                                 <div className="share-user-item">
                                     <div className="share-user-avatar">
-                                        <img 
-                                            src="https://ui-avatars.com/api/?name=Ha+Nguyen&background=4285F4&color=fff&size=40" 
+                                        <img
+                                            src="https://ui-avatars.com/api/?name=Ha+Nguyen&background=4285F4&color=fff&size=40"
                                             alt="Hà Nguyễn"
                                         />
                                     </div>
@@ -1764,23 +1900,23 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                             {generalAccess === 'restricted' ? 'Bị hạn chế' : 'Bất kỳ ai có đường liên kết'}
                                         </div>
                                         <div className="share-access-description">
-                                            {generalAccess === 'restricted' 
+                                            {generalAccess === 'restricted'
                                                 ? 'Chỉ những người có quyền truy cập mới có thể mở bằng đường liên kết này'
                                                 : 'Bất kỳ ai có đường liên kết đều có thể xem'
                                             }
                                         </div>
                                     </div>
-                                    <button 
+                                    <button
                                         className="share-access-dropdown"
                                         onClick={() => setShowAccessDropdown(!showAccessDropdown)}
                                     >
                                         <ChevronDown size={20} />
                                     </button>
-                                    
+
                                     {/* Access Dropdown Menu */}
                                     {showAccessDropdown && (
                                         <div className="share-access-dropdown-menu">
-                                            <button 
+                                            <button
                                                 className={`share-access-option ${generalAccess === 'restricted' ? 'active' : ''}`}
                                                 onClick={() => {
                                                     setGeneralAccess('restricted')
@@ -1798,7 +1934,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                                     <div className="share-access-option-check">✓</div>
                                                 )}
                                             </button>
-                                            <button 
+                                            <button
                                                 className={`share-access-option ${generalAccess === 'anyone' ? 'active' : ''}`}
                                                 onClick={() => {
                                                     setGeneralAccess('anyone')
@@ -1827,7 +1963,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                 <LinkIcon size={18} />
                                 Sao chép đường liên kết
                             </button>
-                            <button 
+                            <button
                                 className="share-done-btn"
                                 onClick={() => setShowShareModal(false)}
                             >
