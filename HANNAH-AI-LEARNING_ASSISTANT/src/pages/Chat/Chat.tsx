@@ -1,49 +1,23 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Sparkles, Send, ThumbsUp, ThumbsDown, Share2, Upload, Book, PanelLeftClose, PanelLeft, PanelRightClose, PanelRight, Wand2, GitBranch, FileText, ClipboardCheck, StickyNote, Loader2, MoreVertical, Trash2, ChevronDown, ChevronUp, Link as LinkIcon, List, Pencil, Maximize2, Minimize2, User, LogOut, Share } from 'lucide-react'
+import { Sparkles, Send, ThumbsUp, ThumbsDown, Share2, Upload, Book, GitBranch, FileText, ClipboardCheck, StickyNote, ChevronDown, ChevronUp, Link as LinkIcon, List, User, LogOut, Share } from 'lucide-react'
 import ProfileIcon from '../../components/ProfileIcon'
-import { studioService } from '../../service/studioService'
-import subjectService from '../../service/subjectService'
-import MindmapViewer from '../../components/MindmapViewer'
-import type { Subject } from '../../service/subjectService'
-import { QuizModal } from './components/QuizModal/QuizModal'
-import { useQuiz } from './hooks/useQuiz'
+import subjectService, { type Subject } from '../../service/subjectService'
+import { useStudio } from './hooks/useStudio'
+import { ReportFormatModal } from './components/modals/ReportFormatModal'
+import { ReportModal } from './components/modals/ReportModal'
+import { MindmapModal } from './components/modals/MindmapModal'
+import { NotecardModal } from './components/modals/NotecardModal'
+import { QuizDisplayModal } from './components/modals/QuizDisplayModal'
+import { QuizSideModal } from './components/modals/QuizSideModal'
+import { CustomizeFeatureModal } from './components/modals/CustomizeFeatureModal'
+import { ShareModal } from './components/modals/ShareModal'
+import { BigPictureSidebar } from './components/BigPictureSidebar'
+import { StudioSidebar } from './components/StudioSidebar'
+import type { Message, RelatedContent, Source } from './types'
 import './Chat.css'
 
-interface StudioItem {
-    id: string
-    type: 'mindmap' | 'report' | 'notecard' | 'quiz'
-    title: string
-    subtitle: string
-    status: 'loading' | 'completed'
-    timestamp: string
-    content?: any  // Store generated content to avoid re-fetching
-}
 
-interface Source {
-    id: string
-    title: string
-    url: string
-    description: string
-    icon?: string
-}
-
-interface RelatedContent {
-    id: string
-    title: string
-    description: string
-    url: string
-    source: string
-    sourceIcon?: string
-    shortTitle?: string
-}
-
-interface Message {
-    type: string
-    content: string
-    isStreaming?: boolean
-    relatedContent?: RelatedContent[]
-}
 
 export default function Chat() {
     const location = useLocation()
@@ -51,55 +25,17 @@ export default function Chat() {
     const initialQuery = location.state?.query || ''
 
     // Use quiz hook for quiz state management
-    const quiz = useQuiz()
-
+    const studio = useStudio()
     const [inputValue, setInputValue] = useState('')
     const [isBigPictureOpen, setIsBigPictureOpen] = useState(true)
-    const [isStudioOpen, setIsStudioOpen] = useState(true)
-    const [studioItems, setStudioItems] = useState<StudioItem[]>([])
     const [subjects, setSubjects] = useState<Subject[]>([]) // Store fetched subjects
-    const [showReportModal, setShowReportModal] = useState(false)
-    const [showReportFormatModal, setShowReportFormatModal] = useState(false)
-    const [showMindmapModal, setShowMindmapModal] = useState(false)
-    const [showNotecardModal, setShowNotecardModal] = useState(false)
-    const [showQuizModal, setShowQuizModal] = useState(false)
-    const [showQuizSideModal, setShowQuizSideModal] = useState(false)
-    const [selectedMindmapId, setSelectedMindmapId] = useState<string | null>(null)
-    const [selectedNotecardId, setSelectedNotecardId] = useState<string | null>(null)
-    const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null)
-    const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
     const [currentCardIndex, setCurrentCardIndex] = useState(0)
     const [isCardFlipped, setIsCardFlipped] = useState(false)
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
     const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: string }>({})
     const [openMenuId, setOpenMenuId] = useState<string | null>(null)
-
-    // Studio Content State
-    const [mindmapContent, setMindmapContent] = useState<any>(null)
-    const [reportContent, setReportContent] = useState<any>(null)
-    const [quizContent, setQuizContent] = useState<any>(null)
-    const [flashcardContent, setFlashcardContent] = useState<any>(null)
-    const [isLoadingContent, setIsLoadingContent] = useState(false)
-
     const [expandedSources, setExpandedSources] = useState<{ [key: string]: boolean }>({})
-    const [showCustomizeModal, setShowCustomizeModal] = useState(false)
     const [showShareModal, setShowShareModal] = useState(false)
-    const [shareEmail, setShareEmail] = useState('')
-    const [sharePermission, setSharePermission] = useState<'view' | 'edit'>('view')
-    const [notifyPeople, setNotifyPeople] = useState(true)
-    const [generalAccess, setGeneralAccess] = useState<'restricted' | 'anyone'>('restricted')
-    const [showAccessDropdown, setShowAccessDropdown] = useState(false)
-    const shareModalRef = useRef<HTMLDivElement>(null)
-    const accessDropdownRef = useRef<HTMLDivElement>(null)
-    const [selectedFeatureType, setSelectedFeatureType] = useState<'mindmap' | 'notecard' | 'quiz' | null>(null)
-    const [customizeTab, setCustomizeTab] = useState<'conversation' | 'course'>('conversation')
-    const [cardQuantity, setCardQuantity] = useState<number>(6) // Default: 6 (Tiêu chuẩn)
-    const [cardDifficulty, setCardDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
-    const [cardTopic, setCardTopic] = useState('')
-    const [selectedCourseCode, setSelectedCourseCode] = useState('')
-    const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([])
-    const [courseSearchQuery, setCourseSearchQuery] = useState('')
-    const [showCourseDropdown, setShowCourseDropdown] = useState(false)
     const [messages, setMessages] = useState<Message[]>([
         {
             type: 'user',
@@ -208,358 +144,8 @@ OOP mang lại nhiều lợi thế, bao gồm:
         fetchSubjects();
     }, []);
 
-    // Fetch studio items on component mount
-    useEffect(() => {
-        const fetchStudioItems = async () => {
-            try {
-                const conversationId = 1; // Using hardcoded conversation ID for now
-
-                // Fetch all studio item types
-                const [mindmapsRes, quizzesRes, flashcardsRes, reportsRes] = await Promise.all([
-                    studioService.listMindMaps(conversationId).catch(() => ({ data: { data: [] } })),
-                    studioService.listQuizzes(conversationId).catch(() => ({ data: { data: [] } })),
-                    studioService.listFlashcards(conversationId).catch(() => ({ data: { data: [] } })),
-                    studioService.listReports(conversationId).catch(() => ({ data: { data: [] } })),
-                ]);
-
-                // Transform backend data to StudioItem format
-                const items: StudioItem[] = [];
-
-                // Add mindmaps
-                if (mindmapsRes.data && mindmapsRes.data.data) {
-                    items.push(...mindmapsRes.data.data.map((m: any) => ({
-                        id: m.mindmapId.toString(),
-                        type: 'mindmap' as const,
-                        title: m.title,
-                        subtitle: m.topic,
-                        status: 'completed' as const,
-                        timestamp: m.generatedAt,
-                        content: null
-                    })));
-                }
-
-                // Add quizzes
-                if (quizzesRes.data && quizzesRes.data.data) {
-                    items.push(...quizzesRes.data.data.map((q: any) => ({
-                        id: q.quizId.toString(),
-                        type: 'quiz' as const,
-                        title: q.title,
-                        subtitle: `${q.questionCount} câu hỏi • ${q.difficulty}`,
-                        status: 'completed' as const,
-                        timestamp: q.generatedAt,
-                        content: null
-                    })));
-                }
-
-                // Add flashcards
-                if (flashcardsRes.data && flashcardsRes.data.data) {
-                    items.push(...flashcardsRes.data.data.map((f: any) => ({
-                        id: f.flashcardSetId.toString(),
-                        type: 'notecard' as const,
-                        title: f.title,
-                        subtitle: `${f.cardCount} thẻ`,
-                        status: 'completed' as const,
-                        timestamp: f.generatedAt,
-                        content: null
-                    })));
-                }
-
-                // Add reports
-                if (reportsRes.data && reportsRes.data.data) {
-                    items.push(...reportsRes.data.data.map((r: any) => ({
-                        id: r.reportId.toString(),
-                        type: 'report' as const,
-                        title: r.title,
-                        subtitle: 'Báo cáo',
-                        status: 'completed' as const,
-                        timestamp: r.generatedAt,
-                        content: null
-                    })));
-                }
-
-                // Sort by timestamp (newest first) and set state
-                items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-                setStudioItems(items);
-
-                console.log(`Fetched ${items.length} studio items from backend`);
-            } catch (error) {
-                console.error('Failed to fetch studio items:', error);
-            }
-        };
-
-        fetchStudioItems();
-    }, []);
-
-    const getIconForType = (type: string) => {
-        switch (type) {
-            case 'mindmap': return GitBranch
-            case 'report': return FileText
-            case 'notecard': return StickyNote
-            case 'quiz': return ClipboardCheck
-            default: return FileText
-        }
-    }
-
-    const handleReportFormatSelect = (format: string) => {
-        createStudioItem('report', `Báo cáo ${format}`)
-        setShowReportFormatModal(false)
-    }
-
-    const handleStudioFeatureClick = (type: 'mindmap' | 'report' | 'notecard' | 'quiz', title: string) => {
-        if (type === 'report') {
-            setShowReportFormatModal(true)
-        } else {
-            createStudioItem(type, title)
-        }
-    }
-
-    const createStudioItem = async (
-        type: 'mindmap' | 'report' | 'notecard' | 'quiz',
-        title: string,
-        options?: {
-            quantity?: number;
-            topic?: string;
-            courseCode?: string;
-            documentIds?: number[];
-            sourceType?: 'conversation' | 'documents' | 'hybrid';
-        }
-    ) => {
-        const tempId = Date.now().toString()
-        const newItem: StudioItem = {
-            id: tempId,
-            type,
-            title,
-            subtitle: 'Đang tạo...',
-            status: 'loading',
-            timestamp: 'Vừa xong'
-        }
-
-        setStudioItems(prev => [newItem, ...prev])
-
-        try {
-            // Hardcoded conversationId for now as per plan
-            const conversationId = 1;
-            let response;
-
-            // Determine effective title with course code if provided
-            let effectiveTitle = title;
-            let generationContext = undefined;
-            const effectiveCourseCode = options?.courseCode;
-
-            if (effectiveCourseCode) {
-                // When course code is selected, always include it in the title
-                if (options?.topic) {
-                    effectiveTitle = `${effectiveCourseCode} - ${options.topic}`;
-                    generationContext = options.topic;
-                } else {
-                    // If no topic is provided, use course code as both title and context
-                    effectiveTitle = effectiveCourseCode;
-                    generationContext = effectiveCourseCode;
-                }
-            } else if (options?.topic) {
-                // Normal conversation mode with topic
-                effectiveTitle = options.topic;
-                generationContext = options.topic;
-            }
-
-            const effectiveQuantity = options?.quantity || (type === 'quiz' ? 15 : 10);
-
-            // Determine source type and documents
-            let sourceDocumentIds: number[] | undefined = undefined;
-            let sourceType: 'conversation' | 'documents' | 'hybrid' = 'conversation';
-
-            // Enable document mode when documents are selected
-            if (options?.documentIds && options.documentIds.length > 0) {
-                sourceDocumentIds = options.documentIds;
-                sourceType = 'documents';
-                console.log('Using document mode with selected document IDs:', sourceDocumentIds);
-            }
-
-            const sourceSubjectIds = undefined; // Will need to implement subject ID mapping
-
-            switch (type) {
-                case 'mindmap':
-                    response = await studioService.generateMindMap({
-                        conversationId,
-                        title: effectiveTitle,
-                        topic: generationContext || effectiveTitle,
-                        sourceType,
-                        documentIds: sourceDocumentIds,
-                        topKChunks: 5
-                    });
-                    break;
-                case 'report':
-                    response = await studioService.generateReport({
-                        conversationId,
-                        title: effectiveTitle,
-                        reportType: 'standard', // Default report type
-                        sourceSubjectIds,
-                        sourceDocumentIds
-                    });
-                    break;
-                case 'quiz':
-                    response = await studioService.generateQuiz({
-                        conversationId,
-                        title: effectiveTitle,
-                        difficulty: 'medium',
-                        questionCount: effectiveQuantity,
-                        topics: generationContext ? [generationContext] : [],
-                        sourceSubjectIds,
-                        sourceDocumentIds
-                    });
-                    break;
-                case 'notecard':
-                    response = await studioService.generateFlashcard({
-                        conversationId,
-                        title: effectiveTitle,
-                        cardCount: effectiveQuantity,
-                        sourceSubjectIds,
-                        sourceDocumentIds
-                    });
-                    break;
-            }
-
-            console.log('=== STUDIO API RESPONSE ===');
-            console.log('Full response:', response);
-            console.log('Response.data:', response?.data);
-            console.log('===========================');
-
-            if (response && response.data) {
-                // Handle both mindmapId and mindmapIdMongo (Python API uses MongoDB IDs)
-                // Also handle wrapped data structure (response.data.data)
-                const responseData = response.data.data || response.data;
-
-                const realId = responseData.mindmapId ||
-                    responseData.mindmapIdMongo ||
-                    responseData.reportId ||
-                    responseData.quizId ||
-                    responseData.flashcardSetId ||
-                    tempId;
-
-                console.log('Extracted ID:', realId);
-
-                // Store content directly to avoid re-fetching
-                setStudioItems(prev => prev.map(item => {
-                    if (item.id === tempId) {
-                        return {
-                            ...item,
-                            id: realId.toString(),
-                            status: 'completed' as const,
-                            subtitle: 'Đã tạo xong',
-                            content: responseData  // Save the unwrapped data
-                        };
-                    }
-                    return item;
-                }));
-            }
-        } catch (error) {
-            console.error("=== STUDIO API ERROR ===");
-            console.error("Error object:", error);
-            console.error("Error message:", (error as any)?.message);
-            console.error("Error status:", (error as any)?.status);
-            console.error("========================");
-            setStudioItems(prev => prev.map(item =>
-                item.id === tempId
-                    ? { ...item, subtitle: 'Lỗi tạo nội dung', status: 'completed' }
-                    : item
-            ));
-        }
-    }
-
-    const handleStudioItemClick = async (item: StudioItem) => {
-        if (item.status !== 'completed') return;
-
-        setIsLoadingContent(true);
-        try {
-            if (item.type === 'mindmap') {
-                setSelectedMindmapId(item.id);
-
-                // Use cached content if available, otherwise fetch from API
-                if (item.content) {
-                    console.log('Using cached mindmap content:', item.content);
-                    setMindmapContent(item.content);
-                } else {
-                    console.log('Fetching mindmap content from API:', item.id);
-                    const response = await studioService.getMindMapContent(item.id);
-                    if (response.data) setMindmapContent(response.data.data || response.data);
-                }
-                setShowMindmapModal(true);
-            } else if (item.type === 'notecard') {
-                setSelectedNotecardId(item.id);
-
-                // Use cached content if available
-                if (item.content) {
-                    console.log('Using cached flashcard content:', item.content);
-                    setFlashcardContent(item.content);
-                } else {
-                    console.log('Fetching flashcard content from API:', item.id);
-                    const response = await studioService.getFlashcardContent(item.id);
-                    if (response.data) setFlashcardContent(response.data.data || response.data);
-                }
-                setCurrentCardIndex(0);
-                setIsCardFlipped(false);
-                setShowNotecardModal(true);
-            } else if (item.type === 'quiz') {
-                setSelectedQuizId(item.id);
-
-                // Use cached content if available
-                if (item.content) {
-                    console.log('Using cached quiz content:', item.content);
-                    setQuizContent(item.content);
-                } else {
-                    console.log('Fetching quiz content from API:', item.id);
-                    const response = await studioService.getQuizContent(item.id);
-                    if (response.data) setQuizContent(response.data.data || response.data);
-                }
-                setCurrentQuestionIndex(0);
-                setSelectedAnswers({});
-                setShowQuizSideModal(true);
-            } else if (item.type === 'report') {
-                setSelectedReportId(item.id);
-                const response = await studioService.getReportContent(item.id);
-                if (response.data) setReportContent(response.data.data);
-                setShowReportModal(true);
-            }
-        } catch (error) {
-            console.error("Failed to load content:", error);
-        } finally {
-            setIsLoadingContent(false);
-        }
-    }
-
-    // Helper to build mindmap tree structure
-    const getMindmapTree = () => {
-        if (!mindmapContent?.content?.nodes) return null;
-
-        const nodes = mindmapContent.content.nodes;
-        const edges = mindmapContent.content.edges || [];
-
-        // Find root: node with type 'root' or no incoming edges
-        let root = nodes.find((n: any) => n.type === 'root');
-
-        // If no explicit root type, find node with no incoming edges
-        if (!root && edges.length > 0) {
-            const targetIds = new Set(edges.map((e: any) => e.to || e.to_node));
-            root = nodes.find((n: any) => !targetIds.has(n.id));
-        }
-
-        // Fallback to first node if still not found
-        if (!root && nodes.length > 0) root = nodes[0];
-
-        if (!root) return null;
-
-        // Find direct children of root
-        const childrenIds = edges
-            .filter((e: any) => (e.from === root.id || e.from_node === root.id))
-            .map((e: any) => e.to || e.to_node);
-
-        const children = nodes.filter((n: any) => childrenIds.includes(n.id));
-
-        return { root, children };
-    };
-
-    const handleCustomizeSubmit = () => {
-        if (selectedFeatureType) {
+    const handleCustomizeSubmit = (data: any) => {
+        if (studio.selectedFeatureType) {
             const featureTitles = {
                 'mindmap': 'Bản đồ tư duy',
                 'notecard': 'Thẻ ghi nhớ',
@@ -567,44 +153,27 @@ OOP mang lại nhiều lợi thế, bao gồm:
             }
 
             const options = {
-                quantity: cardQuantity,
-                topic: cardTopic,
-                courseCode: customizeTab === 'course' ? selectedCourseCode : undefined,
-                documentIds: customizeTab === 'course' && selectedSubjectIds.length > 0 ? selectedSubjectIds : undefined,
-                sourceType: (customizeTab === 'course' && selectedSubjectIds.length > 0) ? 'documents' as const : 'conversation' as const
+                quantity: data.cardQuantity,
+                topic: data.cardTopic,
+                courseCode: data.customizeTab === 'course' ? data.selectedCourseCode : undefined,
+                documentIds: data.customizeTab === 'course' && data.selectedSubjectIds.length > 0 ? data.selectedSubjectIds : undefined,
+                sourceType: (data.customizeTab === 'course' && data.selectedSubjectIds.length > 0) ? 'documents' as const : 'conversation' as const
             };
 
-            createStudioItem(selectedFeatureType, featureTitles[selectedFeatureType], options)
-
-            // Log the settings for debugging (remove in production)
-            console.log('Creating item with settings:', {
-                type: selectedFeatureType,
-                quantity: cardQuantity,
-                difficulty: cardDifficulty,
-                topic: cardTopic,
-                documentIds: selectedSubjectIds
-            })
+            studio.createStudioItem(studio.selectedFeatureType, featureTitles[studio.selectedFeatureType], options)
         }
-        setShowCustomizeModal(false)
-        // Reset form
-        setCustomizeTab('conversation')
-        setCardQuantity(6) // Reset to default 6
-        setCardDifficulty('medium')
-        setCardTopic('')
-        setSelectedCourseCode('')
-        setSelectedSubjectIds([])
-        setCourseSearchQuery('')
-        setShowCourseDropdown(false)
+        studio.setShowCustomizeModal(false)
     }
 
     const handleDeleteItem = (itemId: string) => {
-        setStudioItems(prev => prev.filter(item => item.id !== itemId))
+        studio.handleDeleteItem(itemId)
         setOpenMenuId(null)
     }
 
     const toggleMenu = (itemId: string) => {
         setOpenMenuId(openMenuId === itemId ? null : itemId)
     }
+
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -613,33 +182,18 @@ OOP mang lại nhiều lợi thế, bao gồm:
             if (!target.closest('.studio-item-menu-container')) {
                 setOpenMenuId(null)
             }
-            // Close course dropdown when clicking outside
-            if (!target.closest('.course-code-dropdown')) {
-                setShowCourseDropdown(false)
-            }
-
-            // Close access dropdown when clicking outside
-            if (accessDropdownRef.current && !accessDropdownRef.current.contains(target)) {
-                setShowAccessDropdown(false)
-            }
         }
 
-        if (openMenuId || showCourseDropdown || showAccessDropdown) {
+        if (openMenuId) {
             document.addEventListener('click', handleClickOutside)
             return () => document.removeEventListener('click', handleClickOutside)
         }
-    }, [openMenuId, showCourseDropdown, showAccessDropdown])
-
-    const handleCopyLink = () => {
-        const link = window.location.href
-        navigator.clipboard.writeText(link)
-        alert('Đã sao chép đường liên kết!')
-    }
+    }, [openMenuId])
 
     // Handle keyboard navigation for notecards
     useEffect(() => {
         const handleKeyPress = (event: KeyboardEvent) => {
-            if (!showNotecardModal) return
+            if (!studio.showNotecardModal) return
 
             if (event.key === ' ' || event.key === 'Spacebar') {
                 event.preventDefault()
@@ -655,11 +209,11 @@ OOP mang lại nhiều lợi thế, bao gồm:
             }
         }
 
-        if (showNotecardModal) {
+        if (studio.showNotecardModal) {
             document.addEventListener('keydown', handleKeyPress)
             return () => document.removeEventListener('keydown', handleKeyPress)
         }
-    }, [showNotecardModal])
+    }, [studio.showNotecardModal])
 
     const handleSend = () => {
         if (!inputValue.trim()) return
@@ -964,6 +518,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
         })
     }
 
+
     return (
         <div className="chat-container">
             {/* Header */}
@@ -987,79 +542,11 @@ OOP mang lại nhiều lợi thế, bao gồm:
             {/* Main Chat Area */}
             <main className="chat-main" style={{ display: 'flex', gap: '0', padding: '24px', alignItems: 'stretch' }}>
                 {/* Big Picture Sidebar - Left */}
-                <aside className={`big-picture-sidebar ${isBigPictureOpen ? 'open' : 'closed'}`} style={{ order: 1, width: isBigPictureOpen ? '356px' : '56px', padding: '0 24px 0 0', flexShrink: 0 }}>
-                    {/* Floating Toggle Button - Only show when sidebar is closed */}
-                    {!isBigPictureOpen && (
-                        <button
-                            className="big-picture-toggle-floating"
-                            onClick={() => setIsBigPictureOpen(true)}
-                            aria-label="Hiện bức tranh toàn cảnh"
-                            style={{
-                                position: 'absolute',
-                                top: '12px',
-                                left: '12px',
-                                zIndex: 1000,
-                                width: '32px',
-                                height: '32px',
-                                borderRadius: '50%',
-                                border: '1px solid #dadce0',
-                                backgroundColor: 'white',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
-                                transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                                const target = e.target as HTMLButtonElement
-                                target.style.backgroundColor = '#f8f9fa'
-                                target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.15)'
-                            }}
-                            onMouseLeave={(e) => {
-                                const target = e.target as HTMLButtonElement
-                                target.style.backgroundColor = 'white'
-                                target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.12)'
-                            }}
-                        >
-                            <PanelLeft size={16} color="#5f6368" />
-                        </button>
-                    )}
-
-                    <div className="big-picture-content">
-                        <div className="big-picture-header">
-                            <Book size={20} color="#5f6368" />
-                            <h3 className="big-picture-title">Bức tranh toàn cảnh</h3>
-                            {/* Big Picture Toggle Button */}
-                            <button
-                                className="big-picture-toggle-btn"
-                                onClick={() => setIsBigPictureOpen(!isBigPictureOpen)}
-                                aria-label={isBigPictureOpen ? 'Ẩn bức tranh toàn cảnh' : 'Hiện bức tranh toàn cảnh'}
-                            >
-                                {isBigPictureOpen ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
-                            </button>
-                        </div>
-
-                        <h4 className="big-picture-main-title">Lập trình Hướng đối tượng (OOP)</h4>
-
-                        <div className="big-picture-topics">
-                            {bigPictureTopics.map((topic, index) => (
-                                <div key={index} className="big-picture-topic-item">
-                                    <button className="big-picture-topic-button">
-                                        <span className="big-picture-topic-title">{topic.title}</span>
-                                    </button>
-                                    <div className="big-picture-subtopics-list">
-                                        {topic.subtopics.map((subtopic, subIndex) => (
-                                            <button key={subIndex} className="big-picture-subtopic-button">
-                                                {subtopic}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </aside>
+                <BigPictureSidebar
+                    isOpen={isBigPictureOpen}
+                    onToggle={() => setIsBigPictureOpen(!isBigPictureOpen)}
+                    topics={bigPictureTopics}
+                />
 
                 <div className="chat-content" style={{ order: 2, flex: 1, padding: '0', minWidth: 0 }}>
                     {/* Welcome Banner */}
@@ -1164,859 +651,119 @@ OOP mang lại nhiều lợi thế, bao gồm:
                 </div>
 
                 {/* Studio Sidebar - Right */}
-                <aside className={`studio-sidebar ${isStudioOpen ? 'open' : 'closed'}`} style={{ order: 1, width: isStudioOpen ? '356px' : '56px', padding: '0 0 0 24px', flexShrink: 0 }}>
-                    <div className="studio-content">
-                        <div className="studio-header">
-                            <Wand2 size={20} color="#5f6368" />
-                            <h3 className="studio-title">Studio</h3>
-                            {/* Studio Toggle Button */}
-                            <button
-                                className="studio-toggle-btn"
-                                onClick={() => setIsStudioOpen(!isStudioOpen)}
-                                aria-label={isStudioOpen ? 'Ẩn studio' : 'Hiện studio'}
-                            >
-                                {isStudioOpen ? <PanelRightClose size={18} /> : <PanelRight size={18} />}
-                            </button>
-                        </div>
-
-                        <div className="studio-features">
-                            {studioFeatures.map((feature, index) => {
-                                const IconComponent = feature.icon
-                                return (
-                                    <div key={index} className="studio-feature-card-wrapper">
-                                        <button
-                                            className="studio-feature-card"
-                                            onClick={() => handleStudioFeatureClick(feature.type, feature.title)}
-                                            title={feature.note}
-                                        >
-                                            {feature.type !== 'report' && (
-                                                <div
-                                                    className="studio-feature-edit-btn"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        setSelectedFeatureType(feature.type)
-                                                        setShowCustomizeModal(true)
-                                                    }}
-                                                    role="button"
-                                                    tabIndex={0}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === 'Enter' || e.key === ' ') {
-                                                            e.preventDefault()
-                                                            e.stopPropagation()
-                                                            setSelectedFeatureType(feature.type)
-                                                            setShowCustomizeModal(true)
-                                                        }
-                                                    }}
-                                                    aria-label="Edit feature"
-                                                >
-                                                    <Pencil size={14} />
-                                                </div>
-                                            )}
-                                            <IconComponent size={24} color="#5f6368" />
-                                            <span className="feature-title">{feature.title}</span>
-                                        </button>
-                                    </div>
-                                )
-                            })}
-                        </div>
-
-                        {/* Studio Items List or Empty State */}
-                        {studioItems.length > 0 ? (
-                            <div className="studio-items-list">
-                                {studioItems.map((item) => {
-                                    const IconComponent = getIconForType(item.type)
-                                    return (
-                                        <div key={item.id} className="studio-item">
-                                            <div
-                                                className="studio-item-clickable"
-                                                onClick={() => handleStudioItemClick(item)}
-                                                style={{ cursor: item.status === 'completed' && (item.type === 'mindmap' || item.type === 'notecard' || item.type === 'quiz' || item.type === 'report') ? 'pointer' : 'default' }}
-                                            >
-                                                <div className="studio-item-icon">
-                                                    {item.status === 'loading' ? (
-                                                        <Loader2 size={20} color="#5f6368" className="spinning" />
-                                                    ) : (
-                                                        <IconComponent size={20} color="#5f6368" />
-                                                    )}
-                                                </div>
-                                                <div className="studio-item-content">
-                                                    <h4 className="studio-item-title">{item.title}</h4>
-                                                    <p className="studio-item-subtitle">
-                                                        {item.subtitle} • {item.timestamp}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="studio-item-menu-container">
-                                                <button
-                                                    className="studio-item-menu"
-                                                    aria-label="Thêm tùy chọn"
-                                                    onClick={() => toggleMenu(item.id)}
-                                                >
-                                                    <MoreVertical size={20} color="#5f6368" />
-                                                </button>
-                                                {openMenuId === item.id && (
-                                                    <div className="studio-item-dropdown">
-                                                        <button
-                                                            className="dropdown-item delete-item"
-                                                            onClick={() => handleDeleteItem(item.id)}
-                                                        >
-                                                            <Trash2 size={16} />
-                                                            <span>Xóa</span>
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        ) : (
-                            <div className="studio-description">
-                                <Wand2 size={40} color="#9aa0a6" className="studio-icon" />
-                                <p className="studio-subtitle">Đầu ra của Studio sẽ được lưu ở đây.</p>
-                                <p className="studio-text">
-                                    Sau khi thêm nguồn, hãy nhập để thêm Tổng quan bảng âm thanh, Hướng dẫn học tập, Bản đồ tư duy và nhiều thông tin khác!
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                </aside>
+                <StudioSidebar
+                    isOpen={studio.isStudioOpen}
+                    onToggle={() => studio.setIsStudioOpen(!studio.isStudioOpen)}
+                    items={studio.studioItems}
+                    features={studioFeatures}
+                    onFeatureClick={studio.handleStudioFeatureClick}
+                    onEditFeature={(type: 'mindmap' | 'notecard' | 'quiz') => {
+                        studio.setSelectedFeatureType(type)
+                        studio.setShowCustomizeModal(true)
+                    }}
+                    onItemClick={studio.handleStudioItemClick}
+                    onDeleteItem={handleDeleteItem}
+                    openMenuId={openMenuId}
+                    onToggleMenu={toggleMenu}
+                />
             </main>
 
             {/* Report Format Selection Modal */}
-            {showReportFormatModal && (
-                <div className="modal-overlay" onClick={() => setShowReportFormatModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="modal-title">Chọn định dạng báo cáo</h3>
-                        <div className="report-formats">
-                            <button
-                                className="format-option"
-                                onClick={() => handleReportFormatSelect('Tổng quan')}
-                            >
-                                <FileText size={24} />
-                                <span>Tổng quan</span>
-                            </button>
-                            <button
-                                className="format-option"
-                                onClick={() => handleReportFormatSelect('Chi tiết')}
-                            >
-                                <FileText size={24} />
-                                <span>Chi tiết</span>
-                            </button>
-                            <button
-                                className="format-option"
-                                onClick={() => handleReportFormatSelect('Tóm tắt')}
-                            >
-                                <FileText size={24} />
-                                <span>Tóm tắt</span>
-                            </button>
-                        </div>
-                        <button className="modal-close" onClick={() => setShowReportFormatModal(false)}>
-                            Hủy
-                        </button>
-                    </div>
-                </div>
-            )}
+            <ReportFormatModal
+                isOpen={studio.showReportFormatModal}
+                onClose={() => studio.setShowReportFormatModal(false)}
+                onSelectFormat={studio.handleReportFormatSelect}
+            />
 
-            {/* Report Display Modal */}
-            {showReportModal && (
-                <div className="report-modal-overlay" onClick={() => setShowReportModal(false)}>
-                    <div className="report-modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="report-modal-header">
-                            <h2 className="report-modal-title">{reportContent?.title || 'Báo cáo'}</h2>
-                            <p className="report-modal-subtitle">Được tạo bởi AI</p>
-                            <button
-                                className="report-modal-close"
-                                onClick={() => setShowReportModal(false)}
-                                aria-label="Đóng"
-                            >
-                                ×
-                            </button>
-                        </div>
-
-                        <div className="report-content-container">
-                            <div className="report-section">
-                                <h3 className="report-section-title">Nội dung báo cáo</h3>
-                                <div className="report-text" style={{ whiteSpace: 'pre-wrap' }}>
-                                    {reportContent?.content || 'Đang tải nội dung...'}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="report-modal-footer">
-                            <button className="report-action-btn">
-                                <ThumbsUp size={18} />
-                                Nội dung hữu ích
-                            </button>
-                            <button className="report-action-btn">
-                                <ThumbsDown size={18} />
-                                Nội dung không phù hợp
-                            </button>
-                        </div>
-
-                        <p className="report-modal-notice">
-                            AI có thể đưa ra thông tin không chính xác; hãy kiểm tra kỹ nội dung báo cáo
-                        </p>
-                    </div>
-                </div>
-            )}
+            {/* Report Modal */}
+            <ReportModal
+                isOpen={studio.showReportModal}
+                onClose={() => studio.setShowReportModal(false)}
+                content={studio.reportContent}
+            />
 
             {/* Mindmap Modal */}
-            {/* Mindmap Modal */}
-            {showMindmapModal && (
-                <div className="mindmap-modal-overlay" onClick={() => setShowMindmapModal(false)}>
-                    <div className="mindmap-modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="mindmap-modal-header">
-                            <h2 className="mindmap-modal-title">{mindmapContent?.title || 'NỘI DUNG'}</h2>
-                            <p className="mindmap-modal-subtitle">Dựa trên 1 nguồn</p>
-                            <button
-                                className="mindmap-modal-close"
-                                onClick={() => setShowMindmapModal(false)}
-                                aria-label="Đóng"
-                            >
-                                ×
-                            </button>
-                        </div>
-                        <div className="mindmap-container" style={{ height: '600px', width: '100%' }}>
-                            {mindmapContent?.content ? (
-                                <MindmapViewer data={mindmapContent.content} />
-                            ) : (
-                                <div className="mindmap-loading">
-                                    Đang tải nội dung...
-                                </div>
-                            )}
-                        </div>
-                        <div className="mindmap-modal-footer">
-                            <button className="mindmap-action-btn">
-                                <ThumbsUp size={18} />
-                                Nội dung hay
-                            </button>
-                            <button className="mindmap-action-btn">
-                                <ThumbsDown size={18} />
-                                Nội dung không phù hợp
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <MindmapModal
+                isOpen={studio.showMindmapModal}
+                onClose={() => studio.setShowMindmapModal(false)}
+                content={studio.mindmapContent}
+            />
 
-            {/* Notecard (Flashcard) Modal */}
-            {
-                showNotecardModal && (
-                    <div className="notecard-modal-overlay" onClick={() => setShowNotecardModal(false)}>
-                        <div className="notecard-modal-content" onClick={(e) => e.stopPropagation()}>
-                            <div className="notecard-modal-header">
-                                <h2 className="notecard-modal-title">{flashcardContent?.title || 'Thẻ ghi nhớ'}</h2>
-                                <p className="notecard-modal-subtitle">Dựa trên {flashcardContent?.cardCount || 0} thẻ</p>
-                                <button
-                                    className="notecard-modal-close"
-                                    onClick={() => setShowNotecardModal(false)}
-                                    aria-label="Đóng"
-                                >
-                                    ×
-                                </button>
-                            </div>
 
-                            <div className="notecard-instruction">
-                                Nhấn phím cách để lật thẻ, nhấn phím mũi tên ←/→ để đi chuyển
-                            </div>
 
-                            <div className="notecard-container">
-                                <button
-                                    className="notecard-nav-btn notecard-nav-prev"
-                                    onClick={() => {
-                                        setCurrentCardIndex(prev => Math.max(0, prev - 1))
-                                        setIsCardFlipped(false)
-                                    }}
-                                    disabled={currentCardIndex === 0}
-                                >
-                                    ←
-                                </button>
+            {/* Notecard Modal */}
+            <NotecardModal
+                isOpen={studio.showNotecardModal}
+                onClose={() => studio.setShowNotecardModal(false)}
+                content={studio.flashcardContent}
+                currentCardIndex={currentCardIndex}
+                isCardFlipped={isCardFlipped}
+                onFlip={() => setIsCardFlipped(!isCardFlipped)}
+                onNext={() => {
+                    setCurrentCardIndex(prev => Math.min((studio.flashcardContent?.cards?.length || 1) - 1, prev + 1))
+                    setIsCardFlipped(false)
+                }}
+                onPrev={() => {
+                    setCurrentCardIndex(prev => Math.max(0, prev - 1))
+                    setIsCardFlipped(false)
+                }}
+                onShuffle={() => {
+                    setCurrentCardIndex(0)
+                    setIsCardFlipped(false)
+                }}
+            />
 
-                                <div
-                                    className={`notecard ${isCardFlipped ? 'flipped' : ''}`}
-                                    onClick={() => setIsCardFlipped(!isCardFlipped)}
-                                >
-                                    <div className="notecard-inner">
-                                        <div className="notecard-front">
-                                            <p className="notecard-text">
-                                                {flashcardContent?.cards?.[currentCardIndex]?.front || 'Đang tải...'}
-                                            </p>
-                                            <button className="notecard-flip-hint">Xem câu trả lời</button>
-                                        </div>
-                                        <div className="notecard-back">
-                                            <p className="notecard-text">
-                                                {flashcardContent?.cards?.[currentCardIndex]?.back || ''}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
+            {/* Quiz Display Modal */}
+            <QuizDisplayModal
+                isOpen={studio.showQuizModal}
+                onClose={() => studio.setShowQuizModal(false)}
+                content={studio.quizContent}
+                currentQuestionIndex={currentQuestionIndex}
+                selectedAnswers={selectedAnswers}
+                onAnswerSelect={(index, answer) => setSelectedAnswers({ ...selectedAnswers, [index]: answer })}
+                onNext={() => {
+                    if (currentQuestionIndex < (studio.quizContent?.questions?.length || 1) - 1) {
+                        setCurrentQuestionIndex(prev => prev + 1)
+                    }
+                }}
+                onMinimize={() => {
+                    studio.setShowQuizModal(false)
+                    studio.setShowQuizSideModal(true)
+                }}
+            />
 
-                                <button
-                                    className="notecard-nav-btn notecard-nav-next"
-                                    onClick={() => {
-                                        setCurrentCardIndex(prev => Math.min((flashcardContent?.cards?.length || 1) - 1, prev + 1))
-                                        setIsCardFlipped(false)
-                                    }}
-                                    disabled={currentCardIndex === (flashcardContent?.cards?.length || 1) - 1}
-                                >
-                                    →
-                                </button>
-                            </div>
-
-                            <div className="notecard-progress">
-                                <button className="notecard-shuffle-btn">
-                                    <span>🔄</span>
-                                    Bắt đầu lại
-                                </button>
-                                <span className="notecard-counter">{currentCardIndex + 1} / 105 thẻ</span>
-                            </div>
-
-                            <div className="notecard-modal-footer">
-                                <button className="notecard-action-btn">
-                                    <ThumbsUp size={18} />
-                                    Nội dung hữu ích
-                                </button>
-                                <button className="notecard-action-btn">
-                                    <ThumbsDown size={18} />
-                                    Nội dung không phù hợp
-                                </button>
-                            </div>
-
-                            <p className="notecard-modal-notice">
-                                Notebook.M có thể đưa ra thông tin không chính xác; hãy kiểm tra kỹ câu trả lời mà bạn nhận được
-                            </p>
-                        </div>
-                    </div>
-                )
-            }
-
-            {/* Quiz Modal */}
-            {
-                showQuizModal && (
-                    <div className="quiz-modal-overlay" onClick={() => setShowQuizModal(false)}>
-                        <div className="quiz-modal-content" onClick={(e) => e.stopPropagation()}>
-                            <div className="quiz-modal-header">
-                                <h2 className="quiz-modal-title">Triết học Trắc nghiệm</h2>
-                                <p className="quiz-modal-subtitle">Dựa trên 1 nguồn</p>
-                                <div className="quiz-modal-header-actions">
-                                    {selectedQuizId && (
-                                        <button
-                                            className="quiz-modal-minimize"
-                                            onClick={() => {
-                                                setShowQuizModal(false)
-                                                setShowQuizSideModal(true)
-                                            }}
-                                            aria-label="Thu nhỏ"
-                                            title="Thu nhỏ"
-                                        >
-                                            <Minimize2 size={20} />
-                                        </button>
-                                    )}
-                                    {/* <button 
-                                    className="quiz-modal-close" 
-                                    onClick={() => setShowQuizModal(false)}
-                                    aria-label="Đóng"
-                                >
-                                    ×
-                                </button> */}
-                                </div>
-                            </div>
-
-                            <div className="quiz-progress-bar">
-                                <div className="quiz-progress-indicator">
-                                    {currentQuestionIndex + 1} / {quizContent?.questions?.length || 0}
-                                </div>
-                            </div>
-
-                            <div className="quiz-container">
-                                <div className="quiz-question">
-                                    <p className="quiz-question-text">
-                                        {quizContent?.questions?.[currentQuestionIndex]?.question || 'Đang tải câu hỏi...'}
-                                    </p>
-                                </div>
-
-                                <div className="quiz-answers">
-                                    {quizContent?.questions?.[currentQuestionIndex]?.options?.map((option: string, idx: number) => {
-                                        const label = String.fromCharCode(65 + idx); // A, B, C, D...
-                                        return (
-                                            <button
-                                                key={idx}
-                                                className={`quiz-answer-option ${selectedAnswers[currentQuestionIndex] === label ? 'selected' : ''}`}
-                                                onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: label })}
-                                            >
-                                                <span className="quiz-answer-label">{label}.</span>
-                                                <span className="quiz-answer-text">
-                                                    {option}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            <div className="quiz-navigation">
-                                <button
-                                    className="quiz-nav-btn quiz-hint-btn"
-                                    onClick={() => {
-                                        // Toggle hint functionality
-                                    }}
-                                >
-                                    Gợi ý
-                                </button>
-                                <button
-                                    className="quiz-nav-btn quiz-next-btn"
-                                    onClick={() => {
-                                        if (currentQuestionIndex < (quizContent?.questions?.length || 1) - 1) {
-                                            setCurrentQuestionIndex(prev => prev + 1)
-                                        }
-                                    }}
-                                >
-                                    Tiếp theo
-                                </button>
-                            </div>
-
-                            <div className="quiz-modal-footer">
-                                <button className="quiz-feedback-btn">
-                                    <ThumbsUp size={18} />
-                                    Nội dung hữu ích
-                                </button>
-                                <button className="quiz-feedback-btn">
-                                    <ThumbsDown size={18} />
-                                    Nội dung không phù hợp
-                                </button>
-                            </div>
-
-                            {/* <p className="quiz-modal-notice">
-                            Notebook.M có thể đưa ra thông tin không chính xác; hãy kiểm tra kỹ câu trả lời mà bạn nhận được
-                        </p> */}
-                        </div>
-                    </div>
-                )
-            }
-
-            {/* Quiz Side Modal - Positioned next to sidebar */}
-            {
-                showQuizSideModal && (
-                    <div className="quiz-side-modal-overlay">
-                        <div className="quiz-side-modal-content">
-                            <div className="quiz-side-modal-header">
-                                <h2 className="quiz-side-modal-title">Bài kiểm tra</h2>
-                                <div className="quiz-side-modal-actions">
-                                    <button
-                                        className="quiz-side-expand-btn"
-                                        onClick={() => {
-                                            setShowQuizSideModal(false)
-                                            setShowQuizModal(true)
-                                        }}
-                                        aria-label="Mở rộng"
-                                    >
-                                        <Maximize2 size={18} />
-                                    </button>
-                                    <button
-                                        className="quiz-side-modal-close"
-                                        onClick={() => setShowQuizSideModal(false)}
-                                        aria-label="Đóng"
-                                    >
-                                        ×
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="quiz-side-progress-bar">
-                                <div className="quiz-side-progress-text">
-                                    Câu {currentQuestionIndex + 1} / {quizContent?.questions?.length || 0}
-                                </div>
-                            </div>
-
-                            <div className="quiz-side-container">
-                                <div className="quiz-side-question">
-                                    <p className="quiz-side-question-text">
-                                        {quizContent?.questions?.[currentQuestionIndex]?.question || 'Đang tải câu hỏi...'}
-                                    </p>
-                                </div>
-
-                                <div className="quiz-side-answers">
-                                    {quizContent?.questions?.[currentQuestionIndex]?.options?.map((option: string, idx: number) => {
-                                        const label = String.fromCharCode(65 + idx); // A, B, C, D...
-                                        return (
-                                            <button
-                                                key={idx}
-                                                className={`quiz-side-answer-option ${selectedAnswers[currentQuestionIndex] === label ? 'selected' : ''}`}
-                                                onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: label })}
-                                            >
-                                                <span className="quiz-side-answer-label">{label}.</span>
-                                                <span className="quiz-side-answer-text">
-                                                    {option}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            <div className="quiz-side-navigation">
-                                <button
-                                    className="quiz-side-nav-btn quiz-side-hint-btn"
-                                    onClick={() => {
-                                        // Toggle hint functionality
-                                    }}
-                                >
-                                    Gợi ý
-                                </button>
-                                <button
-                                    className="quiz-side-nav-btn quiz-side-next-btn"
-                                    onClick={() => {
-                                        if (currentQuestionIndex < (quizContent?.questions?.length || 1) - 1) {
-                                            setCurrentQuestionIndex(prev => prev + 1)
-                                        }
-                                    }}
-                                >
-                                    Tiếp theo
-                                </button>
-                            </div>
-
-                            <div className="quiz-side-modal-footer">
-                                <button className="quiz-side-feedback-btn">
-                                    <ThumbsUp size={18} />
-                                    Hữu ích
-                                </button>
-                                <button className="quiz-side-feedback-btn">
-                                    <ThumbsDown size={18} />
-                                    Không phù hợp
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            {/* Quiz Side Modal */}
+            <QuizSideModal
+                isOpen={studio.showQuizSideModal}
+                onClose={() => studio.setShowQuizSideModal(false)}
+                content={studio.quizContent}
+                currentQuestionIndex={currentQuestionIndex}
+                selectedAnswers={selectedAnswers}
+                onAnswerSelect={(index, answer) => setSelectedAnswers({ ...selectedAnswers, [index]: answer })}
+                onNext={() => {
+                    if (currentQuestionIndex < (studio.quizContent?.questions?.length || 1) - 1) {
+                        setCurrentQuestionIndex(prev => prev + 1)
+                    }
+                }}
+                onExpand={() => {
+                    studio.setShowQuizSideModal(false)
+                    studio.setShowQuizModal(true)
+                }}
+            />
 
             {/* Customize Feature Modal */}
-            {
-                showCustomizeModal && (
-                    <div className="modal-overlay" onClick={() => setShowCustomizeModal(false)}>
-                        <div className="customize-modal-content" style={{ maxWidth: '1000px' }} onClick={(e) => e.stopPropagation()}>
-                            <div className="customize-modal-header">
-                                <div className="customize-modal-title-wrapper">
-                                    <ClipboardCheck size={24} color="#5f6368" />
-                                    <h3 className="customize-modal-title">Tùy chỉnh thẻ thông tin</h3>
-                                </div>
-                                <button
-                                    className="customize-modal-close"
-                                    onClick={() => setShowCustomizeModal(false)}
-                                    aria-label="Đóng"
-                                >
-                                    ×
-                                </button>
-                            </div>
-
-                            {/* Tabs */}
-                            <div className="customize-tabs">
-                                <button
-                                    className={`customize-tab ${customizeTab === 'conversation' ? 'active' : ''}`}
-                                    onClick={() => setCustomizeTab('conversation')}
-                                >
-                                    Theo nội dung cuộc trò chuyện
-                                </button>
-                                <button
-                                    className={`customize-tab ${customizeTab === 'course' ? 'active' : ''}`}
-                                    onClick={() => setCustomizeTab('course')}
-                                >
-                                    Theo mã môn học
-                                </button>
-                            </div>
-
-                            <div className="customize-modal-body">
-                                {customizeTab === 'conversation' ? (
-                                    <>
-                                        {/* Số lượng thẻ */}
-                                        <div className="customize-section">
-                                            <h4 className="customize-section-title">Số lượng thẻ</h4>
-                                            <div className="customize-options" style={{ maxWidth: '50%' }}>
-                                                <button
-                                                    className={`customize-option-btn ${cardQuantity === 3 ? 'selected' : ''}`}
-                                                    onClick={() => setCardQuantity(3)}
-                                                >
-                                                    Ít hơn
-                                                </button>
-                                                <button
-                                                    className={`customize-option-btn ${cardQuantity === 6 ? 'selected' : ''}`}
-                                                    onClick={() => setCardQuantity(6)}
-                                                >
-                                                    Tiêu chuẩn
-                                                </button>
-                                                <button
-                                                    className={`customize-option-btn ${cardQuantity === 9 ? 'selected' : ''}`}
-                                                    onClick={() => setCardQuantity(9)}
-                                                >
-                                                    Nhiều hơn
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Chủ đề nên là gì */}
-                                        <div className="customize-section">
-                                            <h4 className="customize-section-title">Mô tả</h4>
-                                            <textarea
-                                                className="customize-textarea"
-                                                style={{ maxWidth: '98%' }}
-                                                placeholder="Mô tả ngắn gọn về chủ đề"
-                                                value={cardTopic}
-                                                onChange={(e) => setCardTopic(e.target.value)}
-                                                rows={6}
-                                            />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        {/* Số lượng thẻ và Mã môn học trên cùng một hàng */}
-                                        <div className="customize-row">
-                                            {/* Số lượng thẻ */}
-                                            <div className="customize-section">
-                                                <h4 className="customize-section-title">Số lượng thẻ</h4>
-                                                <div className="customize-options">
-                                                    <button
-                                                        className={`customize-option-btn ${cardQuantity === 3 ? 'selected' : ''}`}
-                                                        onClick={() => setCardQuantity(3)}
-                                                    >
-                                                        Ít hơn
-                                                    </button>
-                                                    <button
-                                                        className={`customize-option-btn ${cardQuantity === 6 ? 'selected' : ''}`}
-                                                        onClick={() => setCardQuantity(6)}
-                                                    >
-                                                        Tiêu chuẩn
-                                                    </button>
-                                                    <button
-                                                        className={`customize-option-btn ${cardQuantity === 9 ? 'selected' : ''}`}
-                                                        onClick={() => setCardQuantity(9)}
-                                                    >
-                                                        Nhiều hơn
-                                                    </button>
-                                                </div>
-                                            </div>
-
-
-                                            {/* Môn học */}
-                                            <div className="customize-section">
-                                                <h4 className="customize-section-title">Chọn môn học</h4>
-                                                <div className="course-code-dropdown">
-                                                    <input
-                                                        type="text"
-                                                        className="course-code-search"
-                                                        placeholder="Tìm kiếm môn học (VD: SUB101, PRO...)"
-                                                        value={courseSearchQuery}
-                                                        onChange={(e) => {
-                                                            setCourseSearchQuery(e.target.value)
-                                                            setShowCourseDropdown(true)
-                                                        }}
-                                                        onFocus={() => setShowCourseDropdown(true)}
-                                                    />
-                                                    {courseSearchQuery && showCourseDropdown && (
-                                                        <div className="course-code-options">
-                                                            {subjects
-                                                                .filter((subject: Subject) =>
-                                                                    subject.code?.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
-                                                                    subject.name?.toLowerCase().includes(courseSearchQuery.toLowerCase())
-                                                                )
-                                                                .map((subject: Subject) => (
-                                                                    <button
-                                                                        key={subject.subjectId}
-                                                                        className="course-code-option"
-                                                                        onClick={() => {
-                                                                            setSelectedSubjectIds([subject.subjectId])
-                                                                            setSelectedCourseCode(subject.code)
-                                                                            setCourseSearchQuery(`${subject.code} - ${subject.name}`)
-                                                                            setShowCourseDropdown(false)
-                                                                        }}
-                                                                    >
-                                                                        <span className="course-code">{subject.code}</span>
-                                                                        <span className="course-name">{subject.name}</span>
-                                                                    </button>
-                                                                ))
-                                                            }
-                                                            {subjects.filter((subject: Subject) =>
-                                                                subject.code?.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
-                                                                subject.name?.toLowerCase().includes(courseSearchQuery.toLowerCase())
-                                                            ).length === 0 && (
-                                                                    <div className="course-code-no-results">
-                                                                        Không tìm thấy môn học
-                                                                    </div>
-                                                                )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Mô tả */}
-                                        <div className="customize-section">
-                                            <h4 className="customize-section-title">Mô tả</h4>
-                                            <textarea
-                                                className="customize-textarea"
-                                                style={{ maxWidth: '98%' }}
-                                                placeholder="Mô tả ngắn gọn về chủ đề"
-                                                value={cardTopic}
-                                                onChange={(e) => setCardTopic(e.target.value)}
-                                                rows={6}
-                                            />
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-
-                            <div className="customize-modal-footer">
-                                <button
-                                    className="customize-create-btn"
-                                    onClick={handleCustomizeSubmit}
-                                >
-                                    Tạo
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            <CustomizeFeatureModal
+                isOpen={studio.showCustomizeModal}
+                onClose={() => studio.setShowCustomizeModal(false)}
+                onSubmit={handleCustomizeSubmit}
+                subjects={subjects}
+            />
 
             {/* Share Modal */}
-            {
-                showShareModal && (
-                    <div className="modal-overlay" onClick={() => setShowShareModal(false)}>
-                        <div className="share-modal-content" onClick={(e) => e.stopPropagation()} ref={shareModalRef}>
-                            <div className="share-modal-header">
-                                <div className="share-modal-title-section">
-                                    <Share2 size={20} color="#5f6368" />
-                                    <h3 className="share-modal-title">Chia sẻ cuộc trò chuyện</h3>
-                                </div>
-                                <button
-                                    className="share-modal-close"
-                                    onClick={() => setShowShareModal(false)}
-                                    aria-label="Đóng"
-                                >
-                                    ×
-                                </button>
-                            </div>
-
-                            <div className="share-modal-body">
-                                {/* Add people input */}
-                                <div className="share-input-section">
-                                    <input
-                                        type="email"
-                                        className="share-email-input"
-                                        placeholder="Thêm người dùng và nhóm*"
-                                        value={shareEmail}
-                                        onChange={(e) => setShareEmail(e.target.value)}
-                                    />
-                                </div>
-
-                                {/* People with access */}
-                                <div className="share-access-section">
-                                    <h4 className="share-section-title">Người có quyền truy cập</h4>
-                                    <div className="share-user-item">
-                                        <div className="share-user-avatar">
-                                            <img
-                                                src="https://ui-avatars.com/api/?name=Ha+Nguyen&background=4285F4&color=fff&size=40"
-                                                alt="Hà Nguyễn"
-                                            />
-                                        </div>
-                                        <div className="share-user-info">
-                                            <div className="share-user-name">Ha Nguyen</div>
-                                            <div className="share-user-email">khanhhanguyen1123@gmail...</div>
-                                        </div>
-                                        <div className="share-user-role">
-                                            <select className="share-role-select" disabled>
-                                                <option value="owner">Chủ sở hữu</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* General access */}
-                                <div className="share-general-section">
-                                    <h4 className="share-section-title">Quyền truy cập chung</h4>
-                                    <div className="share-access-control" ref={accessDropdownRef}>
-                                        <div className="share-access-icon">
-                                            {generalAccess === 'restricted' ? '🔒' : '🌐'}
-                                        </div>
-                                        <div className="share-access-info">
-                                            <div className="share-access-title">
-                                                {generalAccess === 'restricted' ? 'Bị hạn chế' : 'Bất kỳ ai có đường liên kết'}
-                                            </div>
-                                            <div className="share-access-description">
-                                                {generalAccess === 'restricted'
-                                                    ? 'Chỉ những người có quyền truy cập mới có thể mở bằng đường liên kết này'
-                                                    : 'Bất kỳ ai có đường liên kết đều có thể xem'
-                                                }
-                                            </div>
-                                        </div>
-                                        <button
-                                            className="share-access-dropdown"
-                                            onClick={() => setShowAccessDropdown(!showAccessDropdown)}
-                                        >
-                                            <ChevronDown size={20} />
-                                        </button>
-
-                                        {/* Access Dropdown Menu */}
-                                        {showAccessDropdown && (
-                                            <div className="share-access-dropdown-menu">
-                                                <button
-                                                    className={`share-access-option ${generalAccess === 'restricted' ? 'active' : ''}`}
-                                                    onClick={() => {
-                                                        setGeneralAccess('restricted')
-                                                        setShowAccessDropdown(false)
-                                                    }}
-                                                >
-                                                    <div className="share-access-option-icon">🔒</div>
-                                                    <div className="share-access-option-info">
-                                                        <div className="share-access-option-title">Bị hạn chế</div>
-                                                        <div className="share-access-option-desc">
-                                                            Chỉ những người được thêm mới có quyền truy cập
-                                                        </div>
-                                                    </div>
-                                                    {generalAccess === 'restricted' && (
-                                                        <div className="share-access-option-check">✓</div>
-                                                    )}
-                                                </button>
-                                                <button
-                                                    className={`share-access-option ${generalAccess === 'anyone' ? 'active' : ''}`}
-                                                    onClick={() => {
-                                                        setGeneralAccess('anyone')
-                                                        setShowAccessDropdown(false)
-                                                    }}
-                                                >
-                                                    <div className="share-access-option-icon">🌐</div>
-                                                    <div className="share-access-option-info">
-                                                        <div className="share-access-option-title">Bất kỳ ai có đường liên kết</div>
-                                                        <div className="share-access-option-desc">
-                                                            Bất kỳ ai có đường liên kết đều có thể xem
-                                                        </div>
-                                                    </div>
-                                                    {generalAccess === 'anyone' && (
-                                                        <div className="share-access-option-check">✓</div>
-                                                    )}
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="share-modal-footer">
-                                <button className="share-copy-link-btn" onClick={handleCopyLink}>
-                                    <LinkIcon size={18} />
-                                    Sao chép đường liên kết
-                                </button>
-                                <button
-                                    className="share-done-btn"
-                                    onClick={() => setShowShareModal(false)}
-                                >
-                                    Lưu
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-        </div >
+            <ShareModal
+                isOpen={showShareModal}
+                onClose={() => setShowShareModal(false)}
+            />
+        </div>
     )
 }
