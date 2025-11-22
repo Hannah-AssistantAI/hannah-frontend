@@ -1,55 +1,123 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-    Upload,
-    Send,
-    X,
-    Menu,
-} from "lucide-react";
+import { Upload, Send, X, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 import "./Learn.css";
-import ProfileIcon from "../../components/ProfileIcon";
+import { Header } from "../../components/Header";
+import { messageService } from "../../service/messageService";
+import conversationService from "../../service/conversationService";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function Learn() {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [searchQuery, setSearchQuery] = useState("");
     const [showHistorySidebar, setShowHistorySidebar] = useState(false);
+    const [isCreatingMessage, setIsCreatingMessage] = useState(false);
 
-    const handleSearch = () => {
-        if (searchQuery.trim()) {
-            navigate("/chat", { state: { query: searchQuery } });
+    const handleSearch = async () => {
+        if (!searchQuery.trim()) return;
+        if (isCreatingMessage) return;
+        if (!user) {
+            toast.error("Vui lòng đăng nhập để tiếp tục");
+            return;
+        }
+
+        setIsCreatingMessage(true);
+        try {
+            // Step 1: Create conversation first
+            const conversationResponse = await conversationService.createConversation(
+                {
+                    title: "Cuộc trò chuyện mới",
+                    subjectId: 0,
+                }
+            );
+
+            const conversationId = conversationResponse.conversationId;
+
+            // Step 2: Create message with the conversationId
+            await messageService.createMessage({
+                userId: user.userId,
+                conversationId: conversationId,
+                role: "student",
+                content: searchQuery,
+                subjectId: null,
+            });
+
+            // Navigate to chat with the conversationId
+            navigate("/chat", {
+                state: {
+                    conversationId: conversationId,
+                    query: searchQuery,
+                },
+            });
+        } catch (error: any) {
+            console.error("Failed to create conversation/message:", error);
+            toast.error(
+                error.message || "Không thể tạo cuộc trò chuyện. Vui lòng thử lại."
+            );
+        } finally {
+            setIsCreatingMessage(false);
         }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" && !isCreatingMessage) {
             handleSearch();
         }
     };
 
+    const handleBookClick = async (bookTitle: string) => {
+        if (isCreatingMessage) return;
+        if (!user) {
+            toast.error("Vui lòng đăng nhập để tiếp tục");
+            return;
+        }
 
+        setIsCreatingMessage(true);
+        try {
+            // Step 1: Create conversation first
+            const conversationResponse = await conversationService.createConversation(
+                {
+                    title: "Cuộc trò chuyện mới",
+                    subjectId: 0,
+                }
+            );
+
+            const conversationId = conversationResponse.conversationId;
+
+            // Step 2: Create message with the conversationId
+            await messageService.createMessage({
+                userId: user.userId,
+                conversationId: conversationId,
+                role: "student",
+                content: bookTitle,
+                subjectId: null,
+            });
+
+            // Navigate to chat with the conversationId
+            navigate("/chat", {
+                state: {
+                    conversationId: conversationId,
+                    query: bookTitle,
+                },
+            });
+        } catch (error: any) {
+            console.error("Failed to create conversation/message:", error);
+            toast.error(
+                error.message || "Không thể tạo cuộc trò chuyện. Vui lòng thử lại."
+            );
+        } finally {
+            setIsCreatingMessage(false);
+        }
+    };
 
     return (
         <div className="learn-container">
             {/* Header */}
-            <header className="learn-header">
-                <div className="learn-header-left">
-                    <button
-                        className="history-toggle-btn"
-                        onClick={() => setShowHistorySidebar(!showHistorySidebar)}
-                        aria-label="Lịch sử cuộc trò chuyện"
-                        title="Lịch sử cuộc trò chuyện"
-                    >
-                        <Menu size={20} />
-                    </button>
-                    <button className="learn-logo" onClick={() => navigate("/learn")}>
-                        <span className="learn-logo-text">Hannah Assistant</span>
-                    </button>
-                    <img src="https://daihoc.fpt.edu.vn/wp-content/uploads/2023/04/cropped-cropped-2021-FPTU-Long.png" alt="Hannah Logo" className="header-logo-image" />
-                </div>
-                <div className="learn-header-right">
-                    <ProfileIcon />
-                </div>
-            </header>
+            <Header
+                onToggleHistory={() => setShowHistorySidebar(!showHistorySidebar)}
+            />
 
             {/* History Sidebar */}
             {showHistorySidebar && (
@@ -77,10 +145,13 @@ export default function Learn() {
                                     <button
                                         className="history-item"
                                         onClick={() =>
-                                            navigate("/chat", {
-                                                state: { query: "Lập trình Hướng đối tượng (OOP)" },
-                                            })
+                                            handleBookClick("Lập trình Hướng đối tượng (OOP)")
                                         }
+                                        disabled={isCreatingMessage}
+                                        style={{
+                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
+                                            opacity: isCreatingMessage ? 0.6 : 1,
+                                        }}
                                     >
                                         <span className="history-item-icon">💬</span>
                                         <span className="history-item-text">
@@ -90,10 +161,13 @@ export default function Learn() {
                                     <button
                                         className="history-item"
                                         onClick={() =>
-                                            navigate("/chat", {
-                                                state: { query: "Data Structures và Algorithms" },
-                                            })
+                                            handleBookClick("Data Structures và Algorithms")
                                         }
+                                        disabled={isCreatingMessage}
+                                        style={{
+                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
+                                            opacity: isCreatingMessage ? 0.6 : 1,
+                                        }}
                                     >
                                         <span className="history-item-icon">💬</span>
                                         <span className="history-item-text">
@@ -103,10 +177,13 @@ export default function Learn() {
                                     <button
                                         className="history-item"
                                         onClick={() =>
-                                            navigate("/chat", {
-                                                state: { query: "React Hooks và State Management" },
-                                            })
+                                            handleBookClick("React Hooks và State Management")
                                         }
+                                        disabled={isCreatingMessage}
+                                        style={{
+                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
+                                            opacity: isCreatingMessage ? 0.6 : 1,
+                                        }}
                                     >
                                         <span className="history-item-icon">💬</span>
                                         <span className="history-item-text">
@@ -122,11 +199,12 @@ export default function Learn() {
                                 <div className="history-items">
                                     <button
                                         className="history-item"
-                                        onClick={() =>
-                                            navigate("/chat", {
-                                                state: { query: "Database Design và SQL" },
-                                            })
-                                        }
+                                        onClick={() => handleBookClick("Database Design và SQL")}
+                                        disabled={isCreatingMessage}
+                                        style={{
+                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
+                                            opacity: isCreatingMessage ? 0.6 : 1,
+                                        }}
                                     >
                                         <span className="history-item-icon">💬</span>
                                         <span className="history-item-text">
@@ -135,11 +213,12 @@ export default function Learn() {
                                     </button>
                                     <button
                                         className="history-item"
-                                        onClick={() =>
-                                            navigate("/chat", {
-                                                state: { query: "Machine Learning cơ bản" },
-                                            })
-                                        }
+                                        onClick={() => handleBookClick("Machine Learning cơ bản")}
+                                        disabled={isCreatingMessage}
+                                        style={{
+                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
+                                            opacity: isCreatingMessage ? 0.6 : 1,
+                                        }}
                                     >
                                         <span className="history-item-icon">💬</span>
                                         <span className="history-item-text">
@@ -155,11 +234,12 @@ export default function Learn() {
                                 <div className="history-items">
                                     <button
                                         className="history-item"
-                                        onClick={() =>
-                                            navigate("/chat", {
-                                                state: { query: "RESTful API Design" },
-                                            })
-                                        }
+                                        onClick={() => handleBookClick("RESTful API Design")}
+                                        disabled={isCreatingMessage}
+                                        style={{
+                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
+                                            opacity: isCreatingMessage ? 0.6 : 1,
+                                        }}
                                     >
                                         <span className="history-item-icon">💬</span>
                                         <span className="history-item-text">
@@ -168,11 +248,12 @@ export default function Learn() {
                                     </button>
                                     <button
                                         className="history-item"
-                                        onClick={() =>
-                                            navigate("/chat", {
-                                                state: { query: "Git và Version Control" },
-                                            })
-                                        }
+                                        onClick={() => handleBookClick("Git và Version Control")}
+                                        disabled={isCreatingMessage}
+                                        style={{
+                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
+                                            opacity: isCreatingMessage ? 0.6 : 1,
+                                        }}
                                     >
                                         <span className="history-item-icon">💬</span>
                                         <span className="history-item-text">
@@ -182,10 +263,13 @@ export default function Learn() {
                                     <button
                                         className="history-item"
                                         onClick={() =>
-                                            navigate("/chat", {
-                                                state: { query: "Docker và Containerization" },
-                                            })
+                                            handleBookClick("Docker và Containerization")
                                         }
+                                        disabled={isCreatingMessage}
+                                        style={{
+                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
+                                            opacity: isCreatingMessage ? 0.6 : 1,
+                                        }}
                                     >
                                         <span className="history-item-icon">💬</span>
                                         <span className="history-item-text">
@@ -220,8 +304,15 @@ export default function Learn() {
                                     }`}
                                 aria-label={searchQuery.trim() ? "Gửi" : "Tải lên"}
                                 onClick={searchQuery.trim() ? handleSearch : undefined}
+                                disabled={isCreatingMessage}
                             >
-                                {searchQuery.trim() ? <Send size={24} /> : <Upload size={24} />}
+                                {isCreatingMessage ? (
+                                    <Loader2 size={24} className="animate-spin" />
+                                ) : searchQuery.trim() ? (
+                                    <Send size={24} />
+                                ) : (
+                                    <Upload size={24} />
+                                )}
                             </button>
                         </div>
 
@@ -324,10 +415,12 @@ export default function Learn() {
                             <div
                                 className="book-3d book-green-dark"
                                 onClick={() =>
-                                    navigate("/chat", {
-                                        state: { query: "Học về Data Structures và Algorithms" },
-                                    })
+                                    handleBookClick("Học về Data Structures và Algorithms")
                                 }
+                                style={{
+                                    cursor: isCreatingMessage ? "not-allowed" : "pointer",
+                                    opacity: isCreatingMessage ? 0.6 : 1,
+                                }}
                             >
                                 <div className="book-cover">
                                     <div className="book-cover-content">
@@ -347,10 +440,12 @@ export default function Learn() {
                             <div
                                 className="book-3d book-red"
                                 onClick={() =>
-                                    navigate("/chat", {
-                                        state: { query: "Học Web Development Frontend và Backend" },
-                                    })
+                                    handleBookClick("Học Web Development Frontend và Backend")
                                 }
+                                style={{
+                                    cursor: isCreatingMessage ? "not-allowed" : "pointer",
+                                    opacity: isCreatingMessage ? 0.6 : 1,
+                                }}
                             >
                                 <div className="book-cover">
                                     <div className="book-cover-content">
@@ -368,11 +463,11 @@ export default function Learn() {
                             {/* Book 3 - Database Design */}
                             <div
                                 className="book-3d book-orange"
-                                onClick={() =>
-                                    navigate("/chat", {
-                                        state: { query: "Học Database Design và SQL" },
-                                    })
-                                }
+                                onClick={() => handleBookClick("Học Database Design và SQL")}
+                                style={{
+                                    cursor: isCreatingMessage ? "not-allowed" : "pointer",
+                                    opacity: isCreatingMessage ? 0.6 : 1,
+                                }}
                             >
                                 <div className="book-cover">
                                     <div className="book-cover-content">
@@ -391,10 +486,12 @@ export default function Learn() {
                             <div
                                 className="book-3d book-beige"
                                 onClick={() =>
-                                    navigate("/chat", {
-                                        state: { query: "Học System Design và Architecture" },
-                                    })
+                                    handleBookClick("Học System Design và Architecture")
                                 }
+                                style={{
+                                    cursor: isCreatingMessage ? "not-allowed" : "pointer",
+                                    opacity: isCreatingMessage ? 0.6 : 1,
+                                }}
                             >
                                 <div className="book-cover">
                                     <div className="book-cover-content">
@@ -413,10 +510,12 @@ export default function Learn() {
                             <div
                                 className="book-3d book-blue"
                                 onClick={() =>
-                                    navigate("/chat", {
-                                        state: { query: "Học Cloud Computing AWS Azure GCP" },
-                                    })
+                                    handleBookClick("Học Cloud Computing AWS Azure GCP")
                                 }
+                                style={{
+                                    cursor: isCreatingMessage ? "not-allowed" : "pointer",
+                                    opacity: isCreatingMessage ? 0.6 : 1,
+                                }}
                             >
                                 <div className="book-cover">
                                     <div className="book-cover-content">
@@ -435,10 +534,12 @@ export default function Learn() {
                             <div
                                 className="book-3d book-green"
                                 onClick={() =>
-                                    navigate("/chat", {
-                                        state: { query: "Học DevOps CI/CD Docker Kubernetes" },
-                                    })
+                                    handleBookClick("Học DevOps CI/CD Docker Kubernetes")
                                 }
+                                style={{
+                                    cursor: isCreatingMessage ? "not-allowed" : "pointer",
+                                    opacity: isCreatingMessage ? 0.6 : 1,
+                                }}
                             >
                                 <div className="book-cover">
                                     <div className="book-cover-content">

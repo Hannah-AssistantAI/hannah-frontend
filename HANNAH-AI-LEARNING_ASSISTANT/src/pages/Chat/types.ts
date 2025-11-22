@@ -26,11 +26,26 @@ export interface RelatedContent {
     shortTitle?: string
 }
 
+export interface InteractiveListItem {
+    term: string
+    definition: string
+    icon?: string
+    url?: string
+}
+
+export interface OutlineItem {
+    title: string
+    subtopics: string[]
+}
+
 export interface Message {
     type: string
     content: string
     isStreaming?: boolean
     relatedContent?: RelatedContent[]
+    suggestedQuestions?: string[]
+    interactiveList?: InteractiveListItem[]
+    outline?: OutlineItem[]
 }
 
 export interface BigPictureTopic {
