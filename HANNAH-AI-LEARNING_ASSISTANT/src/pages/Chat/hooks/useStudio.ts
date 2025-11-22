@@ -211,8 +211,8 @@ export const useStudio = () => {
                         title: effectiveTitle,
                         topic: generationContext || effectiveTitle,
                         cardCount: effectiveQuantity,
-                        sourceSubjectIds,
-                        sourceDocumentIds
+                        sourceType,
+                        sourceDocumentIds: sourceDocumentIds
                     });
                     break;
             }
@@ -300,11 +300,30 @@ export const useStudio = () => {
                 // Use cached content if available
                 if (item.content) {
                     console.log('Using cached flashcard content:', item.content);
-                    setFlashcardContent(item.content);
+                    // Transform flashcards to cards format for modal
+                    const transformedContent = {
+                        ...item.content,
+                        cards: item.content.flashcards?.map((fc: any) => ({
+                            front: fc.term,
+                            back: fc.definition
+                        })) || []
+                    };
+                    setFlashcardContent(transformedContent);
                 } else {
                     console.log('Fetching flashcard content from API:', numericId);
                     const response = await studioService.getFlashcardContent(numericId);
-                    if (response.data) setFlashcardContent(response.data.data || response.data);
+                    if (response.data) {
+                        const rawContent = response.data.data || response.data;
+                        // Transform flashcards to cards format for modal
+                        const transformedContent = {
+                            ...rawContent,
+                            cards: rawContent.flashcards?.map((fc: any) => ({
+                                front: fc.term,
+                                back: fc.definition
+                            })) || []
+                        };
+                        setFlashcardContent(transformedContent);
+                    }
                 }
                 setShowNotecardModal(true);
             } else if (item.type === 'quiz') {
