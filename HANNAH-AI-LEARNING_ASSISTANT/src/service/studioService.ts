@@ -36,6 +36,7 @@ export interface GenerateReportRequest {
 export interface GenerateFlashcardRequest {
     conversationId: number;
     title: string;
+    topic: string;
     description?: string;
     cardCount: number;
     sourceType?: 'conversation' | 'documents' | 'hybrid';
@@ -108,8 +109,7 @@ class StudioService {
     // .NET Backend endpoints: GET /api/studio/mindmaps/{id}, etc.
 
     async getQuizContent(id: string) {
-        // Note: Quiz retrieval endpoint doesn't exist in backend yet
-        return pythonApiClient.get<StudioGenerationResponse>(`/api/v1/studio/quiz/${id}`);
+        return pythonApiClient.get<StudioGenerationResponse>(`/api/v1/studio/quiz/${id}/content`);
     }
 
     async getMindMapContent(id: string) {
@@ -123,6 +123,38 @@ class StudioService {
 
     async getFlashcardContent(id: string) {
         return pythonApiClient.get<StudioGenerationResponse>(`/api/v1/studio/flashcard/${id}`);
+    }
+
+    async submitQuiz(quizId: string, answers: Array<{ questionId: number, selectedAnswer: string, timeSpentSeconds?: number }>) {
+        return pythonApiClient.post<any>(`/api/v1/studio/quiz/${quizId}/submit`, {
+            answers: answers.map(a => ({
+                questionId: a.questionId,
+                selectedAnswer: a.selectedAnswer,
+                timeSpentSeconds: a.timeSpentSeconds || null
+            })),
+            completedAt: new Date().toISOString()
+        });
+    }
+
+    // --- List Methods ---
+    async listMindMaps(conversationId?: number) {
+        const params = conversationId ? { conversation_id: conversationId } : {};
+        return pythonApiClient.get<any>('/api/v1/studio/mindmaps', params);
+    }
+
+    async listQuizzes(conversationId?: number) {
+        const params = conversationId ? { conversation_id: conversationId } : {};
+        return pythonApiClient.get<any>('/api/v1/studio/quizzes', params);
+    }
+
+    async listFlashcards(conversationId?: number) {
+        const params = conversationId ? { conversation_id: conversationId } : {};
+        return pythonApiClient.get<any>('/api/v1/studio/flashcards', params);
+    }
+
+    async listReports(conversationId?: number) {
+        const params = conversationId ? { conversation_id: conversationId } : {};
+        return pythonApiClient.get<any>('/api/v1/studio/reports', params);
     }
 }
 

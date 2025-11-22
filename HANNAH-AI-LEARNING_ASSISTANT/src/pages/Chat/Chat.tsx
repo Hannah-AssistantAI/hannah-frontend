@@ -203,6 +203,88 @@ OOP mang lại nhiều lợi thế, bao gồm:
         fetchSubjects();
     }, []);
 
+    // Fetch studio items on component mount
+    useEffect(() => {
+        const fetchStudioItems = async () => {
+            try {
+                const conversationId = 1; // Using hardcoded conversation ID for now
+
+                // Fetch all studio item types
+                const [mindmapsRes, quizzesRes, flashcardsRes, reportsRes] = await Promise.all([
+                    studioService.listMindMaps(conversationId).catch(() => ({ data: { data: [] } })),
+                    studioService.listQuizzes(conversationId).catch(() => ({ data: { data: [] } })),
+                    studioService.listFlashcards(conversationId).catch(() => ({ data: { data: [] } })),
+                    studioService.listReports(conversationId).catch(() => ({ data: { data: [] } })),
+                ]);
+
+                // Transform backend data to StudioItem format
+                const items: StudioItem[] = [];
+
+                // Add mindmaps
+                if (mindmapsRes.data && mindmapsRes.data.data) {
+                    items.push(...mindmapsRes.data.data.map((m: any) => ({
+                        id: m.mindmapId.toString(),
+                        type: 'mindmap' as const,
+                        title: m.title,
+                        subtitle: m.topic,
+                        status: 'completed' as const,
+                        timestamp: m.generatedAt,
+                        content: null
+                    })));
+                }
+
+                // Add quizzes
+                if (quizzesRes.data && quizzesRes.data.data) {
+                    items.push(...quizzesRes.data.data.map((q: any) => ({
+                        id: q.quizId.toString(),
+                        type: 'quiz' as const,
+                        title: q.title,
+                        subtitle: `${q.questionCount} câu hỏi • ${q.difficulty}`,
+                        status: 'completed' as const,
+                        timestamp: q.generatedAt,
+                        content: null
+                    })));
+                }
+
+                // Add flashcards
+                if (flashcardsRes.data && flashcardsRes.data.data) {
+                    items.push(...flashcardsRes.data.data.map((f: any) => ({
+                        id: f.flashcardSetId.toString(),
+                        type: 'notecard' as const,
+                        title: f.title,
+                        subtitle: `${f.cardCount} thẻ`,
+                        status: 'completed' as const,
+                        timestamp: f.generatedAt,
+                        content: null
+                    })));
+                }
+
+                // Add reports
+                if (reportsRes.data && reportsRes.data.data) {
+                    items.push(...reportsRes.data.data.map((r: any) => ({
+                        id: r.reportId.toString(),
+                        type: 'report' as const,
+                        title: r.title,
+                        subtitle: 'Báo cáo',
+                        status: 'completed' as const,
+                        timestamp: r.generatedAt,
+                        content: null
+                    })));
+                }
+
+                // Sort by timestamp (newest first) and set state
+                items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+                setStudioItems(items);
+
+                console.log(`Fetched ${items.length} studio items from backend`);
+            } catch (error) {
+                console.error('Failed to fetch studio items:', error);
+            }
+        };
+
+        fetchStudioItems();
+    }, []);
+
     const getIconForType = (type: string) => {
         switch (type) {
             case 'mindmap': return GitBranch
