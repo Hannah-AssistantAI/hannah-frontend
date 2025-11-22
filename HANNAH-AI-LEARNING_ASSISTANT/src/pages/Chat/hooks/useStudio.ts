@@ -72,17 +72,30 @@ export const useStudio = () => {
                 }
 
                 // Add flashcards
+                console.log('=== FLASHCARDS DEBUG ===');
+                console.log('flashcardsRes:', flashcardsRes);
+                console.log('flashcardsRes.data:', flashcardsRes.data);
+                console.log('flashcardsRes.data.data:', flashcardsRes.data?.data);
+
                 if (flashcardsRes.data && flashcardsRes.data.data) {
-                    items.push(...flashcardsRes.data.data.map((f: any) => ({
-                        id: `notecard-${f.flashcardSetId}`,
-                        type: 'notecard' as const,
-                        title: f.title,
-                        subtitle: `${f.cardCount} thẻ`,
-                        status: 'completed' as const,
-                        timestamp: f.generatedAt,
-                        content: null
-                    })));
+                    console.log(`Processing ${flashcardsRes.data.data.length} flashcard sets`);
+                    items.push(...flashcardsRes.data.data.map((f: any) => {
+                        console.log('Flashcard item:', f);
+                        return {
+                            id: `notecard-${f.flashcardSetId}`,
+                            type: 'notecard' as const,
+                            title: f.title,
+                            subtitle: `${f.cardCount} thẻ`,
+                            status: 'completed' as const,
+                            timestamp: f.generatedAt,
+                            content: null
+                        };
+                    }));
+                    console.log(`Added ${flashcardsRes.data.data.length} flashcard items`);
+                } else {
+                    console.log('No flashcard data found');
                 }
+                console.log('======================');
 
                 // Add reports
                 if (reportsRes.data && reportsRes.data.data) {
