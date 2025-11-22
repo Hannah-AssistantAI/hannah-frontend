@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Sparkles, Send, ThumbsUp, ThumbsDown, Share2, Upload, Book, GitBranch, FileText, ClipboardCheck, StickyNote, ChevronDown, ChevronUp, Link as LinkIcon, List, User, LogOut, Share } from 'lucide-react'
-import ProfileIcon from '../../components/ProfileIcon'
+import { Sparkles, Send, ThumbsUp, ThumbsDown, Share2, Upload, Book, GitBranch, FileText, ClipboardCheck, StickyNote, ChevronDown, ChevronUp, Link as LinkIcon, List } from 'lucide-react'
 import subjectService, { type Subject } from '../../service/subjectService'
+import chatService from '../../service/chatService'
 import { useStudio } from './hooks/useStudio'
 import { useQuiz } from './hooks/useQuiz'
 import { ReportFormatModal } from './components/modals/ReportFormatModal'
@@ -15,15 +15,16 @@ import { CustomizeFeatureModal } from './components/modals/CustomizeFeatureModal
 import { ShareModal } from './components/modals/ShareModal'
 import { BigPictureSidebar } from './components/BigPictureSidebar'
 import { StudioSidebar } from './components/StudioSidebar'
+import { HistorySidebar } from '../../components/HistorySidebar'
+import { Header } from '../../components/Header'
 import type { Message, RelatedContent, Source } from './types'
 import './Chat.css'
-
-
 
 export default function Chat() {
     const location = useLocation()
     const navigate = useNavigate()
     const initialQuery = location.state?.query || ''
+    const initialConversationId = location.state?.conversationId || null
 
     // Use hooks for state management
     const studio = useStudio()
@@ -36,61 +37,16 @@ export default function Chat() {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null)
     const [expandedSources, setExpandedSources] = useState<{ [key: string]: boolean }>({})
     const [showShareModal, setShowShareModal] = useState(false)
-    const [messages, setMessages] = useState<Message[]>([
+    const [showHistorySidebar, setShowHistorySidebar] = useState(false)
+    const [conversationId, setConversationId] = useState<number | null>(initialConversationId)
+    const [isSendingMessage, setIsSendingMessage] = useState(false)
+    const hasAutoSentRef = useRef(false) // Track if we already auto-sent initial query
+    const [messages, setMessages] = useState<Message[]>(initialQuery ? [
         {
             type: 'user',
             content: initialQuery
-        },
-        {
-            type: 'assistant',
-            content: `**Lập trình Hướng đối tượng (OOP)** là một mô hình lập trình cấu trúc phần mềm xung quanh **các đối tượng**, thay vì các hàm hoặc logic. Hãy nghĩ về nó như việc mô hình hóa các thực thể trong thế giới thực và các tương tác của chúng trong code của bạn.
-
-### Bức tranh toàn cảnh
-
-#### Hiểu khái niệm cốt lõi của OOP và lợi ích của nó
-
-**Chuyển đổi mô hình**
-OOP đại diện cho một cách suy nghĩ khác về lập trình - tập trung vào dữ liệu và hành vi cùng nhau.
-
-**Mô hình hóa thực tế**
-Các đối tượng phản ánh các thực thể trong thế giới thực, làm cho code trở nên trực quan và dễ bảo trì hơn.
-
-OOP mang lại nhiều lợi thế, bao gồm:
-
-[INTERACTIVE_LIST:Ưu điểm của OOP]
-[SOURCE:1:Tính mô-đun:🔷:Code được tổ chức thành các đối tượng độc lập, giúp quản lý và hiểu dễ dàng hơn.:https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object-oriented_programming]
-[SOURCE:2:Khả năng tái sử dụng:🔄:Các đối tượng và lớp có thể được tái sử dụng trong nhiều phần khác nhau của chương trình hoặc trong các dự án khác, giảm thời gian phát triển.:https://www.geeksforgeeks.org/object-oriented-programming-oops-concept-in-java/]
-[SOURCE:3:Dễ bảo trì:🔧:Thay đổi một đối tượng ít có khả năng ảnh hưởng đến các phần khác của chương trình.:https://stackoverflow.com/questions/1031273/what-is-polymorphism-what-is-it-for-and-how-is-it-used]
-[/INTERACTIVE_LIST]
-
-**Lợi ích của OOP**
-- Tổ chức code tốt hơn
-- Khả năng tái sử dụng thông qua kế thừa
-- Bảo trì và cập nhật dễ dàng hơn
-- Thiết kế trực quan hơn
-
-[VIDEO_CONTENT:Giải thích về Lập trình Hướng đối tượng:https://www.youtube.com/embed/pTB0EiLXUC8]
-
-[RELATED_CONTENT:Khám phá nội dung liên quan]
-[CONTENT:1:Lập trình hướng đối tượng là một mô hình lập trình:Tìm hiểu tổng quan về lập trình hướng đối tượng trên Wikipedia.:https://en.wikipedia.org/wiki/Object-oriented_programming:Wikipedia:W:OOP]
-[CONTENT:2:Java OOP (Lập trình Hướng đối tượng):Khám phá cách OOP được triển khai trong Java.:https://www.w3schools.com/java/java_oop.asp:W3Schools:W:Java OOP (Lập trình Hướng...]
-[CONTENT:3:Thuật ngữ OOP:Tra cứu các thuật ngữ và định nghĩa chính của OOP.:https://www.geeksforgeeks.org/object-oriented-programming-oops-concept-in-java/:GeeksforGeeks:G:OOP]
-[/RELATED_CONTENT]`,
-            isStreaming: false
         }
-    ])
-
-    const courseCodes = [
-        { code: 'CSD', name: 'Cấu trúc dữ liệu và giải thuật' },
-        { code: 'CSI', name: 'Cơ sở dữ liệu' },
-        { code: 'PRO', name: 'Lập trình hướng đối tượng' },
-        { code: 'PRM', name: 'Quản lý dự án' },
-        { code: 'WEB', name: 'Phát triển Web' },
-        { code: 'MAD', name: 'Phát triển ứng dụng di động' },
-        { code: 'DBI', name: 'Thiết kế cơ sở dữ liệu' },
-        { code: 'OSG', name: 'Hệ điều hành' },
-        { code: 'SUB101', name: 'Tự học' }
-    ]
+    ] : [])
 
     const bigPictureTopics = [
         {
@@ -143,6 +99,89 @@ OOP mang lại nhiều lợi thế, bao gồm:
 
         fetchSubjects();
     }, []);
+
+    // Helper to parse assistant response which might be a JSON string
+    const parseAssistantResponse = (responseContent: string) => {
+        try {
+            // Try to parse the content as JSON
+            const parsed = JSON.parse(responseContent);
+
+            // Check if it has the expected structure
+            if (parsed.content && (parsed.interactive_list || parsed.suggested_questions || parsed.outline)) {
+                return {
+                    content: parsed.content,
+                    interactiveList: parsed.interactive_list,
+                    suggestedQuestions: parsed.suggested_questions,
+                    outline: parsed.outline
+                };
+            }
+
+            // If it's JSON but doesn't have the specific structure, treat as plain text (or handle otherwise)
+            return { content: responseContent };
+        } catch (e) {
+            // Not JSON, treat as plain text
+            return { content: responseContent };
+        }
+    };
+
+    // Auto-send initial query ONCE when component mounts
+    useEffect(() => {
+        const sendInitialQuery = async () => {
+            // Prevent duplicate sends (React Strict Mode runs effects twice)
+            if (hasAutoSentRef.current) return;
+            if (!initialQuery || !conversationId) return;
+
+            console.log('🚀 Auto-sending initial query:', initialQuery);
+            hasAutoSentRef.current = true; // Mark as sent immediately
+            setIsSendingMessage(true);
+
+            // Add loading message
+            setMessages(prev => [...prev, {
+                type: 'assistant',
+                content: 'Đang suy nghĩ...',
+                isStreaming: true
+            }]);
+
+            try {
+                const response = await chatService.sendTextMessage(
+                    conversationId,
+                    initialQuery
+                );
+
+                const parsedResponse = parseAssistantResponse(response.assistantMessage.content.data);
+
+                // Replace loading message with actual response
+                setMessages(prev => {
+                    const newMessages = [...prev];
+                    newMessages[1] = {
+                        type: 'assistant',
+                        content: parsedResponse.content,
+                        isStreaming: false,
+                        suggestedQuestions: parsedResponse.suggestedQuestions || response.assistantMessage.interactiveElements?.suggestedQuestions || [],
+                        interactiveList: parsedResponse.interactiveList,
+                        outline: parsedResponse.outline
+                    };
+                    return newMessages;
+                });
+            } catch (error: any) {
+                console.error('❌ Failed to get initial response:', error);
+                setMessages(prev => {
+                    const newMessages = [...prev];
+                    newMessages[1] = {
+                        type: 'assistant',
+                        content: 'Xin lỗi, đã có lỗi xảy ra khi tải câu trả lời. Vui lòng thử lại.',
+                        isStreaming: false,
+                        suggestedQuestions: []
+                    };
+                    return newMessages;
+                });
+            } finally {
+                setIsSendingMessage(false);
+            }
+        };
+
+        sendInitialQuery();
+    }, []); // Empty deps - only run once on mount
 
     const handleCustomizeSubmit = (data: any) => {
         if (studio.selectedFeatureType) {
@@ -229,25 +268,68 @@ OOP mang lại nhiều lợi thế, bao gồm:
         }
     }, [studio.showNotecardModal])
 
-    const handleSend = () => {
+    const handleSend = async () => {
         if (!inputValue.trim()) return
+        if (isSendingMessage) return
+        if (!conversationId) {
+            console.error('No conversation ID available');
+            return;
+        }
+
+        const userMessage = inputValue;
+        setInputValue('');
 
         // Add user message
         setMessages(prev => [...prev, {
             type: 'user',
-            content: inputValue
-        }])
+            content: userMessage
+        }]);
 
-        // Simulate assistant response
-        setTimeout(() => {
-            setMessages(prev => [...prev, {
-                type: 'assistant',
-                content: 'Đây là phản hồi mô phỏng. Trong ứng dụng thực tế, nội dung này sẽ được thay thế bằng lời gọi API đến dịch vụ AI.',
-                isStreaming: false
-            }])
-        }, 500)
+        // Add loading message
+        const loadingMessageIndex = messages.length + 1;
+        setMessages(prev => [...prev, {
+            type: 'assistant',
+            content: 'Đang suy nghĩ...',
+            isStreaming: true
+        }]);
 
-        setInputValue('')
+        setIsSendingMessage(true);
+        try {
+            const response = await chatService.sendTextMessage(
+                conversationId,
+                userMessage
+            );
+
+            const parsedResponse = parseAssistantResponse(response.assistantMessage.content.data);
+
+            // Replace loading message with response
+            setMessages(prev => {
+                const newMessages = [...prev];
+                newMessages[loadingMessageIndex] = {
+                    type: 'assistant',
+                    content: parsedResponse.content,
+                    isStreaming: false,
+                    suggestedQuestions: parsedResponse.suggestedQuestions || response.assistantMessage.interactiveElements?.suggestedQuestions || [],
+                    interactiveList: parsedResponse.interactiveList,
+                    outline: parsedResponse.outline
+                };
+                return newMessages;
+            });
+        } catch (error: any) {
+            console.error('Failed to send message:', error);
+            setMessages(prev => {
+                const newMessages = [...prev];
+                newMessages[loadingMessageIndex] = {
+                    type: 'assistant',
+                    content: 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.',
+                    isStreaming: false,
+                    suggestedQuestions: []
+                };
+                return newMessages;
+            });
+        } finally {
+            setIsSendingMessage(false);
+        }
     }
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -389,8 +471,57 @@ OOP mang lại nhiều lợi thế, bao gồm:
         setExpandedSources(newExpandedState)
     }, [messages])
 
-    const renderMessageContent = (content: string, messageIndex: number) => {
+    const renderInteractiveList = (items: any[]) => {
+        return (
+            <div className="interactive-list-container">
+                <div className="interactive-list-header">
+                    <List size={20} className="interactive-list-icon" />
+                    <span className="interactive-list-title">Interactive List</span>
+                </div>
+                <div className="interactive-list-items">
+                    {items.map((item, index) => (
+                        <div key={index} className="interactive-item-card">
+                            <div className="interactive-item-icon-wrapper">
+                                {item.icon ? (
+                                    <span className="interactive-item-emoji">{item.icon}</span>
+                                ) : (
+                                    <div className="interactive-item-placeholder">
+                                        <Book size={24} />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="interactive-item-content">
+                                <h4 className="interactive-item-term">{item.term}</h4>
+                                <p className="interactive-item-definition">{item.definition}</p>
+                            </div>
+                            <div className="interactive-item-action">
+                                <button className="interactive-item-link-btn" aria-label="Link">
+                                    <LinkIcon size={20} />
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )
+    }
+
+    const renderMessageContent = (content: string, messageIndex: number, message?: Message) => {
         const parts = parseInteractiveList(content)
+
+        // If we have a structured interactive list in the message object, render it
+        if (message?.interactiveList && message.interactiveList.length > 0) {
+            return (
+                <>
+                    <div className="message-text">
+                        {content.split('\n').map((line, i) => (
+                            <p key={i}>{line}</p>
+                        ))}
+                    </div>
+                    {renderInteractiveList(message.interactiveList)}
+                </>
+            )
+        }
 
         return parts.map((part, partIndex) => {
             if (part.type === 'interactive-list') {
@@ -536,22 +667,22 @@ OOP mang lại nhiều lợi thế, bao gồm:
     return (
         <div className="chat-container">
             {/* Header */}
-            <header className="chat-header">
-                <div className="chat-header-left">
-                    <div className="chat-logo" onClick={() => navigate('/learn')}>
-                        <Sparkles size={24} color="#4285F4" />
-                        <span className="chat-logo-text">Hannah Assistant</span>
-                    </div>
-                    <img src="https://daihoc.fpt.edu.vn/wp-content/uploads/2023/04/cropped-cropped-2021-FPTU-Long.png" alt="Hannah Logo" className="header-logo-image" />
-                </div>
-                <div className="chat-header-right">
-                    <button className="share-btn" onClick={() => setShowShareModal(true)}>
-                        <Share2 size={20} />
-                        <span>Chia sẻ</span>
-                    </button>
-                    <ProfileIcon />
-                </div>
-            </header>
+            <Header
+                onToggleHistory={() => setShowHistorySidebar(!showHistorySidebar)}
+                showShareButton={true}
+                onShareClick={() => setShowShareModal(true)}
+            />
+
+            {/* History Sidebar */}
+            <HistorySidebar
+                isOpen={showHistorySidebar}
+                onClose={() => setShowHistorySidebar(false)}
+                onItemClick={(topic) => {
+                    setInputValue(topic);
+                    setShowHistorySidebar(false);
+                    // Optionally auto-send or just populate input
+                }}
+            />
 
             {/* Main Chat Area */}
             <main className="chat-main" style={{ display: 'flex', gap: '0', padding: '24px', alignItems: 'stretch' }}>
@@ -588,22 +719,30 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                     </div>
                                 )}
                                 <div className="message-content">
-                                    {renderMessageContent(message.content, index)}
-                                    {message.type === 'assistant' && (
+                                    {renderMessageContent(message.content, index, message)}
+                                    {message.type === 'assistant' && !message.isStreaming && (
                                         <>
                                             <div className="message-actions-container">
                                                 <div className="message-suggestions">
-                                                    <button className="suggestion-btn">
+                                                    <button
+                                                        className="suggestion-btn"
+                                                        onClick={() => {
+                                                            setInputValue('Đơn giản hóa');
+                                                            setTimeout(() => handleSend(), 100);
+                                                        }}
+                                                    >
                                                         <span className="suggestion-icon">≡</span>
                                                         <span>Đơn giản hóa</span>
                                                     </button>
-                                                    <button className="suggestion-btn">
+                                                    <button
+                                                        className="suggestion-btn"
+                                                        onClick={() => {
+                                                            setInputValue('Tìm hiểu sâu hơn');
+                                                            setTimeout(() => handleSend(), 100);
+                                                        }}
+                                                    >
                                                         <span className="suggestion-icon">≡</span>
                                                         <span>Tìm hiểu sâu hơn</span>
-                                                    </button>
-                                                    <button className="suggestion-btn">
-                                                        <span className="suggestion-icon">🖼</span>
-                                                        <span>Lấy hình ảnh</span>
                                                     </button>
                                                 </div>
                                                 <div className="message-actions">
@@ -618,11 +757,22 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div className="follow-up-questions">
-                                                <button className="follow-up-btn">Cho tôi biết thêm về lớp và đối tượng.</button>
-                                                <button className="follow-up-btn">Giải thích chi tiết hơn về đóng gói.</button>
-                                                <button className="follow-up-btn">Một số ngôn ngữ lập trình sử dụng OOP là gì?</button>
-                                            </div>
+                                            {message.suggestedQuestions && message.suggestedQuestions.length > 0 && (
+                                                <div className="follow-up-questions">
+                                                    {message.suggestedQuestions.map((question, qIndex) => (
+                                                        <button
+                                                            key={qIndex}
+                                                            className="follow-up-btn"
+                                                            onClick={() => {
+                                                                setInputValue(question);
+                                                                setTimeout(() => handleSend(), 100);
+                                                            }}
+                                                        >
+                                                            {question}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </>
                                     )}
                                 </div>
@@ -770,6 +920,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
             <CustomizeFeatureModal
                 isOpen={studio.showCustomizeModal}
                 onClose={() => studio.setShowCustomizeModal(false)}
+                featureType={studio.selectedFeatureType}
                 onSubmit={handleCustomizeSubmit}
                 subjects={subjects}
             />
