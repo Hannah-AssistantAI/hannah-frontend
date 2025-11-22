@@ -4,6 +4,7 @@ import { Sparkles, Send, ThumbsUp, ThumbsDown, Share2, Upload, Book, PanelLeftCl
 import ProfileIcon from '../../components/ProfileIcon'
 import { studioService } from '../../service/studioService'
 import subjectService from '../../service/subjectService'
+import MindmapViewer from '../../components/MindmapViewer'
 import type { Subject } from '../../service/subjectService'
 import './Chat.css'
 
@@ -250,7 +251,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
 
         try {
             // Hardcoded conversationId for now as per plan
-            const conversationId = 3;
+            const conversationId = 1;
             let response;
 
             // Determine effective title with course code if provided
@@ -280,14 +281,12 @@ OOP mang lại nhiều lợi thế, bao gồm:
             let sourceDocumentIds: number[] | undefined = undefined;
             let sourceType: 'conversation' | 'documents' | 'hybrid' = 'conversation';
 
-            // TEMPORARY: Force conversation mode to avoid Gemini API quota errors
-            // TODO: Re-enable documents mode when quota is available
-            // Use explicitly selected documentIds from dropdown
-            // if (options?.documentIds && options.documentIds.length > 0) {
-            //     sourceDocumentIds = options.documentIds;
-            //     sourceType = 'documents';
-            //     console.log('Using selected document IDs:', sourceDocumentIds);
-            // }
+            // Enable document mode when documents are selected
+            if (options?.documentIds && options.documentIds.length > 0) {
+                sourceDocumentIds = options.documentIds;
+                sourceType = 'documents';
+                console.log('Using document mode with selected document IDs:', sourceDocumentIds);
+            }
 
             const sourceSubjectIds = undefined; // Will need to implement subject ID mapping
 
@@ -1104,17 +1103,27 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                             title={feature.note}
                                         >
                                             {feature.type !== 'report' && (
-                                                <button
+                                                <div
                                                     className="studio-feature-edit-btn"
                                                     onClick={(e) => {
                                                         e.stopPropagation()
                                                         setSelectedFeatureType(feature.type)
                                                         setShowCustomizeModal(true)
                                                     }}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' || e.key === ' ') {
+                                                            e.preventDefault()
+                                                            e.stopPropagation()
+                                                            setSelectedFeatureType(feature.type)
+                                                            setShowCustomizeModal(true)
+                                                        }
+                                                    }}
                                                     aria-label="Edit feature"
                                                 >
                                                     <Pencil size={14} />
-                                                </button>
+                                                </div>
                                             )}
                                             <IconComponent size={24} color="#5f6368" />
                                             <span className="feature-title">{feature.title}</span>
@@ -1266,6 +1275,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
             )}
 
             {/* Mindmap Modal */}
+            {/* Mindmap Modal */}
             {showMindmapModal && (
                 <div className="mindmap-modal-overlay" onClick={() => setShowMindmapModal(false)}>
                     <div className="mindmap-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -1280,74 +1290,14 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                 ×
                             </button>
                         </div>
-                        <div className="mindmap-container">
-                            <div className="mindmap-canvas">
-                                {/* Root Node - Left Side */}
-                                <div className="mindmap-root-node">
-                                    <div className="mindmap-node mindmap-node-central">
-                                        {getMindmapTree()?.root?.label || mindmapContent?.title || 'NỘI DUNG'}
-                                    </div>
+                        <div className="mindmap-container" style={{ height: '600px', width: '100%' }}>
+                            {mindmapContent?.content ? (
+                                <MindmapViewer data={mindmapContent.content} />
+                            ) : (
+                                <div className="mindmap-loading">
+                                    Đang tải nội dung...
                                 </div>
-
-                                {/* SVG for drawing edges */}
-                                <svg className="mindmap-svg">
-                                    {getMindmapTree()?.children?.map((node: any, index: number) => {
-                                        const children = getMindmapTree()?.children;
-                                        const totalChildren = children?.length ?? 1;
-                                        
-                                        // Root position (left side, centered vertically)
-                                        const rootX = 150;
-                                        const rootY = 50; // percentage
-                                        
-                                        // Child nodes position (right side, distributed vertically)
-                                        const childY = ((index + 1) / (totalChildren + 1)) * 100; // percentage
-                                        const childX = 450;
-                                        
-                                        return (
-                                            <line
-                                                key={`edge-${index}`}
-                                                x1={`${rootX}px`}
-                                                y1={`${rootY}%`}
-                                                x2={`${childX}px`}
-                                                y2={`${childY}%`}
-                                                stroke="#667eea"
-                                                strokeWidth="2"
-                                                opacity="0.6"
-                                            />
-                                        );
-                                    })}
-                                </svg>
-
-                                {/* Child Nodes - Right Side */}
-                                <div className="mindmap-children-container">
-                                    {getMindmapTree()?.children?.map((node: any, index: number) => {
-                                        const children = getMindmapTree()?.children;
-                                        const totalChildren = children?.length ?? 1;
-                                        const yPosition = ((index + 1) / (totalChildren + 1)) * 100;
-                                        
-                                        return (
-                                            <div
-                                                key={index}
-                                                className="mindmap-child-wrapper"
-                                                style={{
-                                                    top: `${yPosition}%`,
-                                                }}
-                                            >
-                                                <div className="mindmap-node mindmap-node-primary">
-                                                    {node.label}
-                                                    <button className="mindmap-expand-btn">›</button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-
-                                    {(!getMindmapTree()?.children || getMindmapTree()?.children.length === 0) && (
-                                        <div className="mindmap-loading">
-                                            {mindmapContent ? 'Không có nhánh con' : 'Đang tải...'}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                            )}
                         </div>
                         <div className="mindmap-modal-footer">
                             <button className="mindmap-action-btn">
@@ -1359,381 +1309,343 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                 Nội dung không phù hợp
                             </button>
                         </div>
-                        {/* <p className="mindmap-modal-notice">
-                            Notebook.M có thể đưa ra thông tin không chính xác; hãy kiểm tra kỹ cảu trả lời mà bạn nhận được
-                        </p> */}
                     </div>
                 </div>
             )}
 
             {/* Notecard (Flashcard) Modal */}
-            {showNotecardModal && (
-                <div className="notecard-modal-overlay" onClick={() => setShowNotecardModal(false)}>
-                    <div className="notecard-modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="notecard-modal-header">
-                            <h2 className="notecard-modal-title">{flashcardContent?.title || 'Thẻ ghi nhớ'}</h2>
-                            <p className="notecard-modal-subtitle">Dựa trên {flashcardContent?.cardCount || 0} thẻ</p>
-                            <button
-                                className="notecard-modal-close"
-                                onClick={() => setShowNotecardModal(false)}
-                                aria-label="Đóng"
-                            >
-                                ×
-                            </button>
-                        </div>
-
-                        <div className="notecard-instruction">
-                            Nhấn phím cách để lật thẻ, nhấn phím mũi tên ←/→ để đi chuyển
-                        </div>
-
-                        <div className="notecard-container">
-                            <button
-                                className="notecard-nav-btn notecard-nav-prev"
-                                onClick={() => {
-                                    setCurrentCardIndex(prev => Math.max(0, prev - 1))
-                                    setIsCardFlipped(false)
-                                }}
-                                disabled={currentCardIndex === 0}
-                            >
-                                ←
-                            </button>
-
-                            <div
-                                className={`notecard ${isCardFlipped ? 'flipped' : ''}`}
-                                onClick={() => setIsCardFlipped(!isCardFlipped)}
-                            >
-                                <div className="notecard-inner">
-                                    <div className="notecard-front">
-                                        <p className="notecard-text">
-                                            {flashcardContent?.cards?.[currentCardIndex]?.front || 'Đang tải...'}
-                                        </p>
-                                        <button className="notecard-flip-hint">Xem câu trả lời</button>
-                                    </div>
-                                    <div className="notecard-back">
-                                        <p className="notecard-text">
-                                            {flashcardContent?.cards?.[currentCardIndex]?.back || ''}
-                                        </p>
-                                    </div>
-                                </div>
+            {
+                showNotecardModal && (
+                    <div className="notecard-modal-overlay" onClick={() => setShowNotecardModal(false)}>
+                        <div className="notecard-modal-content" onClick={(e) => e.stopPropagation()}>
+                            <div className="notecard-modal-header">
+                                <h2 className="notecard-modal-title">{flashcardContent?.title || 'Thẻ ghi nhớ'}</h2>
+                                <p className="notecard-modal-subtitle">Dựa trên {flashcardContent?.cardCount || 0} thẻ</p>
+                                <button
+                                    className="notecard-modal-close"
+                                    onClick={() => setShowNotecardModal(false)}
+                                    aria-label="Đóng"
+                                >
+                                    ×
+                                </button>
                             </div>
 
-                            <button
-                                className="notecard-nav-btn notecard-nav-next"
-                                onClick={() => {
-                                    setCurrentCardIndex(prev => Math.min((flashcardContent?.cards?.length || 1) - 1, prev + 1))
-                                    setIsCardFlipped(false)
-                                }}
-                                disabled={currentCardIndex === (flashcardContent?.cards?.length || 1) - 1}
-                            >
-                                →
-                            </button>
-                        </div>
+                            <div className="notecard-instruction">
+                                Nhấn phím cách để lật thẻ, nhấn phím mũi tên ←/→ để đi chuyển
+                            </div>
 
-                        <div className="notecard-progress">
-                            <button className="notecard-shuffle-btn">
-                                <span>🔄</span>
-                                Bắt đầu lại
-                            </button>
-                            <span className="notecard-counter">{currentCardIndex + 1} / 105 thẻ</span>
-                        </div>
+                            <div className="notecard-container">
+                                <button
+                                    className="notecard-nav-btn notecard-nav-prev"
+                                    onClick={() => {
+                                        setCurrentCardIndex(prev => Math.max(0, prev - 1))
+                                        setIsCardFlipped(false)
+                                    }}
+                                    disabled={currentCardIndex === 0}
+                                >
+                                    ←
+                                </button>
 
-                        <div className="notecard-modal-footer">
-                            <button className="notecard-action-btn">
-                                <ThumbsUp size={18} />
-                                Nội dung hữu ích
-                            </button>
-                            <button className="notecard-action-btn">
-                                <ThumbsDown size={18} />
-                                Nội dung không phù hợp
-                            </button>
-                        </div>
+                                <div
+                                    className={`notecard ${isCardFlipped ? 'flipped' : ''}`}
+                                    onClick={() => setIsCardFlipped(!isCardFlipped)}
+                                >
+                                    <div className="notecard-inner">
+                                        <div className="notecard-front">
+                                            <p className="notecard-text">
+                                                {flashcardContent?.cards?.[currentCardIndex]?.front || 'Đang tải...'}
+                                            </p>
+                                            <button className="notecard-flip-hint">Xem câu trả lời</button>
+                                        </div>
+                                        <div className="notecard-back">
+                                            <p className="notecard-text">
+                                                {flashcardContent?.cards?.[currentCardIndex]?.back || ''}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
 
-                        <p className="notecard-modal-notice">
-                            Notebook.M có thể đưa ra thông tin không chính xác; hãy kiểm tra kỹ câu trả lời mà bạn nhận được
-                        </p>
+                                <button
+                                    className="notecard-nav-btn notecard-nav-next"
+                                    onClick={() => {
+                                        setCurrentCardIndex(prev => Math.min((flashcardContent?.cards?.length || 1) - 1, prev + 1))
+                                        setIsCardFlipped(false)
+                                    }}
+                                    disabled={currentCardIndex === (flashcardContent?.cards?.length || 1) - 1}
+                                >
+                                    →
+                                </button>
+                            </div>
+
+                            <div className="notecard-progress">
+                                <button className="notecard-shuffle-btn">
+                                    <span>🔄</span>
+                                    Bắt đầu lại
+                                </button>
+                                <span className="notecard-counter">{currentCardIndex + 1} / 105 thẻ</span>
+                            </div>
+
+                            <div className="notecard-modal-footer">
+                                <button className="notecard-action-btn">
+                                    <ThumbsUp size={18} />
+                                    Nội dung hữu ích
+                                </button>
+                                <button className="notecard-action-btn">
+                                    <ThumbsDown size={18} />
+                                    Nội dung không phù hợp
+                                </button>
+                            </div>
+
+                            <p className="notecard-modal-notice">
+                                Notebook.M có thể đưa ra thông tin không chính xác; hãy kiểm tra kỹ câu trả lời mà bạn nhận được
+                            </p>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Quiz Modal */}
-            {showQuizModal && (
-                <div className="quiz-modal-overlay" onClick={() => setShowQuizModal(false)}>
-                    <div className="quiz-modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="quiz-modal-header">
-                            <h2 className="quiz-modal-title">Triết học Trắc nghiệm</h2>
-                            <p className="quiz-modal-subtitle">Dựa trên 1 nguồn</p>
-                            <div className="quiz-modal-header-actions">
-                                {selectedQuizId && (
-                                    <button
-                                        className="quiz-modal-minimize"
-                                        onClick={() => {
-                                            setShowQuizModal(false)
-                                            setShowQuizSideModal(true)
-                                        }}
-                                        aria-label="Thu nhỏ"
-                                        title="Thu nhỏ"
-                                    >
-                                        <Minimize2 size={20} />
-                                    </button>
-                                )}
-                                {/* <button 
+            {
+                showQuizModal && (
+                    <div className="quiz-modal-overlay" onClick={() => setShowQuizModal(false)}>
+                        <div className="quiz-modal-content" onClick={(e) => e.stopPropagation()}>
+                            <div className="quiz-modal-header">
+                                <h2 className="quiz-modal-title">Triết học Trắc nghiệm</h2>
+                                <p className="quiz-modal-subtitle">Dựa trên 1 nguồn</p>
+                                <div className="quiz-modal-header-actions">
+                                    {selectedQuizId && (
+                                        <button
+                                            className="quiz-modal-minimize"
+                                            onClick={() => {
+                                                setShowQuizModal(false)
+                                                setShowQuizSideModal(true)
+                                            }}
+                                            aria-label="Thu nhỏ"
+                                            title="Thu nhỏ"
+                                        >
+                                            <Minimize2 size={20} />
+                                        </button>
+                                    )}
+                                    {/* <button 
                                     className="quiz-modal-close" 
                                     onClick={() => setShowQuizModal(false)}
                                     aria-label="Đóng"
                                 >
                                     ×
                                 </button> */}
-                            </div>
-                        </div>
-
-                        <div className="quiz-progress-bar">
-                            <div className="quiz-progress-indicator">
-                                {currentQuestionIndex + 1} / {quizContent?.questions?.length || 0}
-                            </div>
-                        </div>
-
-                        <div className="quiz-container">
-                            <div className="quiz-question">
-                                <p className="quiz-question-text">
-                                    {quizContent?.questions?.[currentQuestionIndex]?.question || 'Đang tải câu hỏi...'}
-                                </p>
+                                </div>
                             </div>
 
-                            <div className="quiz-answers">
-                                {quizContent?.questions?.[currentQuestionIndex]?.options?.map((option: string, idx: number) => {
-                                    const label = String.fromCharCode(65 + idx); // A, B, C, D...
-                                    return (
-                                        <button
-                                            key={idx}
-                                            className={`quiz-answer-option ${selectedAnswers[currentQuestionIndex] === label ? 'selected' : ''}`}
-                                            onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: label })}
-                                        >
-                                            <span className="quiz-answer-label">{label}.</span>
-                                            <span className="quiz-answer-text">
-                                                {option}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
+                            <div className="quiz-progress-bar">
+                                <div className="quiz-progress-indicator">
+                                    {currentQuestionIndex + 1} / {quizContent?.questions?.length || 0}
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="quiz-navigation">
-                            <button
-                                className="quiz-nav-btn quiz-hint-btn"
-                                onClick={() => {
-                                    // Toggle hint functionality
-                                }}
-                            >
-                                Gợi ý
-                            </button>
-                            <button
-                                className="quiz-nav-btn quiz-next-btn"
-                                onClick={() => {
-                                    if (currentQuestionIndex < (quizContent?.questions?.length || 1) - 1) {
-                                        setCurrentQuestionIndex(prev => prev + 1)
-                                    }
-                                }}
-                            >
-                                Tiếp theo
-                            </button>
-                        </div>
+                            <div className="quiz-container">
+                                <div className="quiz-question">
+                                    <p className="quiz-question-text">
+                                        {quizContent?.questions?.[currentQuestionIndex]?.question || 'Đang tải câu hỏi...'}
+                                    </p>
+                                </div>
 
-                        <div className="quiz-modal-footer">
-                            <button className="quiz-feedback-btn">
-                                <ThumbsUp size={18} />
-                                Nội dung hữu ích
-                            </button>
-                            <button className="quiz-feedback-btn">
-                                <ThumbsDown size={18} />
-                                Nội dung không phù hợp
-                            </button>
-                        </div>
+                                <div className="quiz-answers">
+                                    {quizContent?.questions?.[currentQuestionIndex]?.options?.map((option: string, idx: number) => {
+                                        const label = String.fromCharCode(65 + idx); // A, B, C, D...
+                                        return (
+                                            <button
+                                                key={idx}
+                                                className={`quiz-answer-option ${selectedAnswers[currentQuestionIndex] === label ? 'selected' : ''}`}
+                                                onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: label })}
+                                            >
+                                                <span className="quiz-answer-label">{label}.</span>
+                                                <span className="quiz-answer-text">
+                                                    {option}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
 
-                        {/* <p className="quiz-modal-notice">
-                            Notebook.M có thể đưa ra thông tin không chính xác; hãy kiểm tra kỹ câu trả lời mà bạn nhận được
-                        </p> */}
-                    </div>
-                </div>
-            )}
-
-            {/* Quiz Side Modal - Positioned next to sidebar */}
-            {showQuizSideModal && (
-                <div className="quiz-side-modal-overlay">
-                    <div className="quiz-side-modal-content">
-                        <div className="quiz-side-modal-header">
-                            <h2 className="quiz-side-modal-title">Bài kiểm tra</h2>
-                            <div className="quiz-side-modal-actions">
+                            <div className="quiz-navigation">
                                 <button
-                                    className="quiz-side-expand-btn"
+                                    className="quiz-nav-btn quiz-hint-btn"
                                     onClick={() => {
-                                        setShowQuizSideModal(false)
-                                        setShowQuizModal(true)
+                                        // Toggle hint functionality
                                     }}
-                                    aria-label="Mở rộng"
                                 >
-                                    <Maximize2 size={18} />
+                                    Gợi ý
                                 </button>
                                 <button
-                                    className="quiz-side-modal-close"
-                                    onClick={() => setShowQuizSideModal(false)}
+                                    className="quiz-nav-btn quiz-next-btn"
+                                    onClick={() => {
+                                        if (currentQuestionIndex < (quizContent?.questions?.length || 1) - 1) {
+                                            setCurrentQuestionIndex(prev => prev + 1)
+                                        }
+                                    }}
+                                >
+                                    Tiếp theo
+                                </button>
+                            </div>
+
+                            <div className="quiz-modal-footer">
+                                <button className="quiz-feedback-btn">
+                                    <ThumbsUp size={18} />
+                                    Nội dung hữu ích
+                                </button>
+                                <button className="quiz-feedback-btn">
+                                    <ThumbsDown size={18} />
+                                    Nội dung không phù hợp
+                                </button>
+                            </div>
+
+                            {/* <p className="quiz-modal-notice">
+                            Notebook.M có thể đưa ra thông tin không chính xác; hãy kiểm tra kỹ câu trả lời mà bạn nhận được
+                        </p> */}
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Quiz Side Modal - Positioned next to sidebar */}
+            {
+                showQuizSideModal && (
+                    <div className="quiz-side-modal-overlay">
+                        <div className="quiz-side-modal-content">
+                            <div className="quiz-side-modal-header">
+                                <h2 className="quiz-side-modal-title">Bài kiểm tra</h2>
+                                <div className="quiz-side-modal-actions">
+                                    <button
+                                        className="quiz-side-expand-btn"
+                                        onClick={() => {
+                                            setShowQuizSideModal(false)
+                                            setShowQuizModal(true)
+                                        }}
+                                        aria-label="Mở rộng"
+                                    >
+                                        <Maximize2 size={18} />
+                                    </button>
+                                    <button
+                                        className="quiz-side-modal-close"
+                                        onClick={() => setShowQuizSideModal(false)}
+                                        aria-label="Đóng"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="quiz-side-progress-bar">
+                                <div className="quiz-side-progress-text">
+                                    Câu {currentQuestionIndex + 1} / {quizContent?.questions?.length || 0}
+                                </div>
+                            </div>
+
+                            <div className="quiz-side-container">
+                                <div className="quiz-side-question">
+                                    <p className="quiz-side-question-text">
+                                        {quizContent?.questions?.[currentQuestionIndex]?.question || 'Đang tải câu hỏi...'}
+                                    </p>
+                                </div>
+
+                                <div className="quiz-side-answers">
+                                    {quizContent?.questions?.[currentQuestionIndex]?.options?.map((option: string, idx: number) => {
+                                        const label = String.fromCharCode(65 + idx); // A, B, C, D...
+                                        return (
+                                            <button
+                                                key={idx}
+                                                className={`quiz-side-answer-option ${selectedAnswers[currentQuestionIndex] === label ? 'selected' : ''}`}
+                                                onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: label })}
+                                            >
+                                                <span className="quiz-side-answer-label">{label}.</span>
+                                                <span className="quiz-side-answer-text">
+                                                    {option}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="quiz-side-navigation">
+                                <button
+                                    className="quiz-side-nav-btn quiz-side-hint-btn"
+                                    onClick={() => {
+                                        // Toggle hint functionality
+                                    }}
+                                >
+                                    Gợi ý
+                                </button>
+                                <button
+                                    className="quiz-side-nav-btn quiz-side-next-btn"
+                                    onClick={() => {
+                                        if (currentQuestionIndex < (quizContent?.questions?.length || 1) - 1) {
+                                            setCurrentQuestionIndex(prev => prev + 1)
+                                        }
+                                    }}
+                                >
+                                    Tiếp theo
+                                </button>
+                            </div>
+
+                            <div className="quiz-side-modal-footer">
+                                <button className="quiz-side-feedback-btn">
+                                    <ThumbsUp size={18} />
+                                    Hữu ích
+                                </button>
+                                <button className="quiz-side-feedback-btn">
+                                    <ThumbsDown size={18} />
+                                    Không phù hợp
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Customize Feature Modal */}
+            {
+                showCustomizeModal && (
+                    <div className="modal-overlay" onClick={() => setShowCustomizeModal(false)}>
+                        <div className="customize-modal-content" style={{ maxWidth: '1000px' }} onClick={(e) => e.stopPropagation()}>
+                            <div className="customize-modal-header">
+                                <div className="customize-modal-title-wrapper">
+                                    <ClipboardCheck size={24} color="#5f6368" />
+                                    <h3 className="customize-modal-title">Tùy chỉnh thẻ thông tin</h3>
+                                </div>
+                                <button
+                                    className="customize-modal-close"
+                                    onClick={() => setShowCustomizeModal(false)}
                                     aria-label="Đóng"
                                 >
                                     ×
                                 </button>
                             </div>
-                        </div>
 
-                        <div className="quiz-side-progress-bar">
-                            <div className="quiz-side-progress-text">
-                                Câu {currentQuestionIndex + 1} / {quizContent?.questions?.length || 0}
+                            {/* Tabs */}
+                            <div className="customize-tabs">
+                                <button
+                                    className={`customize-tab ${customizeTab === 'conversation' ? 'active' : ''}`}
+                                    onClick={() => setCustomizeTab('conversation')}
+                                >
+                                    Theo nội dung cuộc trò chuyện
+                                </button>
+                                <button
+                                    className={`customize-tab ${customizeTab === 'course' ? 'active' : ''}`}
+                                    onClick={() => setCustomizeTab('course')}
+                                >
+                                    Theo mã môn học
+                                </button>
                             </div>
-                        </div>
 
-                        <div className="quiz-side-container">
-                            <div className="quiz-side-question">
-                                <p className="quiz-side-question-text">
-                                    {quizContent?.questions?.[currentQuestionIndex]?.question || 'Đang tải câu hỏi...'}
-                                </p>
-                            </div>
-
-                            <div className="quiz-side-answers">
-                                {quizContent?.questions?.[currentQuestionIndex]?.options?.map((option: string, idx: number) => {
-                                    const label = String.fromCharCode(65 + idx); // A, B, C, D...
-                                    return (
-                                        <button
-                                            key={idx}
-                                            className={`quiz-side-answer-option ${selectedAnswers[currentQuestionIndex] === label ? 'selected' : ''}`}
-                                            onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: label })}
-                                        >
-                                            <span className="quiz-side-answer-label">{label}.</span>
-                                            <span className="quiz-side-answer-text">
-                                                {option}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        <div className="quiz-side-navigation">
-                            <button
-                                className="quiz-side-nav-btn quiz-side-hint-btn"
-                                onClick={() => {
-                                    // Toggle hint functionality
-                                }}
-                            >
-                                Gợi ý
-                            </button>
-                            <button
-                                className="quiz-side-nav-btn quiz-side-next-btn"
-                                onClick={() => {
-                                    if (currentQuestionIndex < (quizContent?.questions?.length || 1) - 1) {
-                                        setCurrentQuestionIndex(prev => prev + 1)
-                                    }
-                                }}
-                            >
-                                Tiếp theo
-                            </button>
-                        </div>
-
-                        <div className="quiz-side-modal-footer">
-                            <button className="quiz-side-feedback-btn">
-                                <ThumbsUp size={18} />
-                                Hữu ích
-                            </button>
-                            <button className="quiz-side-feedback-btn">
-                                <ThumbsDown size={18} />
-                                Không phù hợp
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Customize Feature Modal */}
-            {showCustomizeModal && (
-                <div className="modal-overlay" onClick={() => setShowCustomizeModal(false)}>
-                    <div className="customize-modal-content" style={{ maxWidth: '1000px' }} onClick={(e) => e.stopPropagation()}>
-                        <div className="customize-modal-header">
-                            <div className="customize-modal-title-wrapper">
-                                <ClipboardCheck size={24} color="#5f6368" />
-                                <h3 className="customize-modal-title">Tùy chỉnh thẻ thông tin</h3>
-                            </div>
-                            <button
-                                className="customize-modal-close"
-                                onClick={() => setShowCustomizeModal(false)}
-                                aria-label="Đóng"
-                            >
-                                ×
-                            </button>
-                        </div>
-
-                        {/* Tabs */}
-                        <div className="customize-tabs">
-                            <button
-                                className={`customize-tab ${customizeTab === 'conversation' ? 'active' : ''}`}
-                                onClick={() => setCustomizeTab('conversation')}
-                            >
-                                Theo nội dung cuộc trò chuyện
-                            </button>
-                            <button
-                                className={`customize-tab ${customizeTab === 'course' ? 'active' : ''}`}
-                                onClick={() => setCustomizeTab('course')}
-                            >
-                                Theo mã môn học
-                            </button>
-                        </div>
-
-                        <div className="customize-modal-body">
-                            {customizeTab === 'conversation' ? (
-                                <>
-                                    {/* Số lượng thẻ */}
-                                    <div className="customize-section">
-                                        <h4 className="customize-section-title">Số lượng thẻ</h4>
-                                        <div className="customize-options" style={{ maxWidth: '50%' }}>
-                                            <button
-                                                className={`customize-option-btn ${cardQuantity === 3 ? 'selected' : ''}`}
-                                                onClick={() => setCardQuantity(3)}
-                                            >
-                                                Ít hơn
-                                            </button>
-                                            <button
-                                                className={`customize-option-btn ${cardQuantity === 6 ? 'selected' : ''}`}
-                                                onClick={() => setCardQuantity(6)}
-                                            >
-                                                Tiêu chuẩn
-                                            </button>
-                                            <button
-                                                className={`customize-option-btn ${cardQuantity === 9 ? 'selected' : ''}`}
-                                                onClick={() => setCardQuantity(9)}
-                                            >
-                                                Nhiều hơn
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Chủ đề nên là gì */}
-                                    <div className="customize-section">
-                                        <h4 className="customize-section-title">Mô tả</h4>
-                                        <textarea
-                                            className="customize-textarea"
-                                            style={{ maxWidth: '98%' }}
-                                            placeholder="Mô tả ngắn gọn về chủ đề"
-                                            value={cardTopic}
-                                            onChange={(e) => setCardTopic(e.target.value)}
-                                            rows={6}
-                                        />
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    {/* Số lượng thẻ và Mã môn học trên cùng một hàng */}
-                                    <div className="customize-row">
+                            <div className="customize-modal-body">
+                                {customizeTab === 'conversation' ? (
+                                    <>
                                         {/* Số lượng thẻ */}
                                         <div className="customize-section">
                                             <h4 className="customize-section-title">Số lượng thẻ</h4>
-                                            <div className="customize-options">
+                                            <div className="customize-options" style={{ maxWidth: '50%' }}>
                                                 <button
                                                     className={`customize-option-btn ${cardQuantity === 3 ? 'selected' : ''}`}
                                                     onClick={() => setCardQuantity(3)}
@@ -1755,224 +1667,269 @@ OOP mang lại nhiều lợi thế, bao gồm:
                                             </div>
                                         </div>
 
-
-                                        {/* Môn học */}
+                                        {/* Chủ đề nên là gì */}
                                         <div className="customize-section">
-                                            <h4 className="customize-section-title">Chọn môn học</h4>
-                                            <div className="course-code-dropdown">
-                                                <input
-                                                    type="text"
-                                                    className="course-code-search"
-                                                    placeholder="Tìm kiếm môn học (VD: SUB101, PRO...)"
-                                                    value={courseSearchQuery}
-                                                    onChange={(e) => {
-                                                        setCourseSearchQuery(e.target.value)
-                                                        setShowCourseDropdown(true)
-                                                    }}
-                                                    onFocus={() => setShowCourseDropdown(true)}
-                                                />
-                                                {courseSearchQuery && showCourseDropdown && (
-                                                    <div className="course-code-options">
-                                                        {subjects
-                                                            .filter((subject: Subject) =>
+                                            <h4 className="customize-section-title">Mô tả</h4>
+                                            <textarea
+                                                className="customize-textarea"
+                                                style={{ maxWidth: '98%' }}
+                                                placeholder="Mô tả ngắn gọn về chủ đề"
+                                                value={cardTopic}
+                                                onChange={(e) => setCardTopic(e.target.value)}
+                                                rows={6}
+                                            />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        {/* Số lượng thẻ và Mã môn học trên cùng một hàng */}
+                                        <div className="customize-row">
+                                            {/* Số lượng thẻ */}
+                                            <div className="customize-section">
+                                                <h4 className="customize-section-title">Số lượng thẻ</h4>
+                                                <div className="customize-options">
+                                                    <button
+                                                        className={`customize-option-btn ${cardQuantity === 3 ? 'selected' : ''}`}
+                                                        onClick={() => setCardQuantity(3)}
+                                                    >
+                                                        Ít hơn
+                                                    </button>
+                                                    <button
+                                                        className={`customize-option-btn ${cardQuantity === 6 ? 'selected' : ''}`}
+                                                        onClick={() => setCardQuantity(6)}
+                                                    >
+                                                        Tiêu chuẩn
+                                                    </button>
+                                                    <button
+                                                        className={`customize-option-btn ${cardQuantity === 9 ? 'selected' : ''}`}
+                                                        onClick={() => setCardQuantity(9)}
+                                                    >
+                                                        Nhiều hơn
+                                                    </button>
+                                                </div>
+                                            </div>
+
+
+                                            {/* Môn học */}
+                                            <div className="customize-section">
+                                                <h4 className="customize-section-title">Chọn môn học</h4>
+                                                <div className="course-code-dropdown">
+                                                    <input
+                                                        type="text"
+                                                        className="course-code-search"
+                                                        placeholder="Tìm kiếm môn học (VD: SUB101, PRO...)"
+                                                        value={courseSearchQuery}
+                                                        onChange={(e) => {
+                                                            setCourseSearchQuery(e.target.value)
+                                                            setShowCourseDropdown(true)
+                                                        }}
+                                                        onFocus={() => setShowCourseDropdown(true)}
+                                                    />
+                                                    {courseSearchQuery && showCourseDropdown && (
+                                                        <div className="course-code-options">
+                                                            {subjects
+                                                                .filter((subject: Subject) =>
+                                                                    subject.code?.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
+                                                                    subject.name?.toLowerCase().includes(courseSearchQuery.toLowerCase())
+                                                                )
+                                                                .map((subject: Subject) => (
+                                                                    <button
+                                                                        key={subject.subjectId}
+                                                                        className="course-code-option"
+                                                                        onClick={() => {
+                                                                            setSelectedSubjectIds([subject.subjectId])
+                                                                            setSelectedCourseCode(subject.code)
+                                                                            setCourseSearchQuery(`${subject.code} - ${subject.name}`)
+                                                                            setShowCourseDropdown(false)
+                                                                        }}
+                                                                    >
+                                                                        <span className="course-code">{subject.code}</span>
+                                                                        <span className="course-name">{subject.name}</span>
+                                                                    </button>
+                                                                ))
+                                                            }
+                                                            {subjects.filter((subject: Subject) =>
                                                                 subject.code?.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
                                                                 subject.name?.toLowerCase().includes(courseSearchQuery.toLowerCase())
-                                                            )
-                                                            .map((subject: Subject) => (
-                                                                <button
-                                                                    key={subject.subjectId}
-                                                                    className="course-code-option"
-                                                                    onClick={() => {
-                                                                        setSelectedSubjectIds([subject.subjectId])
-                                                                        setSelectedCourseCode(subject.code)
-                                                                        setCourseSearchQuery(`${subject.code} - ${subject.name}`)
-                                                                        setShowCourseDropdown(false)
-                                                                    }}
-                                                                >
-                                                                    <span className="course-code">{subject.code}</span>
-                                                                    <span className="course-name">{subject.name}</span>
-                                                                </button>
-                                                            ))
-                                                        }
-                                                        {subjects.filter((subject: Subject) =>
-                                                            subject.code?.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
-                                                            subject.name?.toLowerCase().includes(courseSearchQuery.toLowerCase())
-                                                        ).length === 0 && (
-                                                                <div className="course-code-no-results">
-                                                                    Không tìm thấy môn học
-                                                                </div>
-                                                            )}
-                                                    </div>
-                                                )}
+                                                            ).length === 0 && (
+                                                                    <div className="course-code-no-results">
+                                                                        Không tìm thấy môn học
+                                                                    </div>
+                                                                )}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    {/* Mô tả */}
-                                    <div className="customize-section">
-                                        <h4 className="customize-section-title">Mô tả</h4>
-                                        <textarea
-                                            className="customize-textarea"
-                                            style={{ maxWidth: '98%' }}
-                                            placeholder="Mô tả ngắn gọn về chủ đề"
-                                            value={cardTopic}
-                                            onChange={(e) => setCardTopic(e.target.value)}
-                                            rows={6}
-                                        />
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                                        {/* Mô tả */}
+                                        <div className="customize-section">
+                                            <h4 className="customize-section-title">Mô tả</h4>
+                                            <textarea
+                                                className="customize-textarea"
+                                                style={{ maxWidth: '98%' }}
+                                                placeholder="Mô tả ngắn gọn về chủ đề"
+                                                value={cardTopic}
+                                                onChange={(e) => setCardTopic(e.target.value)}
+                                                rows={6}
+                                            />
+                                        </div>
+                                    </>
+                                )}
+                            </div>
 
-                        <div className="customize-modal-footer">
-                            <button
-                                className="customize-create-btn"
-                                onClick={handleCustomizeSubmit}
-                            >
-                                Tạo
-                            </button>
+                            <div className="customize-modal-footer">
+                                <button
+                                    className="customize-create-btn"
+                                    onClick={handleCustomizeSubmit}
+                                >
+                                    Tạo
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Share Modal */}
-            {showShareModal && (
-                <div className="modal-overlay" onClick={() => setShowShareModal(false)}>
-                    <div className="share-modal-content" onClick={(e) => e.stopPropagation()} ref={shareModalRef}>
-                        <div className="share-modal-header">
-                            <div className="share-modal-title-section">
-                                <Share2 size={20} color="#5f6368" />
-                                <h3 className="share-modal-title">Chia sẻ cuộc trò chuyện</h3>
-                            </div>
-                            <button
-                                className="share-modal-close"
-                                onClick={() => setShowShareModal(false)}
-                                aria-label="Đóng"
-                            >
-                                ×
-                            </button>
-                        </div>
-
-                        <div className="share-modal-body">
-                            {/* Add people input */}
-                            <div className="share-input-section">
-                                <input
-                                    type="email"
-                                    className="share-email-input"
-                                    placeholder="Thêm người dùng và nhóm*"
-                                    value={shareEmail}
-                                    onChange={(e) => setShareEmail(e.target.value)}
-                                />
+            {
+                showShareModal && (
+                    <div className="modal-overlay" onClick={() => setShowShareModal(false)}>
+                        <div className="share-modal-content" onClick={(e) => e.stopPropagation()} ref={shareModalRef}>
+                            <div className="share-modal-header">
+                                <div className="share-modal-title-section">
+                                    <Share2 size={20} color="#5f6368" />
+                                    <h3 className="share-modal-title">Chia sẻ cuộc trò chuyện</h3>
+                                </div>
+                                <button
+                                    className="share-modal-close"
+                                    onClick={() => setShowShareModal(false)}
+                                    aria-label="Đóng"
+                                >
+                                    ×
+                                </button>
                             </div>
 
-                            {/* People with access */}
-                            <div className="share-access-section">
-                                <h4 className="share-section-title">Người có quyền truy cập</h4>
-                                <div className="share-user-item">
-                                    <div className="share-user-avatar">
-                                        <img
-                                            src="https://ui-avatars.com/api/?name=Ha+Nguyen&background=4285F4&color=fff&size=40"
-                                            alt="Hà Nguyễn"
-                                        />
+                            <div className="share-modal-body">
+                                {/* Add people input */}
+                                <div className="share-input-section">
+                                    <input
+                                        type="email"
+                                        className="share-email-input"
+                                        placeholder="Thêm người dùng và nhóm*"
+                                        value={shareEmail}
+                                        onChange={(e) => setShareEmail(e.target.value)}
+                                    />
+                                </div>
+
+                                {/* People with access */}
+                                <div className="share-access-section">
+                                    <h4 className="share-section-title">Người có quyền truy cập</h4>
+                                    <div className="share-user-item">
+                                        <div className="share-user-avatar">
+                                            <img
+                                                src="https://ui-avatars.com/api/?name=Ha+Nguyen&background=4285F4&color=fff&size=40"
+                                                alt="Hà Nguyễn"
+                                            />
+                                        </div>
+                                        <div className="share-user-info">
+                                            <div className="share-user-name">Ha Nguyen</div>
+                                            <div className="share-user-email">khanhhanguyen1123@gmail...</div>
+                                        </div>
+                                        <div className="share-user-role">
+                                            <select className="share-role-select" disabled>
+                                                <option value="owner">Chủ sở hữu</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div className="share-user-info">
-                                        <div className="share-user-name">Ha Nguyen</div>
-                                        <div className="share-user-email">khanhhanguyen1123@gmail...</div>
-                                    </div>
-                                    <div className="share-user-role">
-                                        <select className="share-role-select" disabled>
-                                            <option value="owner">Chủ sở hữu</option>
-                                        </select>
+                                </div>
+
+                                {/* General access */}
+                                <div className="share-general-section">
+                                    <h4 className="share-section-title">Quyền truy cập chung</h4>
+                                    <div className="share-access-control" ref={accessDropdownRef}>
+                                        <div className="share-access-icon">
+                                            {generalAccess === 'restricted' ? '🔒' : '🌐'}
+                                        </div>
+                                        <div className="share-access-info">
+                                            <div className="share-access-title">
+                                                {generalAccess === 'restricted' ? 'Bị hạn chế' : 'Bất kỳ ai có đường liên kết'}
+                                            </div>
+                                            <div className="share-access-description">
+                                                {generalAccess === 'restricted'
+                                                    ? 'Chỉ những người có quyền truy cập mới có thể mở bằng đường liên kết này'
+                                                    : 'Bất kỳ ai có đường liên kết đều có thể xem'
+                                                }
+                                            </div>
+                                        </div>
+                                        <button
+                                            className="share-access-dropdown"
+                                            onClick={() => setShowAccessDropdown(!showAccessDropdown)}
+                                        >
+                                            <ChevronDown size={20} />
+                                        </button>
+
+                                        {/* Access Dropdown Menu */}
+                                        {showAccessDropdown && (
+                                            <div className="share-access-dropdown-menu">
+                                                <button
+                                                    className={`share-access-option ${generalAccess === 'restricted' ? 'active' : ''}`}
+                                                    onClick={() => {
+                                                        setGeneralAccess('restricted')
+                                                        setShowAccessDropdown(false)
+                                                    }}
+                                                >
+                                                    <div className="share-access-option-icon">🔒</div>
+                                                    <div className="share-access-option-info">
+                                                        <div className="share-access-option-title">Bị hạn chế</div>
+                                                        <div className="share-access-option-desc">
+                                                            Chỉ những người được thêm mới có quyền truy cập
+                                                        </div>
+                                                    </div>
+                                                    {generalAccess === 'restricted' && (
+                                                        <div className="share-access-option-check">✓</div>
+                                                    )}
+                                                </button>
+                                                <button
+                                                    className={`share-access-option ${generalAccess === 'anyone' ? 'active' : ''}`}
+                                                    onClick={() => {
+                                                        setGeneralAccess('anyone')
+                                                        setShowAccessDropdown(false)
+                                                    }}
+                                                >
+                                                    <div className="share-access-option-icon">🌐</div>
+                                                    <div className="share-access-option-info">
+                                                        <div className="share-access-option-title">Bất kỳ ai có đường liên kết</div>
+                                                        <div className="share-access-option-desc">
+                                                            Bất kỳ ai có đường liên kết đều có thể xem
+                                                        </div>
+                                                    </div>
+                                                    {generalAccess === 'anyone' && (
+                                                        <div className="share-access-option-check">✓</div>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
 
-                            {/* General access */}
-                            <div className="share-general-section">
-                                <h4 className="share-section-title">Quyền truy cập chung</h4>
-                                <div className="share-access-control" ref={accessDropdownRef}>
-                                    <div className="share-access-icon">
-                                        {generalAccess === 'restricted' ? '🔒' : '🌐'}
-                                    </div>
-                                    <div className="share-access-info">
-                                        <div className="share-access-title">
-                                            {generalAccess === 'restricted' ? 'Bị hạn chế' : 'Bất kỳ ai có đường liên kết'}
-                                        </div>
-                                        <div className="share-access-description">
-                                            {generalAccess === 'restricted'
-                                                ? 'Chỉ những người có quyền truy cập mới có thể mở bằng đường liên kết này'
-                                                : 'Bất kỳ ai có đường liên kết đều có thể xem'
-                                            }
-                                        </div>
-                                    </div>
-                                    <button
-                                        className="share-access-dropdown"
-                                        onClick={() => setShowAccessDropdown(!showAccessDropdown)}
-                                    >
-                                        <ChevronDown size={20} />
-                                    </button>
-
-                                    {/* Access Dropdown Menu */}
-                                    {showAccessDropdown && (
-                                        <div className="share-access-dropdown-menu">
-                                            <button
-                                                className={`share-access-option ${generalAccess === 'restricted' ? 'active' : ''}`}
-                                                onClick={() => {
-                                                    setGeneralAccess('restricted')
-                                                    setShowAccessDropdown(false)
-                                                }}
-                                            >
-                                                <div className="share-access-option-icon">🔒</div>
-                                                <div className="share-access-option-info">
-                                                    <div className="share-access-option-title">Bị hạn chế</div>
-                                                    <div className="share-access-option-desc">
-                                                        Chỉ những người được thêm mới có quyền truy cập
-                                                    </div>
-                                                </div>
-                                                {generalAccess === 'restricted' && (
-                                                    <div className="share-access-option-check">✓</div>
-                                                )}
-                                            </button>
-                                            <button
-                                                className={`share-access-option ${generalAccess === 'anyone' ? 'active' : ''}`}
-                                                onClick={() => {
-                                                    setGeneralAccess('anyone')
-                                                    setShowAccessDropdown(false)
-                                                }}
-                                            >
-                                                <div className="share-access-option-icon">🌐</div>
-                                                <div className="share-access-option-info">
-                                                    <div className="share-access-option-title">Bất kỳ ai có đường liên kết</div>
-                                                    <div className="share-access-option-desc">
-                                                        Bất kỳ ai có đường liên kết đều có thể xem
-                                                    </div>
-                                                </div>
-                                                {generalAccess === 'anyone' && (
-                                                    <div className="share-access-option-check">✓</div>
-                                                )}
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
+                            <div className="share-modal-footer">
+                                <button className="share-copy-link-btn" onClick={handleCopyLink}>
+                                    <LinkIcon size={18} />
+                                    Sao chép đường liên kết
+                                </button>
+                                <button
+                                    className="share-done-btn"
+                                    onClick={() => setShowShareModal(false)}
+                                >
+                                    Lưu
+                                </button>
                             </div>
-                        </div>
-
-                        <div className="share-modal-footer">
-                            <button className="share-copy-link-btn" onClick={handleCopyLink}>
-                                <LinkIcon size={18} />
-                                Sao chép đường liên kết
-                            </button>
-                            <button
-                                className="share-done-btn"
-                                onClick={() => setShowShareModal(false)}
-                            >
-                                Lưu
-                            </button>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     )
 }
