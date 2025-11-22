@@ -10,6 +10,8 @@ interface QuizSideModalProps {
     onAnswerSelect: (index: number, answer: string) => void
     onNext: () => void
     onExpand: () => void
+    onSubmit?: () => void
+    isSubmitting?: boolean
 }
 
 export const QuizSideModal: React.FC<QuizSideModalProps> = ({
@@ -20,9 +22,13 @@ export const QuizSideModal: React.FC<QuizSideModalProps> = ({
     selectedAnswers,
     onAnswerSelect,
     onNext,
-    onExpand
+    onExpand,
+    onSubmit,
+    isSubmitting = false
 }) => {
     if (!isOpen) return null
+
+    const isLastQuestion = currentQuestionIndex === (content?.questions?.length || 0) - 1
 
     return (
         <div className="quiz-side-modal-overlay">
@@ -83,12 +89,22 @@ export const QuizSideModal: React.FC<QuizSideModalProps> = ({
                     <button className="quiz-side-nav-btn quiz-side-hint-btn">
                         Gợi ý
                     </button>
-                    <button
-                        className="quiz-side-nav-btn quiz-side-next-btn"
-                        onClick={onNext}
-                    >
-                        Tiếp theo
-                    </button>
+                    {onSubmit && isLastQuestion ? (
+                        <button
+                            className="quiz-side-nav-btn quiz-side-submit-btn"
+                            onClick={onSubmit}
+                            disabled={isSubmitting || !selectedAnswers[currentQuestionIndex]}
+                        >
+                            {isSubmitting ? 'Đang nộp...' : 'Nộp bài'}
+                        </button>
+                    ) : (
+                        <button
+                            className="quiz-side-nav-btn quiz-side-next-btn"
+                            onClick={onNext}
+                        >
+                            Tiếp theo
+                        </button>
+                    )}
                 </div>
 
                 <div className="quiz-side-modal-footer">

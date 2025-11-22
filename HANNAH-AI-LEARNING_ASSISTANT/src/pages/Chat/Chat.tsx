@@ -4,6 +4,7 @@ import { Sparkles, Send, ThumbsUp, ThumbsDown, Share2, Upload, Book, GitBranch, 
 import ProfileIcon from '../../components/ProfileIcon'
 import subjectService, { type Subject } from '../../service/subjectService'
 import { useStudio } from './hooks/useStudio'
+import { useQuiz } from './hooks/useQuiz'
 import { ReportFormatModal } from './components/modals/ReportFormatModal'
 import { ReportModal } from './components/modals/ReportModal'
 import { MindmapModal } from './components/modals/MindmapModal'
@@ -24,15 +25,14 @@ export default function Chat() {
     const navigate = useNavigate()
     const initialQuery = location.state?.query || ''
 
-    // Use quiz hook for quiz state management
+    // Use hooks for state management
     const studio = useStudio()
+    const quiz = useQuiz()
     const [inputValue, setInputValue] = useState('')
     const [isBigPictureOpen, setIsBigPictureOpen] = useState(true)
     const [subjects, setSubjects] = useState<Subject[]>([]) // Store fetched subjects
     const [currentCardIndex, setCurrentCardIndex] = useState(0)
     const [isCardFlipped, setIsCardFlipped] = useState(false)
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-    const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: string }>({})
     const [openMenuId, setOpenMenuId] = useState<string | null>(null)
     const [expandedSources, setExpandedSources] = useState<{ [key: string]: boolean }>({})
     const [showShareModal, setShowShareModal] = useState(false)
@@ -168,6 +168,20 @@ OOP mang lại nhiều lợi thế, bao gồm:
     const handleDeleteItem = (itemId: string) => {
         studio.handleDeleteItem(itemId)
         setOpenMenuId(null)
+    }
+
+    // Custom handler for studio item clicks to integrate with useQuiz hook
+    const handleStudioItemClick = async (item: any) => {
+        if (item.type === 'quiz') {
+            // Extract numeric ID for quiz loading
+            const numericId = item.id.replace('quiz-', '')
+            await quiz.loadQuiz(numericId)
+            // Open the quiz modal after loading
+            studio.setShowQuizModal(true)
+        } else {
+            // Delegate to studio's handler for other types
+            await studio.handleStudioItemClick(item)
+        }
     }
 
     const toggleMenu = (itemId: string) => {
@@ -661,7 +675,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
                         studio.setSelectedFeatureType(type)
                         studio.setShowCustomizeModal(true)
                     }}
-                    onItemClick={studio.handleStudioItemClick}
+                    onItemClick={handleStudioItemClick}
                     onDeleteItem={handleDeleteItem}
                     openMenuId={openMenuId}
                     onToggleMenu={toggleMenu}
@@ -717,15 +731,15 @@ OOP mang lại nhiều lợi thế, bao gồm:
             <QuizDisplayModal
                 isOpen={studio.showQuizModal}
                 onClose={() => studio.setShowQuizModal(false)}
-                content={studio.quizContent}
-                currentQuestionIndex={currentQuestionIndex}
-                selectedAnswers={selectedAnswers}
-                onAnswerSelect={(index, answer) => setSelectedAnswers({ ...selectedAnswers, [index]: answer })}
-                onNext={() => {
-                    if (currentQuestionIndex < (studio.quizContent?.questions?.length || 1) - 1) {
-                        setCurrentQuestionIndex(prev => prev + 1)
-                    }
-                }}
+                content={quiz.quizContent}
+                currentQuestionIndex={quiz.currentQuestionIndex}
+                selectedAnswers={quiz.selectedAnswers}
+                onAnswerSelect={quiz.selectAnswer}
+                onNext={quiz.nextQuestion}
+                onSubmit={quiz.submitQuiz}
+                showResults={quiz.showQuizResults}
+                results={quiz.quizResults}
+                isSubmitting={quiz.isSubmittingQuiz}
                 onMinimize={() => {
                     studio.setShowQuizModal(false)
                     studio.setShowQuizSideModal(true)
@@ -736,15 +750,13 @@ OOP mang lại nhiều lợi thế, bao gồm:
             <QuizSideModal
                 isOpen={studio.showQuizSideModal}
                 onClose={() => studio.setShowQuizSideModal(false)}
-                content={studio.quizContent}
-                currentQuestionIndex={currentQuestionIndex}
-                selectedAnswers={selectedAnswers}
-                onAnswerSelect={(index, answer) => setSelectedAnswers({ ...selectedAnswers, [index]: answer })}
-                onNext={() => {
-                    if (currentQuestionIndex < (studio.quizContent?.questions?.length || 1) - 1) {
-                        setCurrentQuestionIndex(prev => prev + 1)
-                    }
-                }}
+                content={quiz.quizContent}
+                currentQuestionIndex={quiz.currentQuestionIndex}
+                selectedAnswers={quiz.selectedAnswers}
+                onAnswerSelect={quiz.selectAnswer}
+                onNext={quiz.nextQuestion}
+                onSubmit={quiz.submitQuiz}
+                isSubmitting={quiz.isSubmittingQuiz}
                 onExpand={() => {
                     studio.setShowQuizSideModal(false)
                     studio.setShowQuizModal(true)

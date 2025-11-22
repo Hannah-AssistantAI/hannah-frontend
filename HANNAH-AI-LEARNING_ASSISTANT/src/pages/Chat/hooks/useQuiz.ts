@@ -62,9 +62,14 @@ export function useQuiz() {
             const results = response.data.data || response.data;
             setQuizResults(results);
             setShowQuizResults(true);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to submit quiz:', error);
-            alert('Không thể nộp bài. Vui lòng thử lại!');
+            console.error('Error details:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status
+            });
+            alert(`Không thể nộp bài. Vui lòng thử lại!\nLỗi: ${error.response?.data?.detail || error.message}`);
         } finally {
             setIsSubmittingQuiz(false);
         }
