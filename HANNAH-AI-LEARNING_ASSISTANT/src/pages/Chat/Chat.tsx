@@ -6,6 +6,8 @@ import { studioService } from '../../service/studioService'
 import subjectService from '../../service/subjectService'
 import MindmapViewer from '../../components/MindmapViewer'
 import type { Subject } from '../../service/subjectService'
+import { QuizModal } from './components/QuizModal/QuizModal'
+import { useQuiz } from './hooks/useQuiz'
 import './Chat.css'
 
 interface StudioItem {
@@ -47,6 +49,9 @@ export default function Chat() {
     const location = useLocation()
     const navigate = useNavigate()
     const initialQuery = location.state?.query || ''
+
+    // Use quiz hook for quiz state management
+    const quiz = useQuiz()
 
     const [inputValue, setInputValue] = useState('')
     const [isBigPictureOpen, setIsBigPictureOpen] = useState(true)

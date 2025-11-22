@@ -1,0 +1,130 @@
+.quiz-results-container {
+    padding: 24px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.quiz-score-header {
+    text-align: center;
+    margin-bottom: 24px;
+    padding: 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    color: white;
+}
+
+.quiz-score-header h3 {
+    font-size: 36px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+}
+
+.score-details {
+    font-size: 18px;
+    margin: 0;
+    opacity: 0.95;
+}
+
+.quiz-results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.quiz-result-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s;
+}
+
+.quiz-result-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.result-question {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    color: #202124;
+    line-height: 1.5;
+}
+
+.result-answer-section {
+    margin-bottom: 16px;
+}
+
+.answer-correct {
+    color: #34a853;
+    font-size: 15px;
+    margin: 0 0 4px 0;
+}
+
+.answer-incorrect {
+    color: #ea4335;
+    font-size: 15px;
+    margin: 0 0 4px 0;
+}
+
+.correct-answer-display {
+    color: #34a853;
+    font-size: 15px;
+    margin: 8px 0 0 0;
+}
+
+.result-explanation {
+    margin-top: 16px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #4285f4;
+}
+
+.result-explanation strong {
+    color: #4285f4;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.result-explanation p {
+    margin: 0;
+    color: #5f6368;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.result-topic-tag {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 6px 12px;
+    background: #e8f0fe;
+    color: #1967d2;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.quiz-retry-btn {
+    width: 100%;
+    padding: 14px;
+    background: #4285f4;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.quiz-retry-btn:hover {
+    background: #1967d2;
+}
+
+.quiz-retry-btn:active {
+    transform: scale(0.98);
+}
