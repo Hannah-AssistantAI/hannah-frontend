@@ -1,5 +1,6 @@
 import React from 'react'
 import { Maximize2, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { QuizResults } from '../QuizModal/QuizResults'
 
 interface QuizSideModalProps {
     isOpen: boolean
@@ -12,6 +13,9 @@ interface QuizSideModalProps {
     onExpand: () => void
     onSubmit?: () => void
     isSubmitting?: boolean
+    showResults?: boolean
+    results?: any
+    onRetry?: () => void
 }
 
 export const QuizSideModal: React.FC<QuizSideModalProps> = ({
@@ -24,7 +28,10 @@ export const QuizSideModal: React.FC<QuizSideModalProps> = ({
     onNext,
     onExpand,
     onSubmit,
-    isSubmitting = false
+    isSubmitting = false,
+    showResults = false,
+    results,
+    onRetry
 }) => {
     if (!isOpen) return null
 
@@ -60,29 +67,35 @@ export const QuizSideModal: React.FC<QuizSideModalProps> = ({
                 </div>
 
                 <div className="quiz-side-container">
-                    <div className="quiz-side-question">
-                        <p className="quiz-side-question-text">
-                            {content?.questions?.[currentQuestionIndex]?.question || 'Đang tải câu hỏi...'}
-                        </p>
-                    </div>
+                    {showResults && results ? (
+                        <QuizResults results={results} onRetry={onRetry!} />
+                    ) : (
+                        <>
+                            <div className="quiz-side-question">
+                                <p className="quiz-side-question-text">
+                                    {content?.questions?.[currentQuestionIndex]?.question || 'Đang tải câu hỏi...'}
+                                </p>
+                            </div>
 
-                    <div className="quiz-side-answers">
-                        {content?.questions?.[currentQuestionIndex]?.options?.map((option: string, idx: number) => {
-                            const label = String.fromCharCode(65 + idx); // A, B, C, D...
-                            return (
-                                <button
-                                    key={idx}
-                                    className={`quiz-side-answer-option ${selectedAnswers[currentQuestionIndex] === label ? 'selected' : ''}`}
-                                    onClick={() => onAnswerSelect(currentQuestionIndex, label)}
-                                >
-                                    <span className="quiz-side-answer-label">{label}.</span>
-                                    <span className="quiz-side-answer-text">
-                                        {option}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
+                            <div className="quiz-side-answers">
+                                {content?.questions?.[currentQuestionIndex]?.options?.map((option: string, idx: number) => {
+                                    const label = String.fromCharCode(65 + idx); // A, B, C, D...
+                                    return (
+                                        <button
+                                            key={idx}
+                                            className={`quiz-side-answer-option ${selectedAnswers[currentQuestionIndex] === label ? 'selected' : ''}`}
+                                            onClick={() => onAnswerSelect(currentQuestionIndex, label)}
+                                        >
+                                            <span className="quiz-side-answer-label">{label}.</span>
+                                            <span className="quiz-side-answer-text">
+                                                {option}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 <div className="quiz-side-navigation">

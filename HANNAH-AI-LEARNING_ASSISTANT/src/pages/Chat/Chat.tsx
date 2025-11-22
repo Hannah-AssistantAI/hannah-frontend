@@ -757,6 +757,9 @@ OOP mang lại nhiều lợi thế, bao gồm:
                 onNext={quiz.nextQuestion}
                 onSubmit={quiz.submitQuiz}
                 isSubmitting={quiz.isSubmittingQuiz}
+                showResults={quiz.showQuizResults}
+                results={quiz.quizResults}
+                onRetry={quiz.retryQuiz}
                 onExpand={() => {
                     studio.setShowQuizSideModal(false)
                     studio.setShowQuizModal(true)

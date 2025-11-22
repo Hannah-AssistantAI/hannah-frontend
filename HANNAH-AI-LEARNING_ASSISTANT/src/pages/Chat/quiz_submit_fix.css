@@ -1,0 +1,29 @@
+.quiz-side-hint-btn:hover {
+    background-color: #f8f9fa;
+    border-color: #bdc1c6;
+}
+
+.quiz-side-next-btn {
+    background-color: #4285f4;
+    color: white;
+}
+
+.quiz-side-next-btn:hover {
+    background-color: #1967d2;
+}
+
+.quiz-side-submit-btn {
+    background-color: #1a73e8;
+    color: white;
+}
+
+.quiz-side-submit-btn:hover {
+    background-color: #1557b0;
+}
+
+.quiz-side-submit-btn:disabled {
+    background-color: #e8eaed;
+    color: #9aa0a6;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
