@@ -1,0 +1,267 @@
+/* Customize Feature Modal */
+.customize-modal-content {
+    background-color: white;
+    border-radius: 16px;
+    padding: 0;
+    max-width: 600px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.customize-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 24px 20px 24px;
+    border-bottom: 1px solid #e8eaed;
+}
+
+.customize-modal-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.customize-modal-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: #202124;
+    margin: 0;
+}
+
+.customize-modal-close {
+    background: none;
+    border: none;
+    font-size: 32px;
+    color: #5f6368;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+    line-height: 1;
+}
+
+.customize-modal-close:hover {
+    background-color: #f1f3f4;
+}
+
+.customize-tabs {
+    display: flex;
+    border-bottom: 1px solid #e8eaed;
+    padding: 0 24px;
+    gap: 8px;
+}
+
+.customize-tab {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #5f6368;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.customize-tab:hover {
+    color: #202124;
+    background-color: #f8f9fa;
+}
+
+.customize-tab.active {
+    color: #4285f4;
+    border-bottom-color: #4285f4;
+}
+
+.customize-modal-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.customize-row {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.customize-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+}
+
+.customize-section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e8eaed;
+    margin: 0 0 8px 0;
+    padding: 8px 0;
+    border-left: 3px solid #fbbc04;
+    padding-left: 12px;
+    background: rgba(251, 188, 4, 0.1);
+    border-radius: 0 8px 8px 0;
+}
+
+.customize-options {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.customize-option-btn {
+    flex: 1;
+    min-width: 50px;
+    padding: 12px 20px;
+    background-color: white;
+    border: 1px solid #dadce0;
+    border-radius: 24px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 400;
+    color: #5f6368;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.customize-option-btn:hover {
+    background-color: #f8f9fa;
+    border-color: #bdc1c6;
+}
+
+.customize-option-btn.selected {
+    background-color: #e8f0fe;
+    border-color: #4285f4;
+    color: #1967d2;
+    font-weight: 500;
+}
+
+.customize-textarea {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid #dadce0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #202124;
+    resize: vertical;
+    min-height: 120px;
+    transition: border-color 0.2s;
+}
+
+.customize-textarea:focus {
+    outline: none;
+    border-color: #4285f4;
+}
+
+.customize-textarea::placeholder {
+    color: #9aa0a6;
+}
+
+.customize-modal-footer {
+    padding: 16px 24px 24px 24px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.customize-create-btn {
+    padding: 12px 32px;
+    background-color: #4285f4;
+    border: none;
+    border-radius: 24px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    color: white;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3);
+}
+
+.customize-create-btn:hover {
+    background-color: #1967d2;
+    box-shadow: 0 2px 4px rgba(60, 64, 67, 0.3);
+}
+
+.customize-create-btn:active {
+    transform: scale(0.98);
+}
+
+/* Course Code Dropdown */
+.course-code-dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.course-code-search {
+    width: 96%;
+    padding: 14px 16px;
+    border: 1px solid #dadce0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #202124;
+    transition: border-color 0.2s;
+}
+
+.course-code-search:focus {
+    outline: none;
+    border-color: #4285f4;
+}
+
+.course-code-search::placeholder {
+    color: #9aa0a6;
+}
+
+.course-code-options {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #dadce0;
+    border-radius: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+}
+
+.course-code-option {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 16px;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.course-code-option:hover {
+    background-color: #f8f9fa;
+}
+
+.course-code {
+    font-weight: 600;
+    color: #202124;
+    font-size: 14px;
+}
+
+.course-name {
+    color: #5f6368;
+    font-size: 13px;
+    margin-top: 2px;
+}

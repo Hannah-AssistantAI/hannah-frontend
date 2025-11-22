@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Sparkles, Share2 } from 'lucide-react';
+import { Menu, Share2 } from 'lucide-react';
 import ProfileIcon from './ProfileIcon';
+import ThemeToggle from './ThemeToggle';
 import './Header.css';
 
 interface HeaderProps {
@@ -46,6 +47,7 @@ export const Header: React.FC<HeaderProps> = ({
                         <span>Chia sẻ</span>
                     </button>
                 )}
+                <ThemeToggle />
                 <ProfileIcon />
             </div>
         </header>

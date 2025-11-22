@@ -1,0 +1,168 @@
+/* Big Picture Sidebar - Left */
+.big-picture-sidebar {
+    width: 356px !important;
+    flex-shrink: 0 !important;
+    overflow: visible !important;
+    height: 100% !important;
+    transition: width 0.3s ease !important;
+    position: relative !important;
+    padding: 0 24px 0 0 !important;
+    order: 1 !important;
+}
+
+.big-picture-sidebar.closed {
+    width: 56px !important;
+    padding: 0 24px 0 0 !important;
+}
+
+.big-picture-content {
+    background-color: #1a1a1a;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #3c4043;
+    transition: all 0.3s ease;
+    width: 332px;
+    height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.big-picture-sidebar.closed .big-picture-content {
+    display: none !important;
+}
+
+.big-picture-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    position: relative;
+}
+
+.big-picture-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #bdc1c6;
+    margin: 0;
+    flex: 1;
+}
+
+.big-picture-toggle-btn {
+    background: none;
+    border: none;
+    padding: 6px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #bdc1c6;
+    transition: all 0.2s;
+    margin-left: auto;
+}
+
+.big-picture-toggle-btn:hover {
+    background-color: #333333;
+}
+
+.big-picture-toggle-btn:active {
+    transform: scale(0.95);
+}
+
+/* Floating Toggle Button (when big picture sidebar is closed) */
+.big-picture-toggle-floating {
+    position: absolute;
+    left: 16px;
+    top: 16px;
+    z-index: 60;
+    background-color: #2d2d2d;
+    border: 1px solid #3c4043;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.big-picture-toggle-floating:hover {
+    background-color: #333333;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.big-picture-toggle-floating:active {
+    transform: scale(0.95);
+}
+
+.big-picture-main-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: #e8eaed;
+    margin: 0 0 20px 0;
+    line-height: 1.4;
+}
+
+.big-picture-topics {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.big-picture-topic-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.big-picture-topic-button {
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: flex-start;
+}
+
+.big-picture-topic-button:hover {
+    background-color: #262626;
+}
+
+.big-picture-topic-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #e8eaed;
+    line-height: 1.5;
+}
+
+.big-picture-subtopics-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-left: 12px;
+}
+
+.big-picture-subtopic-button {
+    background-color: #333333;
+    border: none;
+    border-radius: 16px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: #e8eaed;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.big-picture-subtopic-button:hover {
+    background-color: #404040;
+}
+
+.big-picture-subtopic-button:active {
+    background-color: #2a2a2a;
+}

@@ -5,6 +5,7 @@ import type { Subject } from '../../../../service/subjectService'
 interface CustomizeFeatureModalProps {
     isOpen: boolean
     onClose: () => void
+    featureType: 'mindmap' | 'notecard' | 'quiz' | null
     onSubmit: (data: any) => void
     subjects: Subject[]
 }
@@ -12,6 +13,7 @@ interface CustomizeFeatureModalProps {
 export const CustomizeFeatureModal: React.FC<CustomizeFeatureModalProps> = ({
     isOpen,
     onClose,
+    featureType,
     onSubmit,
     subjects
 }) => {
@@ -24,6 +26,20 @@ export const CustomizeFeatureModal: React.FC<CustomizeFeatureModalProps> = ({
     const [showCourseDropdown, setShowCourseDropdown] = useState(false)
 
     if (!isOpen) return null
+
+    // Get feature title based on type
+    const getFeatureTitle = () => {
+        switch (featureType) {
+            case 'mindmap':
+                return 'Bản đồ tư duy'
+            case 'notecard':
+                return 'Thẻ ghi nhớ'
+            case 'quiz':
+                return 'Bài kiểm tra'
+            default:
+                return 'Tính năng'
+        }
+    }
 
     const handleSubmit = () => {
         onSubmit({
@@ -49,7 +65,7 @@ export const CustomizeFeatureModal: React.FC<CustomizeFeatureModalProps> = ({
                 <div className="customize-modal-header">
                     <div className="customize-modal-title-wrapper">
                         <ClipboardCheck size={24} color="#5f6368" />
-                        <h3 className="customize-modal-title">Tùy chỉnh thẻ thông tin</h3>
+                        <h3 className="customize-modal-title">Tùy chỉnh {getFeatureTitle()}</h3>
                     </div>
                     <button
                         className="customize-modal-close"

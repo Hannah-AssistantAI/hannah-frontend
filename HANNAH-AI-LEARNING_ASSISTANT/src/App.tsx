@@ -2,7 +2,7 @@ import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { Toaster } from 'react-hot-toast'
-import ThemeToggle from './components/ThemeToggle'
+
 import ThemedPage from './components/ThemedPage'
 import ProtectedRoute from './components/ProtectedRoute' // Import ProtectedRoute
 import Home from './pages/home/Home'
@@ -60,8 +60,7 @@ const AuthRedirectHandler = () => {
 };
 
 function App() {
-  const location = useLocation();
-  const showToggle = ['/learn', '/chat', '/profile'].some(p => location.pathname.startsWith(p));
+
 
   return (
     <>
@@ -133,7 +132,7 @@ function App() {
             <Route path='configuration' element={<Configuration />} />
             <Route path="profile" element={<Profile embedded={true} />} />
             <Route path="flagged-quizzes" element={<FlaggedQuizzes />} />
-                        <Route path="flagged-quizzes/:id" element={<FlaggedQuizDetail />} />
+            <Route path="flagged-quizzes/:id" element={<FlaggedQuizDetail />} />
           </Route>
         </Route>
 
@@ -157,7 +156,7 @@ function App() {
           </Route>
         </Route>
       </Routes>
-      {showToggle && <ThemeToggle />}
+
     </>
   )
 }

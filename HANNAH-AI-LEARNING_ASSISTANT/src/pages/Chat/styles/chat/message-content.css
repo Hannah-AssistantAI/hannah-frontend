@@ -1,0 +1,42 @@
+.message-text {
+    color: #e8eaed;
+    font-size: 15px;
+    line-height: 1.6;
+    width: 100%;
+}
+
+.message-text p {
+    margin: 8px 0;
+}
+
+.message-text p:first-child {
+    margin-top: 0;
+}
+
+.message-text p:last-child {
+    margin-bottom: 0;
+}
+
+.message-text h3 {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 16px 0 8px 0;
+    color: #e8eaed;
+}
+
+.message-text h4 {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 12px 0 8px 0;
+    color: #e8eaed;
+}
+
+.message-text li {
+    margin-left: 20px;
+    margin-bottom: 4px;
+}
+
+.message-text strong {
+    font-weight: 600;
+    color: #e8eaed;
+}

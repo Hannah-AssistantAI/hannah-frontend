@@ -1,0 +1,147 @@
+/* Message Sources - Interactive List */
+.message-sources {
+    margin-top: 20px;
+    background-color: #333333;
+    border-radius: 12px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.sources-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: none;
+    color: #8ab4f8;
+    cursor: pointer;
+    padding: 16px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    width: 100%;
+    text-align: left;
+}
+
+.sources-toggle:hover {
+    background-color: #404040;
+}
+
+.sources-label {
+    color: #8ab4f8;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.sources-title {
+    flex: 1;
+    color: #e8eaed;
+    font-weight: 600;
+    font-size: 16px;
+    margin-left: 4px;
+}
+
+.sources-chevron {
+    color: #bdc1c6;
+    flex-shrink: 0;
+}
+
+.sources-list {
+    padding: 0 20px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: sourcesExpand 0.3s ease;
+}
+
+@keyframes sourcesExpand {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 1000px;
+    }
+}
+
+.source-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+    background-color: white;
+    border-radius: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.source-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.source-icon-wrapper {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.source-icon-emoji {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.source-icon-placeholder {
+    color: #5f6368;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.source-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.source-title {
+    font-weight: 600;
+    color: #202124;
+    font-size: 16px;
+    margin: 0 0 8px 0;
+    display: block;
+}
+
+.source-description {
+    font-size: 14px;
+    color: #5f6368;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.source-link-btn {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #e8eaed;
+    border: none;
+    border-radius: 50%;
+    color: #5f6368;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.source-link-btn:hover {
+    background-color: #dadce0;
+    color: #202124;
+}

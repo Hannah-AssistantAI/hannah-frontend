@@ -1,0 +1,97 @@
+.chat-content {
+    flex: 1 !important;
+    min-width: 0 !important;
+    overflow-y: auto !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 24px !important;
+    padding: 0 !important;
+    order: 2 !important;
+}
+
+/* Layout adjustments when sidebars are closed */
+.chat-main:has(.big-picture-sidebar.closed):has(.studio-sidebar.closed) .chat-content {
+    max-width: none;
+    padding: 0 48px;
+}
+
+.chat-main:has(.big-picture-sidebar.closed):not(:has(.studio-sidebar.closed)) .chat-content {
+    padding: 0 0 0 24px;
+}
+
+.chat-main:not(:has(.big-picture-sidebar.closed)):has(.studio-sidebar.closed) .chat-content {
+    padding: 0 24px 0 0;
+}
+
+/* Welcome Banner */
+.welcome-banner {
+    background: linear-gradient(135deg, #2d2d2d 0%, #262626 100%);
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    position: relative;
+}
+
+.welcome-banner-icon img {
+    width: 64px;
+    height: 64px;
+}
+
+.welcome-banner-content {
+    flex: 1;
+}
+
+.welcome-banner-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: #e8eaed;
+    margin: 0 0 8px 0;
+}
+
+.welcome-banner-description {
+    font-size: 14px;
+    color: #bdc1c6;
+    margin: 0 0 12px 0;
+}
+
+.topic-badge {
+    background-color: #8ab4f8;
+    color: #0f0f0f;
+    border: none;
+    border-radius: 16px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.topic-badge:hover {
+    background-color: #aecbfa;
+}
+
+.close-banner-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #bdc1c6;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.close-banner-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}

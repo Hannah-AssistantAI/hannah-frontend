@@ -1,0 +1,96 @@
+/* Message Actions and Suggestions Container */
+.message-actions-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+/* Message Suggestions */
+.message-suggestions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.message-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    color: #bdc1c6;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+}
+
+.action-btn:hover {
+    background-color: #333333;
+}
+
+.suggestion-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background-color: #2d2d2d;
+    border: 1px solid #3c4043;
+    border-radius: 20px;
+    font-size: 14px;
+    color: #e8eaed;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 400;
+}
+
+.suggestion-btn:hover {
+    background-color: #333333;
+    border-color: #5f6368;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.suggestion-icon {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Follow-up Questions */
+.follow-up-questions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.follow-up-btn {
+    text-align: left;
+    padding: 12px 16px;
+    background-color: #262626;
+    border: 1px solid #3c4043;
+    border-radius: 12px;
+    font-size: 14px;
+    color: #e8eaed;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.follow-up-btn:hover {
+    background-color: #333333;
+    border-color: #8ab4f8;
+    box-shadow: 0 1px 3px rgba(138, 180, 248, 0.2);
+}

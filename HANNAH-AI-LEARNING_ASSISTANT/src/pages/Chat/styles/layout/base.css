@@ -1,0 +1,27 @@
+/* Chat Container & Main Layout */
+.chat-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #0f0f0f;
+    overflow: hidden;
+}
+
+/* Ensure the main area fills the remaining height and prevents double scroll */
+.chat-main {
+    flex: 1;
+    overflow: visible;
+    /* allow page to scroll normally */
+}
+
+/* Make chat content a vertical layout: messages scroll, input stays visible */
+.chat-content {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Scroll only the messages list */
+.messages-container {
+    overflow: visible;
+    /* scroll with the page, not internally */
+}

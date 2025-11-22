@@ -7,8 +7,8 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    padding: 0 1.5rem; /* Unified padding */
-    height: 64px; /* Fixed height for consistency */
+    padding: 0 1.5rem;
+    height: 64px;
 }
 
 .app-header-left {
@@ -76,6 +76,25 @@
 .history-toggle-btn:hover {
     background: #333333;
     color: #e8eaed;
+}
+
+.theme-toggle-btn {
+    background: transparent;
+    border: 1px solid #3c4043;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #bdc1c6;
+    transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+    background: #333333;
+    color: #e8eaed;
+    border-color: #5f6368;
 }
 
 .share-btn {
