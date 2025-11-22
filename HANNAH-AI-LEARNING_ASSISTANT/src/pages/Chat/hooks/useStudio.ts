@@ -48,7 +48,7 @@ export const useStudio = () => {
                 // Add mindmaps
                 if (mindmapsRes.data && mindmapsRes.data.data) {
                     items.push(...mindmapsRes.data.data.map((m: any) => ({
-                        id: m.mindmapId.toString(),
+                        id: `mindmap-${m.mindmapId}`,
                         type: 'mindmap' as const,
                         title: m.title,
                         subtitle: m.topic,
@@ -61,7 +61,7 @@ export const useStudio = () => {
                 // Add quizzes
                 if (quizzesRes.data && quizzesRes.data.data) {
                     items.push(...quizzesRes.data.data.map((q: any) => ({
-                        id: q.quizId.toString(),
+                        id: `quiz-${q.quizId}`,
                         type: 'quiz' as const,
                         title: q.title,
                         subtitle: `${q.questionCount} câu hỏi • ${q.difficulty}`,
@@ -74,7 +74,7 @@ export const useStudio = () => {
                 // Add flashcards
                 if (flashcardsRes.data && flashcardsRes.data.data) {
                     items.push(...flashcardsRes.data.data.map((f: any) => ({
-                        id: f.flashcardSetId.toString(),
+                        id: `notecard-${f.flashcardSetId}`,
                         type: 'notecard' as const,
                         title: f.title,
                         subtitle: `${f.cardCount} thẻ`,
@@ -87,7 +87,7 @@ export const useStudio = () => {
                 // Add reports
                 if (reportsRes.data && reportsRes.data.data) {
                     items.push(...reportsRes.data.data.map((r: any) => ({
-                        id: r.reportId.toString(),
+                        id: `report-${r.reportId}`,
                         type: 'report' as const,
                         title: r.title,
                         subtitle: 'Báo cáo',
@@ -227,12 +227,15 @@ export const useStudio = () => {
                 // Also handle wrapped data structure (response.data.data)
                 const responseData = response.data.data || response.data;
 
-                const realId = responseData.mindmapId ||
+                const rawId = responseData.mindmapId ||
                     responseData.mindmapIdMongo ||
                     responseData.reportId ||
                     responseData.quizId ||
                     responseData.flashcardSetId ||
                     tempId;
+
+                // Add type prefix to ID to ensure uniqueness across different item types
+                const realId = `${type === 'notecard' ? 'notecard' : type}-${rawId}`;
 
                 console.log('Extracted ID:', realId);
 
@@ -241,7 +244,7 @@ export const useStudio = () => {
                     if (item.id === tempId) {
                         return {
                             ...item,
-                            id: realId.toString(),
+                            id: realId,
                             status: 'completed' as const,
                             subtitle: 'Đã tạo xong',
                             content: responseData  // Save the unwrapped data
@@ -264,11 +267,20 @@ export const useStudio = () => {
         }
     }
 
+    // Helper function to extract numeric ID from prefixed ID (e.g., "mindmap-10" -> "10")
+    const extractNumericId = (prefixedId: string): string => {
+        const parts = prefixedId.split('-');
+        return parts.length > 1 ? parts.slice(1).join('-') : prefixedId;
+    };
+
     const handleStudioItemClick = async (item: StudioItem) => {
         if (item.status !== 'completed') return;
 
         setIsLoadingContent(true);
         try {
+            // Extract numeric ID for API calls (backend expects numeric IDs)
+            const numericId = extractNumericId(item.id);
+
             if (item.type === 'mindmap') {
                 setSelectedMindmapId(item.id);
 
@@ -277,8 +289,8 @@ export const useStudio = () => {
                     console.log('Using cached mindmap content:', item.content);
                     setMindmapContent(item.content);
                 } else {
-                    console.log('Fetching mindmap content from API:', item.id);
-                    const response = await studioService.getMindMapContent(item.id);
+                    console.log('Fetching mindmap content from API:', numericId);
+                    const response = await studioService.getMindMapContent(numericId);
                     if (response.data) setMindmapContent(response.data.data || response.data);
                 }
                 setShowMindmapModal(true);
@@ -290,8 +302,8 @@ export const useStudio = () => {
                     console.log('Using cached flashcard content:', item.content);
                     setFlashcardContent(item.content);
                 } else {
-                    console.log('Fetching flashcard content from API:', item.id);
-                    const response = await studioService.getFlashcardContent(item.id);
+                    console.log('Fetching flashcard content from API:', numericId);
+                    const response = await studioService.getFlashcardContent(numericId);
                     if (response.data) setFlashcardContent(response.data.data || response.data);
                 }
                 setShowNotecardModal(true);
@@ -303,14 +315,14 @@ export const useStudio = () => {
                     console.log('Using cached quiz content:', item.content);
                     setQuizContent(item.content);
                 } else {
-                    console.log('Fetching quiz content from API:', item.id);
-                    const response = await studioService.getQuizContent(item.id);
+                    console.log('Fetching quiz content from API:', numericId);
+                    const response = await studioService.getQuizContent(numericId);
                     if (response.data) setQuizContent(response.data.data || response.data);
                 }
                 setShowQuizSideModal(true);
             } else if (item.type === 'report') {
                 setSelectedReportId(item.id);
-                const response = await studioService.getReportContent(item.id);
+                const response = await studioService.getReportContent(numericId);
                 if (response.data) setReportContent(response.data.data);
                 setShowReportModal(true);
             }

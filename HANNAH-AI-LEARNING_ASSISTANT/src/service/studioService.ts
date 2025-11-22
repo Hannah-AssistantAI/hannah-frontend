@@ -1,5 +1,4 @@
 import pythonApiClient from './pythonApiClient';
-import apiClient from './apiClient';
 
 // --- Interfaces matching backend DTOs ---
 
@@ -106,23 +105,23 @@ class StudioService {
     }
 
     // --- Content Retrieval ---
-    // .NET Backend endpoints: GET /api/studio/mindmaps/{id}, etc.
+    // Python Backend endpoints: GET /api/v1/studio/{type}/{id}/content
 
     async getQuizContent(id: string) {
         return pythonApiClient.get<StudioGenerationResponse>(`/api/v1/studio/quiz/${id}/content`);
     }
 
     async getMindMapContent(id: string) {
-        // Fetch from .NET Backend (SQL Server)
-        return apiClient.get<StudioGenerationResponse>(`/api/studio/mindmaps/${id}`);
+        // Fetch from Python Backend (MongoDB)
+        return pythonApiClient.get<StudioGenerationResponse>(`/api/v1/studio/mindmap/${id}/content`);
     }
 
     async getReportContent(id: string) {
-        return pythonApiClient.get<StudioGenerationResponse>(`/api/v1/studio/report/${id}`);
+        return pythonApiClient.get<StudioGenerationResponse>(`/api/v1/studio/report/${id}/content`);
     }
 
     async getFlashcardContent(id: string) {
-        return pythonApiClient.get<StudioGenerationResponse>(`/api/v1/studio/flashcard/${id}`);
+        return pythonApiClient.get<StudioGenerationResponse>(`/api/v1/studio/flashcard/${id}/content`);
     }
 
     async submitQuiz(quizId: string, answers: Array<{ questionId: number, selectedAnswer: string, timeSpentSeconds?: number }>) {

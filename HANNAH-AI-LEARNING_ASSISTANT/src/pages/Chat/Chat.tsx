@@ -403,7 +403,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
                             <div className="sources-list">
                                 {part.sources?.map((source) => (
                                     <a
-                                        key={source.id}
+                                        key={`${messageIndex}-${partIndex}-source-${source.id}`}
                                         href={source.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
@@ -454,7 +454,7 @@ OOP mang lại nhiều lợi thế, bao gồm:
                         <div className="related-content-carousel">
                             {part.relatedItems?.map((item) => (
                                 <a
-                                    key={item.id}
+                                    key={`${messageIndex}-${partIndex}-related-${item.id}`}
                                     href={item.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
