@@ -53,6 +53,32 @@ export function QuizResults({ results, onRetry }: QuizResultsProps) {
                         isCorrect: answer.isCorrect
                     });
 
+                    // Helper function to determine if an option is correct
+                    // Handles both letter format (A, B, C, D) and full-text format
+                    const getCorrectOptionLetter = (): string => {
+                        const correctAns = answer.correctAnswer?.trim().toUpperCase();
+
+                        // Case 1: correctAnswer is already a letter
+                        if (correctAns && ['A', 'B', 'C', 'D'].includes(correctAns)) {
+                            return correctAns;
+                        }
+
+                        // Case 2: correctAnswer is full text - find matching option
+                        if (correctAns && answer.options) {
+                            for (let i = 0; i < answer.options.length; i++) {
+                                if (answer.options[i].trim().toUpperCase() === correctAns) {
+                                    return getOptionLabel(i);
+                                }
+                            }
+                        }
+
+                        // Fallback
+                        console.warn(`Could not determine correct option for question ${idx + 1}`);
+                        return 'A';
+                    };
+
+                    const correctOptionLetter = getCorrectOptionLetter();
+
                     return (
                         <div key={`result-${idx}`} className="quiz-result-item">
                             <div className="result-question-header">
@@ -69,7 +95,7 @@ export function QuizResults({ results, onRetry }: QuizResultsProps) {
                                 {answer.options?.map((option, optIdx) => {
                                     const optionLabel = getOptionLabel(optIdx);
                                     const isSelected = optionLabel.toUpperCase() === answer.selectedAnswer?.toUpperCase();
-                                    const isCorrect = optionLabel.toUpperCase() === answer.correctAnswer?.toUpperCase();
+                                    const isCorrect = optionLabel.toUpperCase() === correctOptionLetter.toUpperCase();
 
                                     let optionClass = 'result-option';
                                     if (isCorrect) {
