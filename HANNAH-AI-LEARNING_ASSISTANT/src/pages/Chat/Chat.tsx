@@ -17,12 +17,15 @@ import { BigPictureSidebar } from './components/BigPictureSidebar'
 import { StudioSidebar } from './components/StudioSidebar'
 import { HistorySidebar } from '../../components/HistorySidebar'
 import { Header } from '../../components/Header'
+import conversationService from '../../service/conversationService'
+import { useAuth } from '../../contexts/AuthContext'
 import type { Message, RelatedContent, Source, BigPictureTopic } from './types'
 import './Chat.css'
 
 export default function Chat() {
     const location = useLocation()
     const navigate = useNavigate()
+    const { user } = useAuth()
     const initialQuery = location.state?.query || ''
     const initialConversationId = location.state?.conversationId || null
 
@@ -255,6 +258,10 @@ export default function Chat() {
             console.error('No conversation ID available');
             return;
         }
+        if (!user?.userId) {
+            console.error('No user ID available');
+            return;
+        }
 
         const userMessage = inputValue;
         setInputValue('');
@@ -274,7 +281,27 @@ export default function Chat() {
         }]);
 
         setIsSendingMessage(true);
+
         try {
+            // Step 1: Update conversation title on first user-sent message
+            const userMessageCount = messages.filter(m => m.type === 'user').length;
+            const isFirstUserSentMessage = initialQuery ? userMessageCount === 1 : userMessageCount === 0;
+
+            if (isFirstUserSentMessage) {
+                console.log('📝 Updating conversation title via PUT /api/v1/conversations...');
+                const conversationTitle = userMessage.length > 50
+                    ? userMessage.substring(0, 50) + '...'
+                    : userMessage;
+                await conversationService.updateConversation(conversationId, {
+                    userId: user.userId,
+                    title: conversationTitle
+                });
+            }
+
+
+            // Step 2: Send message to AI and get response via POST /api/v1/chat/interactions
+            // NOTE: This endpoint automatically creates the user message, so we don't need to call POST /messages
+            console.log('🤖 Sending to chat API via POST /api/v1/chat/interactions...');
             const response = await chatService.sendTextMessage(
                 conversationId,
                 userMessage
@@ -300,8 +327,10 @@ export default function Chat() {
                 };
                 return newMessages;
             });
+
+            console.log('✅ All APIs called successfully');
         } catch (error: any) {
-            console.error('Failed to send message:', error);
+            console.error('❌ Failed to send message:', error);
             setMessages(prev => {
                 const newMessages = [...prev];
                 newMessages[loadingMessageIndex] = {
@@ -649,6 +678,60 @@ export default function Chat() {
     }
 
 
+    // Update conversationId when location state changes (e.g. from sidebar navigation)
+    useEffect(() => {
+        if (location.state?.conversationId) {
+            setConversationId(location.state.conversationId);
+            // Optionally reload messages here if needed, or let the existing useEffects handle it
+            // Ideally, we should trigger a reload of messages for the new conversation
+        }
+    }, [location.state]);
+
+    // Reload messages when conversationId changes
+    useEffect(() => {
+        // Only load if: conversationId exists, no initialQuery (not from Learn), and user is logged in
+        if (conversationId && !initialQuery && user?.userId) {
+            const loadConversationHistory = async () => {
+                try {
+                    console.log('📥 Loading conversation history for ID:', conversationId);
+
+                    const conversationDetails = await conversationService.getConversation(conversationId, user.userId);
+                    console.log('✅ Loaded conversation:', conversationDetails);
+
+                    const transformedMessages: Message[] = conversationDetails.messages.map(msg => {
+                        const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content) : {};
+
+                        return {
+                            type: msg.role === 'user' || msg.role === 'student' ? 'user' : 'assistant',
+                            content: msg.content,
+                            isStreaming: false,
+                            suggestedQuestions: [],
+                            ...parsed
+                        };
+                    });
+
+                    setMessages(transformedMessages);
+                    setBigPictureData([]);
+
+                    transformedMessages.forEach(msg => {
+                        if (msg.type === 'assistant' && msg.outline && msg.outline.length > 0) {
+                            setBigPictureData(msg.outline);
+                        }
+                    });
+                } catch (error) {
+                    console.error('❌ Failed to load conversation:', error);
+                    setMessages([{
+                        type: 'assistant',
+                        content: 'Xin lỗi, không thể tải cuộc trò chuyện này. Vui lòng thử lại.',
+                        isStreaming: false,
+                        suggestedQuestions: []
+                    }]);
+                }
+            };
+            loadConversationHistory();
+        }
+    }, [conversationId]);
+
     return (
         <div className="chat-container">
             {/* Header */}
@@ -662,11 +745,6 @@ export default function Chat() {
             <HistorySidebar
                 isOpen={showHistorySidebar}
                 onClose={() => setShowHistorySidebar(false)}
-                onItemClick={(topic) => {
-                    setInputValue(topic);
-                    setShowHistorySidebar(false);
-                    // Optionally auto-send or just populate input
-                }}
             />
 
             {/* Main Chat Area */}

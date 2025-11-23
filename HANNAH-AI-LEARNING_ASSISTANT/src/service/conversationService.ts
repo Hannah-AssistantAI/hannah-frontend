@@ -1,6 +1,7 @@
 import pythonApiClient from './pythonApiClient';
 
 export interface CreateConversationRequest {
+    userId: number;
     title: string;
     subjectId?: number;
 }
@@ -54,9 +55,10 @@ class ConversationService {
     /**
      * Get conversation details
      */
-    async getConversation(conversationId: number): Promise<ConversationDetails> {
+    async getConversation(conversationId: number, userId: number): Promise<ConversationDetails> {
         const response = await pythonApiClient.get<BaseResponse<ConversationDetails>>(
-            `/api/v1/conversations/${conversationId}`
+            `/api/v1/conversations/${conversationId}`,
+            { user_id: userId }
         );
         return response.data.data;
     }
@@ -65,6 +67,7 @@ class ConversationService {
      * List all conversations
      */
     async listConversations(params?: {
+        user_id?: number;
         subject_id?: number;
         is_flagged?: boolean;
         search?: string;
@@ -76,6 +79,17 @@ class ConversationService {
         const response = await pythonApiClient.get<BaseResponse<any>>(
             '/api/v1/conversations',
             params
+        );
+        return response.data.data;
+    }
+
+    /**
+     * Update conversation title
+     */
+    async updateConversation(conversationId: number, data: { userId: number; title: string }): Promise<ConversationDetails> {
+        const response = await pythonApiClient.put<BaseResponse<ConversationDetails>>(
+            `/api/v1/conversations/${conversationId}`,
+            data
         );
         return response.data.data;
     }

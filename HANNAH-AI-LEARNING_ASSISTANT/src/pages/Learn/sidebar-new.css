@@ -1,0 +1,29 @@
+/* ===== SIDEBAR STYLES ===== */
+
+/* Sidebar Header */
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #444444;
+    flex-shrink: 0;
+}
+
+.menu-icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e8e aed;
+    transition: background 0.2s ease;
+    flex-shrink: 0;
+}
+
+.menu-icon-button:hover {
+    background: #444444;
+}

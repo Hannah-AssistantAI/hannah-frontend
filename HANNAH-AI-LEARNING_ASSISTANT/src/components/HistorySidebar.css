@@ -1,0 +1,197 @@
+/* History Sidebar Styles */
+
+/* Sidebar Container - Transparent to allow cutout */
+.history-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 300px;
+    height: 100vh;
+    background: transparent; /* Transparent background for the container */
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease-in-out;
+    /* No shadow on the main container */
+}
+
+.history-sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 999;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+/* Sidebar Header - Transparent for cutout */
+.sidebar-header {
+    height: 64px; /* Match main header height exactly */
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    background: transparent; /* Explicitly transparent */
+    flex-shrink: 0;
+    pointer-events: none; /* Allow clicks to pass through to the main header behind */
+}
+
+/* Sidebar Main Content Wrapper - The opaque part */
+.sidebar-main {
+    background: #2a2a2a; /* The actual dark background starts here */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.5); /* Shadow applied to the opaque part */
+    pointer-events: auto; /* Re-enable pointer events for the content */
+    margin-top: -1px; /* Slight overlap to ensure no gap */
+}
+
+.menu-icon-button {
+    display: none; /* Hide the button as we use the main header's button */
+}
+
+.header-logo-space {
+    flex: 1;
+    height: 100%;
+}
+
+/* ===== New Chat Button ===== */
+.sidebar-new-chat-button {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    margin: 1.25rem 1rem 0 1rem;
+    background: transparent;
+    border: 1px solid #555555;
+    border-radius: 8px;
+    color: #e8eaed;
+    font-size: 0.875rem;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.sidebar-new-chat-button:hover {
+    background: #3c3c3c;
+}
+
+.sidebar-new-chat-button svg {
+    flex-shrink: 0;
+}
+
+/* ===== Sidebar Content ===== */
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.sidebar-section {
+    padding: 1.25rem 0 0 0;
+}
+
+.section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #9aa0a6;
+    margin: 0 0 0.5rem 0;
+    padding: 0 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ===== Conversation List ===== */
+.conversation-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.conversation-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s ease;
+    color: #e8eaed;
+    font-size: 0.875rem;
+    font-weight: 400;
+    border-radius: 0;
+    width: 100%; /* Ensure full width */
+}
+
+.conversation-item:hover {
+    background: #3c3c3c;
+}
+
+.conversation-item.active {
+    background: #3c3c3c;
+    border-left: 3px solid #8ab4f8;
+}
+
+.conversation-icon {
+    flex-shrink: 0;
+    color: #9aa0a6;
+}
+
+.conversation-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ===== View All Button ===== */
+.view-all-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-top: 0.5rem;
+    background: transparent;
+    border: none;
+    color: #e8eaed;
+    font-size: 0.875rem;
+    font-weight: 400;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.view-all-button:hover {
+    background: #3c3c3c;
+}
+
+.view-all-button svg {
+    flex-shrink: 0;
+}
+
+/* ===== Sidebar Footer ===== */
+.sidebar-footer-info {
+    border-top: 1px solid #444444;
+    padding: 1rem;
+    flex-shrink: 0;
+}
+
+.info-text {
+    font-size: 0.75rem;
+    color: #9aa0a6;
+    margin: 0;
+    line-height: 1.5;
+}
