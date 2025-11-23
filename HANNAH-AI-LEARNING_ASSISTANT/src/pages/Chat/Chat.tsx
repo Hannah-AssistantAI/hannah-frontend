@@ -649,6 +649,34 @@ export default function Chat() {
     }
 
 
+    // Update conversationId when location state changes (e.g. from sidebar navigation)
+    useEffect(() => {
+        if (location.state?.conversationId) {
+            setConversationId(location.state.conversationId);
+            // Optionally reload messages here if needed, or let the existing useEffects handle it
+            // Ideally, we should trigger a reload of messages for the new conversation
+        }
+    }, [location.state]);
+
+    // Reload messages when conversationId changes
+    useEffect(() => {
+        if (conversationId) {
+            const loadConversationHistory = async () => {
+                try {
+                    // Fetch conversation history logic here if not already present
+                    // For now, we rely on the existing logic or add a new fetch
+                    // This is a placeholder to ensure we react to ID changes
+                    console.log("Switched to conversation:", conversationId);
+                    // In a real app, we would fetch messages for this conversationId here
+                    // and setMessages(fetchedMessages)
+                } catch (error) {
+                    console.error("Failed to load conversation:", error);
+                }
+            };
+            loadConversationHistory();
+        }
+    }, [conversationId]);
+
     return (
         <div className="chat-container">
             {/* Header */}
@@ -662,11 +690,6 @@ export default function Chat() {
             <HistorySidebar
                 isOpen={showHistorySidebar}
                 onClose={() => setShowHistorySidebar(false)}
-                onItemClick={(topic) => {
-                    setInputValue(topic);
-                    setShowHistorySidebar(false);
-                    // Optionally auto-send or just populate input
-                }}
             />
 
             {/* Main Chat Area */}

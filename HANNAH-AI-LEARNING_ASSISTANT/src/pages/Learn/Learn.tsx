@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload, Send, X, Loader2 } from "lucide-react";
+import { Upload, Send, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import "./Learn.css";
 import { Header } from "../../components/Header";
+import { HistorySidebar } from "../../components/HistorySidebar";
 import { messageService } from "../../service/messageService";
-import conversationService from "../../service/conversationService";
 import { useAuth } from "../../contexts/AuthContext";
 
 export default function Learn() {
@@ -25,29 +25,18 @@ export default function Learn() {
 
         setIsCreatingMessage(true);
         try {
-            // Step 1: Create conversation first
-            const conversationResponse = await conversationService.createConversation(
-                {
-                    title: "Cuộc trò chuyện mới",
-                    subjectId: 0,
-                }
-            );
-
-            const conversationId = conversationResponse.conversationId;
-
-            // Step 2: Create message with the conversationId
-            await messageService.createMessage({
+            // Call message API with conversationId=null to auto-create conversation
+            const messageResponse = await messageService.createMessage({
                 userId: user.userId,
-                conversationId: conversationId,
+                conversationId: null,
                 role: "student",
                 content: searchQuery,
                 subjectId: null,
             });
 
-            // Navigate to chat with the conversationId
             navigate("/chat", {
                 state: {
-                    conversationId: conversationId,
+                    conversationId: messageResponse.data.data.conversationId,
                     query: searchQuery,
                 },
             });
@@ -76,29 +65,18 @@ export default function Learn() {
 
         setIsCreatingMessage(true);
         try {
-            // Step 1: Create conversation first
-            const conversationResponse = await conversationService.createConversation(
-                {
-                    title: "Cuộc trò chuyện mới",
-                    subjectId: 0,
-                }
-            );
-
-            const conversationId = conversationResponse.conversationId;
-
-            // Step 2: Create message with the conversationId
-            await messageService.createMessage({
+            // Call message API with conversationId=null to auto-create conversation
+            const messageResponse = await messageService.createMessage({
                 userId: user.userId,
-                conversationId: conversationId,
+                conversationId: null,
                 role: "student",
                 content: bookTitle,
                 subjectId: null,
             });
 
-            // Navigate to chat with the conversationId
             navigate("/chat", {
                 state: {
-                    conversationId: conversationId,
+                    conversationId: messageResponse.data.data.conversationId,
                     query: bookTitle,
                 },
             });
@@ -120,168 +98,10 @@ export default function Learn() {
             />
 
             {/* History Sidebar */}
-            {showHistorySidebar && (
-                <>
-                    <div
-                        className="history-sidebar-overlay"
-                        onClick={() => setShowHistorySidebar(false)}
-                    />
-                    <aside className="history-sidebar">
-                        <div className="history-sidebar-header">
-                            <h2 className="history-sidebar-title">Lịch sử cuộc trò chuyện</h2>
-                            <button
-                                className="history-sidebar-close"
-                                onClick={() => setShowHistorySidebar(false)}
-                                aria-label="Đóng"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <div className="history-sidebar-content">
-                            {/* Today */}
-                            <div className="history-section">
-                                <h3 className="history-section-title">Hôm nay</h3>
-                                <div className="history-items">
-                                    <button
-                                        className="history-item"
-                                        onClick={() =>
-                                            handleBookClick("Lập trình Hướng đối tượng (OOP)")
-                                        }
-                                        disabled={isCreatingMessage}
-                                        style={{
-                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
-                                            opacity: isCreatingMessage ? 0.6 : 1,
-                                        }}
-                                    >
-                                        <span className="history-item-icon">💬</span>
-                                        <span className="history-item-text">
-                                            Lập trình Hướng đối tượng (OOP)
-                                        </span>
-                                    </button>
-                                    <button
-                                        className="history-item"
-                                        onClick={() =>
-                                            handleBookClick("Data Structures và Algorithms")
-                                        }
-                                        disabled={isCreatingMessage}
-                                        style={{
-                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
-                                            opacity: isCreatingMessage ? 0.6 : 1,
-                                        }}
-                                    >
-                                        <span className="history-item-icon">💬</span>
-                                        <span className="history-item-text">
-                                            Data Structures và Algorithms
-                                        </span>
-                                    </button>
-                                    <button
-                                        className="history-item"
-                                        onClick={() =>
-                                            handleBookClick("React Hooks và State Management")
-                                        }
-                                        disabled={isCreatingMessage}
-                                        style={{
-                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
-                                            opacity: isCreatingMessage ? 0.6 : 1,
-                                        }}
-                                    >
-                                        <span className="history-item-icon">💬</span>
-                                        <span className="history-item-text">
-                                            React Hooks và State Management
-                                        </span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Yesterday */}
-                            <div className="history-section">
-                                <h3 className="history-section-title">Hôm qua</h3>
-                                <div className="history-items">
-                                    <button
-                                        className="history-item"
-                                        onClick={() => handleBookClick("Database Design và SQL")}
-                                        disabled={isCreatingMessage}
-                                        style={{
-                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
-                                            opacity: isCreatingMessage ? 0.6 : 1,
-                                        }}
-                                    >
-                                        <span className="history-item-icon">💬</span>
-                                        <span className="history-item-text">
-                                            Database Design và SQL
-                                        </span>
-                                    </button>
-                                    <button
-                                        className="history-item"
-                                        onClick={() => handleBookClick("Machine Learning cơ bản")}
-                                        disabled={isCreatingMessage}
-                                        style={{
-                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
-                                            opacity: isCreatingMessage ? 0.6 : 1,
-                                        }}
-                                    >
-                                        <span className="history-item-icon">💬</span>
-                                        <span className="history-item-text">
-                                            Machine Learning cơ bản
-                                        </span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Last 7 days */}
-                            <div className="history-section">
-                                <h3 className="history-section-title">7 ngày trước</h3>
-                                <div className="history-items">
-                                    <button
-                                        className="history-item"
-                                        onClick={() => handleBookClick("RESTful API Design")}
-                                        disabled={isCreatingMessage}
-                                        style={{
-                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
-                                            opacity: isCreatingMessage ? 0.6 : 1,
-                                        }}
-                                    >
-                                        <span className="history-item-icon">💬</span>
-                                        <span className="history-item-text">
-                                            RESTful API Design
-                                        </span>
-                                    </button>
-                                    <button
-                                        className="history-item"
-                                        onClick={() => handleBookClick("Git và Version Control")}
-                                        disabled={isCreatingMessage}
-                                        style={{
-                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
-                                            opacity: isCreatingMessage ? 0.6 : 1,
-                                        }}
-                                    >
-                                        <span className="history-item-icon">💬</span>
-                                        <span className="history-item-text">
-                                            Git và Version Control
-                                        </span>
-                                    </button>
-                                    <button
-                                        className="history-item"
-                                        onClick={() =>
-                                            handleBookClick("Docker và Containerization")
-                                        }
-                                        disabled={isCreatingMessage}
-                                        style={{
-                                            cursor: isCreatingMessage ? "not-allowed" : "pointer",
-                                            opacity: isCreatingMessage ? 0.6 : 1,
-                                        }}
-                                    >
-                                        <span className="history-item-icon">💬</span>
-                                        <span className="history-item-text">
-                                            Docker và Containerization
-                                        </span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </aside>
-                </>
-            )}
+            <HistorySidebar
+                isOpen={showHistorySidebar}
+                onClose={() => setShowHistorySidebar(false)}
+            />
 
             {/* Main Content */}
             <main className="learn-main">

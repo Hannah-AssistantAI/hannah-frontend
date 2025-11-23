@@ -1,6 +1,7 @@
 import pythonApiClient from './pythonApiClient';
 
 export interface CreateConversationRequest {
+    userId: number;
     title: string;
     subjectId?: number;
 }
@@ -65,6 +66,7 @@ class ConversationService {
      * List all conversations
      */
     async listConversations(params?: {
+        user_id?: number;
         subject_id?: number;
         is_flagged?: boolean;
         search?: string;
