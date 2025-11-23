@@ -67,10 +67,10 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose 
             const newConversation = await conversationService.createConversation({
                 userId: user.userId,
                 title: "Cuộc trò chuyện mới",
-                subjectId: 0
+                subjectId: undefined
             });
 
-            // Navigate to chat with the new conversation ID
+            // Navigate to chat with the new conversation ID (no query, just empty chat)
             navigate("/chat", { state: { conversationId: newConversation.conversationId } });
             onClose();
         } catch (error) {

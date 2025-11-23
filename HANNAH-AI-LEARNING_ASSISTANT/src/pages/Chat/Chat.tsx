@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Sparkles, Send, ThumbsUp, ThumbsDown, Share2, Upload, Book, GitBranch, FileText, ClipboardCheck, StickyNote, ChevronDown, ChevronUp, Link as LinkIcon, List } from 'lucide-react'
 import subjectService, { type Subject } from '../../service/subjectService'
-import messageService from '../../service/messageService'
 import chatService from '../../service/chatService'
 import { useStudio } from './hooks/useStudio'
 import { useQuiz } from './hooks/useQuiz'
@@ -284,20 +283,7 @@ export default function Chat() {
         setIsSendingMessage(true);
 
         try {
-            // Step 1: Create user message via POST /api/v1/messages
-            console.log('📤 Sending user message to POST /api/v1/messages...');
-            await messageService.createMessage({
-                userId: user.userId,
-                conversationId: conversationId,
-                role: 'user',
-                content: userMessage,
-                subjectId: null
-            });
-
-
-            // Step 2: Update conversation title on first user-sent message
-            // If there was an initialQuery, this would be the 2nd message (index 1)
-            // If no initialQuery, this would be the 1st message (index 0)
+            // Step 1: Update conversation title on first user-sent message
             const userMessageCount = messages.filter(m => m.type === 'user').length;
             const isFirstUserSentMessage = initialQuery ? userMessageCount === 1 : userMessageCount === 0;
 
@@ -313,7 +299,8 @@ export default function Chat() {
             }
 
 
-            // Step 3: Send message to AI and get response via POST /api/v1/chat/interactions
+            // Step 2: Send message to AI and get response via POST /api/v1/chat/interactions
+            // NOTE: This endpoint automatically creates the user message, so we don't need to call POST /messages
             console.log('🤖 Sending to chat API via POST /api/v1/chat/interactions...');
             const response = await chatService.sendTextMessage(
                 conversationId,
@@ -702,17 +689,43 @@ export default function Chat() {
 
     // Reload messages when conversationId changes
     useEffect(() => {
-        if (conversationId) {
+        // Only load if: conversationId exists, no initialQuery (not from Learn), and user is logged in
+        if (conversationId && !initialQuery && user?.userId) {
             const loadConversationHistory = async () => {
                 try {
-                    // Fetch conversation history logic here if not already present
-                    // For now, we rely on the existing logic or add a new fetch
-                    // This is a placeholder to ensure we react to ID changes
-                    console.log("Switched to conversation:", conversationId);
-                    // In a real app, we would fetch messages for this conversationId here
-                    // and setMessages(fetchedMessages)
+                    console.log('📥 Loading conversation history for ID:', conversationId);
+
+                    const conversationDetails = await conversationService.getConversation(conversationId, user.userId);
+                    console.log('✅ Loaded conversation:', conversationDetails);
+
+                    const transformedMessages: Message[] = conversationDetails.messages.map(msg => {
+                        const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content) : {};
+
+                        return {
+                            type: msg.role === 'user' || msg.role === 'student' ? 'user' : 'assistant',
+                            content: msg.content,
+                            isStreaming: false,
+                            suggestedQuestions: [],
+                            ...parsed
+                        };
+                    });
+
+                    setMessages(transformedMessages);
+                    setBigPictureData([]);
+
+                    transformedMessages.forEach(msg => {
+                        if (msg.type === 'assistant' && msg.outline && msg.outline.length > 0) {
+                            setBigPictureData(msg.outline);
+                        }
+                    });
                 } catch (error) {
-                    console.error("Failed to load conversation:", error);
+                    console.error('❌ Failed to load conversation:', error);
+                    setMessages([{
+                        type: 'assistant',
+                        content: 'Xin lỗi, không thể tải cuộc trò chuyện này. Vui lòng thử lại.',
+                        isStreaming: false,
+                        suggestedQuestions: []
+                    }]);
                 }
             };
             loadConversationHistory();

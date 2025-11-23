@@ -55,9 +55,10 @@ class ConversationService {
     /**
      * Get conversation details
      */
-    async getConversation(conversationId: number): Promise<ConversationDetails> {
+    async getConversation(conversationId: number, userId: number): Promise<ConversationDetails> {
         const response = await pythonApiClient.get<BaseResponse<ConversationDetails>>(
-            `/api/v1/conversations/${conversationId}`
+            `/api/v1/conversations/${conversationId}`,
+            { user_id: userId }
         );
         return response.data.data;
     }

@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import "./Learn.css";
 import { Header } from "../../components/Header";
 import { HistorySidebar } from "../../components/HistorySidebar";
-import { messageService } from "../../service/messageService";
+import conversationService from "../../service/conversationService";
 import { useAuth } from "../../contexts/AuthContext";
 
 export default function Learn() {
@@ -25,23 +25,21 @@ export default function Learn() {
 
         setIsCreatingMessage(true);
         try {
-            // Call message API with conversationId=null to auto-create conversation
-            const messageResponse = await messageService.createMessage({
+            // Create empty conversation - Chat page will auto-send the query
+            const conversation = await conversationService.createConversation({
                 userId: user.userId,
-                conversationId: null,
-                role: "student",
-                content: searchQuery,
-                subjectId: null,
+                title: searchQuery.length > 50 ? searchQuery.substring(0, 50) + '...' : searchQuery,
+                subjectId: undefined,
             });
 
             navigate("/chat", {
                 state: {
-                    conversationId: messageResponse.data.data.conversationId,
+                    conversationId: conversation.conversationId,
                     query: searchQuery,
                 },
             });
         } catch (error: any) {
-            console.error("Failed to create conversation/message:", error);
+            console.error("Failed to create conversation:", error);
             toast.error(
                 error.message || "Không thể tạo cuộc trò chuyện. Vui lòng thử lại."
             );
@@ -65,23 +63,21 @@ export default function Learn() {
 
         setIsCreatingMessage(true);
         try {
-            // Call message API with conversationId=null to auto-create conversation
-            const messageResponse = await messageService.createMessage({
+            // Create empty conversation - Chat page will auto-send the query
+            const conversation = await conversationService.createConversation({
                 userId: user.userId,
-                conversationId: null,
-                role: "student",
-                content: bookTitle,
-                subjectId: null,
+                title: bookTitle.length > 50 ? bookTitle.substring(0, 50) + '...' : bookTitle,
+                subjectId: undefined,
             });
 
             navigate("/chat", {
                 state: {
-                    conversationId: messageResponse.data.data.conversationId,
+                    conversationId: conversation.conversationId,
                     query: bookTitle,
                 },
             });
         } catch (error: any) {
-            console.error("Failed to create conversation/message:", error);
+            console.error("Failed to create conversation:", error);
             toast.error(
                 error.message || "Không thể tạo cuộc trò chuyện. Vui lòng thử lại."
             );
