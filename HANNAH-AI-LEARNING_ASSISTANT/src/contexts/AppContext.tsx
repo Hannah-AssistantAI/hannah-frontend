@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { getFlaggedConversations } from '../service/mockApi';
 
 const AppContext = createContext<any>(undefined);
@@ -23,12 +23,12 @@ const appReducer = (state: { notifications: any; }, action: { type: any; payload
     case 'SET_ERROR':
       return { ...state, error: action.payload };
     case 'SET_FLAGGED_COUNT':
-      return { 
-        ...state, 
-        notifications: { 
-          ...state.notifications, 
-          flaggedCount: action.payload 
-        } 
+      return {
+        ...state,
+        notifications: {
+          ...state.notifications,
+          flaggedCount: action.payload
+        }
       };
     case 'CLEAR_ERROR':
       return { ...state, error: null };
@@ -54,29 +54,29 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     loadFlaggedCount();
   }, []);
 
-  const setLoading = (loading: any) => {
+  const setLoading = useCallback((loading: any) => {
     dispatch({ type: 'SET_LOADING', payload: loading });
-  };
+  }, []);
 
-  const setError = (error: any) => {
+  const setError = useCallback((error: any) => {
     dispatch({ type: 'SET_ERROR', payload: error });
-  };
+  }, []);
 
-  const clearError = () => {
+  const clearError = useCallback(() => {
     dispatch({
       type: 'CLEAR_ERROR',
       payload: undefined
     });
-  };
+  }, []);
 
-  const updateFlaggedCount = (count: any) => {
+  const updateFlaggedCount = useCallback((count: any) => {
     dispatch({ type: 'SET_FLAGGED_COUNT', payload: count });
-  };
+  }, []);
 
-  const showNotification = (message: string | null, type = 'info') => {
+  const showNotification = useCallback((message: string | null, type = 'info') => {
     // Simple notification system - in real app would use toast library
     console.log(`${type.toUpperCase()}: ${message}`);
-    
+
     // Create a simple toast notification
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
@@ -105,16 +105,16 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         document.body.removeChild(toast);
       }, 300);
     }, 3000);
-  };
+  }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     ...state,
     setLoading,
     setError,
     clearError,
     updateFlaggedCount,
     showNotification
-  };
+  }), [state, setLoading, setError, clearError, updateFlaggedCount, showNotification]);
 
   return (
     <AppContext.Provider value={value}>

@@ -1,56 +1,57 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../../contexts/AppContext';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useAuth } from '../../../contexts/AuthContext';
+import { AlertCircle, Clock, Users, Target } from 'lucide-react';
 import { getFlaggedQuizAttempts } from '../../../service/mockApi';
 import QuestionAnalyticsFilter from './QuestionAnalyticsFilter';
+import quizApiService from '../../../service/quizApi';
+import {
+  formatTime,
+  getScoreRangeLabel,
+  getScoreRangeColor
+} from '../../../service/quizApi';
+import type {
+  QuizDto,
+  QuizResultsDto,
+  QuizStatisticsDto
+} from '../../../service/quizApi';
 
-// Knowledge Gap Analytics - Based on Quiz Performance from Learn Studio
-interface QuizAttempt {
-  id: number;
-  studentName: string;
-  studentId: string;
-  topic: string;
-  course: string;
-  score: number;
-  maxScore: number;
-  percentage: number;
-  questionsCount: number;
-  timestamp: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+// ==================== INTERFACES ====================
+
+interface QuizWithAnalytics extends QuizDto {
+  results?: QuizResultsDto;
+  statistics?: QuizStatisticsDto;
 }
 
-interface TopicGapData {
-  topic: string;
-  course: string;
-  attemptCount: number;
-  avgScore: number;
-  studentCount: number;
-  trend: 'up' | 'down' | 'stable';
-}
-
-interface KnowledgeGapData {
-  topTopics: TopicGapData[];
-  recentQuizzes: QuizAttempt[];
+interface AnalyticsData {
+  quizzes: QuizWithAnalytics[];
   totalAttempts: number;
   averageScore: number;
+  totalQuizzes: number;
+  totalStudents: number;
 }
 
-interface KnowledgeGapData {
-  topTopics: TopicGapData[];
-  recentQuizzes: QuizAttempt[];
-  totalAttempts: number;
-  averageScore: number;
+interface FilterState {
+  search: string;
+  dateFrom: string;
+  dateTo: string;
+  course: string;
+  timePeriod: string;
+  scoreFilter: string;
 }
 
-const KnowledgeGapAnalysis = () => {
+// ==================== MAIN COMPONENT ====================
+
+const QuestionAnalytics = () => {
   const { setLoading, showNotification } = useApp();
+  const { user } = useAuth(); // Get user from context
   const navigate = useNavigate();
-  const [gapData, setGapData] = useState<KnowledgeGapData | null>(null);
-  // const [selectedQuiz, setSelectedQuiz] = useState<QuizAttempt | null>(null);
-  
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
   // Filter state
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<FilterState>({
     search: '',
     dateFrom: '',
     dateTo: '',
@@ -59,73 +60,86 @@ const KnowledgeGapAnalysis = () => {
     scoreFilter: 'all'
   });
 
-  // Available courses from mock data
-  const availableCourses = ['Software Engineering', 'Database Systems', 'Data Structures'];
+  // Available courses
+  const [availableCourses] = useState<string[]>([]);
 
-  // Mock data - Replace with API call
-  const mockData: KnowledgeGapData = {
-    topTopics: [
-      { topic: 'Recursion', course: 'Software Engineering', attemptCount: 45, avgScore: 65, studentCount: 28, trend: 'down' },
-      { topic: 'SQL Joins', course: 'Database Systems', attemptCount: 38, avgScore: 72, studentCount: 25, trend: 'stable' },
-      { topic: 'Sorting Algorithms', course: 'Data Structures', attemptCount: 32, avgScore: 78, studentCount: 22, trend: 'up' },
-      { topic: 'OOP Principles', course: 'Software Engineering', attemptCount: 29, avgScore: 69, studentCount: 20, trend: 'down' },
-      { topic: 'Normalization', course: 'Database Systems', attemptCount: 24, avgScore: 74, studentCount: 18, trend: 'stable' }
-    ],
-    recentQuizzes: [
-      { id: 1, studentName: 'Nguyễn Văn A', studentId: 'SE123456', topic: 'Recursion', course: 'Software Engineering', score: 7, maxScore: 10, percentage: 70, questionsCount: 10, timestamp: '2024-10-22T14:30:00', difficulty: 'hard' },
-      { id: 2, studentName: 'Trần Thị B', studentId: 'SE123457', topic: 'SQL Joins', course: 'Database Systems', score: 8, maxScore: 10, percentage: 80, questionsCount: 10, timestamp: '2024-10-22T13:15:00', difficulty: 'medium' },
-      { id: 3, studentName: 'Lê Văn C', studentId: 'SE123458', topic: 'Sorting Algorithms', course: 'Data Structures', score: 6, maxScore: 10, percentage: 60, questionsCount: 10, timestamp: '2024-10-22T11:45:00', difficulty: 'medium' },
-      { id: 4, studentName: 'Phạm Thị D', studentId: 'SE123459', topic: 'OOP Principles', course: 'Software Engineering', score: 5, maxScore: 10, percentage: 50, questionsCount: 10, timestamp: '2024-10-21T16:20:00', difficulty: 'hard' },
-      { id: 5, studentName: 'Hoàng Văn E', studentId: 'SE123460', topic: 'Normalization', course: 'Database Systems', score: 9, maxScore: 10, percentage: 90, questionsCount: 10, timestamp: '2024-10-21T15:00:00', difficulty: 'easy' }
-    ],
-    totalAttempts: 168,
-    averageScore: 71.5
-  };
+  // Flagged quizzes
+  const [flaggedMap, setFlaggedMap] = useState<Record<string, { reason: string; status: string }>>({});
+
+  // ==================== DATA LOADING ====================
 
   useEffect(() => {
-    loadGapData();
-  }, [filters]);
+    if (user) {
+      loadAnalyticsData();
+    }
+  }, [filters.timePeriod, filters.scoreFilter, user]);
 
-  const [flaggedMap, setFlaggedMap] = useState<Record<string, { reason: string; status: string }>>({});
   const refreshFlags = async () => {
     const res = await getFlaggedQuizAttempts();
     if (res.success) {
       const map: Record<string, { reason: string; status: string }> = {};
-      res.data.forEach((f: any) => { map[f.id] = { reason: f.reason, status: f.status }; });
+      res.data.forEach((f: any) => {
+        map[f.id] = { reason: f.reason, status: f.status };
+      });
       setFlaggedMap(map);
     }
   };
-  useEffect(() => { refreshFlags(); }, [gapData]);
 
-  const loadGapData = async () => {
+  useEffect(() => {
+    if (analyticsData) refreshFlags();
+  }, [analyticsData]);
+
+  const loadAnalyticsData = async () => {
     try {
       setLoading(true);
-      // TODO: Replace with actual API call
-      // const response = await getKnowledgeGapAnalytics({ dateRange: parseInt(dateRange), scoreFilter });
-      setTimeout(() => {
-        setGapData(mockData);
-        setLoading(false);
-      }, 500);
-    } catch (error) {
-      showNotification('Error loading analytics', 'error');
+      setError(null);
+
+      // Fetch all quizzes (no CreatedBy filter)
+      // Faculty can see all quizzes in the system
+      const params = {
+        PageSize: 100,
+      };
+
+      const quizzesWithStats = await quizApiService.getQuizzesWithStatistics(params);
+
+      // Calculate aggregate statistics
+      let totalAttempts = 0;
+      let totalScore = 0;
+      let scoreCount = 0;
+      const uniqueStudents = new Set<number>();
+
+      quizzesWithStats.forEach(quiz => {
+        if (quiz.results) {
+          totalAttempts += quiz.results.totalAttempts;
+          uniqueStudents.add(quiz.results.uniqueUsers);
+
+          if (quiz.results.averageScore !== undefined) {
+            totalScore += quiz.results.averageScore;
+            scoreCount++;
+          }
+        }
+      });
+
+      setAnalyticsData({
+        quizzes: quizzesWithStats,
+        totalAttempts,
+        averageScore: scoreCount > 0 ? totalScore / scoreCount : 0,
+        totalQuizzes: quizzesWithStats.length,
+        totalStudents: uniqueStudents.size,
+      });
+
+      setLoading(false);
+    } catch (err: any) {
+      console.error('Error loading analytics:', err);
+      setError(err.message || 'Failed to load quiz analytics');
+      showNotification('Error loading analytics data', 'error');
       setLoading(false);
     }
   };
 
-  const getScoreColor = (percentage: number) => {
-    if (percentage >= 80) return '#10b981'; // green
-    if (percentage >= 60) return '#f59e0b'; // orange
-    return '#ef4444'; // red
-  };
+  // ==================== FILTERS ====================
 
-  const getScoreBadgeClass = (percentage: number) => {
-    if (percentage >= 80) return 'bg-green-100 text-green-800';
-    if (percentage >= 60) return 'bg-orange-100 text-orange-800';
-    return 'bg-red-100 text-red-800';
-  };
-
-  // Filter handlers
-  const handleFilterChange = (newFilters: Partial<typeof filters>) => {
+  const handleFilterChange = (newFilters: Partial<FilterState>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
   };
 
@@ -140,39 +154,33 @@ const KnowledgeGapAnalysis = () => {
     });
   };
 
-  const filterQuizzes = (quizzes: QuizAttempt[]) => {
+  const filterQuizzes = (quizzes: QuizWithAnalytics[]): QuizWithAnalytics[] => {
     let filtered = [...quizzes];
 
-    // Filter by score
     if (filters.scoreFilter !== 'all') {
-      if (filters.scoreFilter === 'low') filtered = filtered.filter(q => q.percentage < 60);
-      if (filters.scoreFilter === 'medium') filtered = filtered.filter(q => q.percentage >= 60 && q.percentage < 80);
-      if (filters.scoreFilter === 'high') filtered = filtered.filter(q => q.percentage >= 80);
+      filtered = filtered.filter(quiz => {
+        const avgScore = quiz.results?.averageScore || 0;
+        if (filters.scoreFilter === 'low') return avgScore < 60;
+        if (filters.scoreFilter === 'medium') return avgScore >= 60 && avgScore < 80;
+        if (filters.scoreFilter === 'high') return avgScore >= 80;
+        return true;
+      });
     }
 
-    // Filter by search
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(q => 
-        q.studentName.toLowerCase().includes(searchLower) ||
-        q.topic.toLowerCase().includes(searchLower) ||
-        q.course.toLowerCase().includes(searchLower)
+      filtered = filtered.filter(quiz =>
+        quiz.title.toLowerCase().includes(searchLower)
       );
     }
 
-    // Filter by course
-    if (filters.course) {
-      filtered = filtered.filter(q => q.course === filters.course);
-    }
-
-    // Filter by time period
     if (filters.timePeriod !== 'all') {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
-      filtered = filtered.filter(q => {
-        const quizDate = new Date(q.timestamp);
-        
+
+      filtered = filtered.filter(quiz => {
+        const quizDate = new Date(quiz.createdAt);
+
         switch (filters.timePeriod) {
           case 'today':
             return quizDate >= today;
@@ -185,7 +193,6 @@ const KnowledgeGapAnalysis = () => {
             monthAgo.setMonth(monthAgo.getMonth() - 1);
             return quizDate >= monthAgo;
           case 'semester':
-            // Assuming semester is 4 months
             const semesterAgo = new Date(today);
             semesterAgo.setMonth(semesterAgo.getMonth() - 4);
             return quizDate >= semesterAgo;
@@ -199,43 +206,79 @@ const KnowledgeGapAnalysis = () => {
       });
     }
 
-    // Filter by custom date range
     if (filters.dateFrom) {
       const fromDate = new Date(filters.dateFrom);
-      filtered = filtered.filter(q => new Date(q.timestamp) >= fromDate);
+      filtered = filtered.filter(q => new Date(q.createdAt) >= fromDate);
     }
     if (filters.dateTo) {
       const toDate = new Date(filters.dateTo);
       toDate.setHours(23, 59, 59, 999);
-      filtered = filtered.filter(q => new Date(q.timestamp) <= toDate);
+      filtered = filtered.filter(q => new Date(q.createdAt) <= toDate);
     }
 
     return filtered;
   };
 
-  if (!gapData) {
+  // ==================== HELPER FUNCTIONS ====================
+
+  const getScoreColor = (percentage: number) => {
+    if (percentage >= 80) return '#10b981';
+    if (percentage >= 60) return '#f59e0b';
+    return '#ef4444';
+  };
+
+  // ==================== RENDER ====================
+
+  if (!analyticsData) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+        <p className="text-slate-600">Loading quiz analytics...</p>
       </div>
     );
   }
 
-  const filteredQuizzes = filterQuizzes(gapData.recentQuizzes);
-  
-  // Calculate filtered statistics
-  const filteredTotalAttempts = filteredQuizzes.length;
-  const filteredAverageScore = filteredQuizzes.length > 0 
-    ? filteredQuizzes.reduce((sum, quiz) => sum + quiz.percentage, 0) / filteredQuizzes.length 
-    : 0;
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
+        <h2 className="text-2xl font-bold text-slate-800 mb-2">Error Loading Analytics</h2>
+        <p className="text-slate-600 mb-4">{error}</p>
+        <button
+          onClick={loadAnalyticsData}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const filteredQuizzes = filterQuizzes(analyticsData.quizzes);
+
+  let filteredTotalAttempts = 0;
+  let filteredTotalScore = 0;
+  let filteredScoreCount = 0;
+
+  filteredQuizzes.forEach(quiz => {
+    if (quiz.results) {
+      filteredTotalAttempts += quiz.results.totalAttempts;
+      if (quiz.results.averageScore !== undefined) {
+        filteredTotalScore += quiz.results.averageScore;
+        filteredScoreCount++;
+      }
+    }
+  });
+
+  const filteredAverageScore = filteredScoreCount > 0 ? filteredTotalScore / filteredScoreCount : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-800 mb-2">📊 Knowledge Gap Analysis</h1>
-          <p className="text-slate-600">Track quiz scores by topic from Learn Studio</p>
+          <h1 className="text-4xl font-bold text-slate-800 mb-2">📊 Quiz Analytics Dashboard</h1>
+          <p className="text-slate-600">Comprehensive analytics for all quizzes</p>
         </div>
 
         {/* Filter Component */}
@@ -247,15 +290,15 @@ const KnowledgeGapAnalysis = () => {
         />
 
         {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm font-medium mb-1">Total Quiz Attempts</p>
-                <p className="text-4xl font-bold">{filteredTotalAttempts}</p>
-                {filteredTotalAttempts !== gapData.totalAttempts && (
+                <p className="text-blue-100 text-sm font-medium mb-1">Total Quizzes</p>
+                <p className="text-4xl font-bold">{filteredQuizzes.length}</p>
+                {filteredQuizzes.length !== analyticsData.totalQuizzes && (
                   <p className="text-blue-200 text-xs mt-1">
-                    (Overall: {gapData.totalAttempts})
+                    (Overall: {analyticsData.totalQuizzes})
                   </p>
                 )}
               </div>
@@ -266,151 +309,144 @@ const KnowledgeGapAnalysis = () => {
           <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-sm font-medium mb-1">Average Score</p>
-                <p className="text-4xl font-bold">{filteredAverageScore.toFixed(1)}%</p>
-                {filteredAverageScore.toFixed(1) !== gapData.averageScore.toFixed(1) && (
+                <p className="text-purple-100 text-sm font-medium mb-1">Total Attempts</p>
+                <p className="text-4xl font-bold">{filteredTotalAttempts}</p>
+                {filteredTotalAttempts !== analyticsData.totalAttempts && (
                   <p className="text-purple-200 text-xs mt-1">
-                    (Overall: {gapData.averageScore.toFixed(1)}%)
+                    (Overall: {analyticsData.totalAttempts})
+                  </p>
+                )}
+              </div>
+              <div className="text-6xl opacity-20">✍️</div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-100 text-sm font-medium mb-1">Average Score</p>
+                <p className="text-4xl font-bold">{filteredAverageScore.toFixed(1)}%</p>
+                {filteredAverageScore.toFixed(1) !== analyticsData.averageScore.toFixed(1) && (
+                  <p className="text-green-200 text-xs mt-1">
+                    (Overall: {analyticsData.averageScore.toFixed(1)}%)
                   </p>
                 )}
               </div>
               <div className="text-6xl opacity-20">📈</div>
             </div>
           </div>
-        </div>
 
-        {/* Top Topics Dashboard */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-slate-800">🎯 Most Attempted Quiz Topics</h2>
-            <div className="text-sm text-slate-600">Sorted by number of attempts</div>
-          </div>
-
-          <div className="space-y-4">
-            {gapData.topTopics.map((topic, index) => (
-              <div 
-                key={index}
-                className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition"
-              >
-                <div className="flex-shrink-0 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
-                  {index + 1}
-                </div>
-                
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-slate-800">{topic.topic}</h3>
-                    {topic.trend === 'down' && <TrendingDown className="w-4 h-4 text-red-500" />}
-                    {topic.trend === 'up' && <TrendingUp className="w-4 h-4 text-green-500" />}
-                  </div>
-                  <p className="text-sm text-slate-600">{topic.course}</p>
-                </div>
-
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-slate-800">{topic.attemptCount}</div>
-                  <div className="text-xs text-slate-500">attempts</div>
-                </div>
-
-                <div className="text-right">
-                  <div 
-                    className="text-2xl font-bold"
-                    style={{ color: getScoreColor(topic.avgScore) }}
-                  >
-                    {topic.avgScore}%
-                  </div>
-                  <div className="text-xs text-slate-500">avg score</div>
-                </div>
-
-                <div className="text-right">
-                  <div className="text-lg font-semibold text-slate-700">{topic.studentCount}</div>
-                  <div className="text-xs text-slate-500">students</div>
-                </div>
+          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-orange-100 text-sm font-medium mb-1">Total Students</p>
+                <p className="text-4xl font-bold">{analyticsData.totalStudents}</p>
               </div>
-            ))}
+              <div className="text-6xl opacity-20">👥</div>
+            </div>
           </div>
         </div>
 
-        {/* Recent Quizzes List */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        {/* Quiz List */}
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
           <div className="p-6 border-b border-slate-200 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-slate-800">📋 Recently Attempted Quizzes</h2>
-            <button onClick={refreshFlags} className="text-sm px-3 py-1 rounded bg-slate-100 hover:bg-slate-200 border border-slate-300">Refresh Flags</button>
+            <h2 className="text-2xl font-bold text-slate-800">📋 Quiz Performance Overview</h2>
+            <button
+              onClick={loadAnalyticsData}
+              className="text-sm px-3 py-1 rounded bg-slate-100 hover:bg-slate-200 border border-slate-300"
+            >
+              Refresh Data
+            </button>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Student</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Topic</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Course</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Score</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Time</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Difficulty</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Quiz Title</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Questions</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Attempts</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Avg Score</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Pass Rate</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Students</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Avg Time</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {filteredQuizzes.map((quiz) => (
-                  <tr key={quiz.id} className="hover:bg-slate-50 transition">
+                  <tr key={quiz.quizId} className="hover:bg-slate-50 transition">
                     <td className="px-6 py-4">
                       <div>
-                        <div className="font-semibold text-slate-800">{quiz.studentName}</div>
-                        <div className="text-sm text-slate-500">{quiz.studentId}</div>
+                        <div className="font-semibold text-slate-800 flex items-center gap-2">
+                          {quiz.title}
+                          {flaggedMap[quiz.quizId] && (
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs"
+                              title={flaggedMap[quiz.quizId].reason || 'Flagged'}
+                            >
+                              🚩 Flagged
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-sm text-slate-500">
+                          Created: {new Date(quiz.createdAt).toLocaleDateString()}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-medium text-slate-700 flex items-center gap-2">
-                        {quiz.topic}
-                        {flaggedMap[quiz.id] && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs" title={flaggedMap[quiz.id].reason || 'Flagged'}>
-                            🚩 Flagged
-                          </span>
-                        )}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">{quiz.course}</span>
+                      <span className="font-medium text-slate-700">{quiz.questionCount}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div>
-                        <div className="font-bold text-lg" style={{ color: getScoreColor(quiz.percentage) }}>
-                          {quiz.score}/{quiz.maxScore}
+                        <div className="font-bold text-blue-600">{quiz.results?.totalAttempts || 0}</div>
+                        {quiz.statistics && (
+                          <div className="text-xs text-slate-500">
+                            ({quiz.statistics.completedAttempts} completed)
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div
+                        className="text-2xl font-bold"
+                        style={{ color: getScoreColor(quiz.results?.averageScore || 0) }}
+                      >
+                        {quiz.results?.averageScore != null ? `${quiz.results.averageScore.toFixed(1)}%` : 'N/A'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div>
+                        <div className="font-bold text-slate-700">
+                          {quiz.results?.passRate != null ? `${quiz.results.passRate.toFixed(1)}%` : 'N/A'}
                         </div>
-                        <span className={`inline-block px-2 py-1 text-xs font-semibold rounded ${getScoreBadgeClass(quiz.percentage)}`}>
-                          {quiz.percentage}%
+                        {quiz.results && (
+                          <div className="text-xs text-slate-500">
+                            (≥50 points)
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-1">
+                        <Users className="w-4 h-4 text-slate-500" />
+                        <span className="font-medium text-slate-700">{quiz.results?.uniqueUsers || 0}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4 text-slate-500" />
+                        <span className="text-sm text-slate-600">
+                          {formatTime(quiz.results?.averageTimeTaken)}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-slate-600">
-                        {new Date(quiz.timestamp).toLocaleDateString('en-US', {
-                          month: '2-digit',
-                          day: '2-digit',
-                          year: 'numeric'
-                        })}
-                        <div className="text-xs text-slate-400">
-                          {new Date(quiz.timestamp).toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${
-                        quiz.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
-                        quiz.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {quiz.difficulty === 'easy' ? 'Easy' : quiz.difficulty === 'medium' ? 'Medium' : 'Hard'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
                       <button
-                        onClick={() => navigate(`/faculty/analytics/quiz/${quiz.id}`)}
+                        onClick={() => navigate(`/faculty/analytics/quiz/${quiz.quizId}`)}
                         className="text-blue-600 hover:text-blue-800 font-medium text-sm"
                       >
-                        View details
+                        View Details
                       </button>
                     </td>
                   </tr>
@@ -421,15 +457,51 @@ const KnowledgeGapAnalysis = () => {
 
           {filteredQuizzes.length === 0 && (
             <div className="text-center py-12 text-slate-500">
-              <p className="text-lg">No quizzes match the filters</p>
+              <Target className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+              <p className="text-lg font-medium">No quizzes match the filters</p>
+              <p className="text-sm">Try adjusting your filters</p>
             </div>
           )}
         </div>
 
-        {/* Quiz Detail Modal removed in favor of dedicated detail page */}
+        {/* Score Distribution */}
+        {filteredQuizzes.length > 0 && (
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-2xl font-bold text-slate-800 mb-6">📊 Score Distribution</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              {['90-100', '80-89', '70-79', '60-69', '0-59'].map((range) => {
+                const totalInRange = filteredQuizzes.reduce((sum, quiz) => {
+                  return sum + (quiz.results?.scoreDistribution[range as keyof typeof quiz.results.scoreDistribution] || 0);
+                }, 0);
+
+                return (
+                  <div
+                    key={range}
+                    className="p-4 rounded-lg border-2 transition-all hover:shadow-md"
+                    style={{ borderColor: getScoreRangeColor(range) }}
+                  >
+                    <div className="text-center">
+                      <div
+                        className="text-3xl font-bold mb-1"
+                        style={{ color: getScoreRangeColor(range) }}
+                      >
+                        {totalInRange}
+                      </div>
+                      <div className="text-sm font-medium text-slate-700 mb-1">
+                        {getScoreRangeLabel(range)}
+                      </div>
+                      <div className="text-xs text-slate-500">{range} points</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default KnowledgeGapAnalysis;
+export default QuestionAnalytics;

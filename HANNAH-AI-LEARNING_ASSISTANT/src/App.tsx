@@ -31,6 +31,7 @@ import { SystemMonitoring } from './pages/Admin/SystemMonitoring/SystemMonitorin
 import { Configuration } from './pages/Admin/Configuration'
 import SemesterManagement from './pages/Admin/SemesterManagement/SemesterManagement'
 import QuizAttemptDetail from './pages/Faculty/QuestionAnalytics/QuizAttemptDetail'
+import QuizDetail from './pages/Faculty/QuestionAnalytics/QuizDetail'
 import FlaggedQuizzes from './pages/Admin/FlaggedQuizzes'
 import FlaggedQuizDetail from './pages/Admin/FlaggedQuizDetail'
 
@@ -150,7 +151,8 @@ function App() {
               <Route path="challenges" element={<ChallengesManagement />} />
             </Route>
             <Route path="analytics" element={<QuestionAnalytics />} />
-            <Route path="analytics/quiz/:id" element={<QuizAttemptDetail />} />
+            <Route path="analytics/quiz/:id" element={<QuizDetail />} />
+            <Route path="analytics/quiz/:quizId/attempt/:id" element={<QuizAttemptDetail />} />
             <Route path="questions" element={<QuestionStatistics />} />
             <Route path="profile" element={<Profile embedded={true} />} />
           </Route>
