@@ -1,5 +1,6 @@
 import apiClient from './apiClient';
 import { API_ENDPOINTS } from '../config/apiConfig';
+import type { Document } from './documentService';
 
 // Interface for a single Subject
 export type Subject = {
@@ -13,6 +14,7 @@ export type Subject = {
   description?: string;
   estimatedHours?: number;
   prerequisites?: string[];
+  documents?: Document[];
   learningOutcomes?: string[];
   commonChallenges?: string[];
   createdBy?: number;

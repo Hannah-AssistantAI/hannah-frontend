@@ -226,6 +226,17 @@ export default function CourseDetail() {
               </div>
 
               <div className="form-section">
+                <h3 className="form-section-title">Documents</h3>
+                <div className="form-content">
+                  <div className="tags-wrapper">
+                    {subject.documents && subject.documents.length > 0
+                      ? subject.documents.map((d, i) => <span key={i} className="tag tag-document">{d.title}</span>)
+                      : <p className="empty-description" style={{ margin: 0 }}>None available.</p>}
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-section">
                 <h3 className="form-section-title">Learning Outcomes</h3>
                 <div className="form-content">
                   <div className="tags-wrapper">
@@ -474,9 +485,9 @@ export default function CourseDetail() {
                   <div className="preview-item"><label className="preview-label">Decision No.</label><p className="preview-value">{subject.decisionNo || '-'}</p></div>
                   <div className="preview-item"><label className="preview-label">Approved Date</label><p className="preview-value">{subject.approvedDate ? new Date(subject.approvedDate).toLocaleDateString() : '-'}</p></div>
                   <div className="meta-grid">
-                    <div className="meta-item"><span className="meta-label">Documents</span><span className="meta-value">0</span></div>
-                    <div className="meta-item"><span className="meta-label">Outcome</span><span className="meta-value">0</span></div>
-                    <div className="meta-item"><span className="meta-label">Challenge</span><span className="meta-value">0</span></div>
+                    <div className="meta-item"><span className="meta-label">Documents</span><span className="meta-value">{subject.documents?.length || 0}</span></div>
+                    <div className="meta-item"><span className="meta-label">Outcome</span><span className="meta-value">{subject.learningOutcomes?.length || 0}</span></div>
+                    <div className="meta-item"><span className="meta-label">Challenge</span><span className="meta-value">{subject.commonChallenges?.length || 0}</span></div>
                   </div>
                 </div>
               </div>
@@ -484,6 +495,6 @@ export default function CourseDetail() {
           </div>
         )}
       </div>
-    </AdminPageWrapper>
+    </AdminPageWrapper >
   );
 }

@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { createPortal } from 'react-dom';
+import { useAuth } from '../../../contexts/AuthContext';
 // Replaced lucide-react icons with Unicode characters for simplicity
-import AdminPageWrapper from './components/AdminPageWrapper';
+import AdminPageWrapper from '../components/AdminPageWrapper';
 import './UserManagement.css';
-import { parseUsersFromFile, type ParsedResult } from '../../utils/userImport';
-import userService, { type User } from '../../service/userService'; // Import user service and types
+import { parseUsersFromFile, type ParsedResult } from '../../../utils/userImport';
+import userService, { type User } from '../../../service/userService'; // Import user service and types
+import ImportPreviewModal from './modals/ImportPreviewModal';
+import EditUserModal from './modals/EditUserModal';
+import CreateFormModal from './modals/CreateFormModal';
+import DeleteConfirmationModal from './modals/DeleteConfirmationModal';
+import DeactivateConfirmationModal from './modals/DeactivateConfirmationModal';
 
 const UserManagement: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -402,232 +406,45 @@ const UserManagement: React.FC = () => {
 
 
       {/* Import Preview Modal */}
-      {showImportModal && importResult && createPortal(
-        (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <h3>Import users from Excel/CSV</h3>
-              <div>
-                <p><strong>File:</strong> {selectedFileName}</p>
-                <p>
-                  Valid: <strong>{importResult.valid.length}</strong> rows
-                  {importResult.invalid.length > 0 && (
-                    <>
-                      {' '}| Errors: <strong style={{ color: '#d32f2f' }}>{importResult.invalid.length}</strong> rows
-                    </>
-                  )}
-                </p>
-                {importResult.invalid.length > 0 && (
-                  <div style={{ marginTop: 12 }}>
-                    <p style={{ margin: '8px 0' }}>Some example errors:</p>
-                    <ul style={{ maxHeight: 160, overflowY: 'auto', paddingLeft: 18 }}>
-                      {importResult.invalid.slice(0, 5).map((inv, i) => (
-                        <li key={i}>
-                          Row {inv.rowNumber}: {inv.errors.join('; ')}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-              <div className="modal-actions">
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => { setShowImportModal(false); setImportResult(null); setSelectedFileName(''); }}
-                >
-                  Close
-                </button>
-                <button
-                  className="btn btn-primary"
-                  disabled={importResult.valid.length === 0}
-                  onClick={applyImport}
-                >
-                  {`Add ${importResult.valid.length} users`}
-                </button>
-              </div>
-            </div>
-          </div>
-        ),
-        document.body
-      )}
+      <ImportPreviewModal
+        showImportModal={showImportModal}
+        importResult={importResult}
+        selectedFileName={selectedFileName}
+        onClose={() => { setShowImportModal(false); setImportResult(null); setSelectedFileName(''); }}
+        onApplyImport={applyImport}
+      />
 
       {/* Edit User Modal */}
-      {editingUser && createPortal(
-        (
-          <div className="modal-overlay">
-            <div className="modal-content" style={{ maxWidth: '500px' }}>
-              <div className="modal-header">
-                <div className="modal-title">Edit User</div>
-              </div>
-              <div className="modal-body">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                  <div>
-                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 500 }}>
-                      Full Name <span style={{ color: 'red' }}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={editFormData.fullName}
-                      onChange={(e) => handleEditFormChange('fullName', e.target.value)}
-                      placeholder="Enter full name"
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 500 }}>
-                      Email <span style={{ color: 'red' }}>*</span>
-                    </label>
-                    <input
-                      type="email"
-                      className="form-input"
-                      value={editFormData.email}
-                      onChange={(e) => handleEditFormChange('email', e.target.value)}
-                      placeholder="Enter email"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="modal-actions" style={{ padding: '0 20px 20px' }}>
-                <button className="btn btn-secondary" onClick={handleCancelEdit}>
-                  Cancel
-                </button>
-                <button
-                  className="btn btn-primary"
-                  style={{ justifyContent: 'center' }}
-                  onClick={handleSaveEditUser}
-                >
-                  Save Changes
-                </button>
-              </div>
-            </div>
-          </div>
-        ),
-        document.body
-      )}
+      <EditUserModal
+        editingUser={editingUser}
+        editFormData={editFormData}
+        onFormChange={handleEditFormChange}
+        onSave={handleSaveEditUser}
+        onCancel={handleCancelEdit}
+      />
 
       {/* Create Form Modal - Placeholder */}
-      {showCreateForm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Add new user</h3>
-            <p>The form will be developed in the next version</p>
-            <div className="modal-actions">
-              <button
-                className="btn btn-secondary"
-                onClick={() => setShowCreateForm(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CreateFormModal
+        showCreateForm={showCreateForm}
+        onClose={() => setShowCreateForm(false)}
+      />
+
 
       {/* Delete Confirmation Modal */}
-      {userToDelete && createPortal(
-        (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <div className="modal-header">
-                <div className="danger-title">
-                  <span className="char-icon" aria-hidden style={{fontSize: 20}}>⚠️</span>
-                  <div>
-                    <div className="modal-title">Delete user</div>
-                    <div className="modal-subtext">This action cannot be undone.</div>
-                  </div>
+      <DeleteConfirmationModal
+        userToDelete={userToDelete}
+        onConfirm={confirmDeleteUser}
+        onCancel={cancelDeleteUser}
+      />
 
       {/* Deactivate Confirmation Modal */}
-      {userToDeactivate && createPortal(
-        (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <div className="modal-header">
-                <div className="danger-title">
-                  <span className="char-icon" aria-hidden style={{fontSize: 20}}>⚠️</span>
-                  <div>
-                    <div className="modal-title">Deactivate user</div>
-                    <div className="modal-subtext">User will be temporarily suspended.</div>
-                  </div>
-                </div>
-              </div>
-              <div className="modal-body">
-                <p>You are about to deactivate <strong>{userToDeactivate.fullName}</strong>. Please provide a reason (optional).</p>
-                <textarea
-                  className="reason-textarea"
-                  placeholder="Enter reason for deactivation..."
-                  value={deactivationReason}
-                  onChange={(e) => setDeactivationReason(e.target.value)}
-                />
-              </div>
-              <div className="modal-actions" style={{ padding: '0 20px 20px' }}>
-                <button className="btn btn-secondary" onClick={cancelDeactivateUser}>Cancel</button>
-                <button
-                  className="btn btn-danger"
-                  style={{justifyContent: 'center'}}
-                  onClick={confirmDeactivateUser}
-                >
-                  Deactivate
-                </button>
-              </div>
-            </div>
-          </div>
-        ),
-        document.body
-      )}
-
-                </div>
-              </div>
-              <div className="modal-body">
-                <div className="confirm-box">
-                  <ul style={{ margin: 0, paddingLeft: 18 }}>
-                    <li><strong>Name:</strong> {userToDelete.fullName}</li>
-                    <li><strong>Email:</strong> {userToDelete.email}</li>
-                    <li><strong>Username:</strong> {userToDelete.username}</li>
-                  </ul>
-                </div>
-              </div>
-              <div className="modal-actions" style={{ padding: '0 20px 20px' }}>
-                <button className="btn btn-secondary" onClick={cancelDeleteUser}>Cancel</button>
-                <button className="btn btn-danger" style={{justifyContent: 'center'}} onClick={confirmDeleteUser}>Delete</button>
-              </div>
-            </div>
-          </div>
-        ),
-        document.body
-      )}
-
-      {/* Deactivate Confirmation Modal */}
-      {userToDeactivate && createPortal(
-        (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <div className="modal-header">
-                <div className="danger-title">
-                  <span className="char-icon" aria-hidden style={{fontSize: 20}}>⚠️</span>
-                  <div>
-                    <div className="modal-title">Deactivate user</div>
-                    <div className="modal-subtext">Please provide a reason for deactivation.</div>
-                  </div>
-                </div>
-              </div>
-              <div className="modal-body">
-                <p>You are about to deactivate <strong>{userToDeactivate.fullName}</strong>.</p>
-                <textarea
-                  className="reason-textarea"
-                  placeholder="Enter reason for deactivation (optional)"
-                  value={deactivationReason}
-                  onChange={(e) => setDeactivationReason(e.target.value)}
-                />
-              </div>
-              <div className="modal-actions" style={{ padding: '0 20px 20px' }}>
-                <button className="btn btn-secondary" onClick={cancelDeactivateUser}>Cancel</button>
-                <button className="btn btn-danger" style={{justifyContent: 'center'}} onClick={confirmDeactivateUser}>Deactivate</button>
-              </div>
-            </div>
-          </div>
-        ),
-        document.body
-      )}
+      <DeactivateConfirmationModal
+        userToDeactivate={userToDeactivate}
+        deactivationReason={deactivationReason}
+        onReasonChange={setDeactivationReason}
+        onConfirm={confirmDeactivateUser}
+        onCancel={cancelDeactivateUser}
+      />
     </AdminPageWrapper>
   );
 };
