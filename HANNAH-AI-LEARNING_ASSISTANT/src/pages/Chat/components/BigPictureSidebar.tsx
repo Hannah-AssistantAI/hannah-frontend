@@ -6,17 +6,19 @@ interface BigPictureSidebarProps {
     isOpen: boolean
     onToggle: () => void
     topics: BigPictureTopic[]
+    hideFloatingButton?: boolean
 }
 
 export const BigPictureSidebar: React.FC<BigPictureSidebarProps> = ({
     isOpen,
     onToggle,
-    topics
+    topics,
+    hideFloatingButton = false
 }) => {
     return (
         <aside className={`big-picture-sidebar ${isOpen ? 'open' : 'closed'}`} style={{ order: 1, width: isOpen ? '356px' : '56px', padding: '0 24px 0 0', flexShrink: 0 }}>
-            {/* Floating Toggle Button - Only show when sidebar is closed */}
-            {!isOpen && (
+            {/* Floating Toggle Button - Only show when sidebar is closed and history sidebar is not open */}
+            {!isOpen && !hideFloatingButton && (
                 <button
                     className="big-picture-toggle-floating"
                     onClick={onToggle}

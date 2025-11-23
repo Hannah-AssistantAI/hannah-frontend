@@ -675,6 +675,7 @@ export default function Chat() {
                     isOpen={isBigPictureOpen}
                     onToggle={() => setIsBigPictureOpen(!isBigPictureOpen)}
                     topics={bigPictureData}
+                    hideFloatingButton={showHistorySidebar}
                 />
 
                 <div className="chat-content" style={{ order: 2, flex: 1, padding: '0', minWidth: 0 }}>
