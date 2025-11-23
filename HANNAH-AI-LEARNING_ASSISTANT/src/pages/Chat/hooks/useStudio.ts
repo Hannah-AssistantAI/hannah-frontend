@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { studioService } from '../../../service/studioService'
 import type { StudioItem } from '../types'
 
-export const useStudio = () => {
+export const useStudio = (conversationId: number | null) => {
     const [isStudioOpen, setIsStudioOpen] = useState(true)
     const [studioItems, setStudioItems] = useState<StudioItem[]>([])
     const [isLoadingContent, setIsLoadingContent] = useState(false)
@@ -28,13 +28,20 @@ export const useStudio = () => {
     const [quizContent, setQuizContent] = useState<any>(null)
     const [flashcardContent, setFlashcardContent] = useState<any>(null)
 
-    // Fetch studio items on mount
+    // Fetch studio items when conversationId changes
     useEffect(() => {
         const fetchStudioItems = async () => {
-            try {
-                const conversationId = 1; // Using hardcoded conversation ID for now
+            // Only fetch if we have a valid conversationId
+            if (!conversationId) {
+                console.log('No conversationId available, skipping studio items fetch');
+                setStudioItems([]);
+                return;
+            }
 
-                // Fetch all studio item types
+            try {
+                console.log(`Fetching studio items for conversation ${conversationId}`);
+
+                // Fetch all studio item types for the CURRENT CONVERSATION
                 const [mindmapsRes, quizzesRes, flashcardsRes, reportsRes] = await Promise.all([
                     studioService.listMindMaps(conversationId).catch(() => ({ data: { data: [] } })),
                     studioService.listQuizzes(conversationId).catch(() => ({ data: { data: [] } })),
@@ -114,14 +121,14 @@ export const useStudio = () => {
                 items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
                 setStudioItems(items);
 
-                console.log(`Fetched ${items.length} studio items from backend`);
+                console.log(`Fetched ${items.length} studio items for conversation ${conversationId}`);
             } catch (error) {
                 console.error('Failed to fetch studio items:', error);
             }
         };
 
         fetchStudioItems();
-    }, []);
+    }, [conversationId]); // Re-fetch when conversationId changes
 
     const createStudioItem = async (
         type: 'mindmap' | 'report' | 'notecard' | 'quiz',
@@ -134,6 +141,12 @@ export const useStudio = () => {
             sourceType?: 'conversation' | 'documents' | 'hybrid';
         }
     ) => {
+        // Validate conversationId exists
+        if (!conversationId) {
+            console.error('Cannot create studio item: No active conversation');
+            return;
+        }
+
         const tempId = Date.now().toString()
         const newItem: StudioItem = {
             id: tempId,
@@ -147,8 +160,8 @@ export const useStudio = () => {
         setStudioItems(prev => [newItem, ...prev])
 
         try {
-            // Hardcoded conversationId for now as per plan
-            const conversationId = 1;
+            // Use the conversationId from the hook parameter
+            console.log(`Creating ${type} for conversation ${conversationId}`);
             let response;
 
             // Determine effective title with course code if provided

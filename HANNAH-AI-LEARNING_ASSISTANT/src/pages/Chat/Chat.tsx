@@ -26,9 +26,6 @@ export default function Chat() {
     const initialQuery = location.state?.query || ''
     const initialConversationId = location.state?.conversationId || null
 
-    // Use hooks for state management
-    const studio = useStudio()
-    const quiz = useQuiz()
     const [inputValue, setInputValue] = useState('')
     const [isBigPictureOpen, setIsBigPictureOpen] = useState(true)
     const [subjects, setSubjects] = useState<Subject[]>([]) // Store fetched subjects
@@ -47,6 +44,10 @@ export default function Chat() {
             content: initialQuery
         }
     ] : [])
+
+    // Use hooks for state management (after conversationId is declared)
+    const studio = useStudio(conversationId)
+    const quiz = useQuiz()
 
     const [bigPictureData, setBigPictureData] = useState<BigPictureTopic[]>([])
 
