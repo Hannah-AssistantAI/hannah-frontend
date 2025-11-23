@@ -67,7 +67,7 @@ export const BigPictureSidebar: React.FC<BigPictureSidebarProps> = ({
                     </button>
                 </div>
 
-                <h4 className="big-picture-main-title">Lập trình Hướng đối tượng (OOP)</h4>
+
 
                 <div className="big-picture-topics">
                     {topics.map((topic, index) => (

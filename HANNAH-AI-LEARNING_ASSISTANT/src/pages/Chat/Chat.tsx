@@ -17,7 +17,7 @@ import { BigPictureSidebar } from './components/BigPictureSidebar'
 import { StudioSidebar } from './components/StudioSidebar'
 import { HistorySidebar } from '../../components/HistorySidebar'
 import { Header } from '../../components/Header'
-import type { Message, RelatedContent, Source } from './types'
+import type { Message, RelatedContent, Source, BigPictureTopic } from './types'
 import './Chat.css'
 
 export default function Chat() {
@@ -48,33 +48,7 @@ export default function Chat() {
         }
     ] : [])
 
-    const bigPictureTopics = [
-        {
-            title: 'Hiểu khái niệm cốt lõi của OOP và lợi ích của nó',
-            subtopics: [
-                'Chuyển đổi mô hình',
-                'Mô hình hóa thực tế',
-                'Lợi ích của OOP'
-            ]
-        },
-        {
-            title: 'Mô tả các khối xây dựng cơ bản của OOP: Đối tượng và Lớp',
-            subtopics: [
-                'Đối tượng',
-                'Lớp',
-                'Thực thể'
-            ]
-        },
-        {
-            title: 'Giải thích các nguyên tắc chính của OOP',
-            subtopics: [
-                'Đóng gói',
-                'Trừu tượng hóa',
-                'Kế thừa',
-                'Đa hình'
-            ]
-        }
-    ]
+    const [bigPictureData, setBigPictureData] = useState<BigPictureTopic[]>([])
 
     const studioFeatures = [
         { icon: GitBranch, title: 'Bản đồ tư duy', description: 'Mind map', type: 'mindmap' as const, note: 'Tạo bản đồ tư duy dựa vào nội dung cuộc trò chuyện' },
@@ -149,6 +123,11 @@ export default function Chat() {
                 );
 
                 const parsedResponse = parseAssistantResponse(response.assistantMessage.content.data);
+
+                // Update Big Picture if outline exists
+                if (parsedResponse.outline && parsedResponse.outline.length > 0) {
+                    setBigPictureData(parsedResponse.outline);
+                }
 
                 // Replace loading message with actual response
                 setMessages(prev => {
@@ -301,6 +280,11 @@ export default function Chat() {
             );
 
             const parsedResponse = parseAssistantResponse(response.assistantMessage.content.data);
+
+            // Update Big Picture if outline exists
+            if (parsedResponse.outline && parsedResponse.outline.length > 0) {
+                setBigPictureData(parsedResponse.outline);
+            }
 
             // Replace loading message with response
             setMessages(prev => {
@@ -690,7 +674,7 @@ export default function Chat() {
                 <BigPictureSidebar
                     isOpen={isBigPictureOpen}
                     onToggle={() => setIsBigPictureOpen(!isBigPictureOpen)}
-                    topics={bigPictureTopics}
+                    topics={bigPictureData}
                 />
 
                 <div className="chat-content" style={{ order: 2, flex: 1, padding: '0', minWidth: 0 }}>
