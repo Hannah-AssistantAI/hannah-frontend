@@ -38,7 +38,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
     }
 
     return (
-        <aside className={`studio-sidebar ${isOpen ? 'open' : 'closed'}`} style={{ order: 1, width: isOpen ? '356px' : '56px', padding: '0 0 0 24px', flexShrink: 0 }}>
+        <aside className={`studio-sidebar ${isOpen ? 'open' : 'closed'}`} style={{ order: 1, width: isOpen ? '356px' : '64px', padding: '0 0 0 24px', flexShrink: 0 }}>
             <div className="studio-content">
                 <div className="studio-header">
                     <Wand2 size={20} color="#5f6368" />
