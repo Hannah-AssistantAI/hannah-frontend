@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Sparkles, Send, ThumbsUp, ThumbsDown, Share2, Upload, Book, GitBranch, FileText, ClipboardCheck, StickyNote, ChevronDown, ChevronUp, Link as LinkIcon, List } from 'lucide-react'
 import subjectService, { type Subject } from '../../service/subjectService'
+import messageService from '../../service/messageService'
 import chatService from '../../service/chatService'
 import { useStudio } from './hooks/useStudio'
 import { useQuiz } from './hooks/useQuiz'
@@ -17,12 +18,15 @@ import { BigPictureSidebar } from './components/BigPictureSidebar'
 import { StudioSidebar } from './components/StudioSidebar'
 import { HistorySidebar } from '../../components/HistorySidebar'
 import { Header } from '../../components/Header'
+import conversationService from '../../service/conversationService'
+import { useAuth } from '../../contexts/AuthContext'
 import type { Message, RelatedContent, Source, BigPictureTopic } from './types'
 import './Chat.css'
 
 export default function Chat() {
     const location = useLocation()
     const navigate = useNavigate()
+    const { user } = useAuth()
     const initialQuery = location.state?.query || ''
     const initialConversationId = location.state?.conversationId || null
 
@@ -255,6 +259,10 @@ export default function Chat() {
             console.error('No conversation ID available');
             return;
         }
+        if (!user?.userId) {
+            console.error('No user ID available');
+            return;
+        }
 
         const userMessage = inputValue;
         setInputValue('');
@@ -274,7 +282,39 @@ export default function Chat() {
         }]);
 
         setIsSendingMessage(true);
+
         try {
+            // Step 1: Create user message via POST /api/v1/messages
+            console.log('📤 Sending user message to POST /api/v1/messages...');
+            await messageService.createMessage({
+                userId: user.userId,
+                conversationId: conversationId,
+                role: 'user',
+                content: userMessage,
+                subjectId: null
+            });
+
+
+            // Step 2: Update conversation title on first user-sent message
+            // If there was an initialQuery, this would be the 2nd message (index 1)
+            // If no initialQuery, this would be the 1st message (index 0)
+            const userMessageCount = messages.filter(m => m.type === 'user').length;
+            const isFirstUserSentMessage = initialQuery ? userMessageCount === 1 : userMessageCount === 0;
+
+            if (isFirstUserSentMessage) {
+                console.log('📝 Updating conversation title via PUT /api/v1/conversations...');
+                const conversationTitle = userMessage.length > 50
+                    ? userMessage.substring(0, 50) + '...'
+                    : userMessage;
+                await conversationService.updateConversation(conversationId, {
+                    userId: user.userId,
+                    title: conversationTitle
+                });
+            }
+
+
+            // Step 3: Send message to AI and get response via POST /api/v1/chat/interactions
+            console.log('🤖 Sending to chat API via POST /api/v1/chat/interactions...');
             const response = await chatService.sendTextMessage(
                 conversationId,
                 userMessage
@@ -300,8 +340,10 @@ export default function Chat() {
                 };
                 return newMessages;
             });
+
+            console.log('✅ All APIs called successfully');
         } catch (error: any) {
-            console.error('Failed to send message:', error);
+            console.error('❌ Failed to send message:', error);
             setMessages(prev => {
                 const newMessages = [...prev];
                 newMessages[loadingMessageIndex] = {

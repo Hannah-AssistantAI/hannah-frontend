@@ -56,9 +56,26 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose 
         onClose();
     };
 
-    const handleNewChat = () => {
-        navigate("/chat");
-        onClose();
+    const handleNewChat = async () => {
+        if (!user?.userId) {
+            console.error('User not logged in');
+            return;
+        }
+
+        try {
+            // Create empty conversation
+            const newConversation = await conversationService.createConversation({
+                userId: user.userId,
+                title: "Cuộc trò chuyện mới",
+                subjectId: 0
+            });
+
+            // Navigate to chat with the new conversation ID
+            navigate("/chat", { state: { conversationId: newConversation.conversationId } });
+            onClose();
+        } catch (error) {
+            console.error('Failed to create new conversation:', error);
+        }
     };
 
     const groupConversationsByDate = (conversations: any[]) => {

@@ -81,6 +81,17 @@ class ConversationService {
         );
         return response.data.data;
     }
+
+    /**
+     * Update conversation title
+     */
+    async updateConversation(conversationId: number, data: { userId: number; title: string }): Promise<ConversationDetails> {
+        const response = await pythonApiClient.put<BaseResponse<ConversationDetails>>(
+            `/api/v1/conversations/${conversationId}`,
+            data
+        );
+        return response.data.data;
+    }
 }
 
 export const conversationService = new ConversationService();
