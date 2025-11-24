@@ -29,7 +29,7 @@ const ChallengesManagement: React.FC = () => {
   const [showSemesterDropdown, setShowSemesterDropdown] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ text: '' });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchSubjects = async () => {
@@ -406,24 +406,31 @@ const ChallengesManagement: React.FC = () => {
                 ) : (
                   <div className="space-y-3">
                     {challenges.map((challenge) => (
-                      <div key={challenge.id} className={`p-4 rounded-lg border flex items-center gap-4 ${
-                        challenge.status === SuggestionStatus.Approved ? 'bg-green-50 border-green-200' :
-                        challenge.status === SuggestionStatus.Pending ? 'bg-yellow-50 border-yellow-200' :
-                        'bg-red-50 border-red-200'
-                      }`}>
-                        <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-                          challenge.status === SuggestionStatus.Approved ? 'bg-green-500' :
-                          challenge.status === SuggestionStatus.Pending ? 'bg-yellow-500' :
-                          'bg-red-500'
-                        }`}></span>
-                        <p className="flex-1 text-slate-800">{challenge.content}</p>
-                        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                          challenge.status === SuggestionStatus.Approved ? 'bg-green-100 text-green-800' :
-                          challenge.status === SuggestionStatus.Pending ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
+                      <div key={challenge.id} className={`p-4 rounded-lg border ${challenge.status === SuggestionStatus.Approved ? 'bg-green-50 border-green-200' :
+                          challenge.status === SuggestionStatus.Pending ? 'bg-yellow-50 border-yellow-200' :
+                            'bg-red-50 border-red-200'
                         }`}>
-                          {challenge.status === SuggestionStatus.Approved ? 'Approved' : challenge.status === SuggestionStatus.Pending ? 'Pending' : 'Rejected'}
-                        </span>
+                        <div className="flex items-start gap-4">
+                          <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${challenge.status === SuggestionStatus.Approved ? 'bg-green-500' :
+                              challenge.status === SuggestionStatus.Pending ? 'bg-yellow-500' :
+                                'bg-red-500'
+                            }`}></span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-slate-800 mb-2">{challenge.content}</p>
+                            {challenge.status === SuggestionStatus.Rejected && challenge.rejectionReason && (
+                              <div className="bg-white border border-red-300 rounded px-3 py-2 mt-2">
+                                <p className="text-xs font-semibold text-red-800 mb-1">Rejection Reason:</p>
+                                <p className="text-sm text-red-700">{challenge.rejectionReason}</p>
+                              </div>
+                            )}
+                          </div>
+                          <span className={`px-3 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${challenge.status === SuggestionStatus.Approved ? 'bg-green-100 text-green-800' :
+                              challenge.status === SuggestionStatus.Pending ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'
+                            }`}>
+                            {challenge.status === SuggestionStatus.Approved ? 'Approved' : challenge.status === SuggestionStatus.Pending ? 'Pending' : 'Rejected'}
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>

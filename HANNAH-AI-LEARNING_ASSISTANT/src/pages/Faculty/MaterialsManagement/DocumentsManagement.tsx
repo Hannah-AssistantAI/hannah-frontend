@@ -30,7 +30,7 @@ interface Course {
 
 const DocumentsManagement: React.FC = () => {
   // State management
-  
+
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +63,7 @@ const DocumentsManagement: React.FC = () => {
       setLoading(true);
       setError(null);
       const response = await subjectService.getAllSubjects();
-      
+
 
       // Transform subjects to courses format
       const transformedCourses: Course[] = response.items.map((subject: Subject) => ({
@@ -202,10 +202,10 @@ const DocumentsManagement: React.FC = () => {
       console.error('Error uploading documents:', err);
       alert(err.message || 'Failed to upload documents');
     } finally {
-        // Clear input
-        if(inputElement) {
-            inputElement.value = '';
-        }
+      // Clear input
+      if (inputElement) {
+        inputElement.value = '';
+      }
     }
   };
 
@@ -331,145 +331,137 @@ const DocumentsManagement: React.FC = () => {
                     {coursesForSemester.length} courses
                   </span>
                 </div>
-              
-              <div className="relative">
-                <button
-                  onClick={() => setShowSemesterDropdown(!showSemesterDropdown)}
-                  className="w-full flex items-center justify-between px-5 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl hover:border-blue-400 hover:shadow-md transition-all duration-200 group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
-                      {selectedSemester.replace('Semester ', '')}
-                    </div>
-                    <div className="text-left">
-                      <span className="font-bold text-slate-800 text-lg block">{selectedSemester}</span>
-                      <span className="text-xs text-slate-600">Academic Year 2024-2025</span>
-                    </div>
-                  </div>
-                  <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform duration-200 ${showSemesterDropdown ? 'rotate-180' : ''}`} />
-                </button>
 
-                {showSemesterDropdown && (
-                  <>
-                    <div 
-                      className="fixed inset-0 z-10" 
-                      onClick={() => setShowSemesterDropdown(false)}
-                    />
-                    <div className="absolute z-20 w-full mt-2 bg-white border-2 border-slate-200 rounded-xl shadow-2xl overflow-hidden">
-                      <div className="max-h-80 overflow-y-auto">
-                        {semesters.map((semester, index) => (
-                          <button
-                            key={semester}
-                            onClick={() => handleSemesterChange(semester)}
-                            className={`w-full text-left px-5 py-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-150 border-b border-slate-100 last:border-b-0 ${
-                              selectedSemester === semester 
-                                ? 'bg-gradient-to-r from-blue-100 to-indigo-100 border-l-4 border-l-blue-600' 
-                                : ''
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shadow-sm ${
-                                selectedSemester === semester
-                                  ? 'bg-blue-600 text-white'
-                                  : 'bg-slate-200 text-slate-600'
-                              }`}>
-                                {index + 1}
-                              </div>
-                              <div>
-                                <div className="font-semibold text-slate-800">{semester}</div>
-                                <div className="text-xs text-slate-500">
-                                  {courses.filter(c => c.semester === semester).length} courses
-                                </div>
-                              </div>
-                              {selectedSemester === semester && (
-                                <div className="ml-auto">
-                                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-                                </div>
-                              )}
-                            </div>
-                          </button>
-                        ))}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowSemesterDropdown(!showSemesterDropdown)}
+                    className="w-full flex items-center justify-between px-5 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl hover:border-blue-400 hover:shadow-md transition-all duration-200 group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
+                        {selectedSemester.replace('Semester ', '')}
+                      </div>
+                      <div className="text-left">
+                        <span className="font-bold text-slate-800 text-lg block">{selectedSemester}</span>
+                        <span className="text-xs text-slate-600">Academic Year 2024-2025</span>
                       </div>
                     </div>
-                  </>
+                    <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform duration-200 ${showSemesterDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {showSemesterDropdown && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setShowSemesterDropdown(false)}
+                      />
+                      <div className="absolute z-20 w-full mt-2 bg-white border-2 border-slate-200 rounded-xl shadow-2xl overflow-hidden">
+                        <div className="max-h-80 overflow-y-auto">
+                          {semesters.map((semester, index) => (
+                            <button
+                              key={semester}
+                              onClick={() => handleSemesterChange(semester)}
+                              className={`w-full text-left px-5 py-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-150 border-b border-slate-100 last:border-b-0 ${selectedSemester === semester
+                                ? 'bg-gradient-to-r from-blue-100 to-indigo-100 border-l-4 border-l-blue-600'
+                                : ''
+                                }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shadow-sm ${selectedSemester === semester
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-slate-200 text-slate-600'
+                                  }`}>
+                                  {index + 1}
+                                </div>
+                                <div>
+                                  <div className="font-semibold text-slate-800">{semester}</div>
+                                  <div className="text-xs text-slate-500">
+                                    {courses.filter(c => c.semester === semester).length} courses
+                                  </div>
+                                </div>
+                                {selectedSemester === semester && (
+                                  <div className="ml-auto">
+                                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Course Grid */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-bold text-slate-800">Course list</h3>
+                  <div className="h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent ml-4"></div>
+                </div>
+
+                {coursesForSemester.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {coursesForSemester.map((course) => (
+                      <button
+                        key={course.subjectId}
+                        onClick={() => handleCourseSelect(course)}
+                        className={`group text-left p-5 rounded-xl border-2 transition-all duration-200 ${selectedCourse?.subjectId === course.subjectId
+                          ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg scale-105'
+                          : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow-md hover:-translate-y-1'
+                          }`}
+                      >
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 transition-all ${selectedCourse?.subjectId === course.subjectId
+                            ? 'bg-blue-600 text-white shadow-lg'
+                            : 'bg-slate-100 text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-600'
+                            }`}>
+                            <BookOpen className="w-6 h-6" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className={`font-bold mb-1 line-clamp-2 ${selectedCourse?.subjectId === course.subjectId ? 'text-blue-900' : 'text-slate-800'
+                              }`}>
+                              {course.subjectName}
+                            </h4>
+                            <p className="text-sm text-slate-500 font-medium">{course.subjectCode}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+                          <div className="flex items-center gap-2 text-sm">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${selectedCourse?.subjectId === course.subjectId
+                              ? 'bg-blue-100'
+                              : 'bg-slate-100 group-hover:bg-blue-50'
+                              }`}>
+                              <File className={`w-4 h-4 ${selectedCourse?.subjectId === course.subjectId ? 'text-blue-600' : 'text-slate-600'
+                                }`} />
+                            </div>
+                            <span className={`font-semibold ${selectedCourse?.subjectId === course.subjectId ? 'text-blue-700' : 'text-slate-600'
+                              }`}>
+                              {course.materialsCount || 0} materials
+                            </span>
+                          </div>
+                          {selectedCourse?.subjectId === course.subjectId && (
+                            <div className="flex items-center gap-1 text-blue-600 text-xs font-semibold">
+                              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                              Selected
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+                    <FileText className="w-16 h-16 mx-auto mb-3 text-slate-300" />
+                    <p className="text-lg font-semibold">No courses in this semester</p>
+                    <p className="text-sm mt-1">Please select another semester</p>
+                  </div>
                 )}
               </div>
             </div>
-
-            {/* Course Grid */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-bold text-slate-800">Course list</h3>
-                <div className="h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent ml-4"></div>
-              </div>
-              
-              {coursesForSemester.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {coursesForSemester.map((course) => (
-                    <button
-                      key={course.subjectId}
-                      onClick={() => handleCourseSelect(course)}
-                      className={`group text-left p-5 rounded-xl border-2 transition-all duration-200 ${
-                        selectedCourse?.subjectId === course.subjectId
-                          ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg scale-105'
-                          : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow-md hover:-translate-y-1'
-                      }`}
-                    >
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 transition-all ${
-                          selectedCourse?.subjectId === course.subjectId
-                            ? 'bg-blue-600 text-white shadow-lg'
-                            : 'bg-slate-100 text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-600'
-                        }`}>
-                          <BookOpen className="w-6 h-6" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className={`font-bold mb-1 line-clamp-2 ${
-                            selectedCourse?.subjectId === course.subjectId ? 'text-blue-900' : 'text-slate-800'
-                          }`}>
-                            {course.subjectName}
-                          </h4>
-                          <p className="text-sm text-slate-500 font-medium">{course.subjectCode}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-3 border-t border-slate-200">
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                            selectedCourse?.subjectId === course.subjectId
-                              ? 'bg-blue-100'
-                              : 'bg-slate-100 group-hover:bg-blue-50'
-                          }`}>
-                            <File className={`w-4 h-4 ${
-                              selectedCourse?.subjectId === course.subjectId ? 'text-blue-600' : 'text-slate-600'
-                            }`} />
-                          </div>
-                          <span className={`font-semibold ${
-                            selectedCourse?.subjectId === course.subjectId ? 'text-blue-700' : 'text-slate-600'
-                          }`}>
-                            {course.materialsCount || 0} materials
-                          </span>
-                        </div>
-                        {selectedCourse?.subjectId === course.subjectId && (
-                          <div className="flex items-center gap-1 text-blue-600 text-xs font-semibold">
-                            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-                            Selected
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
-                  <FileText className="w-16 h-16 mx-auto mb-3 text-slate-300" />
-                  <p className="text-lg font-semibold">No courses in this semester</p>
-                  <p className="text-sm mt-1">Please select another semester</p>
-                </div>
-              )}
-            </div>
           </div>
-        </div>
         )}
 
         {/* Materials Content */}
@@ -478,13 +470,13 @@ const DocumentsManagement: React.FC = () => {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                    <button
-                      onClick={() => { setView('courses'); setSelectedCourse(null); }}
-                      className="mb-3 flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold transition-colors"
-                    >
-                      <ChevronRight className="w-4 h-4 rotate-180" />
-                      Back to course list
-                    </button>
+                  <button
+                    onClick={() => { setView('courses'); setSelectedCourse(null); }}
+                    className="mb-3 flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4 rotate-180" />
+                    Back to course list
+                  </button>
                   <h2 className="text-2xl font-bold text-slate-800">Materials - {selectedCourse.subjectName}</h2>
                   <p className="text-slate-500 text-sm mt-1">{selectedCourse.subjectCode}</p>
                 </div>
@@ -531,22 +523,19 @@ const DocumentsManagement: React.FC = () => {
                         {selectedCourse.materials.filter(m => (m.status === 'Processing' && m.approvalStatus !== 'approved') || m.status === 'Failed').map(mat => (
                           <div
                             key={mat.documentId}
-                            className={`flex items-center justify-between p-4 rounded-lg border transition ${
-                              mat.status === 'Failed'
-                                ? 'bg-red-50 border-red-200 hover:bg-red-100'
-                                : 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100'
-                            }`}
+                            className={`flex items-center justify-between p-4 rounded-lg border transition ${mat.status === 'Failed'
+                              ? 'bg-red-50 border-red-200 hover:bg-red-100'
+                              : 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100'
+                              }`}
                           >
                             <div className="flex items-center gap-3 flex-1 min-w-0">
-                              <File className={`w-5 h-5 flex-shrink-0 ${
-                                mat.status === 'Failed' ? 'text-red-600' : 'text-yellow-600'
-                              }`} />
+                              <File className={`w-5 h-5 flex-shrink-0 ${mat.status === 'Failed' ? 'text-red-600' : 'text-yellow-600'
+                                }`} />
                               <div className="flex-1 min-w-0">
                                 <p className="font-semibold text-slate-800">
                                   {mat.title}
-                                  <span className={`text-xs font-medium ml-2 ${
-                                    mat.status === 'Failed' ? 'text-red-700' : 'text-yellow-700'
-                                  }`}>
+                                  <span className={`text-xs font-medium ml-2 ${mat.status === 'Failed' ? 'text-red-700' : 'text-yellow-700'
+                                    }`}>
                                     ({mat.status})
                                   </span>
                                 </p>
@@ -574,17 +563,67 @@ const DocumentsManagement: React.FC = () => {
                     </div>
                   )}
 
+                  {/* Rejected Documents */}
+                  {selectedCourse.materials.some(m => m.approvalStatus === 'rejected') && (
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-semibold text-slate-800">Rejected Documents</h4>
+                        <span className="text-xs text-slate-500">
+                          {selectedCourse.materials.filter(m => m.approvalStatus === 'rejected').length} items
+                        </span>
+                      </div>
+                      <div className="space-y-3">
+                        {selectedCourse.materials.filter(m => m.approvalStatus === 'rejected').map(mat => (
+                          <div key={mat.documentId} className="flex items-center justify-between p-4 bg-red-50 rounded-lg hover:bg-red-100 transition border-2 border-red-200">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <File className="w-5 h-5 text-red-600 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <p className="font-semibold text-slate-800">{mat.title}</p>
+                                  <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
+                                    ✗ Rejected
+                                  </span>
+                                </div>
+                                {mat.rejectionReason && (
+                                  <div className="bg-white border border-red-300 rounded px-3 py-2 mt-2">
+                                    <p className="text-xs font-semibold text-red-800 mb-1">Rejection Reason:</p>
+                                    <p className="text-sm text-red-700">{mat.rejectionReason}</p>
+                                  </div>
+                                )}
+                                {mat.description && (
+                                  <p className="text-xs text-slate-500 mt-1">{mat.description}</p>
+                                )}
+                                <p className="text-sm text-slate-500 mt-1">
+                                  {mat.fileType} • {documentService.formatFileSize(mat.fileSize)} • {new Date(mat.uploadedAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex gap-2 flex-shrink-0">
+                              <button
+                                onClick={() => handleDeleteMaterial(mat.documentId)}
+                                className="p-2 ml-2 text-white bg-red-600 hover:bg-red-700 rounded-lg transition"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Pending Documents */}
-                  {selectedCourse.materials.some(m => m.status === 'Pending' || (m.status === 'Processing' && m.approvalStatus === 'approved')) && (
+                  {selectedCourse.materials.some(m => (m.status === 'Pending' || (m.status === 'Processing' && m.approvalStatus === 'approved')) && m.approvalStatus !== 'rejected') && (
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="font-semibold text-slate-800">Pending Documents</h4>
                         <span className="text-xs text-slate-500">
-                          {selectedCourse.materials.filter(m => m.status === 'Pending' || (m.status === 'Processing' && m.approvalStatus === 'approved')).length} items
+                          {selectedCourse.materials.filter(m => (m.status === 'Pending' || (m.status === 'Processing' && m.approvalStatus === 'approved')) && m.approvalStatus !== 'rejected').length} items
                         </span>
                       </div>
                       <div className="space-y-3">
-                        {selectedCourse.materials.filter(m => m.status === 'Pending' || (m.status === 'Processing' && m.approvalStatus === 'approved')).map(mat => (
+                        {selectedCourse.materials.filter(m => (m.status === 'Pending' || (m.status === 'Processing' && m.approvalStatus === 'approved')) && m.approvalStatus !== 'rejected').map(mat => (
                           <div key={mat.documentId} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition border border-gray-200">
                             <div className="flex items-center gap-3 flex-1 min-w-0">
                               <File className="w-5 h-5 text-gray-600 flex-shrink-0" />
@@ -607,17 +646,7 @@ const DocumentsManagement: React.FC = () => {
                                       ✓ Approved
                                     </span>
                                   )}
-                                  {mat.approvalStatus === 'rejected' && (
-                                    <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
-                                      ✗ Rejected
-                                    </span>
-                                  )}
                                 </div>
-                                {mat.rejectionReason && (
-                                  <p className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded mt-1">
-                                    Reason: {mat.rejectionReason}
-                                  </p>
-                                )}
                                 {mat.description && (
                                   <p className="text-xs text-slate-500 mt-1">{mat.description}</p>
                                 )}
@@ -719,7 +748,7 @@ const DocumentsManagement: React.FC = () => {
 
       {/* Edit Modal */}
       {showEditModal && editingMaterial && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-slate-800">Edit Document</h3>
@@ -797,7 +826,7 @@ const DocumentsManagement: React.FC = () => {
 
       {/* Delete Modal */}
       {showDeleteModal && deletingMaterialId !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-slate-800">Confirm Deletion</h3>

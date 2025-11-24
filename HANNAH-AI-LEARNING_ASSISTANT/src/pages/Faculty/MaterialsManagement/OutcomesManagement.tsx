@@ -14,18 +14,18 @@ interface Course {
 }
 
 const OutcomesManagement: React.FC = () => {
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-    const [courses, setCourses] = useState<Course[]>([]);
-    const [learningOutcomes, setLearningOutcomes] = useState<Suggestion[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [learningOutcomes, setLearningOutcomes] = useState<Suggestion[]>([]);
   const [outcomesLoading, setOutcomesLoading] = useState(false);
 
   const semesters = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8', 'Semester 9'];
 
   // View state
-    const [view, setView] = useState<'courses' | 'outcomes'>('courses');
-    
+  const [view, setView] = useState<'courses' | 'outcomes'>('courses');
+
 
 
 
@@ -34,7 +34,7 @@ const OutcomesManagement: React.FC = () => {
   const [showSemesterDropdown, setShowSemesterDropdown] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ text: '' });
-    
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
 
@@ -143,7 +143,7 @@ const OutcomesManagement: React.FC = () => {
   const cancelForm = () => {
     setShowForm(false);
     setFormData({ text: '' });
-    
+
   };
 
 
@@ -271,7 +271,7 @@ const OutcomesManagement: React.FC = () => {
                 {coursesForSemester.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {coursesForSemester.map((course) => {
-                      
+
                       return (
                         <button
                           key={course.id}
@@ -425,24 +425,31 @@ const OutcomesManagement: React.FC = () => {
                 ) : (
                   <div className="space-y-3">
                     {learningOutcomes.map((outcome) => (
-                      <div key={outcome.id} className={`p-4 rounded-lg border flex items-center gap-4 ${
-                        outcome.status === SuggestionStatus.Approved ? 'bg-green-50 border-green-200' :
-                        outcome.status === SuggestionStatus.Pending ? 'bg-yellow-50 border-yellow-200' :
-                        'bg-red-50 border-red-200'
-                      }`}>
-                        <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-                          outcome.status === SuggestionStatus.Approved ? 'bg-green-500' :
-                          outcome.status === SuggestionStatus.Pending ? 'bg-yellow-500' :
-                          'bg-red-500'
-                        }`}></span>
-                        <p className="flex-1 text-slate-800">{outcome.content}</p>
-                        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                          outcome.status === SuggestionStatus.Approved ? 'bg-green-100 text-green-800' :
-                          outcome.status === SuggestionStatus.Pending ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
+                      <div key={outcome.id} className={`p-4 rounded-lg border ${outcome.status === SuggestionStatus.Approved ? 'bg-green-50 border-green-200' :
+                          outcome.status === SuggestionStatus.Pending ? 'bg-yellow-50 border-yellow-200' :
+                            'bg-red-50 border-red-200'
                         }`}>
-                          {outcome.status === SuggestionStatus.Approved ? 'Approved' : outcome.status === SuggestionStatus.Pending ? 'Pending' : 'Rejected'}
-                        </span>
+                        <div className="flex items-start gap-4">
+                          <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${outcome.status === SuggestionStatus.Approved ? 'bg-green-500' :
+                              outcome.status === SuggestionStatus.Pending ? 'bg-yellow-500' :
+                                'bg-red-500'
+                            }`}></span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-slate-800 mb-2">{outcome.content}</p>
+                            {outcome.status === SuggestionStatus.Rejected && outcome.rejectionReason && (
+                              <div className="bg-white border border-red-300 rounded px-3 py-2 mt-2">
+                                <p className="text-xs font-semibold text-red-800 mb-1">Rejection Reason:</p>
+                                <p className="text-sm text-red-700">{outcome.rejectionReason}</p>
+                              </div>
+                            )}
+                          </div>
+                          <span className={`px-3 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${outcome.status === SuggestionStatus.Approved ? 'bg-green-100 text-green-800' :
+                              outcome.status === SuggestionStatus.Pending ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'
+                            }`}>
+                            {outcome.status === SuggestionStatus.Approved ? 'Approved' : outcome.status === SuggestionStatus.Pending ? 'Pending' : 'Rejected'}
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>
