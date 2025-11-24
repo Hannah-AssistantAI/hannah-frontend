@@ -7,14 +7,13 @@ import { getFlaggedQuizAttempts } from '../../../service/mockApi';
 import QuestionAnalyticsFilter from './QuestionAnalyticsFilter';
 import quizApiService from '../../../service/quizApi';
 import {
-  formatTime,
-  getScoreRangeLabel,
-  getScoreRangeColor
+  formatTime
 } from '../../../service/quizApi';
 import type {
   QuizDto,
   QuizResultsDto,
-  QuizStatisticsDto
+  QuizStatisticsDto,
+  QuizAttemptDto
 } from '../../../service/quizApi';
 
 // ==================== INTERFACES ====================
@@ -24,8 +23,14 @@ interface QuizWithAnalytics extends QuizDto {
   statistics?: QuizStatisticsDto;
 }
 
+interface QuizAttemptWithTitle extends QuizAttemptDto {
+  quizTitle: string;
+  quizId: number;
+}
+
 interface AnalyticsData {
   quizzes: QuizWithAnalytics[];
+  allAttempts: QuizAttemptWithTitle[];
   totalAttempts: number;
   averageScore: number;
   totalQuizzes: number;
@@ -94,25 +99,48 @@ const QuestionAnalytics = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch all quizzes (no CreatedBy filter)
-      // Faculty can see all quizzes in the system
+      // Fetch all quizzes
       const params = {
         PageSize: 100,
       };
 
       const quizzesWithStats = await quizApiService.getQuizzesWithStatistics(params);
 
+      // Fetch attempts for all quizzes in parallel
+      const attemptsPromises = quizzesWithStats.map(quiz =>
+        quizApiService.getQuizAttempts(quiz.quizId)
+          .then(attempts => ({ quizId: quiz.quizId, title: quiz.title, attempts }))
+          .catch(err => {
+            console.warn(`Failed to load attempts for quiz ${quiz.quizId}`, err);
+            return { quizId: quiz.quizId, title: quiz.title, attempts: [] as QuizAttemptDto[] };
+          })
+      );
+
+      const quizzesAttemptsResults = await Promise.all(attemptsPromises);
+
+      // Flatten attempts
+      const allAttempts: QuizAttemptWithTitle[] = [];
+      const uniqueStudents = new Set<number>();
+
+      quizzesAttemptsResults.forEach(item => {
+        item.attempts.forEach(att => {
+          allAttempts.push({
+            ...att,
+            quizTitle: item.title,
+            quizId: item.quizId
+          });
+          uniqueStudents.add(att.userId);
+        });
+      });
+
       // Calculate aggregate statistics
       let totalAttempts = 0;
       let totalScore = 0;
       let scoreCount = 0;
-      const uniqueStudents = new Set<number>();
 
       quizzesWithStats.forEach(quiz => {
         if (quiz.results) {
           totalAttempts += quiz.results.totalAttempts;
-          uniqueStudents.add(quiz.results.uniqueUsers);
-
           if (quiz.results.averageScore !== undefined) {
             totalScore += quiz.results.averageScore;
             scoreCount++;
@@ -122,6 +150,7 @@ const QuestionAnalytics = () => {
 
       setAnalyticsData({
         quizzes: quizzesWithStats,
+        allAttempts,
         totalAttempts,
         averageScore: scoreCount > 0 ? totalScore / scoreCount : 0,
         totalQuizzes: quizzesWithStats.length,
@@ -256,6 +285,72 @@ const QuestionAnalytics = () => {
 
   const filteredQuizzes = filterQuizzes(analyticsData.quizzes);
 
+  // Group filtered quizzes by title
+  const groupedQuizzes = filteredQuizzes.reduce((acc, quiz) => {
+    if (!acc[quiz.title]) {
+      acc[quiz.title] = {
+        title: quiz.title,
+        quizIds: [] as number[],
+        questionCount: quiz.questionCount,
+        totalAttempts: 0,
+        totalScoreSum: 0,
+        totalTimeSum: 0,
+        uniqueUsersSum: 0,
+        createdAt: quiz.createdAt,
+        passCount: 0
+      };
+    }
+    const group = acc[quiz.title];
+    group.quizIds.push(quiz.quizId);
+
+    if (quiz.results) {
+      group.totalAttempts += quiz.results.totalAttempts;
+      if (quiz.results.averageScore !== undefined) {
+        group.totalScoreSum += (quiz.results.averageScore * quiz.results.totalAttempts);
+      }
+      if (quiz.results.averageTimeTaken !== undefined) {
+        group.totalTimeSum += (quiz.results.averageTimeTaken * quiz.results.totalAttempts);
+      }
+      group.uniqueUsersSum += quiz.results.uniqueUsers;
+
+      // Estimate pass count
+      if (quiz.results.passRate !== undefined) {
+        group.passCount += (quiz.results.passRate * quiz.results.totalAttempts / 100);
+      }
+    }
+
+    // Keep the most recent creation date
+    if (new Date(quiz.createdAt) > new Date(group.createdAt)) {
+      group.createdAt = quiz.createdAt;
+    }
+
+    return acc;
+  }, {} as Record<string, any>);
+
+  // Filter attempts based on filtered quizzes
+  const filteredQuizIds = new Set(filteredQuizzes.map(q => q.quizId));
+  const filteredAttempts = analyticsData.allAttempts.filter(att => filteredQuizIds.has(att.quizId));
+
+  const aggregatedQuizList = Object.values(groupedQuizzes).map(g => {
+    // Calculate unique students for this group using allAttempts
+    const groupAttempts = analyticsData.allAttempts.filter(att => g.quizIds.includes(att.quizId));
+    const uniqueStudents = new Set(groupAttempts.map(a => a.userId)).size;
+
+    // Check if any quiz in the group is flagged
+    const isFlagged = g.quizIds.some((id: string | number) => flaggedMap[id]);
+    const flagReason = isFlagged ? g.quizIds.map((id: string | number) => flaggedMap[id]?.reason).filter(Boolean).join(', ') : '';
+
+    return {
+      ...g,
+      averageScore: g.totalAttempts > 0 ? g.totalScoreSum / g.totalAttempts : 0,
+      averageTime: g.totalAttempts > 0 ? g.totalTimeSum / g.totalAttempts : 0,
+      passRate: g.totalAttempts > 0 ? (g.passCount / g.totalAttempts * 100) : 0,
+      uniqueStudents,
+      isFlagged,
+      flagReason
+    };
+  });
+
   let filteredTotalAttempts = 0;
   let filteredTotalScore = 0;
   let filteredScoreCount = 0;
@@ -347,7 +442,7 @@ const QuestionAnalytics = () => {
           </div>
         </div>
 
-        {/* Quiz List */}
+        {/* Quiz List (Grouped by Title) */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
           <div className="p-6 border-b border-slate-200 flex items-center justify-between">
             <h2 className="text-2xl font-bold text-slate-800">📋 Quiz Performance Overview</h2>
@@ -365,7 +460,7 @@ const QuestionAnalytics = () => {
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Quiz Title</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Questions</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Attempts</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Total Attempts</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Avg Score</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Pass Rate</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Students</th>
@@ -374,76 +469,73 @@ const QuestionAnalytics = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {filteredQuizzes.map((quiz) => (
-                  <tr key={quiz.quizId} className="hover:bg-slate-50 transition">
+                {aggregatedQuizList.map((group) => (
+                  <tr key={group.title} className="hover:bg-slate-50 transition">
                     <td className="px-6 py-4">
                       <div>
                         <div className="font-semibold text-slate-800 flex items-center gap-2">
-                          {quiz.title}
-                          {flaggedMap[quiz.quizId] && (
+                          {group.title}
+                          {group.quizIds.length > 1 && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                              {group.quizIds.length} versions
+                            </span>
+                          )}
+                          {group.isFlagged && (
                             <span
                               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs"
-                              title={flaggedMap[quiz.quizId].reason || 'Flagged'}
+                              title={group.flagReason || 'Flagged'}
                             >
                               🚩 Flagged
                             </span>
                           )}
                         </div>
                         <div className="text-sm text-slate-500">
-                          Created: {new Date(quiz.createdAt).toLocaleDateString()}
+                          Last Updated: {new Date(group.createdAt).toLocaleDateString()}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-medium text-slate-700">{quiz.questionCount}</span>
+                      <span className="font-medium text-slate-700">{group.questionCount}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <div>
-                        <div className="font-bold text-blue-600">{quiz.results?.totalAttempts || 0}</div>
-                        {quiz.statistics && (
-                          <div className="text-xs text-slate-500">
-                            ({quiz.statistics.completedAttempts} completed)
-                          </div>
-                        )}
-                      </div>
+                      <div className="font-bold text-blue-600">{group.totalAttempts}</div>
                     </td>
                     <td className="px-6 py-4">
                       <div
                         className="text-2xl font-bold"
-                        style={{ color: getScoreColor(quiz.results?.averageScore || 0) }}
+                        style={{ color: getScoreColor(group.averageScore) }}
                       >
-                        {quiz.results?.averageScore != null ? `${quiz.results.averageScore.toFixed(1)}%` : 'N/A'}
+                        {group.averageScore.toFixed(1)}%
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div>
                         <div className="font-bold text-slate-700">
-                          {quiz.results?.passRate != null ? `${quiz.results.passRate.toFixed(1)}%` : 'N/A'}
+                          {group.passRate.toFixed(1)}%
                         </div>
-                        {quiz.results && (
-                          <div className="text-xs text-slate-500">
-                            (≥50 points)
-                          </div>
-                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1">
                         <Users className="w-4 h-4 text-slate-500" />
-                        <span className="font-medium text-slate-700">{quiz.results?.uniqueUsers || 0}</span>
+                        <span className="font-medium text-slate-700">{group.uniqueStudents}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4 text-slate-500" />
                         <span className="text-sm text-slate-600">
-                          {formatTime(quiz.results?.averageTimeTaken)}
+                          {formatTime(group.averageTime)}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <button
-                        onClick={() => navigate(`/faculty/analytics/quiz/${quiz.quizId}`)}
+                        onClick={() => {
+                          if (group.quizIds.length > 0) {
+                            navigate(`/faculty/analytics/quiz/${group.quizIds[0]}`);
+                          }
+                        }}
                         className="text-blue-600 hover:text-blue-800 font-medium text-sm"
                       >
                         View Details
@@ -455,7 +547,7 @@ const QuestionAnalytics = () => {
             </table>
           </div>
 
-          {filteredQuizzes.length === 0 && (
+          {aggregatedQuizList.length === 0 && (
             <div className="text-center py-12 text-slate-500">
               <Target className="w-16 h-16 mx-auto mb-4 text-slate-300" />
               <p className="text-lg font-medium">No quizzes match the filters</p>
@@ -464,38 +556,73 @@ const QuestionAnalytics = () => {
           )}
         </div>
 
-        {/* Score Distribution */}
-        {filteredQuizzes.length > 0 && (
+        {/* Student Performance (All Attempts) */}
+        {filteredAttempts.length > 0 && (
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-bold text-slate-800 mb-6">📊 Score Distribution</h2>
+            <h2 className="text-2xl font-bold text-slate-800 mb-6">🎓 Student Performance</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              {['90-100', '80-89', '70-79', '60-69', '0-59'].map((range) => {
-                const totalInRange = filteredQuizzes.reduce((sum, quiz) => {
-                  return sum + (quiz.results?.scoreDistribution[range as keyof typeof quiz.results.scoreDistribution] || 0);
-                }, 0);
-
-                return (
-                  <div
-                    key={range}
-                    className="p-4 rounded-lg border-2 transition-all hover:shadow-md"
-                    style={{ borderColor: getScoreRangeColor(range) }}
-                  >
-                    <div className="text-center">
-                      <div
-                        className="text-3xl font-bold mb-1"
-                        style={{ color: getScoreRangeColor(range) }}
-                      >
-                        {totalInRange}
-                      </div>
-                      <div className="text-sm font-medium text-slate-700 mb-1">
-                        {getScoreRangeLabel(range)}
-                      </div>
-                      <div className="text-xs text-slate-500">{range} points</div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Student</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Quiz Title</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Score</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Time Taken</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Submitted At</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {filteredAttempts.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()).map((attempt) => (
+                    <tr
+                      key={attempt.attemptId}
+                      className="hover:bg-slate-50 transition cursor-pointer"
+                      onClick={() => navigate(`/faculty/analytics/attempt/${attempt.attemptId}`)}
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
+                            {attempt.userName ? attempt.userName.charAt(0).toUpperCase() : 'U'}
+                          </div>
+                          <span className="font-medium text-slate-700">{attempt.userName || `User #${attempt.userId}`}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-slate-600">{attempt.quizTitle}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div
+                          className="font-bold"
+                          style={{ color: getScoreColor(attempt.score || 0) }}
+                        >
+                          {attempt.score !== undefined ? `${attempt.score}%` : 'N/A'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-slate-600">
+                          {formatTime(attempt.timeTaken)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-slate-500">
+                          {attempt.submittedAt ? new Date(attempt.submittedAt).toLocaleString() : 'In Progress'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${attempt.isCompleted
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                            }`}
+                        >
+                          {attempt.isCompleted ? 'Completed' : 'In Progress'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}

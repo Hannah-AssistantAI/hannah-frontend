@@ -45,7 +45,7 @@ const CustomMessageDetail: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
+    return new Date(dateString).toLocaleString('vi-VN', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -94,7 +94,7 @@ const CustomMessageDetail: React.FC = () => {
                 </svg>
                 <span>Back to Custom Messages</span>
               </button>
-              
+
               {message.status === 'pending' && (
                 <div className="flex gap-3">
                   <button
@@ -114,7 +114,7 @@ const CustomMessageDetail: React.FC = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-4">
@@ -140,9 +140,8 @@ const CustomMessageDetail: React.FC = () => {
         <div className="max-w-[1800px] mx-auto p-6">
           <div className="flex gap-6">
             {/* Main Content Area */}
-            <div className={`flex-1 bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 overflow-hidden transition-all duration-300 ${
-              isSidebarCollapsed ? 'mr-0' : ''
-            }`}>
+            <div className={`flex-1 bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? 'mr-0' : ''
+              }`}>
               <div className="p-8">
                 {/* Student Question */}
                 <div className="mb-10">
@@ -230,17 +229,15 @@ const CustomMessageDetail: React.FC = () => {
                 {/* Review Info */}
                 {message.status !== 'pending' && (
                   <div className="mt-10">
-                    <div className={`rounded-2xl p-7 border-2 shadow-xl ${
-                      message.status === 'approved' 
+                    <div className={`rounded-2xl p-7 border-2 shadow-xl ${message.status === 'approved'
                         ? 'bg-gradient-to-br from-emerald-50 via-teal-50/50 to-emerald-50 border-emerald-300 shadow-emerald-200/50'
                         : 'bg-gradient-to-br from-red-50 via-rose-50/50 to-red-50 border-red-300 shadow-red-200/50'
-                    }`}>
+                      }`}>
                       <div className="flex items-center gap-3 mb-5">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${
-                          message.status === 'approved'
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${message.status === 'approved'
                             ? 'bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/30'
                             : 'bg-gradient-to-br from-red-500 to-rose-600 shadow-red-500/30'
-                        }`}>
+                          }`}>
                           {message.status === 'approved' ? (
                             <Check className="text-white" size={22} strokeWidth={3} />
                           ) : (
@@ -281,19 +278,17 @@ const CustomMessageDetail: React.FC = () => {
             </div>
 
             {/* Right Sidebar - Faculty & Course Info */}
-            <div className={`bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 transition-all duration-300 ${
-              isSidebarCollapsed ? 'w-14' : 'w-96'
-            } flex-shrink-0 overflow-hidden`}>
+            <div className={`bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 transition-all duration-300 ${isSidebarCollapsed ? 'w-14' : 'w-96'
+              } flex-shrink-0 overflow-hidden`}>
               <button
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 className="w-full p-4 flex items-center justify-center bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 transition-all border-b border-gray-200 group"
               >
-                <svg 
-                  className={`w-5 h-5 text-blue-600 transition-transform duration-300 group-hover:scale-125 ${
-                    isSidebarCollapsed ? 'rotate-180' : ''
-                  }`} 
-                  fill="none" 
-                  stroke="currentColor" 
+                <svg
+                  className={`w-5 h-5 text-blue-600 transition-transform duration-300 group-hover:scale-125 ${isSidebarCollapsed ? 'rotate-180' : ''
+                    }`}
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />

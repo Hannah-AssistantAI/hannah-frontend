@@ -95,39 +95,39 @@ export default function FlaggedQuizDetail() {
           <div className="space-y-8">
             <div className="grid lg:grid-cols-2 gap-6">
               <div className="border rounded-lg p-5 bg-white shadow-sm">
-              <h2 className="text-lg font-semibold mb-2">Attempt Overview</h2>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div><span className="font-medium">ID:</span> {attempt.id}</div>
-                <div><span className="font-medium">Student:</span> {attempt.studentName}</div>
-                <div><span className="font-medium">Topic:</span> {attempt.topic}</div>
-                <div><span className="font-medium">Course:</span> {attempt.course}</div>
-                <div><span className="font-medium">Score:</span> {attempt.score}/{attempt.maxScore} ({attempt.percentage}%)</div>
-                <div><span className="font-medium">Difficulty:</span> {attempt.difficulty}</div>
-                <div className="col-span-2"><span className="font-medium">Timestamp:</span> {new Date(attempt.timestamp).toLocaleString('en-US')}</div>
-              </div>
-              <div className="mt-4 flex flex-wrap gap-3 text-xs">
-                {(() => {
-                  const total = attempt.questions.length;
-                  const correct = attempt.questions.filter(q => q.selectedIndex === q.correctIndex).length;
-                  return (
-                    <>
-                      <span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-700">Questions: {total}</span>
-                      <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700">Correct: {correct}</span>
-                      <span className="inline-flex items-center px-2 py-1 rounded bg-red-100 text-red-700">Incorrect: {total - correct}</span>
-                    </>
-                  );
-                })()}
+                <h2 className="text-lg font-semibold mb-2">Attempt Overview</h2>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div><span className="font-medium">ID:</span> {attempt.id}</div>
+                  <div><span className="font-medium">Student:</span> {attempt.studentName}</div>
+                  <div><span className="font-medium">Topic:</span> {attempt.topic}</div>
+                  <div><span className="font-medium">Course:</span> {attempt.course}</div>
+                  <div><span className="font-medium">Score:</span> {attempt.score}/{attempt.maxScore} ({attempt.percentage}%)</div>
+                  <div><span className="font-medium">Difficulty:</span> {attempt.difficulty}</div>
+                  <div className="col-span-2"><span className="font-medium">Timestamp:</span> {new Date(attempt.timestamp).toLocaleString('vi-VN')}</div>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-3 text-xs">
+                  {(() => {
+                    const total = attempt.questions.length;
+                    const correct = attempt.questions.filter(q => q.selectedIndex === q.correctIndex).length;
+                    return (
+                      <>
+                        <span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-700">Questions: {total}</span>
+                        <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700">Correct: {correct}</span>
+                        <span className="inline-flex items-center px-2 py-1 rounded bg-red-100 text-red-700">Incorrect: {total - correct}</span>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
               <div className="border rounded-lg p-5 bg-white shadow-sm">
-              <h2 className="text-lg font-semibold mb-2">Flag Information</h2>
-              <div className="text-sm space-y-1">
-                <div><span className="font-medium">Status:</span> {meta.status === 'pending' ? 'Pending' : 'Resolved'}</div>
-                <div><span className="font-medium">Reason:</span> {meta.reason}</div>
-                <div><span className="font-medium">Flagged At:</span> {new Date(meta.flaggedAt).toLocaleString('en-US')}</div>
-                {meta.resolvedAt && <div><span className="font-medium">Resolved At:</span> {new Date(meta.resolvedAt).toLocaleString('en-US')}</div>}
+                <h2 className="text-lg font-semibold mb-2">Flag Information</h2>
+                <div className="text-sm space-y-1">
+                  <div><span className="font-medium">Status:</span> {meta.status === 'pending' ? 'Pending' : 'Resolved'}</div>
+                  <div><span className="font-medium">Reason:</span> {meta.reason}</div>
+                  <div><span className="font-medium">Flagged At:</span> {new Date(meta.flaggedAt).toLocaleString('vi-VN')}</div>
+                  {meta.resolvedAt && <div><span className="font-medium">Resolved At:</span> {new Date(meta.resolvedAt).toLocaleString('vi-VN')}</div>}
+                </div>
               </div>
-            </div>
             </div>
 
             <div className="border rounded-lg p-5 bg-white shadow-sm">
@@ -137,7 +137,7 @@ export default function FlaggedQuizDetail() {
                   const isCorrect = q.selectedIndex === q.correctIndex;
                   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
                   return (
-                    <div key={q.id} className={`rounded-lg border shadow-sm ${isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'} overflow-hidden`}> 
+                    <div key={q.id} className={`rounded-lg border shadow-sm ${isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'} overflow-hidden`}>
                       <div className={`px-4 py-3 flex items-start justify-between border-b text-sm ${isCorrect ? 'bg-green-100 border-green-200' : 'bg-red-100 border-red-200'}`}>
                         <div className="font-medium pr-4">Q{qi + 1}. {q.content}</div>
                         <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold ${isCorrect ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>

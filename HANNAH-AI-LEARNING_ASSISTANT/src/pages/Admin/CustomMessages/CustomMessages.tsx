@@ -14,7 +14,7 @@ const CustomMessages: React.FC = () => {
 
   const filteredMessages = mockCustomMessages.filter((msg) => {
     const matchesStatus = statusFilter === 'all' || msg.status === statusFilter;
-    const matchesSearch = 
+    const matchesSearch =
       msg.facultyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       msg.studentQuestion.toLowerCase().includes(searchQuery.toLowerCase()) ||
       msg.context.toLowerCase().includes(searchQuery.toLowerCase());
@@ -35,7 +35,7 @@ const CustomMessages: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
+    return new Date(dateString).toLocaleString('vi-VN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

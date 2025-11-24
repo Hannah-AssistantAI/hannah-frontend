@@ -50,7 +50,7 @@ const ConversationDetail: React.FC = () => {
       setLoading(true);
       const response = await getFlaggedConversations({});
       const conv = response.data.find((c: any) => c.id === `F-${id}`);
-      
+
       if (conv) {
         const transformed: Conversation = {
           id: parseInt(conv.id.replace('F-', '')),
@@ -65,8 +65,8 @@ const ConversationDetail: React.FC = () => {
           messages: conv.messages.map((msg: any) => ({
             role: msg.author.role === 'student' ? 'student' : 'ai',
             text: msg.content,
-            time: new Date(msg.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-        })),
+            time: new Date(msg.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+          })),
           handledBy: conv.assignedTo || undefined
         };
         setConversation(transformed);
@@ -95,26 +95,26 @@ const ConversationDetail: React.FC = () => {
       showNotification('Please enter a response', 'error');
       return;
     }
-    
+
     // Save the submitted response with faculty info and timestamp
     const submittedResponse: FacultyResponse = {
       text: response,
       facultyName: user?.name || 'Faculty',
       timestamp: new Date().toISOString()
     };
-    
+
     setSubmittedResponses(prev => ({
       ...prev,
       [messageIndex]: submittedResponse
     }));
-    
+
     // Clear the input field
     setFacultyResponses(prev => {
       const updated = { ...prev };
       delete updated[messageIndex];
       return updated;
     });
-    
+
     console.log('Submitting faculty response for message', messageIndex, ':', response);
     showNotification('Faculty response updated', 'success');
     // TODO: Call API to save faculty response
@@ -128,7 +128,7 @@ const ConversationDetail: React.FC = () => {
         ...prev,
         [messageIndex]: submitted.text
       }));
-      
+
       // Remove from submitted
       setSubmittedResponses(prev => {
         const updated = { ...prev };
@@ -140,7 +140,7 @@ const ConversationDetail: React.FC = () => {
 
   const handleStatusChange = async (newStatus: string) => {
     if (!conversation) return;
-    
+
     try {
       setLoading(true);
       await updateConversationStatus(`F-${conversation.id}`, newStatus);
@@ -199,7 +199,7 @@ const ConversationDetail: React.FC = () => {
                 </svg>
                 <span className="font-medium">Back to list</span>
               </button>
-              
+
               <div className="flex gap-3">
                 <button
                   onClick={handleReport}
@@ -221,25 +221,24 @@ const ConversationDetail: React.FC = () => {
                 </button>
               </div>
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className="text-2xl font-bold text-gray-900">Conversation #{conversation.id}</h1>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    conversation.status === 'pending' ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
-                    conversation.status === 'reviewed' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
-                    'bg-green-100 text-green-700 border border-green-200'
-                  }`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${conversation.status === 'pending' ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
+                      conversation.status === 'reviewed' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
+                        'bg-green-100 text-green-700 border border-green-200'
+                    }`}>
                     {conversation.status === 'pending' ? '⏳ Pending' :
-                     conversation.status === 'reviewed' ? '🔍 In review' : '✅ Resolved'}
+                      conversation.status === 'reviewed' ? '🔍 In review' : '✅ Resolved'}
                   </span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  {new Date(conversation.timestamp).toLocaleString('en-US', {
+                  {new Date(conversation.timestamp).toLocaleString('vi-VN', {
                     hour: '2-digit',
                     minute: '2-digit',
                     day: '2-digit',
@@ -256,9 +255,8 @@ const ConversationDetail: React.FC = () => {
         <div className="max-w-[1800px] mx-auto p-6">
           <div className="flex gap-6">
             {/* Main Chat Area */}
-            <div className={`flex-1 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden transition-all duration-300 ${
-              isSidebarCollapsed ? 'mr-0' : ''
-            }`}>
+            <div className={`flex-1 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? 'mr-0' : ''
+              }`}>
               {/* Conversation Messages */}
               <div className="p-8">
                 <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
@@ -274,175 +272,171 @@ const ConversationDetail: React.FC = () => {
                     {conversation.messageCount} messages
                   </span>
                 </div>
-              
-              <div className="space-y-6">
-                {conversation.messages.map((message, index) => (
-                  <div key={index} className="message-item">
-                    {/* Message Display */}
-                    <div className={`flex ${message.role === 'student' ? 'justify-end' : 'justify-start'} mb-4`}>
-                      <div className={`max-w-3xl ${message.role === 'student' ? 'w-full' : 'w-full'}`}>
-                        <div className="flex items-start gap-4">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${
-                            message.role === 'student' 
-                              ? 'bg-gradient-to-br from-blue-500 to-blue-600' 
-                              : 'bg-gradient-to-br from-purple-500 to-purple-600'
-                          }`}>
-                            {message.role === 'student' ? (
-                              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                              </svg>
-                            ) : (
-                              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                              </svg>
-                            )}
-                          </div>
-                          
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <span className="font-semibold text-sm text-gray-900">
-                                {message.role === 'student' ? 'Student' : 'Hannah AI'}
-                              </span>
-                              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-md">{message.time}</span>
+
+                <div className="space-y-6">
+                  {conversation.messages.map((message, index) => (
+                    <div key={index} className="message-item">
+                      {/* Message Display */}
+                      <div className={`flex ${message.role === 'student' ? 'justify-end' : 'justify-start'} mb-4`}>
+                        <div className={`max-w-3xl ${message.role === 'student' ? 'w-full' : 'w-full'}`}>
+                          <div className="flex items-start gap-4">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${message.role === 'student'
+                                ? 'bg-gradient-to-br from-blue-500 to-blue-600'
+                                : 'bg-gradient-to-br from-purple-500 to-purple-600'
+                              }`}>
+                              {message.role === 'student' ? (
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                              ) : (
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                              )}
                             </div>
-                            
-                            <div className={`p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow ${
-                              message.role === 'student' 
-                                ? 'bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200' 
-                                : 'bg-white border-2 border-gray-200'
-                            }`}>
-                              <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-[15px]">{message.text}</p>
+
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className="font-semibold text-sm text-gray-900">
+                                  {message.role === 'student' ? 'Student' : 'Hannah AI'}
+                                </span>
+                                <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-md">{message.time}</span>
+                              </div>
+
+                              <div className={`p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow ${message.role === 'student'
+                                  ? 'bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200'
+                                  : 'bg-white border-2 border-gray-200'
+                                }`}>
+                                <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-[15px]">{message.text}</p>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Faculty Response Box - Only for AI messages */}
-                    {message.role === 'ai' && (
-                      <div className="flex justify-start ml-14">
-                        <div className="max-w-3xl w-full">
-                          {submittedResponses[index] ? (
-                            // Show submitted response
-                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-5 shadow-md hover:shadow-lg transition-all">
-                              <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0 shadow-md">
-                                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                  </svg>
-                                </div>
-                                
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-3 mb-3">
-                                    <span className="font-bold text-sm text-green-900">
-                                      {submittedResponses[index].facultyName}
-                                    </span>
-                                    <span className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-sm">
-                                      FACULTY
-                                    </span>
-                                    <span className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">
-                                      {new Date(submittedResponses[index].timestamp).toLocaleString('en-US', {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        year: 'numeric'
-                                      })}
-                                    </span>
+                      {/* Faculty Response Box - Only for AI messages */}
+                      {message.role === 'ai' && (
+                        <div className="flex justify-start ml-14">
+                          <div className="max-w-3xl w-full">
+                            {submittedResponses[index] ? (
+                              // Show submitted response
+                              <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-5 shadow-md hover:shadow-lg transition-all">
+                                <div className="flex items-start gap-4">
+                                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0 shadow-md">
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
                                   </div>
-                                  
-                                  <div className="bg-white border-2 border-green-200 rounded-xl p-5 shadow-sm">
-                                    <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-[15px]">
-                                      {submittedResponses[index].text}
-                                    </p>
-                                  </div>
-                                  
-                                  <div className="flex items-center justify-between mt-4">
-                                    <div className="flex items-center gap-2">
-                                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                      </svg>
-                                      <span className="text-sm text-green-700 font-semibold">
-                                        Response updated
+
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-3">
+                                      <span className="font-bold text-sm text-green-900">
+                                        {submittedResponses[index].facultyName}
+                                      </span>
+                                      <span className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-sm">
+                                        FACULTY
+                                      </span>
+                                      <span className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">
+                                        {new Date(submittedResponses[index].timestamp).toLocaleString('vi-VN', {
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric'
+                                        })}
                                       </span>
                                     </div>
-                                    
-                                    <button
-                                      onClick={() => handleEditResponse(index)}
-                                      className="px-4 py-2 text-sm font-medium text-green-700 hover:text-green-800 bg-white hover:bg-green-50 border border-green-300 rounded-xl transition-all flex items-center gap-2 shadow-sm hover:shadow"
-                                    >
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                      </svg>
-                                      Edit
-                                    </button>
+
+                                    <div className="bg-white border-2 border-green-200 rounded-xl p-5 shadow-sm">
+                                      <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-[15px]">
+                                        {submittedResponses[index].text}
+                                      </p>
+                                    </div>
+
+                                    <div className="flex items-center justify-between mt-4">
+                                      <div className="flex items-center gap-2">
+                                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span className="text-sm text-green-700 font-semibold">
+                                          Response updated
+                                        </span>
+                                      </div>
+
+                                      <button
+                                        onClick={() => handleEditResponse(index)}
+                                        className="px-4 py-2 text-sm font-medium text-green-700 hover:text-green-800 bg-white hover:bg-green-50 border border-green-300 rounded-xl transition-all flex items-center gap-2 shadow-sm hover:shadow"
+                                      >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                        Edit
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          ) : (
-                            // Show input box
-                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-5 shadow-md hover:shadow-lg transition-all">
-                              <div className="flex items-center gap-3 mb-4">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm">
-                                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                  </svg>
+                            ) : (
+                              // Show input box
+                              <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-5 shadow-md hover:shadow-lg transition-all">
+                                <div className="flex items-center gap-3 mb-4">
+                                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm">
+                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                  </div>
+                                  <span className="font-bold text-sm text-green-900">Faculty response</span>
                                 </div>
-                                <span className="font-bold text-sm text-green-900">Faculty response</span>
+
+                                <textarea
+                                  value={facultyResponses[index] || ''}
+                                  onChange={(e) => handleFacultyResponseChange(index, e.target.value)}
+                                  placeholder="Enter your response or adjusted answer here..."
+                                  className="w-full p-4 border-2 border-green-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none bg-white text-gray-800 placeholder-gray-400 shadow-sm text-[15px]"
+                                  rows={4}
+                                />
+
+                                <div className="flex justify-between items-center mt-4">
+                                  <span className="text-xs text-gray-600 flex items-center gap-2">
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Response will be saved to compare with AI
+                                  </span>
+                                  <button
+                                    onClick={() => handleSubmitResponse(index)}
+                                    className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl transition-all text-sm font-bold flex items-center gap-2 shadow-md hover:shadow-lg"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Update response
+                                  </button>
+                                </div>
                               </div>
-                              
-                              <textarea
-                                value={facultyResponses[index] || ''}
-                                onChange={(e) => handleFacultyResponseChange(index, e.target.value)}
-                                placeholder="Enter your response or adjusted answer here..."
-                                className="w-full p-4 border-2 border-green-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none bg-white text-gray-800 placeholder-gray-400 shadow-sm text-[15px]"
-                                rows={4}
-                              />
-                              
-                              <div className="flex justify-between items-center mt-4">
-                                <span className="text-xs text-gray-600 flex items-center gap-2">
-                                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  Response will be saved to compare with AI
-                                </span>
-                                <button
-                                  onClick={() => handleSubmitResponse(index)}
-                                  className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl transition-all text-sm font-bold flex items-center gap-2 shadow-md hover:shadow-lg"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                  </svg>
-                                  Update response
-                                </button>
-                              </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
             </div>
 
             {/* Right Sidebar - Student Info & Resources */}
-            <div className={`bg-white rounded-2xl shadow-lg border border-gray-200 transition-all duration-300 ${
-              isSidebarCollapsed ? 'w-14' : 'w-96'
-            } flex-shrink-0 overflow-hidden`}>
+            <div className={`bg-white rounded-2xl shadow-lg border border-gray-200 transition-all duration-300 ${isSidebarCollapsed ? 'w-14' : 'w-96'
+              } flex-shrink-0 overflow-hidden`}>
               {/* Toggle Button */}
               <button
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 className="w-full p-4 flex items-center justify-center bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 transition-all border-b border-gray-200 group"
               >
-                <svg 
-                  className={`w-5 h-5 text-blue-600 transition-transform duration-300 group-hover:scale-110 ${
-                    isSidebarCollapsed ? 'rotate-180' : ''
-                  }`} 
-                  fill="none" 
-                  stroke="currentColor" 
+                <svg
+                  className={`w-5 h-5 text-blue-600 transition-transform duration-300 group-hover:scale-110 ${isSidebarCollapsed ? 'rotate-180' : ''
+                    }`}
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -474,13 +468,12 @@ const ConversationDetail: React.FC = () => {
                       </div>
                       <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl p-4 border border-gray-200">
                         <p className="text-xs text-gray-500 font-semibold mb-2 uppercase tracking-wide">Status</p>
-                        <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold border-2 ${
-                          conversation.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-300' :
-                          conversation.status === 'reviewed' ? 'bg-blue-50 text-blue-700 border-blue-300' :
-                          'bg-green-50 text-green-700 border-green-300'
-                        }`}>
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold border-2 ${conversation.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-300' :
+                            conversation.status === 'reviewed' ? 'bg-blue-50 text-blue-700 border-blue-300' :
+                              'bg-green-50 text-green-700 border-green-300'
+                          }`}>
                           {conversation.status === 'pending' ? '⏳ Pending' :
-                           conversation.status === 'reviewed' ? '🔍 In review' : '✅ Resolved'}
+                            conversation.status === 'reviewed' ? '🔍 In review' : '✅ Resolved'}
                         </span>
                       </div>
                       <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl p-4 border border-gray-200 hover:border-blue-300 transition-all">
@@ -534,14 +527,14 @@ const ConversationDetail: React.FC = () => {
                             <p className="text-sm font-bold text-gray-900 truncate">Lecture slides - Chapter 3</p>
                             <div className="flex items-center gap-2 mt-2">
                               <div className="flex-1 bg-white rounded-full h-2 overflow-hidden shadow-inner">
-                                <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full" style={{width: '95%'}}></div>
+                                <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full" style={{ width: '95%' }}></div>
                               </div>
                               <span className="text-xs font-bold text-purple-700">95%</span>
                             </div>
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-xl p-4 hover:border-purple-300 transition-all cursor-pointer group shadow-sm hover:shadow-md">
                         <div className="flex items-start gap-3">
                           <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
@@ -553,7 +546,7 @@ const ConversationDetail: React.FC = () => {
                             <p className="text-sm font-bold text-gray-900 truncate">Basic textbook</p>
                             <div className="flex items-center gap-2 mt-2">
                               <div className="flex-1 bg-white rounded-full h-2 overflow-hidden shadow-inner">
-                                <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full" style={{width: '88%'}}></div>
+                                <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full" style={{ width: '88%' }}></div>
                               </div>
                               <span className="text-xs font-bold text-purple-700">88%</span>
                             </div>
@@ -572,7 +565,7 @@ const ConversationDetail: React.FC = () => {
                             <p className="text-sm font-bold text-gray-900 truncate">FAQ - Frequently asked questions</p>
                             <div className="flex items-center gap-2 mt-2">
                               <div className="flex-1 bg-white rounded-full h-2 overflow-hidden shadow-inner">
-                                <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full" style={{width: '92%'}}></div>
+                                <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full" style={{ width: '92%' }}></div>
                               </div>
                               <span className="text-xs font-bold text-purple-700">92%</span>
                             </div>
@@ -595,11 +588,11 @@ const ConversationDetail: React.FC = () => {
       {/* Report Modal */}
       {showReportModal && (
         <div className="fixed inset-0 z-[10000] overflow-y-auto">
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
             onClick={() => setShowReportModal(false)}
           ></div>
-          
+
           <div className="flex min-h-full items-center justify-center p-4">
             <div className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 transform transition-all">
               <div className="flex items-start gap-5">
@@ -608,7 +601,7 @@ const ConversationDetail: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                 </div>
-                
+
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
                     Report issue
@@ -616,7 +609,7 @@ const ConversationDetail: React.FC = () => {
                   <p className="text-sm text-gray-600 mb-6 leading-relaxed">
                     Are you sure you want to report this conversation? This action will be sent to administrators for review and handling.
                   </p>
-                  
+
                   <div className="flex gap-3">
                     <button
                       onClick={confirmReport}

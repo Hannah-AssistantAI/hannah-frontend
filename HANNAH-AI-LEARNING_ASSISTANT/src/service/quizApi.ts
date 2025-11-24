@@ -84,6 +84,36 @@ export interface QuizAttemptDto {
     isCompleted: boolean;
 }
 
+export interface QuizAttemptQuestionDto {
+    questionId: number;
+    content: string;
+    options: string[];
+    correctOptionIndex: number;
+    selectedOptionIndex: number;
+    explanation?: string;
+    isCorrect: boolean;
+}
+
+export interface QuizAttemptDetailDto {
+    attemptId: number;
+    quizId: number;
+    quizTitle: string;
+    userId: number;
+    userName: string;
+    courseId?: string;
+    courseName?: string;
+    score: number;
+    maxScore: number;
+    percentage: number;
+    startedAt: string;
+    submittedAt?: string;
+    timeTaken?: number;
+    isCompleted: boolean;
+    isFlagged: boolean;
+    flagReason?: string;
+    questions: QuizAttemptQuestionDto[];
+}
+
 export interface PaginatedQuizListDto {
     items: QuizDto[];
     pageNumber: number;
@@ -207,6 +237,46 @@ class QuizApiService {
             await apiClient.delete<BackendApiResponse<null>>(`/api/Quizzes/${quizId}`);
         } catch (error) {
             console.error(`Error deleting quiz ${quizId}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get quiz attempt details including questions and answers
+     * GET /api/QuizAttempts/{attemptId}
+     */
+    async getQuizAttemptDetail(attemptId: number): Promise<QuizAttemptDetailDto> {
+        try {
+            const response = await apiClient.get<BackendApiResponse<QuizAttemptDetailDto>>(`/api/QuizAttempts/${attemptId}`);
+            return response.data.data;
+        } catch (error) {
+            console.error(`Error fetching quiz attempt ${attemptId}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Flag a quiz attempt
+     * POST /api/QuizAttempts/{attemptId}/flag
+     */
+    async flagQuizAttempt(attemptId: number, reason: string): Promise<void> {
+        try {
+            await apiClient.post<BackendApiResponse<null>>(`/api/QuizAttempts/${attemptId}/flag`, { reason });
+        } catch (error) {
+            console.error(`Error flagging attempt ${attemptId}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Unflag a quiz attempt
+     * DELETE /api/QuizAttempts/{attemptId}/flag
+     */
+    async unflagQuizAttempt(attemptId: number): Promise<void> {
+        try {
+            await apiClient.delete<BackendApiResponse<null>>(`/api/QuizAttempts/${attemptId}/flag`);
+        } catch (error) {
+            console.error(`Error unflagging attempt ${attemptId}:`, error);
             throw error;
         }
     }

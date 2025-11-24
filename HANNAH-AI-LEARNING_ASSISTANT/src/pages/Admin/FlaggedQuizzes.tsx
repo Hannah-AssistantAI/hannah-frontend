@@ -155,7 +155,7 @@ export default function FlaggedQuizzes() {
                   <td className="px-4 py-2 max-w-xs">
                     <div className="truncate" title={r.reason}>{r.reason || '(no reason)'}</div>
                   </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-xs text-slate-600">{new Date(r.flaggedAt).toLocaleString('en-US')}</td>
+                  <td className="px-4 py-2 whitespace-nowrap text-xs text-slate-600">{new Date(r.flaggedAt).toLocaleString('vi-VN')}</td>
                   <td className="px-4 py-2">
                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${r.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
                       <span className="inline-block w-2 h-2 rounded-full ${r.status === 'pending' ? 'bg-amber-500' : 'bg-green-500'}"></span>

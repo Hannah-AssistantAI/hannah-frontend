@@ -27,10 +27,10 @@ interface ConversationItemProps {
   onStatusChange: (id: number, status: string) => void;
 }
 
-const ConversationItem: React.FC<ConversationItemProps> = ({ 
-  conversation, 
+const ConversationItem: React.FC<ConversationItemProps> = ({
+  conversation,
   onView,
-  onStatusChange 
+  onStatusChange
 }) => {
   const getStatusBadge = (status: string) => {
     const badges = {
@@ -55,7 +55,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
     };
 
     const badge = badges[status as keyof typeof badges] || badges.pending;
-    
+
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.bg} ${badge.text} border ${badge.border}`}>
         {badge.label}
@@ -67,12 +67,12 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) return 'Just now';
     if (diffInHours < 24) return `${diffInHours} hours ago`;
     if (diffInHours < 48) return 'Yesterday';
-    
-    return date.toLocaleDateString('en-US', {
+
+    return date.toLocaleDateString('vi-VN', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -150,7 +150,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
             {conversation.flags && conversation.flags.length > 0 && (
               <div className="flex items-center gap-1.5">
                 {conversation.flags.map((flag, index) => (
-                  <span 
+                  <span
                     key={index}
                     className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 border border-red-200"
                   >

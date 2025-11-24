@@ -9,8 +9,8 @@ interface TrendChartProps {
 const TrendChart = ({ data }: TrendChartProps) => {
   if (!data || data.length === 0) {
     return (
-      <div style={{ 
-        textAlign: 'center', 
+      <div style={{
+        textAlign: 'center',
         padding: '80px 40px',
         background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
         borderRadius: '12px',
@@ -39,7 +39,7 @@ const TrendChart = ({ data }: TrendChartProps) => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('vi-VN', {
       month: '2-digit',
       day: '2-digit'
     });
@@ -63,8 +63,8 @@ const TrendChart = ({ data }: TrendChartProps) => {
 
   return (
     <div className="trend-chart">
-      <div style={{ 
-        display: 'flex', 
+      <div style={{
+        display: 'flex',
         justifyContent: 'center',
         padding: '20px',
         background: 'linear-gradient(to bottom, #f8f9fa, #ffffff)',
@@ -82,7 +82,7 @@ const TrendChart = ({ data }: TrendChartProps) => {
               <stop offset="100%" style={{ stopColor: '#764ba2', stopOpacity: 1 }} />
             </linearGradient>
             <filter id="shadow">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.3"/>
+              <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.3" />
             </filter>
           </defs>
 
@@ -305,7 +305,7 @@ const TrendChart = ({ data }: TrendChartProps) => {
       </div>
 
       {/* Chart Info with modern styling */}
-      <div style={{ 
+      <div style={{
         marginTop: '28px',
         padding: '20px',
         background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
@@ -336,7 +336,7 @@ const TrendChart = ({ data }: TrendChartProps) => {
             questions
           </div>
         </div>
-        
+
         <div style={{
           display: 'flex',
           flexDirection: 'column',
@@ -358,7 +358,7 @@ const TrendChart = ({ data }: TrendChartProps) => {
             questions
           </div>
         </div>
-        
+
         <div style={{
           display: 'flex',
           flexDirection: 'column',

@@ -28,7 +28,7 @@ const message = {
     content: `OOP offers several advantages, including:
 
 [INTERACTIVE_LIST:Advantages of OOP]
-[SOURCE:1:Modularity:🔷:Code is organized into self-contained objects, making it easier to manage and understand.:https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object-oriented_programming]
+[SOURCE:1:Modularity:🔷:Code is organized into self-contained objects, making it easier to manage and understand.:https://developer.mozilla.org/vi-VN/docs/Learn/JavaScript/Objects/Object-oriented_programming]
 [SOURCE:2:Reusability:🔄:Objects and classes can be reused in different parts of a program or in different projects, reducing development time.:https://www.geeksforgeeks.org/object-oriented-programming-oops-concept-in-java/]
 [SOURCE:3:Maintainability:🔧:Changes to one object are less likely to affect other parts of the program.:https://stackoverflow.com/questions/1031273/what-is-polymorphism]
 [/INTERACTIVE_LIST]
