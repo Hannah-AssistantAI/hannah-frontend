@@ -29,6 +29,7 @@ export interface Suggestion {
   reviewedByUserId?: number | null;
   reviewedByUserName?: string | null;
   reviewedAt?: string | null;
+  rejectionReason?: string | null;
 }
 
 // Interface for creating a suggestion
@@ -53,8 +54,8 @@ const createSuggestion = async (suggestionData: CreateSuggestionDto): Promise<vo
 };
 
 /**
- * Fetches suggestions, optionally filtered by status.
- * @param status - The status to filter by.
+ * Fetches suggestions, optionally filtered by status, subjectId, and contentType.
+ * @param params - Optional filters including status, subjectId, and contentType.
  * @returns A promise that resolves to an array of suggestions.
  */
 const getSuggestions = async (params?: { status?: SuggestionStatus; subjectId?: number; contentType?: SuggestionContentType }): Promise<Suggestion[]> => {
@@ -75,10 +76,20 @@ const approveSuggestion = async (id: number, data: ApproveSuggestionDto): Promis
 /**
  * Rejects a suggestion.
  * @param id - The ID of the suggestion to reject.
+ * @param reason - The reason for rejection.
  * @returns A promise that resolves when the suggestion is rejected.
  */
-const rejectSuggestion = async (id: number): Promise<void> => {
-  await apiClient.post(API_ENDPOINTS.SUGGESTION.REJECT(id.toString()));
+const rejectSuggestion = async (id: number, reason: string): Promise<void> => {
+  await apiClient.post(API_ENDPOINTS.SUGGESTION.REJECT(id.toString()), { reason });
+};
+
+/**
+ * Deletes a suggestion.
+ * @param id - The ID of the suggestion to delete.
+ * @returns A promise that resolves when the suggestion is deleted.
+ */
+const deleteSuggestion = async (id: number): Promise<void> => {
+  await apiClient.delete(API_ENDPOINTS.SUGGESTION.DELETE(id.toString()));
 };
 
 const suggestionService = {
@@ -86,6 +97,7 @@ const suggestionService = {
   getSuggestions,
   approveSuggestion,
   rejectSuggestion,
+  deleteSuggestion,
 };
 
 export default suggestionService;

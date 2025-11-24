@@ -15,11 +15,14 @@ export default function CourseDetail() {
   const [activeTab, setActiveTab] = useState<'document' | 'outcome' | 'challenge'>('document');
   const [pendingDocuments, setPendingDocuments] = useState<Document[]>([]);
   const [approvedDocuments, setApprovedDocuments] = useState<Document[]>([]);
+  const [rejectedDocuments, setRejectedDocuments] = useState<Document[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [processingDocId, setProcessingDocId] = useState<number | null>(null);
 
   // State for suggestions
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [pendingSuggestions, setPendingSuggestions] = useState<Suggestion[]>([]);
+  const [approvedSuggestions, setApprovedSuggestions] = useState<Suggestion[]>([]);
+  const [rejectedSuggestions, setRejectedSuggestions] = useState<Suggestion[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [suggestionsError, setSuggestionsError] = useState<string | null>(null);
   const [processingSuggestionId, setProcessingSuggestionId] = useState<number | null>(null);
@@ -42,11 +45,11 @@ export default function CourseDetail() {
     if (!id) return;
     try {
       const docs = await documentService.getDocumentsBySubject(id);
-      // Filter for approved documents if the API returns all statuses.
-      // Assuming we want to show documents that are completed or approved.
+      // Separate approved and rejected documents
       setApprovedDocuments(docs.filter(d => d.processingStatus === 'completed' || d.approvalStatus === 'approved'));
+      setRejectedDocuments(docs.filter(d => d.approvalStatus === 'rejected'));
     } catch (error) {
-      console.error('Error fetching approved documents:', error);
+      console.error('Error fetching documents:', error);
     }
   };
 
@@ -135,10 +138,18 @@ export default function CourseDetail() {
 
 
   const fetchSuggestions = async () => {
+    if (!id) return;
     try {
       setSuggestionsLoading(true);
-      const response = await suggestionService.getSuggestions({ status: SuggestionStatus.Pending });
-      setSuggestions(response);
+      // Fetch all suggestions for this subject (no status filter)
+      const allSuggestions = await suggestionService.getSuggestions({ 
+        subjectId: parseInt(id, 10)
+      });
+      
+      // Separate by status
+      setPendingSuggestions(allSuggestions.filter(s => s.status === SuggestionStatus.Pending));
+      setApprovedSuggestions(allSuggestions.filter(s => s.status === SuggestionStatus.Approved));
+      setRejectedSuggestions(allSuggestions.filter(s => s.status === SuggestionStatus.Rejected));
       setSuggestionsError(null);
     } catch (err: any) {
       setSuggestionsError('Failed to load suggestions.');
@@ -165,9 +176,12 @@ export default function CourseDetail() {
   };
 
   const handleRejectSuggestion = async (suggestionId: number) => {
+    const reason = prompt('Please enter rejection reason:');
+    if (!reason) return;
+
     try {
       setProcessingSuggestionId(suggestionId);
-      await suggestionService.rejectSuggestion(suggestionId);
+      await suggestionService.rejectSuggestion(suggestionId, reason);
       toast.success('Suggestion rejected.');
       await fetchSuggestions(); // Refresh list
     } catch (error) {
@@ -175,6 +189,40 @@ export default function CourseDetail() {
       toast.error('Failed to reject suggestion.');
     } finally {
       setProcessingSuggestionId(null);
+    }
+  };
+
+  const handleDeleteSuggestion = async (suggestionId: number) => {
+    const confirmed = window.confirm('Are you sure you want to delete this suggestion? This action cannot be undone.');
+    if (!confirmed) return;
+
+    try {
+      setProcessingSuggestionId(suggestionId);
+      await suggestionService.deleteSuggestion(suggestionId);
+      toast.success('Suggestion deleted successfully.');
+      await fetchSuggestions(); // Refresh list
+    } catch (error) {
+      console.error('Error deleting suggestion:', error);
+      toast.error('Failed to delete suggestion.');
+    } finally {
+      setProcessingSuggestionId(null);
+    }
+  };
+
+  const handleDeleteDocument = async (documentId: number) => {
+    const confirmed = window.confirm('Are you sure you want to delete this document? This action cannot be undone.');
+    if (!confirmed) return;
+
+    try {
+      setProcessingDocId(documentId);
+      await documentService.deleteDocument(documentId.toString());
+      toast.success('Document deleted successfully.');
+      await fetchApprovedDocuments(); // Refresh list
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast.error('Failed to delete document.');
+    } finally {
+      setProcessingDocId(null);
     }
   };
 
@@ -272,7 +320,7 @@ export default function CourseDetail() {
                     <button className={`tab ${activeTab === 'document' ? 'active' : ''}`} onClick={() => setActiveTab('document')}>
                       <FileText size={16} /> Documents
                       <span className="count-chip">
-                        {pendingDocuments.length + approvedDocuments.length}
+                        {pendingDocuments.length + approvedDocuments.length + rejectedDocuments.length}
                       </span>
                       {pendingDocuments.length > 0 && (
                         <span className="pending-badge" style={{ backgroundColor: '#ef4444', color: 'white', borderRadius: '999px', padding: '2px 6px', fontSize: '0.7rem', marginLeft: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '18px', height: '18px' }} title="Pending Requests">
@@ -283,22 +331,22 @@ export default function CourseDetail() {
                     <button className={`tab ${activeTab === 'outcome' ? 'active' : ''}`} onClick={() => setActiveTab('outcome')}>
                       <CheckSquare size={16} /> Learning Outcome
                       <span className="count-chip">
-                        {suggestions.filter(s => s.contentType === SuggestionContentType.LearningOutcome).length + (subject?.learningOutcomes?.length || 0)}
+                        {pendingSuggestions.filter(s => s.contentType === SuggestionContentType.LearningOutcome).length + approvedSuggestions.filter(s => s.contentType === SuggestionContentType.LearningOutcome).length + rejectedSuggestions.filter(s => s.contentType === SuggestionContentType.LearningOutcome).length}
                       </span>
-                      {suggestions.filter(s => s.contentType === SuggestionContentType.LearningOutcome).length > 0 && (
+                      {pendingSuggestions.filter(s => s.contentType === SuggestionContentType.LearningOutcome).length > 0 && (
                         <span className="pending-badge" style={{ backgroundColor: '#ef4444', color: 'white', borderRadius: '999px', padding: '2px 6px', fontSize: '0.7rem', marginLeft: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '18px', height: '18px' }} title="Pending Requests">
-                          {suggestions.filter(s => s.contentType === SuggestionContentType.LearningOutcome).length}
+                          {pendingSuggestions.filter(s => s.contentType === SuggestionContentType.LearningOutcome).length}
                         </span>
                       )}
                     </button>
                     <button className={`tab ${activeTab === 'challenge' ? 'active' : ''}`} onClick={() => setActiveTab('challenge')}>
                       <AlertTriangle size={16} /> Common Challenge
                       <span className="count-chip">
-                        {suggestions.filter(s => s.contentType === SuggestionContentType.CommonChallenge).length + (subject?.commonChallenges?.length || 0)}
+                        {pendingSuggestions.filter(s => s.contentType === SuggestionContentType.CommonChallenge).length + approvedSuggestions.filter(s => s.contentType === SuggestionContentType.CommonChallenge).length + rejectedSuggestions.filter(s => s.contentType === SuggestionContentType.CommonChallenge).length}
                       </span>
-                      {suggestions.filter(s => s.contentType === SuggestionContentType.CommonChallenge).length > 0 && (
+                      {pendingSuggestions.filter(s => s.contentType === SuggestionContentType.CommonChallenge).length > 0 && (
                         <span className="pending-badge" style={{ backgroundColor: '#ef4444', color: 'white', borderRadius: '999px', padding: '2px 6px', fontSize: '0.7rem', marginLeft: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '18px', height: '18px' }} title="Pending Requests">
-                          {suggestions.filter(s => s.contentType === SuggestionContentType.CommonChallenge).length}
+                          {pendingSuggestions.filter(s => s.contentType === SuggestionContentType.CommonChallenge).length}
                         </span>
                       )}
                     </button>
@@ -487,6 +535,129 @@ export default function CourseDetail() {
                                       <Download size={16} />
                                       Download
                                     </button>
+                                    <button
+                                      onClick={() => handleDeleteDocument(doc.documentId)}
+                                      disabled={processingDocId === doc.documentId}
+                                      style={{
+                                        padding: '0.5rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        backgroundColor: '#6b7280',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                      }}
+                                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#4b5563')}
+                                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#6b7280')}
+                                      title="Delete document"
+                                    >
+                                      <X size={16} />
+                                    </button>
+                                  </div>
+                                </div>
+                                <div style={{
+                                  display: 'flex',
+                                  gap: '1rem',
+                                  fontSize: '0.75rem',
+                                  color: 'var(--text-secondary)',
+                                  marginTop: '0.5rem',
+                                  paddingTop: '0.5rem',
+                                  borderTop: '1px solid var(--border-color)'
+                                }}>
+                                  <span>📁 {doc.mimeType}</span>
+                                  <span>📊 {documentService.formatFileSize(doc.fileSize)}</span>
+                                  <span>👤 {doc.uploadedByName || 'Unknown'}</span>
+                                  <span>🕒 {new Date(doc.createdAt).toLocaleDateString()}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Part 3: Rejected Documents */}
+                      <div>
+                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <X size={18} style={{ color: '#ef4444' }} /> Rejected Documents
+                        </h4>
+                        {!rejectedDocuments || rejectedDocuments.length === 0 ? (
+                          <p className="empty-description">No rejected documents.</p>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {rejectedDocuments.map((doc, idx) => (
+                              <div key={idx} style={{
+                                border: '1px solid #fee',
+                                borderRadius: '8px',
+                                padding: '1rem',
+                                backgroundColor: '#fef2f2'
+                              }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
+                                  <div style={{ flex: 1 }}>
+                                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{doc.title}</h4>
+                                    {doc.description && (
+                                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                        {doc.description}
+                                      </p>
+                                    )}
+                                    {doc.rejectionReason && (
+                                      <div style={{ marginTop: '0.5rem', padding: '0.5rem', backgroundColor: '#fee', borderRadius: '4px', fontSize: '0.875rem' }}>
+                                        <strong style={{ color: '#dc2626' }}>Rejection Reason:</strong> {doc.rejectionReason}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <span className="chip" style={{ backgroundColor: '#fecaca', color: '#991b1b' }}>Rejected</span>
+                                    <button
+                                      onClick={() => handleDownload(doc.documentId, doc.title)}
+                                      style={{
+                                        padding: '0.5rem 1rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        backgroundColor: '#3b82f6',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                      }}
+                                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+                                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
+                                      title="Download document"
+                                    >
+                                      <Download size={16} />
+                                      Download
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteDocument(doc.documentId)}
+                                      disabled={processingDocId === doc.documentId}
+                                      style={{
+                                        padding: '0.5rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        backgroundColor: '#6b7280',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                      }}
+                                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#4b5563')}
+                                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#6b7280')}
+                                      title="Delete document"
+                                    >
+                                      <X size={16} />
+                                    </button>
                                   </div>
                                 </div>
                                 <div style={{
@@ -513,131 +684,230 @@ export default function CourseDetail() {
 
                   {(activeTab === 'outcome' || activeTab === 'challenge') && (
                     <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                      {/* Part 1: Faculty Requests */}
-                      <div>
-                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <AlertTriangle size={18} className="text-warning" /> Faculty Requests
-                        </h4>
-                        {suggestionsLoading ? (
-                          <div style={{ textAlign: 'center', padding: '2rem' }}>
-                            <Loader className="animate-spin" size={24} style={{ margin: '0 auto' }} />
-                            <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>Loading suggestions...</p>
-                          </div>
-                        ) : suggestionsError ? (
-                          <p className="empty-description" style={{ color: 'red' }}>{suggestionsError}</p>
-                        ) : suggestions.filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge)).length === 0 ? (
-                          <p className="empty-description">No pending requests.</p>
-                        ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {suggestions
-                              .filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge))
-                              .map(suggestion => (
-                                <div key={suggestion.id} style={{
-                                  border: '1px solid var(--border-color)',
-                                  borderRadius: '8px',
-                                  padding: '1rem',
-                                  backgroundColor: 'var(--bg-secondary)'
-                                }}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
-                                    <div style={{ flex: 1 }}>
-                                      <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{suggestion.content}</p>
-                                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                        Suggested by: <strong>{suggestion.suggestedByUserName || 'Unknown'}</strong>
-                                      </p>
+                      {suggestionsLoading ? (
+                        <div style={{ textAlign: 'center', padding: '2rem' }}>
+                          <Loader className="animate-spin" size={24} style={{ margin: '0 auto' }} />
+                          <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>Loading suggestions...</p>
+                        </div>
+                      ) : suggestionsError ? (
+                        <p className="empty-description" style={{ color: 'red' }}>{suggestionsError}</p>
+                      ) : (
+                        <>
+                          {/* Part 1: Pending Requests */}
+                          <div>
+                            <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <AlertTriangle size={18} className="text-warning" /> Pending Requests
+                            </h4>
+                            {pendingSuggestions.filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge)).length === 0 ? (
+                              <p className="empty-description">No pending requests.</p>
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {pendingSuggestions
+                                  .filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge))
+                                  .map(suggestion => (
+                                    <div key={suggestion.id} style={{
+                                      border: '1px solid var(--border-color)',
+                                      borderRadius: '8px',
+                                      padding: '1rem',
+                                      backgroundColor: 'var(--bg-secondary)'
+                                    }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
+                                        <div style={{ flex: 1 }}>
+                                          <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{suggestion.content}</p>
+                                          <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                            Suggested by: <strong>{suggestion.suggestedByUserName || 'Unknown'}</strong> • {new Date(suggestion.createdAt).toLocaleDateString()}
+                                          </p>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
+                                          <button
+                                            onClick={() => handleApproveSuggestion(suggestion.id)}
+                                            disabled={processingSuggestionId === suggestion.id}
+                                            style={{
+                                              padding: '0.6rem 1.2rem',
+                                              fontSize: '0.875rem',
+                                              fontWeight: 600,
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: '0.5rem',
+                                              backgroundColor: '#10b981',
+                                              color: 'white',
+                                              border: 'none',
+                                              borderRadius: '8px',
+                                              cursor: 'pointer',
+                                              transition: 'all 0.2s ease',
+                                              boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.3)',
+                                            }}
+                                            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#059669')}
+                                            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#10b981')}
+                                            title="Approve suggestion"
+                                          >
+                                            {processingSuggestionId === suggestion.id ? <Loader size={16} className="animate-spin" /> : <Check size={16} />}
+                                            Approve
+                                          </button>
+                                          <button
+                                            onClick={() => handleRejectSuggestion(suggestion.id)}
+                                            disabled={processingSuggestionId === suggestion.id}
+                                            style={{
+                                              padding: '0.6rem 1.2rem',
+                                              fontSize: '0.875rem',
+                                              fontWeight: 600,
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: '0.5rem',
+                                              backgroundColor: '#ef4444',
+                                              color: 'white',
+                                              border: 'none',
+                                              borderRadius: '8px',
+                                              cursor: 'pointer',
+                                              transition: 'all 0.2s ease',
+                                              boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.3)',
+                                            }}
+                                            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
+                                            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#ef4444')}
+                                            title="Reject suggestion"
+                                          >
+                                            <X size={16} />
+                                            Reject
+                                          </button>
+                                        </div>
+                                      </div>
+                                      <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-color)' }}>
+                                        <span className="chip status draft">Pending</span>
+                                      </div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
-                                      <button
-                                        onClick={() => handleApproveSuggestion(suggestion.id)}
-                                        disabled={processingSuggestionId === suggestion.id}
-                                        style={{
-                                          padding: '0.6rem 1.2rem',
-                                          fontSize: '0.875rem',
-                                          fontWeight: 600,
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          gap: '0.5rem',
-                                          backgroundColor: '#10b981',
-                                          color: 'white',
-                                          border: 'none',
-                                          borderRadius: '8px',
-                                          cursor: 'pointer',
-                                          transition: 'all 0.2s ease',
-                                          boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.3)',
-                                        }}
-                                        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#059669')}
-                                        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#10b981')}
-                                        title="Approve suggestion"
-                                      >
-                                        {processingSuggestionId === suggestion.id ? <Loader size={16} className="animate-spin" /> : <Check size={16} />}
-                                        Approve
-                                      </button>
-                                      <button
-                                        onClick={() => handleRejectSuggestion(suggestion.id)}
-                                        disabled={processingSuggestionId === suggestion.id}
-                                        style={{
-                                          padding: '0.6rem 1.2rem',
-                                          fontSize: '0.875rem',
-                                          fontWeight: 600,
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          gap: '0.5rem',
-                                          backgroundColor: '#ef4444',
-                                          color: 'white',
-                                          border: 'none',
-                                          borderRadius: '8px',
-                                          cursor: 'pointer',
-                                          transition: 'all 0.2s ease',
-                                          boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.3)',
-                                        }}
-                                        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
-                                        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#ef4444')}
-                                        title="Reject suggestion"
-                                      >
-                                        <X size={16} />
-                                        Reject
-                                      </button>
-                                    </div>
-                                  </div>
-                                  <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-color)' }}>
-                                    <span className="chip status draft">Pending Approval</span>
-                                  </div>
-                                </div>
-                              ))}
+                                  ))}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
 
-                      {/* Part 2: Current Content */}
-                      <div>
-                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <CheckSquare size={18} className="text-success" />
-                          {activeTab === 'outcome' ? 'Current Learning Outcomes' : 'Current Common Challenges'}
-                        </h4>
-                        {(() => {
-                          const items = activeTab === 'outcome' ? subject.learningOutcomes : subject.commonChallenges;
-                          if (!items || items.length === 0) {
-                            return <p className="empty-description">No {activeTab === 'outcome' ? 'learning outcomes' : 'common challenges'} available.</p>;
-                          }
-                          return (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                              {items.map((item, idx) => (
-                                <div key={idx} style={{
-                                  border: '1px solid var(--border-color)',
-                                  borderRadius: '8px',
-                                  padding: '1rem',
-                                  backgroundColor: 'var(--bg-primary)',
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center'
-                                }}>
-                                  <span style={{ fontWeight: 500 }}>{item}</span>
-                                  <span className="chip status published">Approved</span>
-                                </div>
-                              ))}
-                            </div>
-                          );
-                        })()}
-                      </div>
+                          {/* Part 2: Approved Suggestions */}
+                          <div>
+                            <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <CheckSquare size={18} className="text-success" /> Approved
+                            </h4>
+                            {approvedSuggestions.filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge)).length === 0 ? (
+                              <p className="empty-description">No approved items.</p>
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {approvedSuggestions
+                                  .filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge))
+                                  .map(suggestion => (
+                                    <div key={suggestion.id} style={{
+                                      border: '1px solid var(--border-color)',
+                                      borderRadius: '8px',
+                                      padding: '1rem',
+                                      backgroundColor: 'var(--bg-primary)'
+                                    }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                                        <div style={{ flex: 1 }}>
+                                          <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{suggestion.content}</p>
+                                          <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                            Suggested by: <strong>{suggestion.suggestedByUserName || 'Unknown'}</strong> • {new Date(suggestion.createdAt).toLocaleDateString()}
+                                            {suggestion.reviewedByUserName && suggestion.reviewedAt && (
+                                              <> • Approved by: <strong>{suggestion.reviewedByUserName}</strong> on {new Date(suggestion.reviewedAt).toLocaleDateString()}</>
+                                            )}
+                                          </p>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                          <span className="chip status published">Approved</span>
+                                          <button
+                                            onClick={() => handleDeleteSuggestion(suggestion.id)}
+                                            disabled={processingSuggestionId === suggestion.id}
+                                            style={{
+                                              padding: '0.5rem',
+                                              fontSize: '0.875rem',
+                                              fontWeight: 600,
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: '0.5rem',
+                                              backgroundColor: '#6b7280',
+                                              color: 'white',
+                                              border: 'none',
+                                              borderRadius: '8px',
+                                              cursor: 'pointer',
+                                              transition: 'all 0.2s ease',
+                                            }}
+                                            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#4b5563')}
+                                            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#6b7280')}
+                                            title="Delete suggestion"
+                                          >
+                                            <X size={16} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Part 3: Rejected Suggestions */}
+                          <div>
+                            <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <X size={18} style={{ color: '#ef4444' }} /> Rejected
+                            </h4>
+                            {rejectedSuggestions.filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge)).length === 0 ? (
+                              <p className="empty-description">No rejected items.</p>
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {rejectedSuggestions
+                                  .filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge))
+                                  .map(suggestion => (
+                                    <div key={suggestion.id} style={{
+                                      border: '1px solid #fee',
+                                      borderRadius: '8px',
+                                      padding: '1rem',
+                                      backgroundColor: '#fef2f2'
+                                    }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
+                                        <div style={{ flex: 1 }}>
+                                          <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{suggestion.content}</p>
+                                          <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                            Suggested by: <strong>{suggestion.suggestedByUserName || 'Unknown'}</strong> • {new Date(suggestion.createdAt).toLocaleDateString()}
+                                            {suggestion.reviewedByUserName && suggestion.reviewedAt && (
+                                              <> • Rejected by: <strong>{suggestion.reviewedByUserName}</strong> on {new Date(suggestion.reviewedAt).toLocaleDateString()}</>
+                                            )}
+                                          </p>
+                                          {suggestion.rejectionReason && (
+                                            <div style={{ marginTop: '0.5rem', padding: '0.5rem', backgroundColor: '#fee', borderRadius: '4px', fontSize: '0.875rem' }}>
+                                              <strong style={{ color: '#dc2626' }}>Rejection Reason:</strong> {suggestion.rejectionReason}
+                                            </div>
+                                          )}
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                          <span className="chip" style={{ backgroundColor: '#fecaca', color: '#991b1b' }}>Rejected</span>
+                                          <button
+                                            onClick={() => handleDeleteSuggestion(suggestion.id)}
+                                            disabled={processingSuggestionId === suggestion.id}
+                                            style={{
+                                              padding: '0.5rem',
+                                              fontSize: '0.875rem',
+                                              fontWeight: 600,
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: '0.5rem',
+                                              backgroundColor: '#6b7280',
+                                              color: 'white',
+                                              border: 'none',
+                                              borderRadius: '8px',
+                                              cursor: 'pointer',
+                                              transition: 'all 0.2s ease',
+                                            }}
+                                            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#4b5563')}
+                                            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#6b7280')}
+                                            title="Delete suggestion"
+                                          >
+                                            <X size={16} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>

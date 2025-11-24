@@ -117,6 +117,7 @@ export const API_ENDPOINTS = {
     GET_ALL: '/api/Suggestions',
     APPROVE: (id: string) => `/api/Suggestions/${id}/approve`,
     REJECT: (id: string) => `/api/Suggestions/${id}/reject`,
+    DELETE: (id: string) => `/api/Suggestions/${id}`,
   },
 };
 
