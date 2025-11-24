@@ -5,7 +5,7 @@ const ThemedPage: React.FC<React.PropsWithChildren> = ({ children }) => {
   const { theme } = useTheme();
   const cls = theme === 'dark' ? 'dark dark-theme' : 'theme-light';
   return (
-    <div className={cls}>
+    <div className={cls} data-theme={theme}>
       {children}
     </div>
   );

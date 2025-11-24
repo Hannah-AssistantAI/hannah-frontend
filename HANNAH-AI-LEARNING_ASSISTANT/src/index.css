@@ -121,6 +121,21 @@ body {
   filter: none;
 }
 
+/* Fix Interactive List container and cards in light mode */
+.theme-light .interactive-list-container {
+  /* cancel parent inversion so the list stays light */
+  filter: invert(1) hue-rotate(180deg);
+}
+
+.theme-light .interactive-list-container svg,
+.theme-light .interactive-list-container img,
+.theme-light .interactive-list-container video,
+.theme-light .interactive-list-container canvas,
+.theme-light .interactive-list-container iframe {
+  /* prevent triple inversion for media inside reverted container */
+  filter: none;
+}
+
 /* Related-content readability tweaks (light mode only) */
 .theme-light .related-content-title,
 .theme-light .related-content-card .related-card-title,

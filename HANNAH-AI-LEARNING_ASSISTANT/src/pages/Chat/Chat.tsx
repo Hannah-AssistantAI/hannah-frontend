@@ -818,13 +818,13 @@ export default function Chat() {
                             <p className="welcome-banner-description">
                                 Nắm bắt các chủ đề mới và hiểu sâu hơn với công cụ học tập đàm thoại
                             </p>
-                            <button className="topic-badge">OOP</button>
+                            {/* <button className="topic-badge">OOP</button> */}
                         </div>
                         <button className="close-banner-btn" aria-label="Đóng">×</button>
                     </div>
 
                     {/* Messages */}
-                    <div className="messages-container">
+                    <div className="messages-container" >
                         {messages.map((message, index) => (
                             <div key={index} className={`message ${message.type}-message`}>
                                 {message.type === 'assistant' && (
