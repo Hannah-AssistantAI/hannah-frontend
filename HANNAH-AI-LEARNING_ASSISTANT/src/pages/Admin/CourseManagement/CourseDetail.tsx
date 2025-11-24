@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X } from 'lucide-react';
+import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X, Download } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
 import documentService, { type Document } from '../../../service/documentService';
@@ -108,6 +108,31 @@ export default function CourseDetail() {
       setProcessingDocId(null);
     }
   };
+
+  const handleDownload = async (documentId: number, title: string) => {
+    try {
+      toast.loading('Downloading document...', { id: 'download' });
+      const blob = await documentService.downloadDocument(documentId.toString());
+
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = title; // Use the document title as filename
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success('Document downloaded successfully!', { id: 'download' });
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      toast.error('Failed to download document', { id: 'download' });
+    }
+  };
+
 
   const fetchSuggestions = async () => {
     try {
@@ -313,6 +338,29 @@ export default function CourseDetail() {
                                   </div>
                                   <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
                                     <button
+                                      onClick={() => handleDownload(doc.documentId, doc.title)}
+                                      style={{
+                                        padding: '0.5rem 1rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        backgroundColor: '#3b82f6',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                      }}
+                                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+                                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
+                                      title="Download document"
+                                    >
+                                      <Download size={16} />
+                                      Download
+                                    </button>
+                                    <button
                                       onClick={() => handleApprove(doc.documentId)}
                                       disabled={processingDocId === doc.documentId}
                                       style={{
@@ -414,7 +462,32 @@ export default function CourseDetail() {
                                       </p>
                                     )}
                                   </div>
-                                  <span className="chip status published">Approved</span>
+                                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <span className="chip status published">Approved</span>
+                                    <button
+                                      onClick={() => handleDownload(doc.documentId, doc.title)}
+                                      style={{
+                                        padding: '0.5rem 1rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        backgroundColor: '#3b82f6',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                      }}
+                                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+                                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
+                                      title="Download document"
+                                    >
+                                      <Download size={16} />
+                                      Download
+                                    </button>
+                                  </div>
                                 </div>
                                 <div style={{
                                   display: 'flex',

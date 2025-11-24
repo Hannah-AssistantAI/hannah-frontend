@@ -220,10 +220,11 @@ class DocumentService {
    */
   async getDocumentsBySubject(subjectId: string): Promise<Document[]> {
     try {
-      const response = await apiClient.get<Document[]>(
+      const response = await apiClient.get<PaginatedDocumentsResponse>(
         API_ENDPOINTS.DOCUMENT.GET_BY_SUBJECT(subjectId)
       );
-      return response.data;
+      // The API returns a paginated response, so we need to extract the items array
+      return response.data.items || [];
     } catch (error) {
       console.error('Get documents by subject error:', error);
       throw error;
@@ -235,10 +236,11 @@ class DocumentService {
    */
   async getDocumentsByUser(userId: string): Promise<Document[]> {
     try {
-      const response = await apiClient.get<Document[]>(
+      const response = await apiClient.get<PaginatedDocumentsResponse>(
         API_ENDPOINTS.DOCUMENT.GET_BY_USER(userId)
       );
-      return response.data;
+      // The API returns a paginated response, so we need to extract the items array
+      return response.data.items || [];
     } catch (error) {
       console.error('Get documents by user error:', error);
       throw error;
