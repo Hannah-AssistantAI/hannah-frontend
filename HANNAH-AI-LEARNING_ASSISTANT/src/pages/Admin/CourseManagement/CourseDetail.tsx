@@ -14,6 +14,7 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'document' | 'outcome' | 'challenge'>('document');
   const [pendingDocuments, setPendingDocuments] = useState<Document[]>([]);
+  const [approvedDocuments, setApprovedDocuments] = useState<Document[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [processingDocId, setProcessingDocId] = useState<number | null>(null);
 
@@ -37,6 +38,18 @@ export default function CourseDetail() {
     }
   };
 
+  const fetchApprovedDocuments = async () => {
+    if (!id) return;
+    try {
+      const docs = await documentService.getDocumentsBySubject(id);
+      // Filter for approved documents if the API returns all statuses.
+      // Assuming we want to show documents that are completed or approved.
+      setApprovedDocuments(docs.filter(d => d.processingStatus === 'completed' || d.approvalStatus === 'approved'));
+    } catch (error) {
+      console.error('Error fetching approved documents:', error);
+    }
+  };
+
   useEffect(() => {
     fetchSubjectDetail();
   }, [id]);
@@ -44,6 +57,7 @@ export default function CourseDetail() {
   useEffect(() => {
     if (id) {
       fetchPendingDocuments();
+      fetchApprovedDocuments();
       fetchSuggestions();
     }
   }, [id]);
@@ -69,6 +83,7 @@ export default function CourseDetail() {
       toast.success('Document approved successfully!');
       // Refresh the list
       await fetchPendingDocuments();
+      await fetchApprovedDocuments();
     } catch (error) {
       console.error('Error approving document:', error);
       toast.error('Failed to approve document');
@@ -226,175 +241,62 @@ export default function CourseDetail() {
               </div>
 
               <div className="form-section">
-                <h3 className="form-section-title">Documents</h3>
-                <div className="form-content">
-                  <div className="tags-wrapper">
-                    {subject.documents && subject.documents.length > 0
-                      ? subject.documents.map((d, i) => <span key={i} className="tag tag-document">{d.title}</span>)
-                      : <p className="empty-description" style={{ margin: 0 }}>None available.</p>}
-                  </div>
-                </div>
-              </div>
-
-              <div className="form-section">
-                <h3 className="form-section-title">Learning Outcomes</h3>
-                <div className="form-content">
-                  <div className="tags-wrapper">
-                    {subject.learningOutcomes && subject.learningOutcomes.length > 0
-                      ? subject.learningOutcomes.map((o, i) => <span key={i} className="tag tag-outcome">{o}</span>)
-                      : <p className="empty-description" style={{ margin: 0 }}>None available.</p>}
-                  </div>
-                </div>
-              </div>
-
-              <div className="form-section">
-                <h3 className="form-section-title">Common Challenges</h3>
-                <div className="form-content">
-                  <div className="tags-wrapper">
-                    {subject.commonChallenges && subject.commonChallenges.length > 0
-                      ? subject.commonChallenges.map((c, i) => <span key={i} className="tag tag-challenge">{c}</span>)
-                      : <p className="empty-description" style={{ margin: 0 }}>None available.</p>}
-                  </div>
-                </div>
-              </div>
-
-              <div className="form-section">
-                <h3 className="form-section-title">Teacher Upload Requests</h3>
+                <h3 className="form-section-title">Material</h3>
                 <div className="form-content">
                   <div className="tabs">
                     <button className={`tab ${activeTab === 'document' ? 'active' : ''}`} onClick={() => setActiveTab('document')}>
-                      <FileText size={16} /> Documents <span className="count-chip">{pendingDocuments.length}</span>
+                      <FileText size={16} /> Documents
+                      <span className="count-chip">
+                        {pendingDocuments.length + approvedDocuments.length}
+                      </span>
+                      {pendingDocuments.length > 0 && (
+                        <span className="pending-badge" style={{ backgroundColor: '#ef4444', color: 'white', borderRadius: '999px', padding: '2px 6px', fontSize: '0.7rem', marginLeft: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '18px', height: '18px' }} title="Pending Requests">
+                          {pendingDocuments.length}
+                        </span>
+                      )}
                     </button>
                     <button className={`tab ${activeTab === 'outcome' ? 'active' : ''}`} onClick={() => setActiveTab('outcome')}>
-                      <CheckSquare size={16} /> Learning Outcome <span className="count-chip">{suggestions.filter(s => s.contentType === SuggestionContentType.LearningOutcome).length}</span>
+                      <CheckSquare size={16} /> Learning Outcome
+                      <span className="count-chip">
+                        {suggestions.filter(s => s.contentType === SuggestionContentType.LearningOutcome).length + (subject?.learningOutcomes?.length || 0)}
+                      </span>
+                      {suggestions.filter(s => s.contentType === SuggestionContentType.LearningOutcome).length > 0 && (
+                        <span className="pending-badge" style={{ backgroundColor: '#ef4444', color: 'white', borderRadius: '999px', padding: '2px 6px', fontSize: '0.7rem', marginLeft: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '18px', height: '18px' }} title="Pending Requests">
+                          {suggestions.filter(s => s.contentType === SuggestionContentType.LearningOutcome).length}
+                        </span>
+                      )}
                     </button>
                     <button className={`tab ${activeTab === 'challenge' ? 'active' : ''}`} onClick={() => setActiveTab('challenge')}>
-                      <AlertTriangle size={16} /> Common Challenge <span className="count-chip">{suggestions.filter(s => s.contentType === SuggestionContentType.CommonChallenge).length}</span>
+                      <AlertTriangle size={16} /> Common Challenge
+                      <span className="count-chip">
+                        {suggestions.filter(s => s.contentType === SuggestionContentType.CommonChallenge).length + (subject?.commonChallenges?.length || 0)}
+                      </span>
+                      {suggestions.filter(s => s.contentType === SuggestionContentType.CommonChallenge).length > 0 && (
+                        <span className="pending-badge" style={{ backgroundColor: '#ef4444', color: 'white', borderRadius: '999px', padding: '2px 6px', fontSize: '0.7rem', marginLeft: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '18px', height: '18px' }} title="Pending Requests">
+                          {suggestions.filter(s => s.contentType === SuggestionContentType.CommonChallenge).length}
+                        </span>
+                      )}
                     </button>
                   </div>
 
                   {activeTab === 'document' && (
-                    <div style={{ marginTop: '1rem' }}>
-                      {loadingDocuments ? (
-                        <div style={{ textAlign: 'center', padding: '2rem' }}>
-                          <Loader className="animate-spin" size={24} style={{ margin: '0 auto' }} />
-                          <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>Loading documents...</p>
-                        </div>
-                      ) : pendingDocuments.length === 0 ? (
-                        <p className="empty-description">No pending documents.</p>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                          {pendingDocuments.map((doc) => (
-                            <div key={doc.documentId} style={{
-                              border: '1px solid var(--border-color)',
-                              borderRadius: '8px',
-                              padding: '1rem',
-                              backgroundColor: 'var(--bg-secondary)'
-                            }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
-                                <div style={{ flex: 1 }}>
-                                  <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{doc.title}</h4>
-                                  {doc.description && (
-                                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                      {doc.description}
-                                    </p>
-                                  )}
-                                </div>
-                                <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
-                                  <button
-                                    onClick={() => handleApprove(doc.documentId)}
-                                    disabled={processingDocId === doc.documentId}
-                                    style={{
-                                      padding: '0.6rem 1.2rem',
-                                      fontSize: '0.875rem',
-                                      fontWeight: 600,
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '0.5rem',
-                                      backgroundColor: '#10b981',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: '8px',
-                                      cursor: 'pointer',
-                                      transition: 'all 0.2s ease',
-                                      boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.3)',
-                                    }}
-                                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#059669')}
-                                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#10b981')}
-                                    title="Approve document"
-                                  >
-                                    {processingDocId === doc.documentId ? (
-                                      <Loader size={16} className="animate-spin" />
-                                    ) : (
-                                      <Check size={16} />
-                                    )}
-                                    Approve
-                                  </button>
-                                  <button
-                                    onClick={() => handleReject(doc.documentId)}
-                                    disabled={processingDocId === doc.documentId}
-                                    style={{
-                                      padding: '0.6rem 1.2rem',
-                                      fontSize: '0.875rem',
-                                      fontWeight: 600,
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '0.5rem',
-                                      backgroundColor: '#ef4444',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: '8px',
-                                      cursor: 'pointer',
-                                      transition: 'all 0.2s ease',
-                                      boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.3)',
-                                    }}
-                                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
-                                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#ef4444')}
-                                    title="Reject document"
-                                  >
-                                    <X size={16} />
-                                    Reject
-                                  </button>
-                                </div>
-                              </div>
-                              <div style={{
-                                display: 'flex',
-                                gap: '1rem',
-                                fontSize: '0.75rem',
-                                color: 'var(--text-secondary)',
-                                marginTop: '0.5rem',
-                                paddingTop: '0.5rem',
-                                borderTop: '1px solid var(--border-color)'
-                              }}>
-                                <span>📁 {doc.mimeType}</span>
-                                <span>📊 {documentService.formatFileSize(doc.fileSize)}</span>
-                                <span>👤 {doc.uploadedByName || 'Unknown'}</span>
-                                <span>🕒 {new Date(doc.createdAt).toLocaleDateString()}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {(activeTab === 'outcome' || activeTab === 'challenge') && (
-                    <div style={{ marginTop: '1rem' }}>
-                      {suggestionsLoading ? (
-                        <div style={{ textAlign: 'center', padding: '2rem' }}>
-                          <Loader className="animate-spin" size={24} style={{ margin: '0 auto' }} />
-                          <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>Loading suggestions...</p>
-                        </div>
-                      ) : suggestionsError ? (
-                        <p className="empty-description" style={{ color: 'red' }}>{suggestionsError}</p>
-                      ) : suggestions.filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge)).length === 0 ? (
-                        <p className="empty-description">No pending suggestions of this type.</p>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                          {suggestions
-                            .filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge))
-                            .map(suggestion => (
-                              <div key={suggestion.id} style={{
+                    <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                      {/* Part 1: Faculty Requests */}
+                      <div>
+                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <AlertTriangle size={18} className="text-warning" /> Faculty Requests
+                        </h4>
+                        {loadingDocuments ? (
+                          <div style={{ textAlign: 'center', padding: '2rem' }}>
+                            <Loader className="animate-spin" size={24} style={{ margin: '0 auto' }} />
+                            <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>Loading documents...</p>
+                          </div>
+                        ) : pendingDocuments.length === 0 ? (
+                          <p className="empty-description">No pending document requests.</p>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {pendingDocuments.map((doc) => (
+                              <div key={doc.documentId} style={{
                                 border: '1px solid var(--border-color)',
                                 borderRadius: '8px',
                                 padding: '1rem',
@@ -402,15 +304,17 @@ export default function CourseDetail() {
                               }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
                                   <div style={{ flex: 1 }}>
-                                    <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{suggestion.content}</p>
-                                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                      Suggested by: <strong>{suggestion.suggestedByUserName || 'Unknown'}</strong>
-                                    </p>
+                                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{doc.title}</h4>
+                                    {doc.description && (
+                                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                        {doc.description}
+                                      </p>
+                                    )}
                                   </div>
                                   <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
                                     <button
-                                      onClick={() => handleApproveSuggestion(suggestion.id)}
-                                      disabled={processingSuggestionId === suggestion.id}
+                                      onClick={() => handleApprove(doc.documentId)}
+                                      disabled={processingDocId === doc.documentId}
                                       style={{
                                         padding: '0.6rem 1.2rem',
                                         fontSize: '0.875rem',
@@ -428,14 +332,18 @@ export default function CourseDetail() {
                                       }}
                                       onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#059669')}
                                       onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#10b981')}
-                                      title="Approve suggestion"
+                                      title="Approve document"
                                     >
-                                      {processingSuggestionId === suggestion.id ? <Loader size={16} className="animate-spin" /> : <Check size={16} />}
+                                      {processingDocId === doc.documentId ? (
+                                        <Loader size={16} className="animate-spin" />
+                                      ) : (
+                                        <Check size={16} />
+                                      )}
                                       Approve
                                     </button>
                                     <button
-                                      onClick={() => handleRejectSuggestion(suggestion.id)}
-                                      disabled={processingSuggestionId === suggestion.id}
+                                      onClick={() => handleReject(doc.documentId)}
+                                      disabled={processingDocId === doc.documentId}
                                       style={{
                                         padding: '0.6rem 1.2rem',
                                         fontSize: '0.875rem',
@@ -453,17 +361,210 @@ export default function CourseDetail() {
                                       }}
                                       onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
                                       onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#ef4444')}
-                                      title="Reject suggestion"
+                                      title="Reject document"
                                     >
                                       <X size={16} />
                                       Reject
                                     </button>
                                   </div>
                                 </div>
+                                <div style={{
+                                  display: 'flex',
+                                  gap: '1rem',
+                                  fontSize: '0.75rem',
+                                  color: 'var(--text-secondary)',
+                                  marginTop: '0.5rem',
+                                  paddingTop: '0.5rem',
+                                  borderTop: '1px solid var(--border-color)'
+                                }}>
+                                  <span>📁 {doc.mimeType}</span>
+                                  <span>📊 {documentService.formatFileSize(doc.fileSize)}</span>
+                                  <span>👤 {doc.uploadedByName || 'Unknown'}</span>
+                                  <span>🕒 {new Date(doc.createdAt).toLocaleDateString()}</span>
+                                  <span className="chip status draft">Pending Approval</span>
+                                </div>
                               </div>
                             ))}
-                        </div>
-                      )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Part 2: Current Documents */}
+                      <div>
+                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <CheckSquare size={18} className="text-success" /> Current Documents
+                        </h4>
+                        {!approvedDocuments || approvedDocuments.length === 0 ? (
+                          <p className="empty-description">No approved documents available.</p>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {approvedDocuments.map((doc, idx) => (
+                              <div key={idx} style={{
+                                border: '1px solid var(--border-color)',
+                                borderRadius: '8px',
+                                padding: '1rem',
+                                backgroundColor: 'var(--bg-primary)'
+                              }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                                  <div style={{ flex: 1 }}>
+                                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{doc.title}</h4>
+                                    {doc.description && (
+                                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                        {doc.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <span className="chip status published">Approved</span>
+                                </div>
+                                <div style={{
+                                  display: 'flex',
+                                  gap: '1rem',
+                                  fontSize: '0.75rem',
+                                  color: 'var(--text-secondary)',
+                                  marginTop: '0.5rem',
+                                  paddingTop: '0.5rem',
+                                  borderTop: '1px solid var(--border-color)'
+                                }}>
+                                  <span>📁 {doc.mimeType}</span>
+                                  <span>📊 {documentService.formatFileSize(doc.fileSize)}</span>
+                                  <span>👤 {doc.uploadedByName || 'Unknown'}</span>
+                                  <span>🕒 {new Date(doc.createdAt).toLocaleDateString()}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {(activeTab === 'outcome' || activeTab === 'challenge') && (
+                    <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                      {/* Part 1: Faculty Requests */}
+                      <div>
+                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <AlertTriangle size={18} className="text-warning" /> Faculty Requests
+                        </h4>
+                        {suggestionsLoading ? (
+                          <div style={{ textAlign: 'center', padding: '2rem' }}>
+                            <Loader className="animate-spin" size={24} style={{ margin: '0 auto' }} />
+                            <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>Loading suggestions...</p>
+                          </div>
+                        ) : suggestionsError ? (
+                          <p className="empty-description" style={{ color: 'red' }}>{suggestionsError}</p>
+                        ) : suggestions.filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge)).length === 0 ? (
+                          <p className="empty-description">No pending requests.</p>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {suggestions
+                              .filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge))
+                              .map(suggestion => (
+                                <div key={suggestion.id} style={{
+                                  border: '1px solid var(--border-color)',
+                                  borderRadius: '8px',
+                                  padding: '1rem',
+                                  backgroundColor: 'var(--bg-secondary)'
+                                }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
+                                    <div style={{ flex: 1 }}>
+                                      <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{suggestion.content}</p>
+                                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                        Suggested by: <strong>{suggestion.suggestedByUserName || 'Unknown'}</strong>
+                                      </p>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
+                                      <button
+                                        onClick={() => handleApproveSuggestion(suggestion.id)}
+                                        disabled={processingSuggestionId === suggestion.id}
+                                        style={{
+                                          padding: '0.6rem 1.2rem',
+                                          fontSize: '0.875rem',
+                                          fontWeight: 600,
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '0.5rem',
+                                          backgroundColor: '#10b981',
+                                          color: 'white',
+                                          border: 'none',
+                                          borderRadius: '8px',
+                                          cursor: 'pointer',
+                                          transition: 'all 0.2s ease',
+                                          boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.3)',
+                                        }}
+                                        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#059669')}
+                                        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#10b981')}
+                                        title="Approve suggestion"
+                                      >
+                                        {processingSuggestionId === suggestion.id ? <Loader size={16} className="animate-spin" /> : <Check size={16} />}
+                                        Approve
+                                      </button>
+                                      <button
+                                        onClick={() => handleRejectSuggestion(suggestion.id)}
+                                        disabled={processingSuggestionId === suggestion.id}
+                                        style={{
+                                          padding: '0.6rem 1.2rem',
+                                          fontSize: '0.875rem',
+                                          fontWeight: 600,
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '0.5rem',
+                                          backgroundColor: '#ef4444',
+                                          color: 'white',
+                                          border: 'none',
+                                          borderRadius: '8px',
+                                          cursor: 'pointer',
+                                          transition: 'all 0.2s ease',
+                                          boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.3)',
+                                        }}
+                                        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
+                                        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#ef4444')}
+                                        title="Reject suggestion"
+                                      >
+                                        <X size={16} />
+                                        Reject
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-color)' }}>
+                                    <span className="chip status draft">Pending Approval</span>
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Part 2: Current Content */}
+                      <div>
+                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <CheckSquare size={18} className="text-success" />
+                          {activeTab === 'outcome' ? 'Current Learning Outcomes' : 'Current Common Challenges'}
+                        </h4>
+                        {(() => {
+                          const items = activeTab === 'outcome' ? subject.learningOutcomes : subject.commonChallenges;
+                          if (!items || items.length === 0) {
+                            return <p className="empty-description">No {activeTab === 'outcome' ? 'learning outcomes' : 'common challenges'} available.</p>;
+                          }
+                          return (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                              {items.map((item, idx) => (
+                                <div key={idx} style={{
+                                  border: '1px solid var(--border-color)',
+                                  borderRadius: '8px',
+                                  padding: '1rem',
+                                  backgroundColor: 'var(--bg-primary)',
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center'
+                                }}>
+                                  <span style={{ fontWeight: 500 }}>{item}</span>
+                                  <span className="chip status published">Approved</span>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -485,7 +586,7 @@ export default function CourseDetail() {
                   <div className="preview-item"><label className="preview-label">Decision No.</label><p className="preview-value">{subject.decisionNo || '-'}</p></div>
                   <div className="preview-item"><label className="preview-label">Approved Date</label><p className="preview-value">{subject.approvedDate ? new Date(subject.approvedDate).toLocaleDateString() : '-'}</p></div>
                   <div className="meta-grid">
-                    <div className="meta-item"><span className="meta-label">Documents</span><span className="meta-value">{subject.documents?.length || 0}</span></div>
+                    <div className="meta-item"><span className="meta-label">Documents</span><span className="meta-value">{approvedDocuments.length}</span></div>
                     <div className="meta-item"><span className="meta-label">Outcome</span><span className="meta-value">{subject.learningOutcomes?.length || 0}</span></div>
                     <div className="meta-item"><span className="meta-label">Challenge</span><span className="meta-value">{subject.commonChallenges?.length || 0}</span></div>
                   </div>
