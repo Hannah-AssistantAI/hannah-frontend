@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Sparkles, Send, ThumbsUp, ThumbsDown, Share2, Upload, Book, GitBranch, FileText, ClipboardCheck, StickyNote, ChevronDown, ChevronUp, Link as LinkIcon, List } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { Sparkles, Send, ThumbsUp, ThumbsDown, Share2, Upload, Book, GitBranch, FileText, ClipboardCheck, StickyNote, ChevronDown, ChevronUp, Link as LinkIcon, List, Flag } from 'lucide-react'
 import subjectService, { type Subject } from '../../service/subjectService'
 import chatService from '../../service/chatService'
 import { useStudio } from './hooks/useStudio'
@@ -13,11 +14,13 @@ import { QuizDisplayModal } from './components/modals/QuizDisplayModal'
 import { QuizSideModal } from './components/modals/QuizSideModal'
 import { CustomizeFeatureModal } from './components/modals/CustomizeFeatureModal'
 import { ShareModal } from './components/modals/ShareModal'
+import { FlagMessageModal } from './components/modals/FlagMessageModal'
 import { BigPictureSidebar } from './components/BigPictureSidebar'
 import { StudioSidebar } from './components/StudioSidebar'
 import { HistorySidebar } from '../../components/HistorySidebar'
 import { Header } from '../../components/Header'
 import conversationService from '../../service/conversationService'
+import messageService from '../../service/messageService'
 import { useAuth } from '../../contexts/AuthContext'
 import type { Message, RelatedContent, Source, BigPictureTopic } from './types'
 import './Chat.css'
@@ -40,6 +43,9 @@ export default function Chat() {
     const [showHistorySidebar, setShowHistorySidebar] = useState(false)
     const [conversationId, setConversationId] = useState<number | null>(initialConversationId)
     const [isSendingMessage, setIsSendingMessage] = useState(false)
+    const [showFlagModal, setShowFlagModal] = useState(false)
+    const [flaggingMessageId, setFlaggingMessageId] = useState<number | null>(null)
+    const [isFlaggingMessage, setIsFlaggingMessage] = useState(false)
     const hasAutoSentRef = useRef(false) // Track if we already auto-sent initial query
     const [messages, setMessages] = useState<Message[]>(initialQuery ? [
         {
@@ -137,9 +143,11 @@ export default function Chat() {
                 setMessages(prev => {
                     const newMessages = [...prev];
                     newMessages[1] = {
+                        messageId: response.assistantMessage.messageId,
                         type: 'assistant',
                         content: parsedResponse.content,
                         isStreaming: false,
+                        isFlagged: false,
                         suggestedQuestions: parsedResponse.suggestedQuestions || response.assistantMessage.interactiveElements?.suggestedQuestions || [],
                         interactiveList: parsedResponse.interactiveList,
                         outline: parsedResponse.outline
@@ -251,6 +259,44 @@ export default function Chat() {
         }
     }, [studio.showNotecardModal])
 
+    const handleFlagMessage = async (reason: string) => {
+        if (!flaggingMessageId || !conversationId || !user?.userId) {
+            toast.error('Thiếu thông tin cần thiết');
+            return;
+        }
+
+        setIsFlaggingMessage(true);
+
+        const requestData = {
+            conversationId: conversationId,
+            userId: user.userId,
+            reason: reason.trim()
+        };
+
+        console.log('📤 Flag Request:', requestData);
+
+        try {
+            const response = await messageService.flagMessage(flaggingMessageId, requestData);
+            console.log('✅ Success:', response);
+
+            setMessages(prev => prev.map(msg =>
+                msg.messageId === flaggingMessageId
+                    ? { ...msg, isFlagged: true }
+                    : msg
+            ));
+
+            toast.success('Đã báo cáo tin nhắn thành công!');
+            setShowFlagModal(false);
+            setFlaggingMessageId(null);
+        } catch (error: any) {
+            console.error('❌ Error:', error);
+            const errorMessage = error?.message || 'Không thể báo cáo tin nhắn';
+            toast.error(errorMessage);
+        } finally {
+            setIsFlaggingMessage(false);
+        }
+    }
+
     const handleSend = async () => {
         if (!inputValue.trim()) return
         if (isSendingMessage) return
@@ -318,9 +364,11 @@ export default function Chat() {
             setMessages(prev => {
                 const newMessages = [...prev];
                 newMessages[loadingMessageIndex] = {
+                    messageId: response.assistantMessage.messageId,
                     type: 'assistant',
                     content: parsedResponse.content,
                     isStreaming: false,
+                    isFlagged: false,
                     suggestedQuestions: parsedResponse.suggestedQuestions || response.assistantMessage.interactiveElements?.suggestedQuestions || [],
                     interactiveList: parsedResponse.interactiveList,
                     outline: parsedResponse.outline
@@ -702,9 +750,11 @@ export default function Chat() {
                         const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content) : {};
 
                         return {
+                            messageId: msg.messageId,
                             type: msg.role === 'user' || msg.role === 'student' ? 'user' : 'assistant',
                             content: msg.content,
                             isStreaming: false,
+                            isFlagged: false,
                             suggestedQuestions: [],
                             ...parsed
                         };
@@ -818,6 +868,19 @@ export default function Chat() {
                                                     </button>
                                                     <button className="action-btn" aria-label="Chia sẻ">
                                                         <Share2 size={16} />
+                                                    </button>
+                                                    <button
+                                                        className={`action-btn ${message.isFlagged ? 'flagged' : ''}`}
+                                                        aria-label="Báo cáo"
+                                                        onClick={() => {
+                                                            if (!message.isFlagged && message.messageId) {
+                                                                setFlaggingMessageId(message.messageId);
+                                                                setShowFlagModal(true);
+                                                            }
+                                                        }}
+                                                        disabled={message.isFlagged || !message.messageId}
+                                                    >
+                                                        <Flag size={16} />
                                                     </button>
                                                 </div>
                                             </div>
@@ -993,6 +1056,17 @@ export default function Chat() {
             <ShareModal
                 isOpen={showShareModal}
                 onClose={() => setShowShareModal(false)}
+            />
+
+            {/* Flag Message Modal */}
+            <FlagMessageModal
+                isOpen={showFlagModal}
+                onClose={() => {
+                    setShowFlagModal(false);
+                    setFlaggingMessageId(null);
+                }}
+                onSubmit={handleFlagMessage}
+                isSubmitting={isFlaggingMessage}
             />
         </div>
     )

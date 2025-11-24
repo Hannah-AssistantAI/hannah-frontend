@@ -16,6 +16,19 @@ export interface CreateMessageResponse {
     createdAt: string;
 }
 
+export interface FlagMessageRequest {
+    conversationId: number;
+    userId: number;
+    reason: string;
+}
+
+export interface FlagMessageResponse {
+    messageId: number;
+    isFlagged: boolean;
+    flaggedBy: number;
+    flaggedAt: string;
+}
+
 export interface BaseResponse<T> {
     success: boolean;
     data: T;
@@ -28,6 +41,17 @@ class MessageService {
      */
     async createMessage(data: CreateMessageRequest) {
         return pythonApiClient.post<BaseResponse<CreateMessageResponse>>('/api/v1/messages', data);
+    }
+
+    /**
+     * Flag a message for review
+     */
+    async flagMessage(messageId: number, data: FlagMessageRequest): Promise<FlagMessageResponse> {
+        const response = await pythonApiClient.post<BaseResponse<FlagMessageResponse>>(
+            `/api/v1/messages/${messageId}/flag`,
+            data
+        );
+        return response.data.data;
     }
 }
 

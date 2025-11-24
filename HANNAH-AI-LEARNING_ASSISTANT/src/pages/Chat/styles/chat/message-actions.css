@@ -39,6 +39,34 @@
     background-color: #333333;
 }
 
+/* Flag button specific styles */
+.action-btn .lucide-flag {
+    color: #bdc1c6;
+    transition: color 0.2s;
+}
+
+.action-btn:hover .lucide-flag {
+    color: #dc2626;
+}
+
+.action-btn.flagged {
+    background: rgba(220, 38, 38, 0.1);
+    cursor: not-allowed;
+}
+
+.action-btn.flagged .lucide-flag {
+    color: #dc2626;
+}
+
+.action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.action-btn:disabled:hover {
+    background: transparent;
+}
+
 .suggestion-btn {
     display: flex;
     align-items: center;

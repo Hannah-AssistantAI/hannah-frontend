@@ -39,9 +39,12 @@ export interface OutlineItem {
 }
 
 export interface Message {
+    messageId?: number          // Backend message ID
     type: string
     content: string
     isStreaming?: boolean
+    isFlagged?: boolean         // Flag status
+    flaggedAt?: string          // Timestamp when flagged
     relatedContent?: RelatedContent[]
     suggestedQuestions?: string[]
     interactiveList?: InteractiveListItem[]
