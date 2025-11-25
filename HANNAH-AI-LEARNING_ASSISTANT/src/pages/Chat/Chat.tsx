@@ -979,14 +979,20 @@ export default function Chat() {
                                                 <div className="message-suggestions">
                                                     <button
                                                         className="suggestion-btn"
-                                                        onClick={() => handleInteractiveItemClick('Đơn giản hóa')}
+                                                        onClick={() => {
+                                                            const previousUserMessage = messages[index - 1]?.content || '';
+                                                            handleInteractiveItemClick(`Đơn giản hóa: ${previousUserMessage}`);
+                                                        }}
                                                     >
                                                         <span className="suggestion-icon">≡</span>
                                                         <span>Đơn giản hóa</span>
                                                     </button>
                                                     <button
                                                         className="suggestion-btn"
-                                                        onClick={() => handleInteractiveItemClick('Tìm hiểu sâu hơn')}
+                                                        onClick={() => {
+                                                            const previousUserMessage = messages[index - 1]?.content || '';
+                                                            handleInteractiveItemClick(`Tìm hiểu sâu hơn: ${previousUserMessage}`);
+                                                        }}
                                                     >
                                                         <span className="suggestion-icon">≡</span>
                                                         <span>Tìm hiểu sâu hơn</span>
