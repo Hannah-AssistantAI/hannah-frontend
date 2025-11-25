@@ -85,7 +85,27 @@ export default function Chat() {
     }, []);
 
     // Helper to parse assistant response which might be a JSON string
-    const parseAssistantResponse = (responseContent: string) => {
+    const parseAssistantResponse = (responseContent: string, interactiveElements?: any) => {
+        console.log('🔧 parseAssistantResponse START');
+        console.log('  📄 responseContent:', responseContent);
+        console.log('  📦 interactiveElements:', interactiveElements);
+
+        // PRIORITY 1: Use interactiveElements from API response (new backend structure)
+        if (interactiveElements) {
+            console.log('  ✅ Using interactiveElements (new structure)');
+            const result = {
+                content: responseContent, // Plain text content
+                interactiveList: interactiveElements.interactive_list || interactiveElements.interactiveList,
+                suggestedQuestions: interactiveElements.suggested_questions || interactiveElements.suggestedQuestions,
+                outline: interactiveElements.outline
+            };
+            console.log('  📋 Result:', result);
+            console.log('  📚 Outline extracted:', result.outline);
+            return result;
+        }
+
+        console.log('  ℹ️ No interactiveElements, trying JSON parse...');
+        // PRIORITY 2: Try to parse from JSON string (old FAQ hybrid structure - fallback)
         try {
             // Try to parse the content as JSON
             const parsed = JSON.parse(responseContent);
@@ -168,7 +188,11 @@ export default function Chat() {
                     initialQuery
                 );
 
-                const parsedResponse = parseAssistantResponse(response.assistantMessage.content.data);
+
+                const parsedResponse = parseAssistantResponse(
+                    response.assistantMessage.content.data,
+                    response.assistantMessage.interactiveElements  // ← Pass interactiveElements
+                );
 
                 // Update Big Picture if outline exists
                 if (parsedResponse.outline && parsedResponse.outline.length > 0) {
@@ -460,7 +484,10 @@ export default function Chat() {
                 userMessage
             );
 
-            const parsedResponse = parseAssistantResponse(response.assistantMessage.content.data);
+            const parsedResponse = parseAssistantResponse(
+                response.assistantMessage.content.data,
+                response.assistantMessage.interactiveElements  // ← Pass interactiveElements
+            );
 
             // Update Big Picture if outline exists
             if (parsedResponse.outline && parsedResponse.outline.length > 0) {
@@ -952,14 +979,20 @@ export default function Chat() {
                                                 <div className="message-suggestions">
                                                     <button
                                                         className="suggestion-btn"
-                                                        onClick={() => handleInteractiveItemClick('Đơn giản hóa')}
+                                                        onClick={() => {
+                                                            const previousUserMessage = messages[index - 1]?.content || '';
+                                                            handleInteractiveItemClick(`Đơn giản hóa: ${previousUserMessage}`);
+                                                        }}
                                                     >
                                                         <span className="suggestion-icon">≡</span>
                                                         <span>Đơn giản hóa</span>
                                                     </button>
                                                     <button
                                                         className="suggestion-btn"
-                                                        onClick={() => handleInteractiveItemClick('Tìm hiểu sâu hơn')}
+                                                        onClick={() => {
+                                                            const previousUserMessage = messages[index - 1]?.content || '';
+                                                            handleInteractiveItemClick(`Tìm hiểu sâu hơn: ${previousUserMessage}`);
+                                                        }}
                                                     >
                                                         <span className="suggestion-icon">≡</span>
                                                         <span>Tìm hiểu sâu hơn</span>

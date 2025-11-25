@@ -1,31 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../../contexts/AppContext';
-import { createFAQ, updateFAQ } from '../../../service/mockApi';
+import customResponseService from '../../../service/customResponseService';
+import type { Subject } from '../../../service/subjectService';
+import toast from 'react-hot-toast';
 
 interface FAQ {
   id?: number;
   question: string;
   answer: string;
-  course: string;
+  subjectId: number | null;
   tags: string[];
   usageCount?: number;
   createdAt?: string;
-  updatedBy?: string;
 }
 
 interface FAQFormProps {
   faq: FAQ | null;
-  courses: string[];
+  subjects: Subject[];
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
-  const { setLoading, showNotification } = useApp();
+const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
+  const { setLoading } = useApp();
   const [formData, setFormData] = useState({
     question: '',
     answer: '',
-    course: '',
+    subjectId: '',
     tags: [] as string[]
   });
   const [tagInput, setTagInput] = useState('');
@@ -36,7 +37,7 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
       setFormData({
         question: faq.question,
         answer: faq.answer,
-        course: faq.course,
+        subjectId: faq.subjectId?.toString() || '',
         tags: [...faq.tags]
       });
     }
@@ -44,19 +45,19 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.question.trim()) {
       newErrors.question = 'Question cannot be empty';
     }
-    
+
     if (!formData.answer.trim()) {
       newErrors.answer = 'Answer cannot be empty';
     }
-    
-    if (!formData.course) {
-      newErrors.course = 'Please select a course';
+
+    if (!formData.subjectId) {
+      newErrors.subjectId = 'Please select a subject';
     }
-    
+
     if (formData.tags.length === 0) {
       newErrors.tags = 'Please add at least one tag';
     }
@@ -67,25 +68,38 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     try {
       setLoading(true);
-      
+
+      const subjectIdNum = formData.subjectId ? parseInt(formData.subjectId) : null;
+
       if (faq) {
-        await updateFAQ(faq.id, formData);
-        showNotification('FAQ updated successfully', 'success');
+        // Update existing FAQ
+        await customResponseService.updateCustomResponse(faq.id!, {
+          triggerKeywords: formData.tags,
+          responseContent: formData.answer,
+          isActive: true
+        });
+        toast.success('FAQ updated successfully');
       } else {
-        await createFAQ(formData);
-        showNotification('New FAQ created successfully', 'success');
+        // Create new FAQ
+        await customResponseService.createCustomResponse({
+          subjectId: subjectIdNum,
+          triggerKeywords: formData.tags,
+          responseContent: formData.answer,
+          isActive: true
+        });
+        toast.success('New FAQ created successfully');
       }
-      
+
       onSuccess();
-    } catch (error) {
-      showNotification('Error saving FAQ', 'error');
+    } catch (error: any) {
+      toast.error(error?.message || 'Error saving FAQ');
     } finally {
       setLoading(false);
     }
@@ -160,7 +174,7 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
           </button>
         </div>
       </div>
-      
+
       {/* Form Body */}
       <form onSubmit={handleSubmit}>
         <div className="px-6 py-6 max-h-[calc(90vh-200px)] overflow-y-auto">
@@ -173,11 +187,10 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
               <div className="relative">
                 <input
                   type="text"
-                  className={`w-full px-4 py-3 bg-white border rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 ${
-                    errors.question 
-                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                  className={`w-full px-4 py-3 bg-white border rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 ${errors.question
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
                       : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                  }`}
+                    }`}
                   value={formData.question}
                   onChange={(e) => handleInputChange('question', e.target.value)}
                   placeholder="Example: How do I submit assignments on the system?"
@@ -206,11 +219,10 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
                 Answer <span className="text-red-500">*</span>
               </label>
               <textarea
-                className={`w-full px-4 py-3 bg-white border rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 resize-none ${
-                  errors.answer 
-                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                className={`w-full px-4 py-3 bg-white border rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 resize-none ${errors.answer
+                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
                     : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                }`}
+                  }`}
                 value={formData.answer}
                 onChange={(e) => handleInputChange('answer', e.target.value)}
                 placeholder="Enter a detailed and complete answer..."
@@ -229,24 +241,23 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
               </p>
             </div>
 
-            {/* Course Field */}
+            {/* Subject Field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Course <span className="text-red-500">*</span>
+                Subject <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <select
-                  className={`w-full px-4 py-3 bg-white border rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 appearance-none ${
-                    errors.course 
-                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                  className={`w-full px-4 py-3 bg-white border rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 appearance-none ${errors.subjectId
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
                       : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                  }`}
-                  value={formData.course}
-                  onChange={(e) => handleInputChange('course', e.target.value)}
+                    }`}
+                  value={formData.subjectId}
+                  onChange={(e) => handleInputChange('subjectId', e.target.value)}
                 >
-                  <option value="">Select course</option>
-                  {courses.map(course => (
-                    <option key={course} value={course}>{course}</option>
+                  <option value="">Select subject</option>
+                  {subjects.map(subject => (
+                    <option key={subject.subjectId} value={subject.subjectId.toString()}>{subject.name}</option>
                   ))}
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
@@ -255,12 +266,12 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
                   </svg>
                 </div>
               </div>
-              {errors.course && (
+              {errors.subjectId && (
                 <p className="mt-2 text-sm text-red-600 flex items-center">
                   <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors.course}
+                  {errors.subjectId}
                 </p>
               )}
             </div>
@@ -292,7 +303,7 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
                   </svg>
                 </button>
               </div>
-              
+
               {/* Tags Display */}
               {formData.tags.length > 0 ? (
                 <div className="flex flex-wrap gap-2 p-4 bg-gray-50 border border-gray-200 rounded-lg">
@@ -322,7 +333,7 @@ const FAQForm = ({ faq, courses, onSuccess, onCancel }: FAQFormProps) => {
                   <p className="text-sm text-gray-500">No tags yet. Add tags to categorize the FAQ</p>
                 </div>
               )}
-              
+
               {errors.tags && (
                 <p className="mt-2 text-sm text-red-600 flex items-center">
                   <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
