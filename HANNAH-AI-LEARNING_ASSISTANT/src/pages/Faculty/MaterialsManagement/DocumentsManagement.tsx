@@ -94,8 +94,8 @@ const DocumentsManagement: React.FC = () => {
       const materials: Material[] = documents.items.map(doc => {
         // Map processingStatus to Material status with proper capitalization
         let status: Material['status'] = 'Pending';
-        if (doc.processingStatus) {
-          const statusLower = doc.processingStatus.toLowerCase();
+        if (doc.approvalStatus) {
+          const statusLower = doc.approvalStatus.toLowerCase();
           if (statusLower === 'completed') status = 'Completed';
           else if (statusLower === 'processing') status = 'Processing';
           else if (statusLower === 'failed') status = 'Failed';
