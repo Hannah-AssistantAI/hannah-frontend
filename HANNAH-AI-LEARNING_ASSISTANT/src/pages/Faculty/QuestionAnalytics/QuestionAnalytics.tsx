@@ -578,7 +578,7 @@ const QuestionAnalytics = () => {
                     <tr
                       key={attempt.attemptId}
                       className="hover:bg-slate-50 transition cursor-pointer"
-                      onClick={() => navigate(`/faculty/analytics/attempt/${attempt.attemptId}`)}
+                      onClick={() => navigate(`/faculty/analytics/quiz/${attempt.quizId}/attempt/${attempt.attemptId}`)}
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">

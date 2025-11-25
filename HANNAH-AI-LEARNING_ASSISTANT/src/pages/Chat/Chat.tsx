@@ -133,20 +133,56 @@ export default function Chat() {
         const sendInitialQuery = async () => {
             // Prevent duplicate sends (React Strict Mode runs effects twice)
             if (hasAutoSentRef.current) return;
-            if (!initialQuery || !conversationId) return;
+            if (!initialQuery || !conversationId || !user?.userId) return;
 
-            console.log('🚀 Auto-sending initial query:', initialQuery);
+            console.log('🚀 Checking conversation before auto-send:', initialQuery);
             hasAutoSentRef.current = true; // Mark as sent immediately
-            setIsSendingMessage(true);
-
-            // Add loading message
-            setMessages(prev => [...prev, {
-                type: 'assistant',
-                content: 'Đang suy nghĩ...',
-                isStreaming: true
-            }]);
 
             try {
+                // Check if conversation already has messages (e.g., after F5 reload)
+                const conversationDetails = await conversationService.getConversation(conversationId, user.userId);
+
+                if (conversationDetails.messages.length > 0) {
+                    console.log('⏭️ Skipping auto-send: conversation already has', conversationDetails.messages.length, 'messages');
+
+                    // Load existing messages instead of sending again
+                    const transformedMessages: Message[] = conversationDetails.messages.map(msg => {
+                        const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content) : {};
+
+                        return {
+                            messageId: msg.messageId,
+                            type: msg.role === 'user' || msg.role === 'student' ? 'user' : 'assistant',
+                            content: msg.content,
+                            isStreaming: false,
+                            isFlagged: false,
+                            suggestedQuestions: [],
+                            ...parsed
+                        };
+                    });
+
+                    setMessages(transformedMessages);
+
+                    // Update Big Picture if exists
+                    transformedMessages.forEach(msg => {
+                        if (msg.type === 'assistant' && msg.outline && msg.outline.length > 0) {
+                            setBigPictureData(msg.outline);
+                        }
+                    });
+
+                    return; // Exit early - conversation already has messages
+                }
+
+                // Conversation is empty - proceed with auto-send
+                console.log('✅ Conversation empty, proceeding with auto-send');
+                setIsSendingMessage(true);
+
+                // Add loading message
+                setMessages(prev => [...prev, {
+                    type: 'assistant',
+                    content: 'Đang suy nghĩ...',
+                    isStreaming: true
+                }]);
+
                 const response = await chatService.sendTextMessage(
                     conversationId,
                     initialQuery
@@ -321,6 +357,78 @@ export default function Chat() {
         }
     }
 
+    const handleInteractiveItemClick = async (itemTerm: string) => {
+        if (isSendingMessage) return;
+        if (!conversationId || !user?.userId) {
+            console.error('Missing conversation ID or user ID');
+            return;
+        }
+
+        // Add user message with the item term
+        setMessages(prev => [...prev, {
+            type: 'user',
+            content: itemTerm
+        }]);
+
+        // Add loading message
+        const loadingMessageIndex = messages.length + 1;
+        setMessages(prev => [...prev, {
+            type: 'assistant',
+            content: 'Đang suy nghĩ...',
+            isStreaming: true
+        }]);
+
+        setIsSendingMessage(true);
+
+        try {
+            // Send message to AI
+            console.log('🤖 Sending interactive item query:', itemTerm);
+            const response = await chatService.sendTextMessage(
+                conversationId,
+                itemTerm
+            );
+
+            const parsedResponse = parseAssistantResponse(response.assistantMessage.content.data);
+
+            // Update Big Picture if outline exists
+            if (parsedResponse.outline && parsedResponse.outline.length > 0) {
+                setBigPictureData(parsedResponse.outline);
+            }
+
+            // Replace loading message with response
+            setMessages(prev => {
+                const newMessages = [...prev];
+                newMessages[loadingMessageIndex] = {
+                    messageId: response.assistantMessage.messageId,
+                    type: 'assistant',
+                    content: parsedResponse.content,
+                    isStreaming: false,
+                    isFlagged: false,
+                    suggestedQuestions: parsedResponse.suggestedQuestions || response.assistantMessage.interactiveElements?.suggestedQuestions || [],
+                    interactiveList: parsedResponse.interactiveList,
+                    outline: parsedResponse.outline
+                };
+                return newMessages;
+            });
+
+            console.log('✅ Interactive item query sent successfully');
+        } catch (error: any) {
+            console.error('❌ Failed to send interactive item query:', error);
+            setMessages(prev => {
+                const newMessages = [...prev];
+                newMessages[loadingMessageIndex] = {
+                    type: 'assistant',
+                    content: 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.',
+                    isStreaming: false,
+                    suggestedQuestions: []
+                };
+                return newMessages;
+            });
+        } finally {
+            setIsSendingMessage(false);
+        }
+    }
+
     const handleSend = async () => {
         if (!inputValue.trim()) return
         if (isSendingMessage) return
@@ -353,11 +461,11 @@ export default function Chat() {
         setIsSendingMessage(true);
 
         try {
-            // Step 1: Update conversation title on first user-sent message
-            const userMessageCount = messages.filter(m => m.type === 'user').length;
-            const isFirstUserSentMessage = initialQuery ? userMessageCount === 1 : userMessageCount === 0;
+            // Step 1: Update conversation title ONLY on the very first user message
+            // Only update when this is a brand new conversation (first time chatting)
+            const isFirstMessageInConversation = initialQuery ? messages.length === 1 : messages.length === 0;
 
-            if (isFirstUserSentMessage) {
+            if (isFirstMessageInConversation) {
                 console.log('📝 Updating conversation title via PUT /api/v1/conversations...');
                 const conversationTitle = userMessage.length > 50
                     ? userMessage.substring(0, 50) + '...'
@@ -367,7 +475,6 @@ export default function Chat() {
                     title: conversationTitle
                 });
             }
-
 
             // Step 2: Send message to AI and get response via POST /api/v1/chat/interactions
             // NOTE: This endpoint automatically creates the user message, so we don't need to call POST /messages
@@ -569,7 +676,12 @@ export default function Chat() {
                 </div>
                 <div className="interactive-list-items">
                     {items.map((item, index) => (
-                        <div key={index} className="interactive-item-card">
+                        <div
+                            key={index}
+                            className="interactive-item-card"
+                            onClick={() => handleInteractiveItemClick(item.term)}
+                            style={{ cursor: 'pointer' }}
+                        >
                             <div className="interactive-item-icon-wrapper">
                                 {item.icon ? (
                                     <span className="interactive-item-emoji">{item.icon}</span>
@@ -584,7 +696,7 @@ export default function Chat() {
                                 <p className="interactive-item-definition">{item.definition}</p>
                             </div>
                             <div className="interactive-item-action">
-                                <button className="interactive-item-link-btn" aria-label="Link">
+                                <button className="interactive-item-link-btn" aria-label="Link" onClick={(e) => e.stopPropagation()}>
                                     <LinkIcon size={20} />
                                 </button>
                             </div>
@@ -687,12 +799,11 @@ export default function Chat() {
                         <h3 className="related-content-title">{part.title}</h3>
                         <div className="related-content-carousel">
                             {part.relatedItems?.map((item) => (
-                                <a
+                                <div
                                     key={`${messageIndex}-${partIndex}-related-${item.id}`}
-                                    href={item.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
                                     className="related-content-card"
+                                    onClick={() => handleInteractiveItemClick(item.shortTitle || item.title)}
+                                    style={{ cursor: 'pointer' }}
                                 >
                                     <div className="related-card-content">
                                         <h4 className="related-card-title">{item.title}</h4>
@@ -709,7 +820,7 @@ export default function Chat() {
                                             </div>
                                         </div>
                                     </div>
-                                </a>
+                                </div>
                             ))}
                         </div>
                     </div>
@@ -832,6 +943,7 @@ export default function Chat() {
                     onToggle={() => setIsBigPictureOpen(!isBigPictureOpen)}
                     topics={bigPictureData}
                     hideFloatingButton={showHistorySidebar}
+                    onTopicClick={handleInteractiveItemClick}
                 />
 
                 <div className="chat-content" style={{ order: 2, flex: 1, padding: '0', minWidth: 0 }}>
@@ -845,13 +957,13 @@ export default function Chat() {
                             <p className="welcome-banner-description">
                                 Nắm bắt các chủ đề mới và hiểu sâu hơn với công cụ học tập đàm thoại
                             </p>
-                            {/* <button className="topic-badge">OOP</button> */}
+                            <button className="topic-badge">OOP</button>
                         </div>
                         <button className="close-banner-btn" aria-label="Đóng">×</button>
                     </div>
 
                     {/* Messages */}
-                    <div className="messages-container" >
+                    <div className="messages-container">
                         {messages.map((message, index) => (
                             <div key={index} className={`message ${message.type}-message`}>
                                 {message.type === 'assistant' && (
@@ -867,20 +979,14 @@ export default function Chat() {
                                                 <div className="message-suggestions">
                                                     <button
                                                         className="suggestion-btn"
-                                                        onClick={() => {
-                                                            setInputValue('Đơn giản hóa');
-                                                            setTimeout(() => handleSend(), 100);
-                                                        }}
+                                                        onClick={() => handleInteractiveItemClick('Đơn giản hóa')}
                                                     >
                                                         <span className="suggestion-icon">≡</span>
                                                         <span>Đơn giản hóa</span>
                                                     </button>
                                                     <button
                                                         className="suggestion-btn"
-                                                        onClick={() => {
-                                                            setInputValue('Tìm hiểu sâu hơn');
-                                                            setTimeout(() => handleSend(), 100);
-                                                        }}
+                                                        onClick={() => handleInteractiveItemClick('Tìm hiểu sâu hơn')}
                                                     >
                                                         <span className="suggestion-icon">≡</span>
                                                         <span>Tìm hiểu sâu hơn</span>
@@ -917,10 +1023,7 @@ export default function Chat() {
                                                         <button
                                                             key={qIndex}
                                                             className="follow-up-btn"
-                                                            onClick={() => {
-                                                                setInputValue(question);
-                                                                setTimeout(() => handleSend(), 100);
-                                                            }}
+                                                            onClick={() => handleInteractiveItemClick(question)}
                                                         >
                                                             {question}
                                                         </button>

@@ -106,11 +106,12 @@ export interface QuizAttemptDetailDto {
     maxScore: number;
     percentage: number;
     startedAt: string;
-    submittedAt?: string;
+    completedAt?: string;
     timeTaken?: number;
     isCompleted: boolean;
     isFlagged: boolean;
     flagReason?: string;
+    totalQuestions: number;
     questions: QuizAttemptQuestionDto[];
 }
 
@@ -243,14 +244,14 @@ class QuizApiService {
 
     /**
      * Get quiz attempt details including questions and answers
-     * GET /api/QuizAttempts/{attemptId}
+     * GET /api/Quizzes/{quizId}/attempts/{attemptId}
      */
-    async getQuizAttemptDetail(attemptId: number): Promise<QuizAttemptDetailDto> {
+    async getQuizAttemptDetail(quizId: number, attemptId: number): Promise<QuizAttemptDetailDto> {
         try {
-            const response = await apiClient.get<BackendApiResponse<QuizAttemptDetailDto>>(`/api/QuizAttempts/${attemptId}`);
+            const response = await apiClient.get<BackendApiResponse<QuizAttemptDetailDto>>(`/api/Quizzes/${quizId}/attempts/${attemptId}`);
             return response.data.data;
         } catch (error) {
-            console.error(`Error fetching quiz attempt ${attemptId}:`, error);
+            console.error(`Error fetching quiz attempt ${attemptId} for quiz ${quizId}:`, error);
             throw error;
         }
     }

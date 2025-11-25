@@ -12,7 +12,7 @@ const getScoreColor = (percentage: number) => {
 };
 
 export default function QuizAttemptDetail() {
-  const { id } = useParams();
+  const { quizId, id } = useParams();
   const navigate = useNavigate();
   const { setLoading, showNotification } = useApp();
   const [detail, setDetail] = useState<QuizAttemptDetailDto | null>(null);
@@ -24,10 +24,10 @@ export default function QuizAttemptDetail() {
 
   useEffect(() => {
     const load = async () => {
-      if (!id) return;
+      if (!id || !quizId) return;
       try {
         setLoading(true);
-        const data = await quizApiService.getQuizAttemptDetail(Number(id));
+        const data = await quizApiService.getQuizAttemptDetail(Number(quizId), Number(id));
         setDetail(data);
         if (data.isFlagged && data.flagReason) {
           setFlagReason(data.flagReason);
@@ -40,7 +40,7 @@ export default function QuizAttemptDetail() {
       }
     };
     load();
-  }, [id, setLoading, showNotification]);
+  }, [id, quizId, setLoading, showNotification]);
 
   const openFlagModal = () => setFlagModalOpen(true);
   const closeFlagModal = () => { setFlagModalOpen(false); setFlagReason(''); };
@@ -167,7 +167,7 @@ export default function QuizAttemptDetail() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-xs text-slate-500">Questions</div>
-                  <div className="font-semibold text-slate-800">{detail.questions.length}</div>
+                  <div className="font-semibold text-slate-800">{detail.totalQuestions || 0}</div>
                 </div>
                 <ListChecks className="w-5 h-5 text-slate-400" />
               </div>
@@ -176,7 +176,7 @@ export default function QuizAttemptDetail() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-xs text-slate-500">Submitted At</div>
-                  <div className="font-semibold text-slate-800">{detail.submittedAt ? new Date(detail.submittedAt).toLocaleString('vi-VN') : 'In Progress'}</div>
+                  <div className="font-semibold text-slate-800">{detail.completedAt ? new Date(detail.completedAt).toLocaleString('vi-VN') : 'In Progress'}</div>
                 </div>
                 <Calendar className="w-5 h-5 text-slate-400" />
               </div>
@@ -204,7 +204,7 @@ export default function QuizAttemptDetail() {
             <div className="p-6">
               <h2 className="text-xl font-bold text-slate-800 mb-4">Questions and selected answers</h2>
               <div className="space-y-5">
-                {detail.questions.map((q, idx) => {
+                {detail.questions?.map((q, idx) => {
                   const isCorrect = q.isCorrect;
                   return (
                     <div
@@ -218,7 +218,7 @@ export default function QuizAttemptDetail() {
                           </div>
                           <div>
                             <div className="font-medium text-slate-800 mb-2">{q.content}</div>
-                            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2" style={{ width: '60vw' }}>
+                            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2" style={{ width: '45vw' }}>
                               {q.options.map((opt, i) => {
                                 const isSel = i === q.selectedOptionIndex;
                                 const isAns = i === q.correctOptionIndex;
