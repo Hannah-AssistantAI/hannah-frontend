@@ -7,13 +7,15 @@ interface BigPictureSidebarProps {
     onToggle: () => void
     topics: BigPictureTopic[]
     hideFloatingButton?: boolean
+    onTopicClick?: (topicText: string) => void
 }
 
 export const BigPictureSidebar: React.FC<BigPictureSidebarProps> = ({
     isOpen,
     onToggle,
     topics,
-    hideFloatingButton = false
+    hideFloatingButton = false,
+    onTopicClick
 }) => {
     return (
         <aside className={`big-picture-sidebar ${isOpen ? 'open' : 'closed'}`} style={{ order: 1, width: isOpen ? '356px' : '56px', padding: '0 24px 0 0', flexShrink: 0 }}>
@@ -74,12 +76,19 @@ export const BigPictureSidebar: React.FC<BigPictureSidebarProps> = ({
                 <div className="big-picture-topics">
                     {topics.map((topic, index) => (
                         <div key={index} className="big-picture-topic-item">
-                            <button className="big-picture-topic-button">
+                            <button
+                                className="big-picture-topic-button"
+                                onClick={() => onTopicClick?.(topic.title)}
+                            >
                                 <span className="big-picture-topic-title">{topic.title}</span>
                             </button>
                             <div className="big-picture-subtopics-list">
                                 {topic.subtopics.map((subtopic, subIndex) => (
-                                    <button key={subIndex} className="big-picture-subtopic-button">
+                                    <button
+                                        key={subIndex}
+                                        className="big-picture-subtopic-button"
+                                        onClick={() => onTopicClick?.(subtopic)}
+                                    >
                                         {subtopic}
                                     </button>
                                 ))}
