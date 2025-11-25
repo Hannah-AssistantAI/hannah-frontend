@@ -113,20 +113,56 @@ export default function Chat() {
         const sendInitialQuery = async () => {
             // Prevent duplicate sends (React Strict Mode runs effects twice)
             if (hasAutoSentRef.current) return;
-            if (!initialQuery || !conversationId) return;
+            if (!initialQuery || !conversationId || !user?.userId) return;
 
-            console.log('🚀 Auto-sending initial query:', initialQuery);
+            console.log('🚀 Checking conversation before auto-send:', initialQuery);
             hasAutoSentRef.current = true; // Mark as sent immediately
-            setIsSendingMessage(true);
-
-            // Add loading message
-            setMessages(prev => [...prev, {
-                type: 'assistant',
-                content: 'Đang suy nghĩ...',
-                isStreaming: true
-            }]);
 
             try {
+                // Check if conversation already has messages (e.g., after F5 reload)
+                const conversationDetails = await conversationService.getConversation(conversationId, user.userId);
+
+                if (conversationDetails.messages.length > 0) {
+                    console.log('⏭️ Skipping auto-send: conversation already has', conversationDetails.messages.length, 'messages');
+
+                    // Load existing messages instead of sending again
+                    const transformedMessages: Message[] = conversationDetails.messages.map(msg => {
+                        const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content) : {};
+
+                        return {
+                            messageId: msg.messageId,
+                            type: msg.role === 'user' || msg.role === 'student' ? 'user' : 'assistant',
+                            content: msg.content,
+                            isStreaming: false,
+                            isFlagged: false,
+                            suggestedQuestions: [],
+                            ...parsed
+                        };
+                    });
+
+                    setMessages(transformedMessages);
+
+                    // Update Big Picture if exists
+                    transformedMessages.forEach(msg => {
+                        if (msg.type === 'assistant' && msg.outline && msg.outline.length > 0) {
+                            setBigPictureData(msg.outline);
+                        }
+                    });
+
+                    return; // Exit early - conversation already has messages
+                }
+
+                // Conversation is empty - proceed with auto-send
+                console.log('✅ Conversation empty, proceeding with auto-send');
+                setIsSendingMessage(true);
+
+                // Add loading message
+                setMessages(prev => [...prev, {
+                    type: 'assistant',
+                    content: 'Đang suy nghĩ...',
+                    isStreaming: true
+                }]);
+
                 const response = await chatService.sendTextMessage(
                     conversationId,
                     initialQuery
