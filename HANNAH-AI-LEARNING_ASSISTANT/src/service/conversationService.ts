@@ -33,6 +33,7 @@ export interface Message {
     role: string;
     content: string;
     createdAt: string;
+    metadata?: any;
 }
 
 export interface BaseResponse<T> {

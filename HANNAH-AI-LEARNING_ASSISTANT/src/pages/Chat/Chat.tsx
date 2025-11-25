@@ -147,7 +147,8 @@ export default function Chat() {
 
                     // Load existing messages instead of sending again
                     const transformedMessages: Message[] = conversationDetails.messages.map(msg => {
-                        const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content) : {};
+                        const interactiveElements = msg.metadata?.interactive_elements || msg.metadata?.interactiveElements;
+                        const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content, interactiveElements) : {};
 
                         return {
                             messageId: msg.messageId,
@@ -388,7 +389,10 @@ export default function Chat() {
                 itemTerm
             );
 
-            const parsedResponse = parseAssistantResponse(response.assistantMessage.content.data);
+            const parsedResponse = parseAssistantResponse(
+                response.assistantMessage.content.data,
+                response.assistantMessage.interactiveElements
+            );
 
             // Update Big Picture if outline exists
             if (parsedResponse.outline && parsedResponse.outline.length > 0) {
@@ -885,7 +889,8 @@ export default function Chat() {
                     console.log('✅ Loaded conversation:', conversationDetails);
 
                     const transformedMessages: Message[] = conversationDetails.messages.map(msg => {
-                        const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content) : {};
+                        const interactiveElements = msg.metadata?.interactive_elements || msg.metadata?.interactiveElements;
+                        const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content, interactiveElements) : {};
 
                         return {
                             messageId: msg.messageId,
