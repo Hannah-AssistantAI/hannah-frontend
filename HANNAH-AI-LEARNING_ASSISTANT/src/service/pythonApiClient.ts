@@ -91,8 +91,11 @@ class PythonApiClient {
                 status: response.status,
                 message: data.message,
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error('Python API request error:', error);
+            if (error instanceof TypeError && error.message === 'Failed to fetch') {
+                throw new Error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng hoặc đảm bảo backend đang chạy.');
+            }
             throw error;
         }
     }

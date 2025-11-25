@@ -33,6 +33,7 @@ export interface MessageMetadata {
     model: string;
     temperature: number;
     tokenCount: number;
+    matched_subject_id?: number;
 }
 
 export interface AssistantMessage {

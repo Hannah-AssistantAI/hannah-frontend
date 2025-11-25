@@ -1,35 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import FAQList from './FAQList';
 import FAQForm from './FAQForm';
-import { getFAQs, deleteFAQ, getCourses } from '../../../service/mockApi';
+import customResponseService from '../../../service/customResponseService';
+import type { CustomResponse } from '../../../service/customResponseService';
+import subjectService from '../../../service/subjectService';
+import type { Subject } from '../../../service/subjectService';
 import { useApp } from '../../../contexts/AppContext';
+import toast from 'react-hot-toast';
+
 
 interface FAQ {
   id: number;
   question: string;
   answer: string;
-  course: string;
+  subjectId: number | null;
+  subjectName?: string;
   tags: string[];
   usageCount: number;
   createdAt: string;
-  updatedBy: string;
+  updatedAt: string;
 }
 
 const FAQManagement = () => {
-  const { setLoading, showNotification } = useApp();
+  const { setLoading } = useApp();
   const [faqs, setFaqs] = useState<FAQ[]>([]);
-  const [courses, setCourses] = useState<string[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingFAQ, setEditingFAQ] = useState(null);
   const [filters, setFilters] = useState({
-    course: '',
+    subjectId: '',
     search: '',
     tags: [] as string[]
   });
 
   useEffect(() => {
-    loadFAQs();
-    loadCourses();
+    loadSubjects();
   }, []);
 
   useEffect(() => {
@@ -39,21 +44,51 @@ const FAQManagement = () => {
   const loadFAQs = async () => {
     try {
       setLoading(true);
-      const response = await getFAQs(filters);
-      setFaqs(response.data);
-    } catch (error) {
-      showNotification('Error loading FAQ list', 'error');
+      const subjectIdNum = filters.subjectId ? parseInt(filters.subjectId) : undefined;
+      const response = await customResponseService.getCustomResponses(subjectIdNum);
+
+      // Transform CustomResponse to FAQ format
+      const transformedFAQs: FAQ[] = response.items.map((item: CustomResponse) => ({
+        id: item.responseId,
+        question: item.triggerKeywords.join(', '),  // Display keywords as question
+        answer: item.responseContent,
+        subjectId: item.subjectId,
+        subjectName: subjects.find(s => s.subjectId === item.subjectId)?.name || 'N/A',
+        tags: item.triggerKeywords,
+        usageCount: item.usageCount,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt
+      }));
+
+      // Apply search filter
+      let filtered = transformedFAQs;
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        filtered = filtered.filter(faq =>
+          faq.question.toLowerCase().includes(searchLower) ||
+          faq.answer.toLowerCase().includes(searchLower) ||
+          faq.tags.some(tag => tag.toLowerCase().includes(searchLower))
+        );
+      }
+
+      setFaqs(filtered);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error loading FAQ list');
     } finally {
       setLoading(false);
     }
   };
 
-  const loadCourses = async () => {
+  const loadSubjects = async () => {
     try {
-      const response = await getCourses();
-      setCourses(response.data);
+      const response = await subjectService.getAllSubjects();
+      if (response && response.items) {
+        setSubjects(response.items);
+        // Load FAQs after subjects are loaded
+        loadFAQs();
+      }
     } catch (error) {
-      console.error('Error loading courses:', error);
+      console.error('Error loading subjects:', error);
     }
   };
 
@@ -74,11 +109,11 @@ const FAQManagement = () => {
 
     try {
       setLoading(true);
-      await deleteFAQ(faqId);
-      showNotification('FAQ deleted successfully', 'success');
+      await customResponseService.deleteCustomResponse(faqId);
+      toast.success('FAQ deleted successfully');
       loadFAQs();
-    } catch (error) {
-      showNotification('Error deleting FAQ', 'error');
+    } catch (error: any) {
+      toast.error(error?.message || 'Error deleting FAQ');
     } finally {
       setLoading(false);
     }
@@ -95,7 +130,7 @@ const FAQManagement = () => {
     setEditingFAQ(null);
   };
 
-  const handleFilterChange = (newFilters: Partial<{ course: string; search: string; tags: string[] }>) => {
+  const handleFilterChange = (newFilters: Partial<{ subjectId: string; search: string; tags: string[] }>) => {
     setFilters({ ...filters, ...newFilters });
   };
 
@@ -112,7 +147,7 @@ const FAQManagement = () => {
                   Manage frequently asked questions and answers for students
                 </p>
               </div>
-              <button 
+              <button
                 className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 onClick={handleCreateFAQ}
               >
@@ -128,23 +163,23 @@ const FAQManagement = () => {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
             <div className="p-6">
               <div className="flex flex-col lg:flex-row gap-4">
-                {/* Course Filter */}
+                {/* Subject Filter */}
                 <div className="lg:w-64">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Course
+                    Subject
                   </label>
                   <select
                     className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                    value={filters.course}
-                    onChange={(e) => handleFilterChange({ course: e.target.value })}
+                    value={filters.subjectId}
+                    onChange={(e) => handleFilterChange({ subjectId: e.target.value })}
                   >
-                    <option value="">All Courses</option>
-                    {courses.map(course => (
-                      <option key={course} value={course}>{course}</option>
+                    <option value="">All Subjects</option>
+                    {subjects.map(subject => (
+                      <option key={subject.subjectId} value={subject.subjectId.toString()}>{subject.name}</option>
                     ))}
                   </select>
                 </div>
-                
+
                 {/* Search Input */}
                 <div className="flex-1">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -165,12 +200,12 @@ const FAQManagement = () => {
                     />
                   </div>
                 </div>
-                
+
                 {/* Reset Button */}
                 <div className="lg:w-auto flex items-end">
                   <button
                     className="inline-flex items-center px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
-                    onClick={() => setFilters({ course: '', search: '', tags: [] })}
+                    onClick={() => setFilters({ subjectId: '', search: '', tags: [] })}
                   >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -181,14 +216,14 @@ const FAQManagement = () => {
               </div>
 
               {/* Active Filters Display */}
-              {(filters.course || filters.search || filters.tags.length > 0) && (
+              {(filters.subjectId || filters.search || filters.tags.length > 0) && (
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className="text-sm text-gray-600">Active filters:</span>
-                  {filters.course && (
+                  {filters.subjectId && (
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                      {filters.course}
+                      {subjects.find(s => s.subjectId.toString() === filters.subjectId)?.name || filters.subjectId}
                       <button
-                        onClick={() => handleFilterChange({ course: '' })}
+                        onClick={() => handleFilterChange({ subjectId: '' })}
                         className="ml-2 hover:text-blue-900"
                       >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -228,14 +263,14 @@ const FAQManagement = () => {
 
       {/* FAQ Form Modal - Portal style with proper z-index */}
       {showForm && (
-        <div 
+        <div
           className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          aria-labelledby="modal-title" 
-          role="dialog" 
+          aria-labelledby="modal-title"
+          role="dialog"
           aria-modal="true"
         >
           {/* Background overlay with animation */}
-          <div 
+          <div
             className="fixed inset-0 bg-opacity-50 transition-opacity"
             onClick={handleFormCancel}
             aria-hidden="true"
@@ -244,13 +279,13 @@ const FAQManagement = () => {
           {/* Modal container */}
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             {/* Modal panel */}
-            <div 
+            <div
               className="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all w-full max-w-4xl"
               onClick={(e) => e.stopPropagation()}
             >
               <FAQForm
                 faq={editingFAQ}
-                courses={courses}
+                subjects={subjects}
                 onSuccess={handleFormSuccess}
                 onCancel={handleFormCancel}
               />
