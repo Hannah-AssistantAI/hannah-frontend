@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import customResponseService from '../../service/customResponseService';
 import type { CustomResponse } from '../../service/customResponseService';
-import subjectService from '../../service/subjectService';
+import subjectService, { type Subject } from '../../service/subjectService';
 
 interface FAQItem {
     id: string | number;
@@ -19,6 +19,8 @@ export default function FAQSection() {
     const [isVisible, setIsVisible] = useState(false);
     const [faqs, setFaqs] = useState<FAQItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [subjects, setSubjects] = useState<Subject[]>([]);
+    const [selectedSubjectId, setSelectedSubjectId] = useState<number | undefined>(undefined);
     const sectionRef = useRef<HTMLDivElement>(null);
 
     const colors = [
@@ -30,10 +32,29 @@ export default function FAQSection() {
         "text-orange-400"
     ];
 
+    // Fetch subjects list
+    useEffect(() => {
+        const fetchSubjects = async () => {
+            try {
+                const response = await subjectService.getAllSubjects();
+                setSubjects(response.items || []);
+            } catch (error) {
+                console.error("Failed to fetch subjects:", error);
+            }
+        };
+        fetchSubjects();
+    }, []);
+
+    // Fetch FAQs based on selected subject
     useEffect(() => {
         const fetchFAQs = async () => {
+            setLoading(true);
             try {
-                const response = await customResponseService.getPublicCustomResponses(undefined, 1, 6);
+                const response = await customResponseService.getPublicCustomResponses(
+                    selectedSubjectId, // Filter by subject
+                    1,
+                    6
+                );
                 console.log("FAQSection: Fetched response:", response);
 
                 if (!response || !response.items) {
@@ -89,7 +110,7 @@ export default function FAQSection() {
         };
 
         fetchFAQs();
-    }, []);
+    }, [selectedSubjectId]); // Re-fetch when subject changes
 
     useEffect(() => {
         if (loading) return;
@@ -139,6 +160,24 @@ export default function FAQSection() {
                 <p className="text-gray-400 text-sm md:text-base max-w-xl mx-auto">
                     Khám phá các thắc mắc phổ biến. Bấm vào để hỏi Hannah ngay.
                 </p>
+            </div>
+
+            {/* Subject Filter Dropdown */}
+            <div className={`flex justify-center mb-6 transition-all duration-700 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                <select
+                    value={selectedSubjectId ?? ""}
+                    onChange={(e) => setSelectedSubjectId(e.target.value ? Number(e.target.value) : undefined)}
+                    className="px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 hover:bg-white/10 transition-colors duration-200 cursor-pointer"
+                >
+                    <option value="" className="bg-gray-800 text-gray-200">
+                        📚 Tất cả môn học
+                    </option>
+                    {subjects.map(subject => (
+                        <option key={subject.subjectId} value={subject.subjectId} className="bg-gray-800 text-gray-200">
+                            {subject.code} - {subject.name}
+                        </option>
+                    ))}
+                </select>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
