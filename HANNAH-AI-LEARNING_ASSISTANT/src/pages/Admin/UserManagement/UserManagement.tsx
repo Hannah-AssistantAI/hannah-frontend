@@ -333,12 +333,11 @@ const UserManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {isLoading && (
+            {isLoading ? (
               <tr>
                 <td colSpan={7} className="loading-cell">Loading...</td>
               </tr>
-            )}
-            {!isLoading &&
+            ) : (
               filteredUsers.map(user => (
                 <tr key={user.userId}>
                   <td>{user.fullName}</td>
@@ -348,7 +347,7 @@ const UserManagement: React.FC = () => {
                       {user.role}
                     </span>
                   </td>
-                  <td>{user.username}</td> {/* Displaying username instead of studentCode for now */}
+                  <td>{user.username}</td>
                   <td>
                     <span className={`status-badge ${user.isActive ? 'status-active' : 'status-inactive'}`}>
                       {user.isActive ? 'Active' : 'Inactive'}
@@ -392,7 +391,8 @@ const UserManagement: React.FC = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+              ))
+            )}
           </tbody>
         </table>
       </div>
