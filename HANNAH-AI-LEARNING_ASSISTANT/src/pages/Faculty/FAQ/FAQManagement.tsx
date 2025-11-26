@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import FAQList from './FAQList';
 import FAQForm from './FAQForm';
 import customResponseService from '../../../service/customResponseService';
-import type { CustomResponse } from '../../../service/customResponseService';
+import type { CustomResponse } from '../../../types/CustomResponseTypes';
 import subjectService from '../../../service/subjectService';
 import type { Subject } from '../../../service/subjectService';
 import { useApp } from '../../../contexts/AppContext';
@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 
 
 interface FAQ {
-  id: number;
+  id: string;
   question: string;
   answer: string;
   subjectId: number | null;
@@ -50,7 +50,7 @@ const FAQManagement = () => {
       // Transform CustomResponse to FAQ format
       const transformedFAQs: FAQ[] = response.items.map((item: CustomResponse) => ({
         id: item.responseId,
-        question: item.triggerKeywords.join(', '),  // Display keywords as question
+        question: item.questionPattern || item.triggerKeywords.join(', '),  // Display question pattern or keywords
         answer: item.responseContent,
         subjectId: item.subjectId,
         subjectName: subjects.find(s => s.subjectId === item.subjectId)?.name || 'N/A',

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { Sparkles, Send, ThumbsUp, ThumbsDown, Share2, Upload, Book, GitBranch, FileText, ClipboardCheck, StickyNote, ChevronDown, ChevronUp, Link as LinkIcon, List, Flag } from 'lucide-react'
 import subjectService, { type Subject } from '../../service/subjectService'
@@ -29,8 +29,9 @@ export default function Chat() {
     const location = useLocation()
     const navigate = useNavigate()
     const { user } = useAuth()
+    const { conversationId: paramConversationId } = useParams()
     const initialQuery = location.state?.query || ''
-    const initialConversationId = location.state?.conversationId || null
+    const initialConversationId = location.state?.conversationId || (paramConversationId ? parseInt(paramConversationId) : null)
 
     const [inputValue, setInputValue] = useState('')
     const [isBigPictureOpen, setIsBigPictureOpen] = useState(true)
@@ -133,44 +134,64 @@ export default function Chat() {
         const sendInitialQuery = async () => {
             // Prevent duplicate sends (React Strict Mode runs effects twice)
             if (hasAutoSentRef.current) return;
-            if (!initialQuery || !conversationId || !user?.userId) return;
+            if (!initialQuery || !user?.userId) return;
 
             console.log('🚀 Checking conversation before auto-send:', initialQuery);
             hasAutoSentRef.current = true; // Mark as sent immediately
 
             try {
+                let currentConversationId = conversationId;
+
+                // If no conversation ID, create one first
+                if (!currentConversationId) {
+                    console.log('🆕 Creating new conversation for FAQ query...');
+                    const newConv = await conversationService.createConversation({
+                        userId: user.userId,
+                        title: initialQuery.length > 50 ? initialQuery.substring(0, 50) + '...' : initialQuery,
+                        subjectId: null // Or try to infer from query if possible, but null is safer
+                    });
+                    currentConversationId = newConv.conversationId;
+                    setConversationId(currentConversationId);
+
+                    // Update URL without reloading
+                    navigate(`/chat/${currentConversationId}`, { replace: true, state: { query: initialQuery } });
+                }
+
                 // Check if conversation already has messages (e.g., after F5 reload)
-                const conversationDetails = await conversationService.getConversation(conversationId, user.userId);
+                // Only check if we didn't just create it (newly created ones are empty)
+                if (conversationId) {
+                    const conversationDetails = await conversationService.getConversation(currentConversationId, user.userId);
 
-                if (conversationDetails.messages.length > 0) {
-                    console.log('⏭️ Skipping auto-send: conversation already has', conversationDetails.messages.length, 'messages');
+                    if (conversationDetails.messages.length > 0) {
+                        console.log('⏭️ Skipping auto-send: conversation already has', conversationDetails.messages.length, 'messages');
 
-                    // Load existing messages instead of sending again
-                    const transformedMessages: Message[] = conversationDetails.messages.map(msg => {
-                        const interactiveElements = msg.metadata?.interactive_elements || msg.metadata?.interactiveElements;
-                        const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content, interactiveElements) : {};
+                        // Load existing messages instead of sending again
+                        const transformedMessages: Message[] = conversationDetails.messages.map(msg => {
+                            const interactiveElements = msg.metadata?.interactive_elements || msg.metadata?.interactiveElements;
+                            const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content, interactiveElements) : {};
 
-                        return {
-                            messageId: msg.messageId,
-                            type: msg.role === 'user' || msg.role === 'student' ? 'user' : 'assistant',
-                            content: msg.content,
-                            isStreaming: false,
-                            isFlagged: false,
-                            suggestedQuestions: [],
-                            ...parsed
-                        };
-                    });
+                            return {
+                                messageId: msg.messageId,
+                                type: msg.role === 'user' || msg.role === 'student' ? 'user' : 'assistant',
+                                content: msg.content,
+                                isStreaming: false,
+                                isFlagged: false,
+                                suggestedQuestions: [],
+                                ...parsed
+                            };
+                        });
 
-                    setMessages(transformedMessages);
+                        setMessages(transformedMessages);
 
-                    // Update Big Picture if exists
-                    transformedMessages.forEach(msg => {
-                        if (msg.type === 'assistant' && msg.outline && msg.outline.length > 0) {
-                            setBigPictureData(msg.outline);
-                        }
-                    });
+                        // Update Big Picture if exists
+                        transformedMessages.forEach(msg => {
+                            if (msg.type === 'assistant' && msg.outline && msg.outline.length > 0) {
+                                setBigPictureData(msg.outline);
+                            }
+                        });
 
-                    return; // Exit early - conversation already has messages
+                        return; // Exit early - conversation already has messages
+                    }
                 }
 
                 // Conversation is empty - proceed with auto-send
@@ -185,7 +206,7 @@ export default function Chat() {
                 }]);
 
                 const response = await chatService.sendTextMessage(
-                    conversationId,
+                    currentConversationId,
                     initialQuery
                 );
 

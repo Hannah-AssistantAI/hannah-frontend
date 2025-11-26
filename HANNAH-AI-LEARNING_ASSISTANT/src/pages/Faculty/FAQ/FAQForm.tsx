@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../../contexts/AppContext';
 import customResponseService from '../../../service/customResponseService';
+import type { SimilarResponseItem } from '../../../types/CustomResponseTypes';
 import type { Subject } from '../../../service/subjectService';
 import toast from 'react-hot-toast';
 
 interface FAQ {
-  id?: number;
+  id?: string;
   question: string;
   answer: string;
   subjectId: number | null;
@@ -31,6 +32,8 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
   });
   const [tagInput, setTagInput] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [similarFAQs, setSimilarFAQs] = useState<SimilarResponseItem[]>([]);
+  const [isCheckingSimilarity, setIsCheckingSimilarity] = useState(false);
 
   useEffect(() => {
     if (faq) {
@@ -42,6 +45,37 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
       });
     }
   }, [faq]);
+
+  // Debounced similarity check
+  useEffect(() => {
+    const checkSimilarity = async () => {
+      if (!formData.question.trim() || formData.question.length < 5) {
+        setSimilarFAQs([]);
+        return;
+      }
+
+      setIsCheckingSimilarity(true);
+      try {
+        const subjectIdNum = formData.subjectId ? parseInt(formData.subjectId) : undefined;
+        const result = await customResponseService.checkSimilarity(formData.question, subjectIdNum);
+
+        // Filter out the current FAQ if we are editing (by ID or exact content match if ID missing)
+        const filtered = result.items.filter(item => {
+          if (faq?.id && item.response.responseId === faq.id) return false;
+          return true;
+        });
+
+        setSimilarFAQs(filtered);
+      } catch (error) {
+        console.error("Error checking similarity", error);
+      } finally {
+        setIsCheckingSimilarity(false);
+      }
+    };
+
+    const timer = setTimeout(checkSimilarity, 800); // 800ms debounce
+    return () => clearTimeout(timer);
+  }, [formData.question, formData.subjectId, faq?.id]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -73,6 +107,11 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
       return;
     }
 
+    if (similarFAQs.length > 0) {
+      toast.error('Cannot create duplicate FAQ. Please resolve similarity issues.');
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -82,6 +121,7 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
         // Update existing FAQ
         await customResponseService.updateCustomResponse(faq.id!, {
           triggerKeywords: formData.tags,
+          questionPattern: formData.question,
           responseContent: formData.answer,
           isActive: true
         });
@@ -91,6 +131,7 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
         await customResponseService.createCustomResponse({
           subjectId: subjectIdNum,
           triggerKeywords: formData.tags,
+          questionPattern: formData.question,
           responseContent: formData.answer,
           isActive: true
         });
@@ -188,14 +229,19 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
                 <input
                   type="text"
                   className={`w-full px-4 py-3 bg-white border rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 ${errors.question
-                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
                     }`}
                   value={formData.question}
                   onChange={(e) => handleInputChange('question', e.target.value)}
                   placeholder="Example: How do I submit assignments on the system?"
                 />
-                {errors.question && (
+                {isCheckingSimilarity && (
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                  </div>
+                )}
+                {errors.question && !isCheckingSimilarity && (
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                     <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
@@ -203,6 +249,36 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
                   </div>
                 )}
               </div>
+
+              {/* Similarity Warning */}
+              {similarFAQs.length > 0 && (
+                <div className="mt-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3 w-full">
+                      <h3 className="text-sm font-medium text-yellow-800">
+                        Similar FAQs found ({similarFAQs.length})
+                      </h3>
+                      <div className="mt-2 text-sm text-yellow-700">
+                        <p className="mb-2">This question might be a duplicate. Please check existing FAQs:</p>
+                        <ul className="list-disc pl-5 space-y-1 max-h-40 overflow-y-auto">
+                          {similarFAQs.map((item, index) => (
+                            <li key={index}>
+                              <span className="font-semibold">{item.response.responseContent.substring(0, 60)}...</span>
+                              <span className="text-xs text-yellow-600 ml-2">({Math.round(item.similarityScore)}% match)</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {errors.question && (
                 <p className="mt-2 text-sm text-red-600 flex items-center">
                   <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -220,8 +296,8 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
               </label>
               <textarea
                 className={`w-full px-4 py-3 bg-white border rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 resize-none ${errors.answer
-                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                  ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                  : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
                   }`}
                 value={formData.answer}
                 onChange={(e) => handleInputChange('answer', e.target.value)}
@@ -249,8 +325,8 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
               <div className="relative">
                 <select
                   className={`w-full px-4 py-3 bg-white border rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 appearance-none ${errors.subjectId
-                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
                     }`}
                   value={formData.subjectId}
                   onChange={(e) => handleInputChange('subjectId', e.target.value)}
@@ -360,7 +436,12 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
           </button>
           <button
             type="submit"
-            className="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            disabled={similarFAQs.length > 0}
+            className={`inline-flex items-center px-5 py-2.5 font-medium rounded-lg shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${similarFAQs.length > 0
+              ? 'bg-gray-400 cursor-not-allowed text-gray-200'
+              : 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500'
+              }`}
+            title={similarFAQs.length > 0 ? "Cannot submit while similar FAQs exist" : ""}
           >
             {faq ? (
               <>
