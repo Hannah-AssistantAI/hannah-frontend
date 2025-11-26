@@ -15,6 +15,7 @@ import { QuizSideModal } from './components/modals/QuizSideModal'
 import { CustomizeFeatureModal } from './components/modals/CustomizeFeatureModal'
 import { ShareModal } from './components/modals/ShareModal'
 import { FlagMessageModal } from './components/modals/FlagMessageModal'
+import { MessageImages } from './components/MessageImages'
 import { BigPictureSidebar } from './components/BigPictureSidebar'
 import { StudioSidebar } from './components/StudioSidebar'
 import { HistorySidebar } from '../../components/HistorySidebar'
@@ -156,6 +157,7 @@ export default function Chat() {
                             isStreaming: false,
                             isFlagged: false,
                             suggestedQuestions: [],
+                            images: msg.metadata?.images || [],
                             ...parsed
                         };
                     });
@@ -210,7 +212,8 @@ export default function Chat() {
                         isFlagged: false,
                         suggestedQuestions: parsedResponse.suggestedQuestions || response.assistantMessage.interactiveElements?.suggestedQuestions || [],
                         interactiveList: parsedResponse.interactiveList,
-                        outline: parsedResponse.outline
+                        outline: parsedResponse.outline,
+                        images: response.assistantMessage.metadata?.images || []
                     };
                     return newMessages;
                 });
@@ -406,7 +409,8 @@ export default function Chat() {
                     isFlagged: false,
                     suggestedQuestions: parsedResponse.suggestedQuestions || response.assistantMessage.interactiveElements?.suggestedQuestions || [],
                     interactiveList: parsedResponse.interactiveList,
-                    outline: parsedResponse.outline
+                    outline: parsedResponse.outline,
+                    images: response.assistantMessage.metadata?.images || []
                 };
                 return newMessages;
             });
@@ -505,7 +509,8 @@ export default function Chat() {
                     isFlagged: false,
                     suggestedQuestions: parsedResponse.suggestedQuestions || response.assistantMessage.interactiveElements?.suggestedQuestions || [],
                     interactiveList: parsedResponse.interactiveList,
-                    outline: parsedResponse.outline
+                    outline: parsedResponse.outline,
+                    images: response.assistantMessage.metadata?.images || []
                 };
                 return newMessages;
             });
@@ -720,6 +725,9 @@ export default function Chat() {
                         ))}
                     </div>
                     {renderInteractiveList(message.interactiveList)}
+                    {message.images && message.images.length > 0 && (
+                        <MessageImages images={message.images} />
+                    )}
                 </>
             )
         }
@@ -861,6 +869,150 @@ export default function Chat() {
                 )
             }
         })
+
+        // Render images at the end if present
+        const imageComponent = message?.images && message.images.length > 0 ? (
+            <MessageImages key="images" images={message.images!} />
+        ) : null
+
+        return imageComponent ? [...parts.map((part, partIndex) => renderPart(part, partIndex)), imageComponent] : parts.map((part, partIndex) => renderPart(part, partIndex))
+
+        function renderPart(part: any, partIndex: number) {
+            if (part.type === 'interactive-list') {
+                return (
+                    <div key={`part-${partIndex}`} className="message-sources">
+                        <button
+                            className="sources-toggle"
+                            onClick={() => setExpandedSources(prev => ({
+                                ...prev,
+                                [`${messageIndex}-${partIndex}`]: !prev[`${messageIndex}-${partIndex}`]
+                            }))}
+                        >
+                            <List size={18} />
+                            <span className="sources-label">Interactive List</span>
+                            <span className="sources-title">{part.title}</span>
+                            {expandedSources[`${messageIndex}-${partIndex}`] ? (
+                                <ChevronUp size={18} className="sources-chevron" />
+                            ) : (
+                                <ChevronDown size={18} className="sources-chevron" />
+                            )}
+                        </button>
+
+                        {expandedSources[`${messageIndex}-${partIndex}`] && (
+                            <div className="sources-list">
+                                {part.sources?.map((source: any) => (
+                                    <a
+                                        key={`${messageIndex}-${partIndex}-source-${source.id}`}
+                                        href={source.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="source-item"
+                                    >
+                                        <div className="source-icon-wrapper">
+                                            {source.icon ? (
+                                                <span className="source-icon-emoji">{source.icon}</span>
+                                            ) : (
+                                                <div className="source-icon-placeholder">
+                                                    <Book size={24} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="source-content">
+                                            <h4 className="source-title">{source.title}</h4>
+                                            <p className="source-description">{source.description}</p>
+                                        </div>
+                                        <button className="source-link-btn" aria-label="Open link">
+                                            <LinkIcon size={20} />
+                                        </button>
+                                    </a>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )
+            } else if (part.type === 'video-content') {
+                return (
+                    <div key={`part-${partIndex}`} className="video-content-container">
+                        <h3 className="video-content-title">{part.videoTitle || 'Related Video'}</h3>
+                        <div className="video-wrapper">
+                            <iframe
+                                src={part.videoUrl}
+                                title={part.videoTitle || 'Video'}
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                className="video-iframe"
+                            />
+                        </div>
+                    </div>
+                )
+            } else if (part.type === 'related-content') {
+                return (
+                    <div key={`part-${partIndex}`} className="related-content">
+                        <h3 className="related-content-title">{part.title}</h3>
+                        <div className="related-content-carousel">
+                            {part.relatedItems?.map((item: any) => (
+                                <div
+                                    key={`${messageIndex}-${partIndex}-related-${item.id}`}
+                                    className="related-content-card"
+                                    onClick={() => handleInteractiveItemClick(item.shortTitle || item.title)}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <div className="related-card-content">
+                                        <h4 className="related-card-title">{item.title}</h4>
+                                        <p className="related-card-description">{item.description}</p>
+                                    </div>
+                                    <div className="related-card-footer">
+                                        <div className="related-card-info">
+                                            <div className="related-card-short-title">{item.shortTitle || item.title}</div>
+                                            <div className="related-card-source">
+                                                {item.sourceIcon && (
+                                                    <span className="source-icon-badge">{item.sourceIcon}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )
+            } else {
+                return (
+                    <div key={`part-${partIndex}`} className="message-text">
+                        {part.content.split('\n').map((line: string, i: number) => {
+                            // Handle bold text
+                            if (line.includes('**')) {
+                                const parts = line.split('**')
+                                return (
+                                    <p key={i}>
+                                        {parts.map((linePart: string, j: number) =>
+                                            j % 2 === 1 ? <strong key={j}>{linePart}</strong> : linePart
+                                        )}
+                                    </p>
+                                )
+                            }
+                            // Handle headings
+                            if (line.startsWith('### ')) {
+                                return <h3 key={i}>{line.replace('### ', '')}</h3>
+                            }
+                            if (line.startsWith('#### ')) {
+                                return <h4 key={i}>{line.replace('#### ', '')}</h4>
+                            }
+                            // Handle list items
+                            if (line.startsWith('- ')) {
+                                return <li key={i}>{line.replace('- ', '')}</li>
+                            }
+                            // Regular paragraph
+                            if (line.trim()) {
+                                return <p key={i}>{line}</p>
+                            }
+                            return null
+                        })}
+                    </div>
+                )
+            }
+        }
     }
 
 
