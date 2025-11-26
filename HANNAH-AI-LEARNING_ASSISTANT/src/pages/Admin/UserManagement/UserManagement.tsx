@@ -348,7 +348,7 @@ const UserManagement: React.FC = () => {
                       {user.role}
                     </span>
                   </td>
-                  <td>{user.username}</td> {/* Displaying username instead of studentCode for now */}
+                  <td>{user.username}</td>
                   <td>
                     <span className={`status-badge ${user.isActive ? 'status-active' : 'status-inactive'}`}>
                       {user.isActive ? 'Active' : 'Inactive'}
