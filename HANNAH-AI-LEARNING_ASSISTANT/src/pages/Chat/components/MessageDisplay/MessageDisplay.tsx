@@ -25,14 +25,35 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
 }) => {
     const [showYouTubeModal, setShowYouTubeModal] = useState(false);
     const [selectedVideo, setSelectedVideo] = useState<YoutubeResource | null>(null);
+    const [isInteractiveListExpanded, setIsInteractiveListExpanded] = useState(true);
+
     const renderInteractiveList = (items: any[]) => {
         return (
             <div className="interactive-list-container">
-                <div className="interactive-list-header">
+                <div
+                    className="interactive-list-header"
+                    onClick={() => setIsInteractiveListExpanded(!isInteractiveListExpanded)}
+                    style={{ cursor: 'pointer' }}
+                >
                     <List size={20} className="interactive-list-icon" />
                     <span className="interactive-list-title">Interactive List</span>
+                    <div className="interactive-list-toggle" style={{ marginLeft: 'auto' }}>
+                        {isInteractiveListExpanded ? (
+                            <ChevronUp size={20} />
+                        ) : (
+                            <ChevronDown size={20} />
+                        )}
+                    </div>
                 </div>
-                <div className="interactive-list-items">
+                <div
+                    className={`interactive-list-items ${isInteractiveListExpanded ? 'expanded' : 'collapsed'}`}
+                    style={{
+                        maxHeight: isInteractiveListExpanded ? '1000px' : '0',
+                        overflow: 'hidden',
+                        transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+                        opacity: isInteractiveListExpanded ? 1 : 0
+                    }}
+                >
                     {items.map((item, index) => (
                         <div
                             key={index}
