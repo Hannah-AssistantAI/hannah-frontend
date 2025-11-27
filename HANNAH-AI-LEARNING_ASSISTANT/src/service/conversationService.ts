@@ -99,6 +99,15 @@ class ConversationService {
         );
         return response.data.data;
     }
+
+    /**
+     * Delete a conversation (soft delete)
+     */
+    async deleteConversation(conversationId: number, userId: number): Promise<void> {
+        await pythonApiClient.delete(
+            `/api/v1/conversations/${conversationId}?user_id=${userId}`
+        );
+    }
 }
 
 export const conversationService = new ConversationService();

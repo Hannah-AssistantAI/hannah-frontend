@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import conversationService from '../service/conversationService';
 import './HistorySidebar.css';
@@ -75,6 +75,28 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose 
             onClose();
         } catch (error) {
             console.error('Failed to create new conversation:', error);
+        }
+    };
+
+    const handleDeleteConversation = async (conversationId: number, e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent conversation click when clicking delete
+
+        if (!user?.userId) {
+            console.error('User not logged in');
+            return;
+        }
+
+        if (!confirm('Bạn có chắc chắn muốn xóa cuộc trò chuyện này?')) {
+            return;
+        }
+
+        try {
+            await conversationService.deleteConversation(conversationId, user.userId);
+            // Refresh conversations list
+            await fetchConversations();
+        } catch (error) {
+            console.error('Failed to delete conversation:', error);
+            alert('Không thể xóa cuộc trò chuyện. Vui lòng thử lại.');
         }
     };
 
@@ -163,12 +185,21 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose 
                                                         className="conversation-item"
                                                         onClick={() => handleConversationClick(conv.conversation_id || conv.conversationId)}
                                                     >
-                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="conversation-icon">
-                                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                                                        </svg>
-                                                        <span className="conversation-text">
-                                                            {conv.title || "Cuộc trò chuyện mới"}
-                                                        </span>
+                                                        <div className="conversation-item-content">
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="conversation-icon">
+                                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                                            </svg>
+                                                            <span className="conversation-text">
+                                                                {conv.title || "Cuộc trò chuyện mới"}
+                                                            </span>
+                                                        </div>
+                                                        <button
+                                                            className="delete-conversation-btn"
+                                                            onClick={(e) => handleDeleteConversation(conv.conversation_id || conv.conversationId, e)}
+                                                            title="Xóa cuộc trò chuyện"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
                                                     </button>
                                                 ))}
                                             </div>
