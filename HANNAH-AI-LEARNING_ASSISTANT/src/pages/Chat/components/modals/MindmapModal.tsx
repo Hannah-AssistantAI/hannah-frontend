@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { GitBranch, Maximize2, Minimize2, Download, Share2 } from 'lucide-react'
+import { GitBranch, Maximize2, Download, Share2 } from 'lucide-react'
 import MindmapViewer from '../../../../components/MindmapViewer'
 
 interface MindmapModalProps {

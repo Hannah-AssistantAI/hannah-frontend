@@ -71,7 +71,7 @@ interface LearningStats {
 }
 
 interface ProfileProps {
-  embedded?: boolean;
+    embedded?: boolean;
 }
 
 export default function Profile({ embedded = false }: ProfileProps) {
@@ -170,7 +170,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
                 const response = await userService.updateUserProfile(user.userId.toString(), updateData);
 
                 // Create the updated profile object for local state
-                const updatedProfileData = { ...userProfile, ...response.data };
+                const updatedProfileData = { ...userProfile, ...response };
 
                 setUserProfile(updatedProfileData as UserProfile);
                 setEditedProfile(updatedProfileData as UserProfile);
@@ -281,7 +281,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
             />
             {/* Header - Conditionally render based on embedded prop */}
             {!embedded && (
-            <header className="profile-header">
+                <header className="profile-header">
                     <div className="profile-header-left">
                         <div className="profile-logo" onClick={() => navigate('/learn')}>
                             <Sparkles size={24} className="text-blue-500" />
@@ -293,44 +293,44 @@ export default function Profile({ embedded = false }: ProfileProps) {
                             Quay lại
                         </button>
                     </div>
-            </header>
+                </header>
             )}
 
             <div className="profile-container">
                 {/* Sidebar */}
                 {!embedded && (
-                <aside className="profile-sidebar">
-                    <div className="profile-nav">
-                        <button
-                            className={`profile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('profile')}
-                        >
-                            <User size={20} />
-                            <span>Thông tin cá nhân</span>
-                            <ChevronRight size={18} className="ml-auto" />
-                        </button>
-
-                        <button
-                            className={`profile-nav-item ${activeTab === 'security' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('security')}
-                        >
-                            <Shield size={20} />
-                            <span>Bảo mật & Đăng nhập</span>
-                            <ChevronRight size={18} className="ml-auto" />
-                        </button>
-
-                    </div>
-
-                    <div className="profile-sidebar-footer">
-                        {user?.role === 'student' && (
-                            <button className="profile-logout-btn">
-                                <LogOut size={20} />
-                                <span>Đăng xuất</span>
+                    <aside className="profile-sidebar">
+                        <div className="profile-nav">
+                            <button
+                                className={`profile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('profile')}
+                            >
+                                <User size={20} />
+                                <span>Thông tin cá nhân</span>
+                                <ChevronRight size={18} className="ml-auto" />
                             </button>
-                        )}
-                    </div>
-                </aside>
-            )}
+
+                            <button
+                                className={`profile-nav-item ${activeTab === 'security' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('security')}
+                            >
+                                <Shield size={20} />
+                                <span>Bảo mật & Đăng nhập</span>
+                                <ChevronRight size={18} className="ml-auto" />
+                            </button>
+
+                        </div>
+
+                        <div className="profile-sidebar-footer">
+                            {user?.role === 'student' && (
+                                <button className="profile-logout-btn">
+                                    <LogOut size={20} />
+                                    <span>Đăng xuất</span>
+                                </button>
+                            )}
+                        </div>
+                    </aside>
+                )}
 
                 {/* Main Content */}
                 <main className="profile-main">
