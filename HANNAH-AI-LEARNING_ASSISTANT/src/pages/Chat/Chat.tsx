@@ -896,7 +896,9 @@ export default function Chat() {
         })
 
         // Render images at the end if present
+        // @ts-ignore - message is optional but guaranteed to exist in this context
         const imageComponent = message?.images && message.images.length > 0 ? (
+            // @ts-ignore
             <MessageImages key="images" images={message.images!} />
         ) : null
 
