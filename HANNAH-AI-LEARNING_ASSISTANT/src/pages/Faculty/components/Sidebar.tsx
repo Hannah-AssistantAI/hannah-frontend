@@ -77,7 +77,7 @@ const FacultySidebarContent: React.FC<FacultySidebarContentProps> = ({
     //   description: "Question statistics and trends",
     //   icon: BarChart3,
     // },
-  
+
   ];
 
 
@@ -162,10 +162,10 @@ const FacultySidebarContent: React.FC<FacultySidebarContentProps> = ({
   );
 };
 
-const FacultySidebar: React.FC = () => {
+const FacultySidebar: React.FC<any> = (props) => {
   return (
     <ReusableSidebar title="Hannah" subtitle="Lecturer page">
-      <FacultySidebarContent />
+      <FacultySidebarContent {...props} />
     </ReusableSidebar>
   );
 };

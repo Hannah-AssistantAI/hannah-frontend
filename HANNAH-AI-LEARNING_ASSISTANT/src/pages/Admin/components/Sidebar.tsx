@@ -138,10 +138,10 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ isCollapsed =
   );
 };
 
-const AdminSidebar: React.FC = () => {
+const AdminSidebar: React.FC<any> = (props) => {
   return (
     <ReusableSidebar title="Hannah" subtitle="Admin Panel">
-      <AdminSidebarContent />
+      <AdminSidebarContent {...props} />
     </ReusableSidebar>
   );
 };
