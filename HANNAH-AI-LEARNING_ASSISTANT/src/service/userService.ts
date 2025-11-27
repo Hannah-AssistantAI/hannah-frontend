@@ -257,19 +257,20 @@ class UserService {
       throw error;
     }
   }
-
   /**
    * Upload user avatar
    */
   async uploadAvatar(userId: string, file: File): Promise<{ avatarUrl: string }> {
     try {
       const formData = new FormData();
-      formData.append('Avatar', file); // Changed to 'Avatar' with capital A to match API
-      const response = await apiClient.postFormData<{ avatarUrl: string }>(
+      formData.append('Avatar', file);
+      // The API returns a wrapped response: { success: boolean, data: { avatarUrl: string } }
+      const response = await apiClient.postFormData<{ success: boolean; data: { avatarUrl: string } }>(
         API_ENDPOINTS.USER.UPLOAD_AVATAR(userId),
         formData
       );
-      return response.data;
+      // Return the inner data object which contains the avatarUrl
+      return response.data.data;
     } catch (error) {
       console.error('Upload avatar error:', error);
       throw error;

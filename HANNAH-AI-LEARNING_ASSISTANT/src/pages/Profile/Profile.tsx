@@ -232,7 +232,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
                 const response = await userService.uploadAvatar(user.userId.toString(), file);
 
                 // Build a full URL for the new avatar and update the state
-                const baseUrl = buildAvatarUrl(response.data.avatarUrl);  // ✅ ĐÚNG
+                const baseUrl = buildAvatarUrl(response.avatarUrl);  // ✅ ĐÚNG
                 const newAvatarUrl = `${baseUrl}?v=${Date.now()}`;
                 console.log('🔥 Old avatar:', editedProfile?.avatar);
                 console.log('🔥 New avatar:', newAvatarUrl);
@@ -246,7 +246,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
 
                 // Also update the user context to refresh avatar globally
                 if (updateUser && user) {
-                    updateUser({ ...user, avatarUrl: response.data.avatarUrl });  // ✅ ĐÚNG
+                    updateUser({ ...user, avatarUrl: response.avatarUrl });  // ✅ ĐÚNG
                 }
 
                 toast.success('Đã cập nhật avatar thành công!');
