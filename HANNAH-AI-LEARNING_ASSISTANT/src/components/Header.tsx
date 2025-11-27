@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, Share2 } from 'lucide-react';
 import ProfileIcon from './ProfileIcon';
 import ThemeToggle from './ThemeToggle';
+import NotificationBell from './NotificationBell';
 import './Header.css';
 
 interface HeaderProps {
     onToggleHistory: () => void;
     showShareButton?: boolean;
     onShareClick?: () => void;
+    showNotifications?: boolean;
     className?: string;
 }
 
@@ -16,6 +18,7 @@ export const Header: React.FC<HeaderProps> = ({
     onToggleHistory,
     showShareButton = false,
     onShareClick,
+    showNotifications = false,
     className = ''
 }) => {
     const navigate = useNavigate();
@@ -47,6 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
                         <span>Chia sẻ</span>
                     </button>
                 )}
+                {showNotifications && <NotificationBell />}
                 <ThemeToggle />
                 <ProfileIcon />
             </div>
