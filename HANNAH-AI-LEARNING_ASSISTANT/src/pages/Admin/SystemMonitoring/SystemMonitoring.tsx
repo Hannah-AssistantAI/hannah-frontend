@@ -20,10 +20,6 @@ export const SystemMonitoring: React.FC = () => {
   const { metrics: geminiMetrics, loading: geminiLoading } = useGeminiMetrics();
   const { distribution, loading: distLoading } = useResponseSourceDistribution();
 
-  if (systemLoading || dbLoading || appLoading || geminiLoading || distLoading) {
-    return <div>Loading monitoring data...</div>;
-  }
-
   return (
     <AdminPageWrapper title="System Monitoring">
       <InfoBox>
@@ -32,7 +28,11 @@ export const SystemMonitoring: React.FC = () => {
       </InfoBox>
 
       {/* Backend System Performance */}
-      {systemMetrics && (
+      {systemLoading ? (
+        <Card title="🖥️ Backend System Performance (FastAPI Server)">
+          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Loading system metrics...</div>
+        </Card>
+      ) : systemMetrics && (
         <Card
           title="🖥️ Backend System Performance (FastAPI Server)"
           action={<Badge type="success">✅ Full Access</Badge>}
@@ -60,26 +60,30 @@ export const SystemMonitoring: React.FC = () => {
       )}
 
       {/* Database Performance */}
-      {dbMetrics && (
+      {dbLoading ? (
+        <Card title="🗄️ Database Performance" className="mt-24">
+          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Loading database metrics...</div>
+        </Card>
+      ) : dbMetrics && (
         <Card
           title="🗄️ Database Performance"
           action={<Badge type="success">✅ Full Access</Badge>}
           className="mt-24"
         >
           <h4 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: 'var(--primary-color)' }}>
-            PostgreSQL (Structured Data)
+            SQL Server (Structured Data)
           </h4>
           <MetricRow
             label="Active Connections"
-            value={`${dbMetrics.postgresql.activeConnections} / ${dbMetrics.postgresql.maxConnections}`}
+            value={`${dbMetrics.sqlserver.activeConnections} / ${dbMetrics.sqlserver.maxConnections}`}
           />
           <MetricRow
             label="Average Query Time"
-            value={`${dbMetrics.postgresql.avgQueryTime}ms`}
+            value={`${dbMetrics.sqlserver.avgQueryTime}ms`}
           />
           <MetricRow
             label="Database Size"
-            value={dbMetrics.postgresql.size}
+            value={dbMetrics.sqlserver.size}
           />
 
           <h4 style={{ fontSize: '16px', fontWeight: 600, margin: '24px 0 16px', color: 'var(--success-color)' }}>
@@ -117,7 +121,11 @@ export const SystemMonitoring: React.FC = () => {
       )}
 
       {/* Application Metrics */}
-      {appMetrics && (
+      {appLoading ? (
+        <Card title="📊 Application Metrics (Backend Monitoring)" className="mt-24">
+          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Loading application metrics...</div>
+        </Card>
+      ) : appMetrics && (
         <Card
           title="📊 Application Metrics (Backend Monitoring)"
           action={<Badge type="success">✅ Full Access</Badge>}
@@ -146,10 +154,52 @@ export const SystemMonitoring: React.FC = () => {
         </Card>
       )}
 
-      {/* Response Source Distribution */}
-      {distribution && (
+      {/* Gemini AI Metrics */}
+      {geminiLoading ? (
+        <Card title="🤖 Gemini AI API Usage (Today)" className="mt-24">
+          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Loading Gemini metrics...</div>
+        </Card>
+      ) : geminiMetrics && (
         <Card
-          title="📈 Response Source Distribution (Today)"
+          title="🤖 Gemini AI API Usage (Today)"
+          action={<Badge type="success">✅ Full Access</Badge>}
+          className="mt-24"
+        >
+          <MetricRow
+            label="API Calls Today"
+            value={geminiMetrics.apiCallsToday.toLocaleString()}
+          />
+          <MetricRow
+            label="Total Tokens Used"
+            value={geminiMetrics.totalTokensUsed.toLocaleString()}
+          />
+          <MetricRow
+            label="Average Response Time"
+            value={`${geminiMetrics.avgResponseTime}s`}
+          />
+          <MetricRow
+            label="Error Rate"
+            value={`${geminiMetrics.errorRate}%`}
+          />
+          <MetricRow
+            label="Slowest Response"
+            value={`${geminiMetrics.slowestResponse}s`}
+          />
+          <MetricRow
+            label="Fastest Response"
+            value={`${geminiMetrics.fastestResponse}s`}
+          />
+        </Card>
+      )}
+
+      {/* Response Source Distribution */}
+      {distLoading ? (
+        <Card title="📈 Response Source Distribution (All Time)" className="mt-24">
+          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Loading response distribution...</div>
+        </Card>
+      ) : distribution && (
+        <Card
+          title="📈 Response Source Distribution (All Time)"
           action={<Badge type="success">✅ Tracked In-App</Badge>}
           className="mt-24"
         >

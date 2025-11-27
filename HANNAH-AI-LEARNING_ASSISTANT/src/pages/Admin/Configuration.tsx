@@ -33,7 +33,7 @@ export const Configuration: React.FC = () => {
     <AdminPageWrapper title="System Configuration">
       <InfoBox>
         <strong>Configuration Options:</strong> Settings can be edited through the admin interface.
-        Changes are saved to the PostgreSQL configuration table.
+        Changes are saved to the system configuration file.
       </InfoBox>
 
       {successMessage && (
@@ -67,11 +67,11 @@ export const Configuration: React.FC = () => {
         />
 
         {/* Gemini API Configuration */}
-        {/* <GeminiConfigCard
+        <GeminiConfigCard
           config={config.gemini}
           onSave={(data) => handleSaveConfig('gemini', data)}
           saving={saving}
-        /> */}
+        />
 
         {/* Application Settings */}
         <ApplicationConfigCard
@@ -212,7 +212,7 @@ const GeminiConfigCard: React.FC<{
         <i className="fas fa-robot" style={{ color: 'var(--primary-color)' }}></i> Gemini API Configuration
       </h3>
       <Badge type="warning" style={{ marginBottom: '16px' }}>⚠️ Limited - Parameters Only</Badge>
-      
+
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label className="form-label">Gemini API Key</label>
@@ -233,8 +233,8 @@ const GeminiConfigCard: React.FC<{
             value={formData.model}
             onChange={(e) => setFormData({ ...formData, model: e.target.value })}
           >
-            <option value="gemini-pro">gemini-pro</option>
-            <option value="gemini-pro-vision">gemini-pro-vision</option>
+            <option value="gemini-1.5-flash-2.0">gemini-1.5-flash-2.0 (Recommended)</option>
+            <option value="gemini-1.5-flash">gemini-1.5-flash</option>
             <option value="gemini-1.5-pro">gemini-1.5-pro</option>
           </select>
           <small style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '4px' }}>
@@ -296,7 +296,7 @@ const GeminiConfigCard: React.FC<{
           </small>
         </div>
         <InfoBox icon="fas fa-exclamation-triangle" style={{ marginTop: '16px' }}>
-          <strong>Note:</strong> Cannot modify Gemini's internal architecture, training data, 
+          <strong>Note:</strong> Cannot modify Gemini's internal architecture, training data,
           or infrastructure. These parameters control how we USE the API.
         </InfoBox>
         <Button
