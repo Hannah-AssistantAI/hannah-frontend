@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { MessageSquare, FileText, BarChart3, HelpCircle, TrendingDown, ChevronDown, ChevronRight, User } from "lucide-react";
+import { MessageSquare, FileText, BarChart3, HelpCircle, TrendingDown, ChevronDown, ChevronRight, User, ClipboardList } from "lucide-react";
 import { useFacultyContext } from "../../../contexts/FacultyContext";
 import ReusableSidebar from "../../../components/Sidebar/Sidebar";
 
@@ -52,6 +52,13 @@ const FacultySidebarContent: React.FC<FacultySidebarContentProps> = ({
       icon: MessageSquare,
     },
     {
+      path: "/faculty/my-assignments",
+      label: "My Assignments",
+      badge: null,
+      description: "Flagged items assigned to you",
+      icon: ClipboardList,
+    },
+    {
       path: "/faculty/materials",
       label: "Learning Materials",
       badge: null,
@@ -77,7 +84,7 @@ const FacultySidebarContent: React.FC<FacultySidebarContentProps> = ({
     //   description: "Question statistics and trends",
     //   icon: BarChart3,
     // },
-  
+
   ];
 
 

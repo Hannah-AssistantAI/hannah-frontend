@@ -64,6 +64,14 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ isCollapsed =
         <Flag size={20} />
         {!isCollapsed && <span className="sidebar-label">Flagged Quizzes</span>}
       </NavLink>
+      <NavLink
+        to="/admin/flagged-items"
+        className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+        title={isCollapsed ? "Flagged Items" : ""}
+      >
+        <Flag size={20} />
+        {!isCollapsed && <span className="sidebar-label">Flagged Items</span>}
+      </NavLink>
       <div>
         <a
           href="#"

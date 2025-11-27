@@ -1081,6 +1081,7 @@ export default function Chat() {
                 onToggleHistory={() => setShowHistorySidebar(!showHistorySidebar)}
                 showShareButton={true}
                 onShareClick={() => setShowShareModal(true)}
+                showNotifications={true}
             />
 
             {/* History Sidebar */}

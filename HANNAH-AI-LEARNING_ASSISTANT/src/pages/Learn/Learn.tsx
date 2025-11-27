@@ -91,6 +91,7 @@ export default function Learn() {
             {/* Header */}
             <Header
                 onToggleHistory={() => setShowHistorySidebar(!showHistorySidebar)}
+                showNotifications={true}
             />
 
             {/* History Sidebar */}
