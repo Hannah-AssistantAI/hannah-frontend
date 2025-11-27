@@ -33,7 +33,12 @@ export interface Message {
     role: string;
     content: string;
     createdAt: string;
-    metadata?: any;
+    metadata?: {
+        images?: Array<{
+            url: string;
+            source: string;
+        }>;
+    };
 }
 
 export interface BaseResponse<T> {

@@ -333,12 +333,11 @@ const UserManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {isLoading && (
+            {isLoading ? (
               <tr>
                 <td colSpan={7} className="loading-cell">Loading...</td>
               </tr>
-            )}
-            {!isLoading &&
+            ) : (
               filteredUsers.map(user => (
                 <tr key={user.userId}>
                   <td>{user.fullName}</td>
@@ -392,7 +391,8 @@ const UserManagement: React.FC = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+              ))
+            )}
           </tbody>
         </table>
       </div>

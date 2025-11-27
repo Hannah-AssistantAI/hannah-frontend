@@ -38,6 +38,11 @@ export interface OutlineItem {
     subtopics: string[]
 }
 
+export interface ImageMetadata {
+    url: string
+    source: string
+}
+
 export interface Message {
     messageId?: number          // Backend message ID
     type: string
@@ -49,6 +54,7 @@ export interface Message {
     suggestedQuestions?: string[]
     interactiveList?: InteractiveListItem[]
     outline?: OutlineItem[]
+    images?: ImageMetadata[]    // RAG images from document chunks
 }
 
 export interface BigPictureTopic {

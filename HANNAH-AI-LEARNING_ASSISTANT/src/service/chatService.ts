@@ -31,11 +31,17 @@ export interface InteractiveElements {
     outline?: any[];
 }
 
+export interface ImageData {
+    url: string;
+    source: string;
+}
+
 export interface MessageMetadata {
     model: string;
     temperature: number;
     tokenCount: number;
     matched_subject_id?: number;
+    images?: ImageData[];  // RAG images from document chunks
 }
 
 export interface AssistantMessage {
