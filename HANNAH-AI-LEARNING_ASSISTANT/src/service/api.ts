@@ -10,7 +10,7 @@ import type {
   ConfigSettings,
 } from '../types/index';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
 
 // Mock data for development
 const MOCK_DATA = {
@@ -190,13 +190,15 @@ const MOCK_DATA = {
 };
 
 class ApiService {
-  private useMockData = true; // Set to false when real API is available
+  private useMockData = false; // Real API with auth disabled for monitoring endpoints
 
   private async fetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    const token = localStorage.getItem('accessToken');
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         ...options?.headers,
       },
     });
@@ -205,7 +207,9 @@ class ApiService {
       throw new Error(`API Error: ${response.statusText}`);
     }
 
-    return response.json();
+    const json = await response.json();
+    // Backend wraps response in { success, data }, unwrap it
+    return json.data || json;
   }
 
   private mockDelay(ms: number = 300): Promise<void> {
@@ -251,7 +255,7 @@ class ApiService {
         },
       };
     }
-    return this.fetch<SystemMetrics>('/monitoring/system');
+    return this.fetch<SystemMetrics>('/api/v1/monitoring/system');
   }
 
   async getDatabaseMetrics(): Promise<DatabaseMetrics> {
@@ -259,7 +263,7 @@ class ApiService {
       await this.mockDelay();
       return MOCK_DATA.databaseMetrics;
     }
-    return this.fetch<DatabaseMetrics>('/monitoring/database');
+    return this.fetch<DatabaseMetrics>('/api/v1/monitoring/database');
   }
 
   async getApplicationMetrics(): Promise<ApplicationMetrics> {
@@ -271,7 +275,7 @@ class ApiService {
         cacheHitRate: Math.random() * 10 + 75, // 75-85%
       };
     }
-    return this.fetch<ApplicationMetrics>('/monitoring/application');
+    return this.fetch<ApplicationMetrics>('/api/v1/monitoring/application');
   }
 
   async getGeminiMetrics(): Promise<GeminiMetrics> {
@@ -279,7 +283,7 @@ class ApiService {
       await this.mockDelay();
       return MOCK_DATA.geminiMetrics;
     }
-    return this.fetch<GeminiMetrics>('/monitoring/gemini');
+    return this.fetch<GeminiMetrics>('/api/v1/monitoring/gemini');
   }
 
   async getResponseSourceDistribution(): Promise<ResponseSourceDistribution> {
@@ -287,7 +291,7 @@ class ApiService {
       await this.mockDelay();
       return MOCK_DATA.responseSourceDistribution;
     }
-    return this.fetch<ResponseSourceDistribution>('/monitoring/response-sources');
+    return this.fetch<ResponseSourceDistribution>('/api/v1/monitoring/response-sources');
   }
 
   // Configuration APIs
@@ -318,8 +322,8 @@ class ApiService {
       await this.mockDelay(1000);
       return {
         success: Math.random() > 0.2, // 80% success rate
-        message: Math.random() > 0.2 
-          ? `${type} connection successful` 
+        message: Math.random() > 0.2
+          ? `${type} connection successful`
           : `Failed to connect to ${type}`,
       };
     }
