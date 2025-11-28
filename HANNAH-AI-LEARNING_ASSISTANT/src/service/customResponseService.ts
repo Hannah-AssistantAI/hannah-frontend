@@ -33,11 +33,15 @@ class CustomResponseService {
     async getPublicCustomResponses(
         subjectId?: number,
         page: number = 1,
-        limit: number = 20
+        limit: number = 20,
+        search?: string
     ): Promise<CustomResponseListResponse> {
         const params: Record<string, any> = { page, limit };
-        if (subjectId) {
+        if (subjectId !== undefined) {
             params.subjectId = subjectId;
+        }
+        if (search) {
+            params.search = search;
         }
 
         const response = await pythonApiClient.get<{ data: CustomResponseListResponse }>(
@@ -53,11 +57,15 @@ class CustomResponseService {
     async getCustomResponses(
         subjectId?: number,
         page: number = 1,
-        limit: number = 20
+        limit: number = 20,
+        search?: string
     ): Promise<CustomResponseListResponse> {
         const params: Record<string, any> = { page, limit };
-        if (subjectId) {
+        if (subjectId !== undefined) {
             params.subjectId = subjectId;
+        }
+        if (search) {
+            params.search = search;
         }
 
         const response = await pythonApiClient.get<{ data: CustomResponseListResponse }>(

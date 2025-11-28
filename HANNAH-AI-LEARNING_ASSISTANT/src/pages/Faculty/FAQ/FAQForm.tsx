@@ -390,7 +390,7 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
                   value={formData.subjectId}
                   onChange={(e) => handleInputChange('subjectId', e.target.value)}
                 >
-                  <option value="">Chung / General (No Subject)</option>
+                  <option value="">General</option>
                   {subjects.map(subject => (
                     <option key={subject.subjectId} value={subject.subjectId.toString()}>{subject.name}</option>
                   ))}

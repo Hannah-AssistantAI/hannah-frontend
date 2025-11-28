@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2, Search } from 'lucide-react';
 import customResponseService from '../../service/customResponseService';
 import type { CustomResponse } from '../../service/customResponseService';
 import subjectService, { type Subject } from '../../service/subjectService';
@@ -21,6 +21,8 @@ export default function FAQSection() {
     const [loading, setLoading] = useState(true);
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [selectedSubjectId, setSelectedSubjectId] = useState<number | undefined>(undefined);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const sectionRef = useRef<HTMLDivElement>(null);
 
     const colors = [
@@ -31,6 +33,15 @@ export default function FAQSection() {
         "text-green-400",
         "text-orange-400"
     ];
+
+    // Debounce search term
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     // Fetch subjects list
     useEffect(() => {
@@ -45,7 +56,7 @@ export default function FAQSection() {
         fetchSubjects();
     }, []);
 
-    // Fetch FAQs based on selected subject
+    // Fetch FAQs based on selected subject and search term
     useEffect(() => {
         const fetchFAQs = async () => {
             setLoading(true);
@@ -53,7 +64,8 @@ export default function FAQSection() {
                 const response = await customResponseService.getPublicCustomResponses(
                     selectedSubjectId, // Filter by subject
                     1,
-                    6
+                    6,
+                    debouncedSearchTerm // Filter by search term
                 );
                 console.log("FAQSection: Fetched response:", response);
 
@@ -100,7 +112,7 @@ export default function FAQSection() {
         };
 
         fetchFAQs();
-    }, [selectedSubjectId]); // Re-fetch when subject changes
+    }, [selectedSubjectId, debouncedSearchTerm]); // Re-fetch when subject or search term changes
 
     useEffect(() => {
         if (loading) return;
@@ -129,7 +141,7 @@ export default function FAQSection() {
         navigate('/chat', { state: { query: question } });
     };
 
-    if (loading) {
+    if (loading && !faqs.length) { // Only show full loader if no FAQs are loaded yet
         return (
             <section className="py-12 px-6 w-full max-w-[1000px] mx-auto flex justify-center">
                 <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
@@ -144,22 +156,38 @@ export default function FAQSection() {
                     Câu hỏi thường gặp
                 </h2>
                 <p className="text-gray-400 text-sm md:text-base max-w-xl mx-auto">
-                    Khám phá các thắc mắc phổ biến. Bấm vào để hỏi Hannah ngay.
+                    Khám phá các thắc mắc phổ biến về kĩ thuật phần mềm. Bấm vào để hỏi Hannah ngay.
                 </p>
             </div>
 
-            {/* Subject Filter Dropdown */}
-            <div className={`flex justify-center mb-6 transition-all duration-700 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            {/* Search and Filter Container */}
+            <div className={`flex flex-col md:flex-row justify-center items-center gap-4 mb-8 transition-all duration-700 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+
+                {/* Search Input */}
+                <div className="relative w-full max-w-md">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Search className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                        type="text"
+                        className="block w-full pl-10 pr-3 py-2 border border-white/10 rounded-lg leading-5 bg-white/5 text-gray-300 placeholder-gray-400 focus:outline-none focus:bg-white/10 focus:ring-1 focus:ring-blue-500/50 sm:text-sm transition-colors duration-200"
+                        placeholder="Tìm kiếm câu hỏi..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+
+                {/* Subject Filter Dropdown */}
                 <select
                     value={selectedSubjectId ?? ""}
                     onChange={(e) => setSelectedSubjectId(e.target.value ? Number(e.target.value) : undefined)}
-                    className="px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 hover:bg-white/10 transition-colors duration-200 cursor-pointer"
+                    className="px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 hover:bg-white/10 transition-colors duration-200 cursor-pointer w-full md:w-auto"
                 >
                     <option value="" className="bg-gray-800 text-gray-200">
-                        📚 Tất cả câu hỏi thường gặp
+                        Tất cả câu hỏi thường gặp
                     </option>
                     <option value="-1" className="bg-gray-800 text-gray-200">
-                        💬 Tư vấn chung
+                        Tư vấn chung
                     </option>
                     {subjects.map(subject => (
                         <option key={subject.subjectId} value={subject.subjectId} className="bg-gray-800 text-gray-200">
@@ -169,7 +197,11 @@ export default function FAQSection() {
                 </select>
             </div>
 
-            {faqs.length > 0 ? (
+            {loading ? (
+                <div className="flex justify-center py-10">
+                    <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+                </div>
+            ) : faqs.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {faqs.map((faq, index) => (
                         <div
@@ -184,7 +216,6 @@ export default function FAQSection() {
                                     <span className={`text-[11px] font-bold uppercase tracking-wider ${faq.color}`}>
                                         {faq.category}
                                     </span>
-                                    <ArrowRight className={`w-4 h-4 ${faq.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                                 </div>
                                 <h3 className="text-sm font-medium text-gray-200 group-hover:text-white transition-colors duration-200 line-clamp-2 leading-relaxed">
                                     {faq.question}
@@ -195,7 +226,9 @@ export default function FAQSection() {
                 </div>
             ) : (
                 <div className={`text-center py-10 transition-all duration-700 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                    <p className="text-gray-400">Chưa có câu hỏi thường gặp nào cho mục này.</p>
+                    <p className="text-gray-400">
+                        {debouncedSearchTerm ? `Không tìm thấy câu hỏi nào cho "${debouncedSearchTerm}".` : "Chưa có câu hỏi thường gặp nào cho mục này."}
+                    </p>
                 </div>
             )}
 
