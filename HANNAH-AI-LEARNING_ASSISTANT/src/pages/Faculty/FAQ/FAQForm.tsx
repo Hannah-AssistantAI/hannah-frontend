@@ -32,7 +32,8 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
   });
   const [tagInput, setTagInput] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [similarFAQs, setSimilarFAQs] = useState<SimilarResponseItem[]>([]);
+  const [similarFAQs, setSimilarFAQs] = useState<SimilarResponseItem[]>([]); // Same subject - blocks submit
+  const [crossSubjectFAQs, setCrossSubjectFAQs] = useState<SimilarResponseItem[]>([]); // Other subjects - warning only
   const [isCheckingSimilarity, setIsCheckingSimilarity] = useState(false);
 
   useEffect(() => {
@@ -51,21 +52,34 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
     const checkSimilarity = async () => {
       if (!formData.question.trim() || formData.question.length < 5) {
         setSimilarFAQs([]);
+        setCrossSubjectFAQs([]);
         return;
       }
 
       setIsCheckingSimilarity(true);
       try {
-        const subjectIdNum = formData.subjectId ? parseInt(formData.subjectId) : undefined;
-        const result = await customResponseService.checkSimilarity(formData.question, subjectIdNum);
+        // Check similarity across ALL subjects (pass undefined for subjectId)
+        const result = await customResponseService.checkSimilarity(formData.question, undefined);
 
-        // Filter out the current FAQ if we are editing (by ID or exact content match if ID missing)
-        const filtered = result.items.filter(item => {
+        // Filter out the current FAQ if editing
+        let allSimilar = result.items.filter(item => {
           if (faq?.id && item.response.responseId === faq.id) return false;
           return true;
         });
 
-        setSimilarFAQs(filtered);
+        // Split into same-subject (blocking) and cross-subject (warning only)
+        const currentSubjectId = formData.subjectId ? parseInt(formData.subjectId) : null;
+
+        const sameSubject = allSimilar.filter(item =>
+          item.response.subjectId === currentSubjectId
+        );
+
+        const crossSubject = allSimilar.filter(item =>
+          item.response.subjectId !== currentSubjectId
+        );
+
+        setSimilarFAQs(sameSubject);
+        setCrossSubjectFAQs(crossSubject);
       } catch (error) {
         console.error("Error checking similarity", error);
       } finally {
@@ -73,7 +87,7 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
       }
     };
 
-    const timer = setTimeout(checkSimilarity, 800); // 800ms debounce
+    const timer = setTimeout(checkSimilarity, 500); // 500ms debounce for faster feedback
     return () => clearTimeout(timer);
   }, [formData.question, formData.subjectId, faq?.id]);
 
@@ -107,10 +121,13 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
       return;
     }
 
+    // Block submit ONLY if there are same-subject duplicates
     if (similarFAQs.length > 0) {
-      toast.error('Cannot create duplicate FAQ. Please resolve similarity issues.');
+      toast.error('Cannot create duplicate FAQ in the same subject. Please modify your question.');
       return;
     }
+
+    // Cross-subject similar FAQs show warning only, don't block submission
 
     try {
       setLoading(true);
@@ -153,6 +170,12 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
       delete newErrors[field];
       setErrors(newErrors);
     }
+  };
+
+  const getSubjectName = (subjectId: number | null): string => {
+    if (!subjectId) return 'Unknown Subject';
+    const subject = subjects.find(s => s.subjectId === subjectId);
+    return subject?.name || `Subject ${subjectId}`;
   };
 
   const handleAddTag = () => {
@@ -272,6 +295,40 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
                               <span className="text-xs text-yellow-600 ml-2">({Math.round(item.similarityScore)}% match)</span>
                             </li>
                           ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Cross-Subject Similarity Info (Warning only, doesn't block) */}
+              {crossSubjectFAQs.length > 0 && similarFAQs.length === 0 && (
+                <div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3 w-full">
+                      <h3 className="text-sm font-medium text-blue-800">
+                        Similar FAQs in other subjects ({crossSubjectFAQs.length})
+                      </h3>
+                      <div className="mt-2 text-sm text-blue-700">
+                        <p className="mb-2">ℹ️ Found similar questions in other subjects. You can still create this FAQ.</p>
+                        <ul className="list-disc pl-5 space-y-1 max-h-32 overflow-y-auto">
+                          {crossSubjectFAQs.slice(0, 3).map((item, index) => (
+                            <li key={index}>
+                              <span className="font-semibold">{item.response.questionPattern || 'FAQ'}</span>
+                              <span className="text-xs text-blue-600 ml-2">
+                                ({getSubjectName(item.response.subjectId)}, {Math.round(item.similarityScore)}% match)
+                              </span>
+                            </li>
+                          ))}
+                          {crossSubjectFAQs.length > 3 && (
+                            <li className="text-xs italic">...and {crossSubjectFAQs.length - 3} more</li>
+                          )}
                         </ul>
                       </div>
                     </div>
