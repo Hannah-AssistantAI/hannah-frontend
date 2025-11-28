@@ -102,9 +102,10 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
       newErrors.answer = 'Answer cannot be empty';
     }
 
-    if (!formData.subjectId) {
-      newErrors.subjectId = 'Please select a subject';
-    }
+    // Subject is no longer mandatory (General FAQs allowed)
+    // if (!formData.subjectId) {
+    //   newErrors.subjectId = 'Please select a subject';
+    // }
 
     if (formData.tags.length === 0) {
       newErrors.tags = 'Please add at least one tag';
@@ -132,6 +133,7 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
     try {
       setLoading(true);
 
+      // If subjectId is empty string, send null (General FAQ)
       const subjectIdNum = formData.subjectId ? parseInt(formData.subjectId) : null;
 
       if (faq) {
@@ -173,7 +175,7 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
   };
 
   const getSubjectName = (subjectId: number | null): string => {
-    if (!subjectId) return 'Unknown Subject';
+    if (!subjectId) return 'Chung / General';
     const subject = subjects.find(s => s.subjectId === subjectId);
     return subject?.name || `Subject ${subjectId}`;
   };
@@ -377,7 +379,7 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
             {/* Subject Field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Subject <span className="text-red-500">*</span>
+                Subject
               </label>
               <div className="relative">
                 <select
@@ -388,7 +390,7 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
                   value={formData.subjectId}
                   onChange={(e) => handleInputChange('subjectId', e.target.value)}
                 >
-                  <option value="">Select subject</option>
+                  <option value="">Chung / General (No Subject)</option>
                   {subjects.map(subject => (
                     <option key={subject.subjectId} value={subject.subjectId.toString()}>{subject.name}</option>
                   ))}

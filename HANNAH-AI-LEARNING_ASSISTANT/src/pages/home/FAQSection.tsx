@@ -88,22 +88,12 @@ export default function FAQSection() {
                 if (faqsWithSubjects.length > 0) {
                     setFaqs(faqsWithSubjects);
                 } else {
-                    console.warn("FAQSection: Empty list after mapping, using fallback");
-                    // Fallback data if API is empty
-                    setFaqs([
-                        { id: 1, question: "Làm thế nào để đăng ký môn học?", category: "Học vụ", color: colors[0] },
-                        { id: 2, question: "Điều kiện học bổng là gì?", category: "Học bổng", color: colors[1] },
-                        { id: 3, question: "Quy chế thi như thế nào?", category: "Thi cử", color: colors[2] },
-                    ]);
+                    console.warn("FAQSection: Empty list after mapping");
+                    setFaqs([]);
                 }
             } catch (error) {
                 console.error("Failed to fetch FAQs:", error);
-                // Fallback on error
-                setFaqs([
-                    { id: 1, question: "Làm thế nào để đăng ký môn học?", category: "Học vụ", color: colors[0] },
-                    { id: 2, question: "Điều kiện học bổng là gì?", category: "Học bổng", color: colors[1] },
-                    { id: 3, question: "Quy chế thi như thế nào?", category: "Thi cử", color: colors[2] },
-                ]);
+                setFaqs([]);
             } finally {
                 setLoading(false);
             }
@@ -147,10 +137,6 @@ export default function FAQSection() {
         );
     }
 
-    if (faqs.length === 0) {
-        return null;
-    }
-
     return (
         <section ref={sectionRef} className="py-12 px-6 w-full max-w-[1000px] mx-auto">
             <div className={`text-center mb-10 transition-all duration-700 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
@@ -170,7 +156,10 @@ export default function FAQSection() {
                     className="px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 hover:bg-white/10 transition-colors duration-200 cursor-pointer"
                 >
                     <option value="" className="bg-gray-800 text-gray-200">
-                        📚 Tất cả môn học
+                        📚 Tất cả câu hỏi thường gặp
+                    </option>
+                    <option value="-1" className="bg-gray-800 text-gray-200">
+                        💬 Tư vấn chung
                     </option>
                     {subjects.map(subject => (
                         <option key={subject.subjectId} value={subject.subjectId} className="bg-gray-800 text-gray-200">
@@ -180,29 +169,35 @@ export default function FAQSection() {
                 </select>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {faqs.map((faq, index) => (
-                    <div
-                        key={faq.id}
-                        onClick={() => handleQuestionClick(faq.question)}
-                        className={`group bg-white/5 backdrop-blur-sm hover:bg-white/10 border border-white/10 rounded-xl p-5 cursor-pointer transition-all duration-300 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                            }`}
-                        style={{ transitionDelay: `${index * 50}ms` }}
-                    >
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center justify-between">
-                                <span className={`text-[11px] font-bold uppercase tracking-wider ${faq.color}`}>
-                                    {faq.category}
-                                </span>
-                                <ArrowRight className={`w-4 h-4 ${faq.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+            {faqs.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {faqs.map((faq, index) => (
+                        <div
+                            key={faq.id}
+                            onClick={() => handleQuestionClick(faq.question)}
+                            className={`group bg-white/5 backdrop-blur-sm hover:bg-white/10 border border-white/10 rounded-xl p-5 cursor-pointer transition-all duration-300 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                                }`}
+                            style={{ transitionDelay: `${index * 50}ms` }}
+                        >
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center justify-between">
+                                    <span className={`text-[11px] font-bold uppercase tracking-wider ${faq.color}`}>
+                                        {faq.category}
+                                    </span>
+                                    <ArrowRight className={`w-4 h-4 ${faq.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                                </div>
+                                <h3 className="text-sm font-medium text-gray-200 group-hover:text-white transition-colors duration-200 line-clamp-2 leading-relaxed">
+                                    {faq.question}
+                                </h3>
                             </div>
-                            <h3 className="text-sm font-medium text-gray-200 group-hover:text-white transition-colors duration-200 line-clamp-2 leading-relaxed">
-                                {faq.question}
-                            </h3>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            ) : (
+                <div className={`text-center py-10 transition-all duration-700 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                    <p className="text-gray-400">Chưa có câu hỏi thường gặp nào cho mục này.</p>
+                </div>
+            )}
 
             <div className={`mt-8 text-center transition-all duration-700 delay-500 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                 <button
