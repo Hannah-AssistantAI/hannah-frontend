@@ -171,17 +171,17 @@ export default function Chat() {
                             const interactiveElements = msg.metadata?.interactive_elements || msg.metadata?.interactiveElements;
                             const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content, interactiveElements) : {};
 
-                        return {
-                            messageId: msg.messageId,
-                            type: msg.role === 'user' || msg.role === 'student' ? 'user' : 'assistant',
-                            content: msg.content,
-                            isStreaming: false,
-                            isFlagged: false,
-                            suggestedQuestions: [],
-                            images: msg.metadata?.images || [],
-                            ...parsed
-                        };
-                    });
+                            return {
+                                messageId: msg.messageId,
+                                type: msg.role === 'user' || msg.role === 'student' ? 'user' : 'assistant',
+                                content: msg.content,
+                                isStreaming: false,
+                                isFlagged: false,
+                                suggestedQuestions: [],
+                                images: msg.metadata?.images || [],
+                                ...parsed
+                            };
+                        });
 
                         setMessages(transformedMessages);
 
@@ -461,10 +461,32 @@ export default function Chat() {
     const handleSend = async () => {
         if (!inputValue.trim()) return
         if (isSendingMessage) return
-        if (!conversationId) {
-            console.error('No conversation ID available');
-            return;
+
+        // If no conversation ID, create one first
+        let currentConvId = conversationId;
+        if (!currentConvId) {
+            if (!user?.userId) {
+                console.error('No user ID available');
+                return;
+            }
+            try {
+                console.log('🆕 Creating new conversation before sending message...');
+                const newConv = await conversationService.createConversation({
+                    userId: user.userId,
+                    title: inputValue.length > 50 ? inputValue.substring(0, 50) + '...' : inputValue,
+                    subjectId: undefined
+                });
+                currentConvId = newConv.conversationId;
+                setConversationId(currentConvId);
+                // Update URL without reloading
+                navigate(`/chat/${currentConvId}`, { replace: true });
+            } catch (error) {
+                console.error('❌ Failed to create new conversation:', error);
+                toast.error('Không thể tạo cuộc trò chuyện mới');
+                return;
+            }
         }
+
         if (!user?.userId) {
             console.error('No user ID available');
             return;
@@ -499,7 +521,7 @@ export default function Chat() {
                 const conversationTitle = userMessage.length > 50
                     ? userMessage.substring(0, 50) + '...'
                     : userMessage;
-                await conversationService.updateConversation(conversationId, {
+                await conversationService.updateConversation(currentConvId, {
                     userId: user.userId,
                     title: conversationTitle
                 });
@@ -509,7 +531,7 @@ export default function Chat() {
             // NOTE: This endpoint automatically creates the user message, so we don't need to call POST /messages
             console.log('🤖 Sending to chat API via POST /api/v1/chat/interactions...');
             const response = await chatService.sendTextMessage(
-                conversationId,
+                currentConvId,
                 userMessage
             );
 
@@ -1047,15 +1069,13 @@ export default function Chat() {
     useEffect(() => {
         if (location.state?.conversationId) {
             setConversationId(location.state.conversationId);
-            // Optionally reload messages here if needed, or let the existing useEffects handle it
-            // Ideally, we should trigger a reload of messages for the new conversation
         }
     }, [location.state]);
 
     // Reload messages when conversationId changes
     useEffect(() => {
-        // Only load if: conversationId exists, no initialQuery (not from Learn), and user is logged in
-        if (conversationId && !initialQuery && user?.userId) {
+        // Only load if: conversationId exists, no initialQuery (not from Learn), user is logged in, AND NOT SENDING MESSAGE
+        if (conversationId && !initialQuery && user?.userId && !isSendingMessage) {
             const loadConversationHistory = async () => {
                 try {
                     console.log('📥 Loading conversation history for ID:', conversationId);
@@ -1088,17 +1108,15 @@ export default function Chat() {
                     });
                 } catch (error) {
                     console.error('❌ Failed to load conversation:', error);
-                    setMessages([{
-                        type: 'assistant',
-                        content: 'Xin lỗi, không thể tải cuộc trò chuyện này. Vui lòng thử lại.',
-                        isStreaming: false,
-                        suggestedQuestions: []
-                    }]);
+                    // If we fail to load (e.g. 404 deleted), reset to empty state
+                    setConversationId(null);
+                    setMessages([]);
+                    navigate('/chat', { replace: true });
                 }
             };
             loadConversationHistory();
         }
-    }, [conversationId]);
+    }, [conversationId, initialQuery, user?.userId, isSendingMessage]);
 
     return (
         <div className="chat-container">
@@ -1114,12 +1132,14 @@ export default function Chat() {
             <HistorySidebar
                 isOpen={showHistorySidebar}
                 onClose={() => setShowHistorySidebar(false)}
+                currentConversationId={conversationId}
             />
 
+
             {/* Main Chat Area */}
-            <main className="chat-main" style={{ display: 'flex', gap: '0', padding: '24px', alignItems: 'stretch' }}>
+            < main className="chat-main" style={{ display: 'flex', gap: '0', padding: '24px', alignItems: 'stretch' }}>
                 {/* Big Picture Sidebar - Left */}
-                <BigPictureSidebar
+                < BigPictureSidebar
                     isOpen={isBigPictureOpen}
                     onToggle={() => setIsBigPictureOpen(!isBigPictureOpen)}
                     topics={bigPictureData}
@@ -1274,24 +1294,24 @@ export default function Chat() {
                     openMenuId={openMenuId}
                     onToggleMenu={toggleMenu}
                 />
-            </main>
+            </main >
 
             {/* Report Format Selection Modal */}
-            <ReportFormatModal
+            < ReportFormatModal
                 isOpen={studio.showReportFormatModal}
                 onClose={() => studio.setShowReportFormatModal(false)}
                 onSelectFormat={studio.handleReportFormatSelect}
             />
 
             {/* Report Modal */}
-            <ReportModal
+            < ReportModal
                 isOpen={studio.showReportModal}
                 onClose={() => studio.setShowReportModal(false)}
                 content={studio.reportContent}
             />
 
             {/* Mindmap Modal */}
-            <MindmapModal
+            < MindmapModal
                 isOpen={studio.showMindmapModal}
                 onClose={() => studio.setShowMindmapModal(false)}
                 content={studio.mindmapContent}
@@ -1300,7 +1320,7 @@ export default function Chat() {
 
 
             {/* Notecard Modal */}
-            <NotecardModal
+            < NotecardModal
                 isOpen={studio.showNotecardModal}
                 onClose={() => studio.setShowNotecardModal(false)}
                 content={studio.flashcardContent}
@@ -1385,6 +1405,6 @@ export default function Chat() {
                 onSubmit={handleFlagMessage}
                 isSubmitting={isFlaggingMessage}
             />
-        </div>
+        </div >
     )
 }

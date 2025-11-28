@@ -9,9 +9,10 @@ interface HistorySidebarProps {
     isOpen: boolean;
     onClose: () => void;
     onItemClick?: (topic: string) => void; // Optional now as we handle navigation internally
+    currentConversationId?: number | null; // Pass current conversation ID to handle delete
 }
 
-export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose }) => {
+export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose, currentConversationId }) => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [conversations, setConversations] = useState<any[]>([]);
@@ -92,8 +93,14 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose 
 
         try {
             await conversationService.deleteConversation(conversationId, user.userId);
-            // Refresh conversations list
-            await fetchConversations();
+
+            // If deleting the currently active conversation, force full reload to clean state
+            if (conversationId === currentConversationId) {
+                window.location.href = '/chat'; // Full page reload to ensure clean state
+            } else {
+                // Just refresh list if deleting a different conversation
+                await fetchConversations();
+            }
         } catch (error) {
             console.error('Failed to delete conversation:', error);
             alert('Không thể xóa cuộc trò chuyện. Vui lòng thử lại.');
