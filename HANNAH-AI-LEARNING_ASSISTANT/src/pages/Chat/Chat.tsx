@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Send, Upload, GitBranch, FileText, ClipboardCheck, StickyNote } from 'lucide-react'
 import subjectService, { type Subject } from '../../service/subjectService'
 import { useStudio } from './hooks/useStudio'
@@ -269,6 +269,7 @@ export default function Chat() {
                                 key={index}
                                 message={message}
                                 messageIndex={index}
+                                messages={messages}
                                 expandedSources={expandedSources}
                                 onToggleSource={(key) => setExpandedSources(prev => ({
                                     ...prev,
