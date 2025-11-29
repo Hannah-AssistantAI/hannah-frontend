@@ -4,7 +4,7 @@ import { useAuth } from './contexts/AuthContext';
 import { Toaster } from 'react-hot-toast'
 
 import ThemedPage from './components/ThemedPage'
-import ProtectedRoute from './components/ProtectedRoute' // Import ProtectedRoute
+import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/home/Home'
 import Learn from './pages/Learn/Learn'
 import Chat from './pages/Chat/Chat'
@@ -34,6 +34,8 @@ import QuizAttemptDetail from './pages/Faculty/QuestionAnalytics/QuizAttemptDeta
 import QuizDetail from './pages/Faculty/QuestionAnalytics/QuizDetail'
 import FlaggedQuizzes from './pages/Admin/FlaggedQuizzes'
 import FlaggedQuizDetail from './pages/Admin/FlaggedQuizDetail'
+import { FlaggedMessagesList } from './pages/Admin/FlaggedMessages'
+import { AssignedFlagsList } from './pages/Faculty/AssignedFlags'
 
 const AuthRedirectHandler = () => {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -61,8 +63,6 @@ const AuthRedirectHandler = () => {
 };
 
 function App() {
-
-
   return (
     <>
       <AuthRedirectHandler />
@@ -127,13 +127,13 @@ function App() {
             <Route path="system-settings" element={<SystemMonitoring />} />
             <Route path="course-management" element={<CourseManagement />} />
             <Route path="course-management/:id" element={<CourseDetail />} />
-
             <Route path="semester-management" element={<SemesterManagement />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path='configuration' element={<Configuration />} />
             <Route path="profile" element={<Profile embedded={true} />} />
             <Route path="flagged-quizzes" element={<FlaggedQuizzes />} />
             <Route path="flagged-quizzes/:id" element={<FlaggedQuizDetail />} />
+            <Route path="flagged-messages" element={<FlaggedMessagesList />} />
           </Route>
         </Route>
 
@@ -154,11 +154,11 @@ function App() {
             <Route path="analytics/quiz/:id" element={<QuizDetail />} />
             <Route path="analytics/quiz/:quizId/attempt/:id" element={<QuizAttemptDetail />} />
             <Route path="questions" element={<QuestionStatistics />} />
+            <Route path="assigned-flags" element={<AssignedFlagsList />} />
             <Route path="profile" element={<Profile embedded={true} />} />
           </Route>
         </Route>
       </Routes>
-
     </>
   )
 }
