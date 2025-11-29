@@ -94,12 +94,25 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
         try {
             await conversationService.deleteConversation(conversationId, user.userId);
 
-            // If deleting the currently active conversation, force full reload to clean state
+            // Clear cache for deleted conversation
+            localStorage.removeItem(`conversation_${conversationId}_cache`);
+
+            // ✅ Update local state immediately (Optimistic update)
+            setConversations(prev => prev.filter(c =>
+                (c.conversation_id && c.conversation_id !== conversationId) ||
+                (c.conversationId && c.conversationId !== conversationId)
+            ));
+
+            // If deleting the currently active conversation, navigate to empty chat
             if (conversationId === currentConversationId) {
-                window.location.href = '/chat'; // Full page reload to ensure clean state
-            } else {
-                // Just refresh list if deleting a different conversation
-                await fetchConversations();
+                // Navigate with preventAutoSend flag to block auto-send
+                navigate('/chat', {
+                    replace: true,  // Don't keep in history
+                    state: {
+                        preventAutoSend: true,  // Block auto-send
+                        timestamp: Date.now()    // Force re-render
+                    }
+                });
             }
         } catch (error) {
             console.error('Failed to delete conversation:', error);
