@@ -21,6 +21,7 @@ export interface ConversationDetails {
     subjectId: number | null;
     title: string;
     messageCount: number;
+    modelPreference?: string;
     isFlagged: boolean;
     lastMessageAt: string;
     createdAt: string;

@@ -20,10 +20,19 @@ import { BigPictureSidebar } from './components/BigPictureSidebar'
 import { StudioSidebar } from './components/StudioSidebar'
 import { HistorySidebar } from '../../components/HistorySidebar'
 import { Header } from '../../components/Header'
+<<<<<<< Updated upstream
 import conversationService from '../../service/conversationService'
 import messageService from '../../service/messageService'
 import { useAuth } from '../../contexts/AuthContext'
 import type { Message, RelatedContent, Source, BigPictureTopic } from './types'
+=======
+import { ModelSelector } from '../../components/ModelSelector'
+import { useAuth } from '../../contexts/AuthContext'
+import type { BigPictureTopic } from './types'
+import { parseInteractiveList } from './utils/messageHelpers'
+import { MessageDisplay } from './components/MessageDisplay/MessageDisplay'
+import { useChatMessages } from './hooks/useChatMessages'
+>>>>>>> Stashed changes
 import './Chat.css'
 
 export default function Chat() {
@@ -34,6 +43,7 @@ export default function Chat() {
     const initialConversationId = location.state?.conversationId || null
 
     const [inputValue, setInputValue] = useState('')
+    const [selectedModel, setSelectedModel] = useState('auto') // NEW: Model selection state
     const [isBigPictureOpen, setIsBigPictureOpen] = useState(true)
     const [subjects, setSubjects] = useState<Subject[]>([]) // Store fetched subjects
     const [currentCardIndex, setCurrentCardIndex] = useState(0)
@@ -55,7 +65,32 @@ export default function Chat() {
         }
     ] : [])
 
+<<<<<<< Updated upstream
     // Use hooks for state management (after conversationId is declared)
+=======
+    // Use custom hook for message management
+    const {
+        messages,
+        conversationId,
+        isSendingMessage,
+        handleSend: sendMessage,
+        handleInteractiveItemClick,
+        handleFlagMessage: flagMessage
+    } = useChatMessages({
+        initialQuery,
+        initialConversationId,
+        user,
+        locationState: location.state,
+        setBigPictureData,
+        setShowFlagModal,
+        setFlaggingMessageId,
+        setIsFlaggingMessage,
+        selectedModel,  // NEW: Pass model selection to hook
+        onModelPreferenceLoaded: (model) => setSelectedModel(model) // NEW: Update state when loaded
+    });
+
+    // Use hooks for state management
+>>>>>>> Stashed changes
     const studio = useStudio(conversationId)
     const quiz = useQuiz()
 
@@ -1083,6 +1118,15 @@ export default function Chat() {
                 onShareClick={() => setShowShareModal(true)}
                 showNotifications={true}
             />
+
+            {/* Model Selector */}
+            <div style={{ padding: '12px 24px', borderBottom: '1px solid #e0e0e0' }}>
+                <ModelSelector
+                    value={selectedModel}
+                    onChange={setSelectedModel}
+                    disabled={isSendingMessage}
+                />
+            </div>
 
             {/* History Sidebar */}
             <HistorySidebar

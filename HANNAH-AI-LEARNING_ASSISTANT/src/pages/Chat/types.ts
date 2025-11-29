@@ -50,6 +50,7 @@ export interface Message {
     isStreaming?: boolean
     isFlagged?: boolean         // Flag status
     flaggedAt?: string          // Timestamp when flagged
+    modelUsed?: string          // NEW: AI model used for this response
     relatedContent?: RelatedContent[]
     suggestedQuestions?: string[]
     interactiveList?: InteractiveListItem[]

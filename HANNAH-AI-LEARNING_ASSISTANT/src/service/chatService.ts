@@ -16,6 +16,7 @@ export interface ChatInteractionRequest {
     subjectId?: number;
     query: ChatQuery;
     generationOptions?: GenerationOptions;
+    modelOverride?: string;  // NEW: Manual model selection
 }
 
 export interface Source {
@@ -60,6 +61,11 @@ export interface ChatInteractionResponse {
     conversationId: number;
     assistantMessage: AssistantMessage;
     processingTime: number;
+<<<<<<< Updated upstream
+=======
+    detectedSubjectId?: number | null;  // Auto-detected subject from backend
+    modelUsed?: string; // NEW: Actual model used for this response
+>>>>>>> Stashed changes
 }
 
 export interface BaseResponse<T> {
@@ -85,11 +91,13 @@ class ChatService {
     async sendTextMessage(
         conversationId: number,
         content: string,
-        subjectId?: number
+        subjectId?: number,
+        modelOverride?: string  // NEW: Optional model selection
     ): Promise<ChatInteractionResponse> {
         return this.sendMessage({
             conversationId,
             subjectId,
+            modelOverride,  // Pass model selection to API
             query: {
                 type: 'text',
                 content
