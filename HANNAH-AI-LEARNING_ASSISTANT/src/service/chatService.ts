@@ -62,6 +62,7 @@ export interface ChatInteractionResponse {
     conversationId: number;
     assistantMessage: AssistantMessage;
     processingTime: number;
+    detectedSubjectId?: number | null;  // Auto-detected subject from backend
 }
 
 export interface BaseResponse<T> {

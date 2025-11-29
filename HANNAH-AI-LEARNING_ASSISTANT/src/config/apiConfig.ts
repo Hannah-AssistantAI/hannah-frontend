@@ -119,6 +119,28 @@ export const API_ENDPOINTS = {
     REJECT: (id: string) => `/api/Suggestions/${id}/reject`,
     DELETE: (id: string) => `/api/Suggestions/${id}`,
   },
+
+  // Flagging endpoints
+  FLAGGING: {
+    GET_FLAGGED: '/api/flagging/flagged',
+    ASSIGNED_TO_ME: '/api/flagging/assigned-to-me',
+    RESOLVE: (flagId: number) => `/api/flagging/${flagId}/resolve`,
+    FLAG_MESSAGE: (messageId: number) => `/api/flagging/message/${messageId}/flag`,
+    FLAG_CONTENT: '/api/flagging/content/flag',
+    GET_NOTIFICATIONS: '/api/flagging/notifications',
+  },
+
+  // Conversations endpoints
+  CONVERSATIONS: {
+    BASE: '/api/Conversations',
+    GET_BY_ID: (id: number) => `/api/Conversations/${id}`,
+    GET_USER_CONVERSATIONS: (userId: number) => `/api/Conversations/user/${userId}`,
+    MY_CONVERSATIONS: '/api/Conversations/my-conversations',
+    GET_FLAGGED: '/api/Conversations/flagged',
+    ASSIGN_FACULTY: (flagId: number) => `/api/Conversations/flagged/${flagId}/assign`,
+    GET_MESSAGE_CONTEXT: (conversationId: number, messageId: string) => 
+      `/api/Conversations/${conversationId}/context-for-message/${messageId}`,
+  },
 };
 
 /**

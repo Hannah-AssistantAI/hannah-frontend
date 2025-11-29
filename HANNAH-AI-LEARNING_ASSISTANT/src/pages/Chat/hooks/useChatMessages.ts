@@ -29,12 +29,13 @@ export const useChatMessages = ({
     setIsFlaggingMessage
 }: UseChatMessagesParams) => {
     const [conversationId, setConversationId] = useState<number | null>(initialConversationId);
+    const [subjectId, setSubjectId] = useState<number | null>(locationState?.subjectId || null);
     const [isSendingMessage, setIsSendingMessage] = useState(false);
     const [messages, setMessages] = useState<Message[]>(initialQuery ? [{
         type: 'user',
         content: initialQuery
     }] : []);
-    
+
     const hasAutoSentRef = useRef(false);
 
     // Auto-send initial query ONCE when component mounts
@@ -49,13 +50,19 @@ export const useChatMessages = ({
             try {
                 const conversationDetails = await conversationService.getConversation(conversationId, user.userId);
 
+                // Extract subjectId from conversation if not already set
+                if (conversationDetails.subjectId && !subjectId) {
+                    setSubjectId(conversationDetails.subjectId);
+                    console.log('📚 Subject ID from conversation:', conversationDetails.subjectId);
+                }
+
                 if (conversationDetails.messages.length > 0) {
                     console.log('⏭️ Skipping auto-send: conversation already has', conversationDetails.messages.length, 'messages');
 
                     const transformedMessages: Message[] = conversationDetails.messages.map(msg => {
                         // Try to get interactiveElements from backend or cache
                         let interactiveElements = msg.interactiveElements || msg.interactive_elements || msg.metadata?.interactive_elements || msg.metadata?.interactiveElements;
-                        
+
                         // Try to restore from cache if not provided by backend
                         if (!interactiveElements && msg.messageId && conversationId) {
                             const cached = getCachedMessageData(conversationId, msg.messageId);
@@ -64,7 +71,7 @@ export const useChatMessages = ({
                                 interactiveElements = cached;
                             }
                         }
-                        
+
                         const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content, interactiveElements) : {};
 
                         return {
@@ -91,6 +98,7 @@ export const useChatMessages = ({
                 }
 
                 console.log('✅ Conversation empty, proceeding with auto-send');
+                console.log('📚 Using Subject ID:', subjectId);
                 setIsSendingMessage(true);
 
                 setMessages(prev => [...prev, {
@@ -99,7 +107,18 @@ export const useChatMessages = ({
                     isStreaming: true
                 }]);
 
-                const response = await chatService.sendTextMessage(conversationId, initialQuery);
+                const response = await chatService.sendTextMessage(
+                    conversationId,
+                    initialQuery,
+                    subjectId || undefined
+                );
+
+                // Save auto-detected subject_id from backend
+                if (response.detectedSubjectId && !subjectId) {
+                    console.log('💾 Saving detected subject_id:', response.detectedSubjectId);
+                    setSubjectId(response.detectedSubjectId);
+                }
+
                 const parsedResponse = parseAssistantResponse(
                     response.assistantMessage.content.data,
                     response.assistantMessage.interactiveElements
@@ -182,6 +201,12 @@ export const useChatMessages = ({
                     const conversationDetails = await conversationService.getConversation(conversationId, user.userId);
                     console.log('✅ Loaded conversation:', conversationDetails);
 
+                    // Extract subjectId from conversation if not already set
+                    if (conversationDetails.subjectId && !subjectId) {
+                        setSubjectId(conversationDetails.subjectId);
+                        console.log('📚 Subject ID from loaded conversation:', conversationDetails.subjectId);
+                    }
+
                     const transformedMessages: Message[] = conversationDetails.messages.map((msg, index) => {
                         console.log(`🔍 Processing message ${index}:`, msg);
                         console.log(`  - role:`, msg.role);
@@ -190,9 +215,9 @@ export const useChatMessages = ({
                         console.log(`  - interactiveElements:`, msg.interactiveElements);
                         console.log(`  - interactive_elements:`, msg.interactive_elements);
                         console.log(`  - metadata:`, msg.metadata);
-                        
+
                         let interactiveElements = msg.interactiveElements || msg.interactive_elements || msg.metadata?.interactive_elements || msg.metadata?.interactiveElements;
-                        
+
                         // Try to restore from cache if not provided by backend
                         if (!interactiveElements && msg.messageId && conversationId) {
                             console.log(`  🔍 CACHE LOOKUP for message ${msg.messageId} in conversation ${conversationId}`);
@@ -204,13 +229,13 @@ export const useChatMessages = ({
                                 console.log(`  💾 ❌ NO CACHE FOUND`);
                             }
                         }
-                        
+
                         console.log(`  - extracted interactiveElements:`, interactiveElements);
-                        
-                        const parsed = msg.role === 'assistant' 
-                            ? parseAssistantResponse(msg.content, interactiveElements) 
+
+                        const parsed = msg.role === 'assistant'
+                            ? parseAssistantResponse(msg.content, interactiveElements)
                             : {};
-                        
+
                         console.log(`  - parsed result:`, parsed);
 
                         return {
@@ -284,7 +309,19 @@ export const useChatMessages = ({
             }
 
             console.log('🤖 Sending to chat API...');
-            const response = await chatService.sendTextMessage(conversationId, userMessage);
+            console.log('📚 Using Subject ID:', subjectId);
+            const response = await chatService.sendTextMessage(
+                conversationId,
+                userMessage,
+                subjectId || undefined
+            );
+
+            // Save auto-detected subject_id from backend
+            if (response.detectedSubjectId && !subjectId) {
+                console.log('💾 Saving detected subject_id:', response.detectedSubjectId);
+                setSubjectId(response.detectedSubjectId);
+            }
+
             const parsedResponse = parseAssistantResponse(
                 response.assistantMessage.content.data,
                 response.assistantMessage.interactiveElements
@@ -362,7 +399,19 @@ export const useChatMessages = ({
 
         try {
             console.log('🤖 Sending interactive item query:', itemTerm);
-            const response = await chatService.sendTextMessage(conversationId, itemTerm);
+            console.log('📚 Using Subject ID:', subjectId);
+            const response = await chatService.sendTextMessage(
+                conversationId,
+                itemTerm,
+                subjectId || undefined
+            );
+
+            // Save auto-detected subject_id from backend
+            if (response.detectedSubjectId && !subjectId) {
+                console.log('💾 Saving detected subject_id:', response.detectedSubjectId);
+                setSubjectId(response.detectedSubjectId);
+            }
+
             const parsedResponse = parseAssistantResponse(
                 response.assistantMessage.content.data,
                 response.assistantMessage.interactiveElements  // ✅ FIX: Pass interactiveElements
