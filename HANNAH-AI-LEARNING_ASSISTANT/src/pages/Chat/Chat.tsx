@@ -29,7 +29,7 @@ export default function Chat() {
     const location = useLocation()
     const navigate = useNavigate()
     const { user } = useAuth()
-    const { conversationId: paramConversationId } = useParams()
+    const { conversationId: paramConversationId } = useParams<{ conversationId?: string }>()
     const initialQuery = location.state?.query || ''
     const initialConversationId = location.state?.conversationId || (paramConversationId ? parseInt(paramConversationId) : null)
 

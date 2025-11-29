@@ -42,13 +42,27 @@ export const useChatMessages = ({
     useEffect(() => {
         const sendInitialQuery = async () => {
             if (hasAutoSentRef.current) return;
-            if (!initialQuery || !conversationId || !user?.userId) return;
+            if (!initialQuery || !user?.userId) return;
 
-            console.log('🚀 Checking conversation before auto-send:', initialQuery);
+            console.log('🚀 Processing initial query:', initialQuery);
             hasAutoSentRef.current = true;
 
             try {
-                const conversationDetails = await conversationService.getConversation(conversationId, user.userId);
+                // Create conversation if needed
+                let currentConversationId = conversationId;
+                if (!currentConversationId) {
+                    console.log('📝 No conversation ID, creating new conversation...');
+                    const newConv = await conversationService.createConversation({
+                        userId: user.userId,
+                        title: initialQuery.length > 50 ? initialQuery.substring(0, 50) + '...' : initialQuery,
+                        subjectId: subjectId || undefined
+                    });
+                    currentConversationId = newConv.conversationId;
+                    setConversationId(currentConversationId);
+                    console.log('✅ Created new conversation:', currentConversationId);
+                }
+
+                const conversationDetails = await conversationService.getConversation(currentConversationId, user.userId);
 
                 // Extract subjectId from conversation if not already set
                 if (conversationDetails.subjectId && !subjectId) {
@@ -64,8 +78,8 @@ export const useChatMessages = ({
                         let interactiveElements = msg.interactiveElements || msg.interactive_elements || msg.metadata?.interactive_elements || msg.metadata?.interactiveElements;
 
                         // Try to restore from cache if not provided by backend
-                        if (!interactiveElements && msg.messageId && conversationId) {
-                            const cached = getCachedMessageData(conversationId, msg.messageId);
+                        if (!interactiveElements && msg.messageId && currentConversationId) {
+                            const cached = getCachedMessageData(currentConversationId, msg.messageId);
                             if (cached) {
                                 console.log(`  💾 ✅ AUTO-SEND: Restored from cache for message ${msg.messageId}:`, cached);
                                 interactiveElements = cached;
@@ -108,7 +122,7 @@ export const useChatMessages = ({
                 }]);
 
                 const response = await chatService.sendTextMessage(
-                    conversationId,
+                    currentConversationId,
                     initialQuery,
                     subjectId || undefined
                 );
@@ -129,9 +143,9 @@ export const useChatMessages = ({
                 }
 
                 // Cache interactive elements for persistence
-                if (response.assistantMessage.messageId && conversationId) {
+                if (response.assistantMessage.messageId && currentConversationId) {
                     console.log('💾 SAVING TO CACHE:', {
-                        conversationId,
+                        conversationId: currentConversationId,
                         messageId: response.assistantMessage.messageId,
                         data: {
                             interactiveList: parsedResponse.interactiveList,
@@ -140,7 +154,7 @@ export const useChatMessages = ({
                             youtubeResources: parsedResponse.youtubeResources
                         }
                     });
-                    cacheMessageData(conversationId, response.assistantMessage.messageId, {
+                    cacheMessageData(currentConversationId, response.assistantMessage.messageId, {
                         interactiveList: parsedResponse.interactiveList,
                         suggestedQuestions: parsedResponse.suggestedQuestions,
                         outline: parsedResponse.outline,

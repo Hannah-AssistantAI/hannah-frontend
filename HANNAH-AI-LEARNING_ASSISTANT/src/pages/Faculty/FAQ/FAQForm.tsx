@@ -61,14 +61,20 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
         // Check similarity across ALL subjects (pass undefined for subjectId)
         const result = await customResponseService.checkSimilarity(formData.question, undefined);
 
+        console.log('📊 Similarity check result:', result);
+        console.log('📊 Total similar items:', result.items.length);
+
         // Filter out the current FAQ if editing
         let allSimilar = result.items.filter(item => {
           if (faq?.id && item.response.responseId === faq.id) return false;
           return true;
         });
 
+        console.log('📊 After filtering current FAQ:', allSimilar.length);
+
         // Split into same-subject (blocking) and cross-subject (warning only)
         const currentSubjectId = formData.subjectId ? parseInt(formData.subjectId) : null;
+        console.log('📊 Current subject ID:', currentSubjectId);
 
         const sameSubject = allSimilar.filter(item =>
           item.response.subjectId === currentSubjectId
@@ -77,6 +83,11 @@ const FAQForm = ({ faq, subjects, onSuccess, onCancel }: FAQFormProps) => {
         const crossSubject = allSimilar.filter(item =>
           item.response.subjectId !== currentSubjectId
         );
+
+        console.log('📊 Same subject duplicates:', sameSubject.length);
+        console.log('📊 Cross subject duplicates:', crossSubject.length);
+        console.log('📊 Same subject items:', sameSubject);
+        console.log('📊 Cross subject items:', crossSubject);
 
         setSimilarFAQs(sameSubject);
         setCrossSubjectFAQs(crossSubject);

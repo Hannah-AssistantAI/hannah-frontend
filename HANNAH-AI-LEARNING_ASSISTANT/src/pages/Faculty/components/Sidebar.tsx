@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { MessageSquare, FileText, BarChart3, HelpCircle, TrendingDown, ChevronDown, ChevronRight, User, Flag } from "lucide-react";
+import { MessageSquare, FileText, BarChart3, HelpCircle, TrendingDown, ChevronDown, ChevronRight, User, Flag, ClipboardList } from "lucide-react";
 import { useFacultyContext } from "../../../contexts/FacultyContext";
 import ReusableSidebar from "../../../components/Sidebar/Sidebar";
 
