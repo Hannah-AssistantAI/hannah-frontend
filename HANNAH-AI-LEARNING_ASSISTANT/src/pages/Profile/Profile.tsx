@@ -144,13 +144,12 @@ export default function Profile({ embedded = false }: ProfileProps) {
 
 
     const handleSave = async () => {
-        if (!editedProfile || !user) {
+        if (!editedProfile || !user || !userProfile) {
             toast.error("Dữ liệu không hợp lệ để cập nhật.");
             return;
         }
 
         try {
-            // Compare original and edited profiles to find changes
             const updateData: any = {};
             if (editedProfile.phone !== userProfile?.phone) {
                 updateData.phone = editedProfile.phone;
@@ -164,24 +163,34 @@ export default function Profile({ embedded = false }: ProfileProps) {
             if (editedProfile.student_specialty !== userProfile?.student_specialty) {
                 updateData.studentSpecialty = editedProfile.student_specialty;
             }
+            if (editedProfile.faculty_specialty !== userProfile?.faculty_specialty) {
+                updateData.facultySpecialty = editedProfile.faculty_specialty;
+            }
+            if (editedProfile.years_of_experience !== userProfile?.years_of_experience) {
+                updateData.yearsOfExperience = editedProfile.years_of_experience;
+            }
 
-            // Only call API if there are actual changes
             if (Object.keys(updateData).length > 0) {
-                const response = await userService.updateUserProfile(user.userId.toString(), updateData);
+                const updatedBackendProfile = await userService.updateUserProfile(user.userId.toString(), updateData);
 
-                // Create the updated profile object for local state
-                const updatedProfileData = { ...userProfile, ...response };
+                const updatedProfileData: UserProfile = {
+                    ...userProfile,
+                    phone: updatedBackendProfile.phone || undefined,
+                    date_of_birth: updatedBackendProfile.dateOfBirth ? updatedBackendProfile.dateOfBirth.split('T')[0] : undefined,
+                    bio: updatedBackendProfile.bio || undefined,
+                    student_specialty: updatedBackendProfile.studentSpecialty as any,
+                    faculty_specialty: (updatedBackendProfile as any).facultySpecialty || undefined,
+                    years_of_experience: (updatedBackendProfile as any).yearsOfExperience || undefined
+                };
 
-                setUserProfile(updatedProfileData as UserProfile);
-                setEditedProfile(updatedProfileData as UserProfile);
+                setUserProfile(updatedProfileData);
+                setEditedProfile(updatedProfileData);
                 toast.success("Cập nhật hồ sơ thành công!");
             } else {
                 toast.success("Không có thay đổi nào để lưu.");
             }
 
             setIsEditing(false);
-
-
         } catch (error) {
             console.error("Failed to update profile:", error);
             toast.error("Cập nhật hồ sơ thất bại. Vui lòng thử lại.");
@@ -223,11 +232,21 @@ export default function Profile({ embedded = false }: ProfileProps) {
                 const response = await userService.uploadAvatar(user.userId.toString(), file);
 
                 // Build a full URL for the new avatar and update the state
-                const newAvatarUrl = buildAvatarUrl(response.avatarUrl);
+                const baseUrl = buildAvatarUrl(response.avatarUrl);  // ✅ ĐÚNG
+                const newAvatarUrl = `${baseUrl}?v=${Date.now()}`;
+                console.log('🔥 Old avatar:', editedProfile?.avatar);
+                console.log('🔥 New avatar:', newAvatarUrl);
+
                 if (userProfile && editedProfile) {
                     const updatedProfile = { ...userProfile, avatar: newAvatarUrl };
                     setUserProfile(updatedProfile);
                     setEditedProfile(updatedProfile);
+                    console.log('✅ Avatar state updated!');
+                }
+
+                // Also update the user context to refresh avatar globally
+                if (updateUser && user) {
+                    updateUser({ ...user, avatarUrl: response.avatarUrl });  // ✅ ĐÚNG
                 }
 
                 toast.success('Đã cập nhật avatar thành công!');
@@ -365,6 +384,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
                                     <div className="profile-avatar-section">
                                         <div className="profile-avatar-wrapper">
                                             <img
+                                                key={editedProfile.avatar}
                                                 src={editedProfile.avatar}
                                                 alt="Avatar"
                                                 className="profile-avatar-img"

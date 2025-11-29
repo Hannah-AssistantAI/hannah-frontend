@@ -33,12 +33,9 @@ export interface Message {
     role: string;
     content: string;
     createdAt: string;
-    metadata?: {
-        images?: Array<{
-            url: string;
-            source: string;
-        }>;
-    };
+    metadata?: any;
+    interactiveElements?: any;
+    interactive_elements?: any; // Handle potential snake_case from backend
 }
 
 export interface BaseResponse<T> {

@@ -29,7 +29,9 @@ const Sidebar: React.FC<SidebarProps> = ({ children, title, subtitle }) => {
   };
 
   const toggleSidebar = () => {
+    console.log('🔵 Toggle clicked! Current state:', isCollapsed);
     setIsCollapsed(!isCollapsed);
+    console.log('🟢 New state should be:', !isCollapsed);
   };
 
   // Add/remove class to body for layout adjustments (fallback for :has() selector)
@@ -56,9 +58,11 @@ const Sidebar: React.FC<SidebarProps> = ({ children, title, subtitle }) => {
       <div className="sidebar-header">
         {isCollapsed ? (
           <button
+            type="button"
             className="sidebar-toggle-btn"
             onClick={toggleSidebar}
             title="Mở rộng sidebar"
+            data-testid="sidebar-toggle-collapsed"
           >
             <Menu size={20} />
           </button>
@@ -72,9 +76,11 @@ const Sidebar: React.FC<SidebarProps> = ({ children, title, subtitle }) => {
               </div>
             </div>
             <button
+              type="button"
               className="sidebar-toggle-btn"
               onClick={toggleSidebar}
               title="Thu gọn sidebar"
+              data-testid="sidebar-toggle-expanded"
             >
               <Menu size={20} />
             </button>
@@ -98,7 +104,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, title, subtitle }) => {
             </div>
             {!isCollapsed && (
               <div className="user-info">
-                <p className="user-name">{user.name}</p>
+                <p className="user-name">{user.fullName}</p>
                 <p className="user-role">{getRoleInVietnamese(user.role)}</p>
               </div>
             )}

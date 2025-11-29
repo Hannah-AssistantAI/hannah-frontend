@@ -43,6 +43,15 @@ export interface ImageMetadata {
     source: string
 }
 
+export interface YoutubeResource {
+    title: string
+    url: string
+    thumbnail?: string
+    channel?: string
+    videoId?: string
+    description?: string
+}
+
 export interface Message {
     messageId?: number          // Backend message ID
     type: string
@@ -55,6 +64,7 @@ export interface Message {
     interactiveList?: InteractiveListItem[]
     outline?: OutlineItem[]
     images?: ImageMetadata[]    // RAG images from document chunks
+    youtubeResources?: YoutubeResource[]  // YouTube videos from API
 }
 
 export interface BigPictureTopic {

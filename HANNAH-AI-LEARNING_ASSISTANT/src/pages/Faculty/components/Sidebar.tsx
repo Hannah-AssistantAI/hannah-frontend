@@ -169,10 +169,10 @@ const FacultySidebarContent: React.FC<FacultySidebarContentProps> = ({
   );
 };
 
-const FacultySidebar: React.FC = () => {
+const FacultySidebar: React.FC<any> = (props) => {
   return (
     <ReusableSidebar title="Hannah" subtitle="Lecturer page">
-      <FacultySidebarContent />
+      <FacultySidebarContent {...props} />
     </ReusableSidebar>
   );
 };

@@ -1,9 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import { Sparkles, Send, ThumbsUp, ThumbsDown, Share2, Upload, Book, GitBranch, FileText, ClipboardCheck, StickyNote, ChevronDown, ChevronUp, Link as LinkIcon, List, Flag } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Send, Upload, GitBranch, FileText, ClipboardCheck, StickyNote } from 'lucide-react'
 import subjectService, { type Subject } from '../../service/subjectService'
-import chatService from '../../service/chatService'
 import { useStudio } from './hooks/useStudio'
 import { useQuiz } from './hooks/useQuiz'
 import { ReportFormatModal } from './components/modals/ReportFormatModal'
@@ -15,16 +13,17 @@ import { QuizSideModal } from './components/modals/QuizSideModal'
 import { CustomizeFeatureModal } from './components/modals/CustomizeFeatureModal'
 import { ShareModal } from './components/modals/ShareModal'
 import { FlagMessageModal } from './components/modals/FlagMessageModal'
-import { MessageImages } from './components/MessageImages'
 import { BigPictureSidebar } from './components/BigPictureSidebar'
 import { StudioSidebar } from './components/StudioSidebar'
 import { HistorySidebar } from '../../components/HistorySidebar'
 import { Header } from '../../components/Header'
-import conversationService from '../../service/conversationService'
-import messageService from '../../service/messageService'
 import { useAuth } from '../../contexts/AuthContext'
-import type { Message, RelatedContent, Source, BigPictureTopic } from './types'
+import type { Message, BigPictureTopic } from './types'
+import { parseInteractiveList } from './utils/messageHelpers'
+import { MessageDisplay } from './components/MessageDisplay/MessageDisplay'
+import { useChatMessages } from './hooks/useChatMessages'
 import './Chat.css'
+import './css/youtube-resources.css'
 
 export default function Chat() {
     const location = useLocation()
@@ -36,31 +35,42 @@ export default function Chat() {
 
     const [inputValue, setInputValue] = useState('')
     const [isBigPictureOpen, setIsBigPictureOpen] = useState(true)
-    const [subjects, setSubjects] = useState<Subject[]>([]) // Store fetched subjects
+    const [subjects, setSubjects] = useState<Subject[]>([])
     const [currentCardIndex, setCurrentCardIndex] = useState(0)
     const [isCardFlipped, setIsCardFlipped] = useState(false)
     const [openMenuId, setOpenMenuId] = useState<string | null>(null)
     const [expandedSources, setExpandedSources] = useState<{ [key: string]: boolean }>({})
     const [showShareModal, setShowShareModal] = useState(false)
     const [showHistorySidebar, setShowHistorySidebar] = useState(false)
-    const [conversationId, setConversationId] = useState<number | null>(initialConversationId)
-    const [isSendingMessage, setIsSendingMessage] = useState(false)
     const [showFlagModal, setShowFlagModal] = useState(false)
     const [flaggingMessageId, setFlaggingMessageId] = useState<number | null>(null)
     const [isFlaggingMessage, setIsFlaggingMessage] = useState(false)
-    const hasAutoSentRef = useRef(false) // Track if we already auto-sent initial query
-    const [messages, setMessages] = useState<Message[]>(initialQuery ? [
-        {
-            type: 'user',
-            content: initialQuery
-        }
-    ] : [])
+    const [bigPictureData, setBigPictureData] = useState<BigPictureTopic[]>([])
 
-    // Use hooks for state management (after conversationId is declared)
+    // Use custom hook for message management
+    const {
+        messages,
+        setMessages,
+        conversationId,
+        setConversationId,
+        isSendingMessage,
+        handleSend: sendMessage,
+        handleInteractiveItemClick,
+        handleFlagMessage: flagMessage
+    } = useChatMessages({
+        initialQuery,
+        initialConversationId,
+        user,
+        locationState: location.state,
+        setBigPictureData,
+        setShowFlagModal,
+        setFlaggingMessageId,
+        setIsFlaggingMessage
+    });
+
+    // Use hooks for state management
     const studio = useStudio(conversationId)
     const quiz = useQuiz()
-
-    const [bigPictureData, setBigPictureData] = useState<BigPictureTopic[]>([])
 
     const studioFeatures = [
         { icon: GitBranch, title: 'Bản đồ tư duy', description: 'Mind map', type: 'mindmap' as const, note: 'Tạo bản đồ tư duy dựa vào nội dung cuộc trò chuyện' },
@@ -85,179 +95,6 @@ export default function Chat() {
 
         fetchSubjects();
     }, []);
-
-    // Helper to parse assistant response which might be a JSON string
-    const parseAssistantResponse = (responseContent: string, interactiveElements?: any) => {
-        console.log('🔧 parseAssistantResponse START');
-        console.log('  📄 responseContent:', responseContent);
-        console.log('  📦 interactiveElements:', interactiveElements);
-
-        // PRIORITY 1: Use interactiveElements from API response (new backend structure)
-        if (interactiveElements) {
-            console.log('  ✅ Using interactiveElements (new structure)');
-            const result = {
-                content: responseContent, // Plain text content
-                interactiveList: interactiveElements.interactive_list || interactiveElements.interactiveList,
-                suggestedQuestions: interactiveElements.suggested_questions || interactiveElements.suggestedQuestions,
-                outline: interactiveElements.outline
-            };
-            console.log('  📋 Result:', result);
-            console.log('  📚 Outline extracted:', result.outline);
-            return result;
-        }
-
-        console.log('  ℹ️ No interactiveElements, trying JSON parse...');
-        // PRIORITY 2: Try to parse from JSON string (old FAQ hybrid structure - fallback)
-        try {
-            // Try to parse the content as JSON
-            const parsed = JSON.parse(responseContent);
-
-            // Check if it has the expected structure
-            if (parsed.content && (parsed.interactive_list || parsed.suggested_questions || parsed.outline)) {
-                return {
-                    content: parsed.content,
-                    interactiveList: parsed.interactive_list,
-                    suggestedQuestions: parsed.suggested_questions,
-                    outline: parsed.outline
-                };
-            }
-
-            // If it's JSON but doesn't have the specific structure, treat as plain text (or handle otherwise)
-            return { content: responseContent };
-        } catch (e) {
-            // Not JSON, treat as plain text
-            return { content: responseContent };
-        }
-    };
-
-    // Auto-send initial query ONCE when component mounts
-    useEffect(() => {
-        const sendInitialQuery = async () => {
-            // Prevent duplicate sends (React Strict Mode runs effects twice)
-            if (hasAutoSentRef.current) return;
-            if (!initialQuery || !user?.userId) return;
-
-            console.log('🚀 Checking conversation before auto-send:', initialQuery);
-            hasAutoSentRef.current = true; // Mark as sent immediately
-
-            try {
-                let currentConversationId = conversationId;
-
-                // If no conversation ID, create one first
-                if (!currentConversationId) {
-                    console.log('🆕 Creating new conversation for FAQ query...');
-                    const newConv = await conversationService.createConversation({
-                        userId: user.userId,
-                        title: initialQuery.length > 50 ? initialQuery.substring(0, 50) + '...' : initialQuery,
-                        subjectId: null // Or try to infer from query if possible, but null is safer
-                    });
-                    currentConversationId = newConv.conversationId;
-                    setConversationId(currentConversationId);
-
-                    // Update URL without reloading
-                    navigate(`/chat/${currentConversationId}`, { replace: true, state: { query: initialQuery } });
-                }
-
-                // Check if conversation already has messages (e.g., after F5 reload)
-                // Only check if we didn't just create it (newly created ones are empty)
-                if (conversationId) {
-                    const conversationDetails = await conversationService.getConversation(currentConversationId, user.userId);
-
-                    if (conversationDetails.messages.length > 0) {
-                        console.log('⏭️ Skipping auto-send: conversation already has', conversationDetails.messages.length, 'messages');
-
-                        // Load existing messages instead of sending again
-                        const transformedMessages: Message[] = conversationDetails.messages.map(msg => {
-                            const interactiveElements = msg.metadata?.interactive_elements || msg.metadata?.interactiveElements;
-                            const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content, interactiveElements) : {};
-
-                            return {
-                                messageId: msg.messageId,
-                                type: msg.role === 'user' || msg.role === 'student' ? 'user' : 'assistant',
-                                content: msg.content,
-                                isStreaming: false,
-                                isFlagged: false,
-                                suggestedQuestions: [],
-                                images: msg.metadata?.images || [],
-                                ...parsed
-                            };
-                        });
-
-                        setMessages(transformedMessages);
-
-                        // Update Big Picture if exists
-                        transformedMessages.forEach(msg => {
-                            if (msg.type === 'assistant' && msg.outline && msg.outline.length > 0) {
-                                setBigPictureData(msg.outline);
-                            }
-                        });
-
-                        return; // Exit early - conversation already has messages
-                    }
-                }
-
-                // Conversation is empty - proceed with auto-send
-                console.log('✅ Conversation empty, proceeding with auto-send');
-                setIsSendingMessage(true);
-
-                // Add loading message
-                setMessages(prev => [...prev, {
-                    type: 'assistant',
-                    content: 'Đang suy nghĩ...',
-                    isStreaming: true
-                }]);
-
-                const response = await chatService.sendTextMessage(
-                    currentConversationId,
-                    initialQuery
-                );
-
-
-                const parsedResponse = parseAssistantResponse(
-                    response.assistantMessage.content.data,
-                    response.assistantMessage.interactiveElements  // ← Pass interactiveElements
-                );
-
-                // Update Big Picture if outline exists
-                if (parsedResponse.outline && parsedResponse.outline.length > 0) {
-                    setBigPictureData(parsedResponse.outline);
-                }
-
-                // Replace loading message with actual response
-                setMessages(prev => {
-                    const newMessages = [...prev];
-                    newMessages[1] = {
-                        messageId: response.assistantMessage.messageId,
-                        type: 'assistant',
-                        content: parsedResponse.content,
-                        isStreaming: false,
-                        isFlagged: false,
-                        suggestedQuestions: parsedResponse.suggestedQuestions || response.assistantMessage.interactiveElements?.suggestedQuestions || [],
-                        interactiveList: parsedResponse.interactiveList,
-                        outline: parsedResponse.outline,
-                        images: response.assistantMessage.metadata?.images || []
-                    };
-                    return newMessages;
-                });
-            } catch (error: any) {
-                console.error('❌ Failed to get initial response:', error);
-                setMessages(prev => {
-                    const newMessages = [...prev];
-                    newMessages[1] = {
-                        type: 'assistant',
-                        content: 'Xin lỗi, đã có lỗi xảy ra khi tải câu trả lời. Vui lòng thử lại.',
-                        isStreaming: false,
-                        suggestedQuestions: []
-                    };
-                    return newMessages;
-                });
-            } finally {
-                setIsSendingMessage(false);
-            }
-        };
-
-        sendInitialQuery();
-    }, []); // Empty deps - only run once on mount
 
     const handleCustomizeSubmit = (data: any) => {
         if (studio.selectedFeatureType) {
@@ -344,362 +181,21 @@ export default function Chat() {
         }
     }, [studio.showNotecardModal])
 
-    const handleFlagMessage = async (reason: string) => {
-        if (!flaggingMessageId || !conversationId || !user?.userId) {
-            toast.error('Thiếu thông tin cần thiết');
-            return;
-        }
-
-        setIsFlaggingMessage(true);
-
-        const requestData = {
-            conversationId: conversationId,
-            userId: user.userId,
-            reason: reason.trim()
-        };
-
-        console.log('📤 Flag Request:', requestData);
-
-        try {
-            const response = await messageService.flagMessage(flaggingMessageId, requestData);
-            console.log('✅ Success:', response);
-
-            setMessages(prev => prev.map(msg =>
-                msg.messageId === flaggingMessageId
-                    ? { ...msg, isFlagged: true }
-                    : msg
-            ));
-
-            toast.success('Đã báo cáo tin nhắn thành công!');
-            setShowFlagModal(false);
-            setFlaggingMessageId(null);
-        } catch (error: any) {
-            console.error('❌ Error:', error);
-            const errorMessage = error?.message || 'Không thể báo cáo tin nhắn';
-            toast.error(errorMessage);
-        } finally {
-            setIsFlaggingMessage(false);
-        }
-    }
-
-    const handleInteractiveItemClick = async (itemTerm: string) => {
-        if (isSendingMessage) return;
-        if (!conversationId || !user?.userId) {
-            console.error('Missing conversation ID or user ID');
-            return;
-        }
-
-        // Add user message with the item term
-        setMessages(prev => [...prev, {
-            type: 'user',
-            content: itemTerm
-        }]);
-
-        // Add loading message
-        const loadingMessageIndex = messages.length + 1;
-        setMessages(prev => [...prev, {
-            type: 'assistant',
-            content: 'Đang suy nghĩ...',
-            isStreaming: true
-        }]);
-
-        setIsSendingMessage(true);
-
-        try {
-            // Send message to AI
-            console.log('🤖 Sending interactive item query:', itemTerm);
-            const response = await chatService.sendTextMessage(
-                conversationId,
-                itemTerm
-            );
-
-            const parsedResponse = parseAssistantResponse(
-                response.assistantMessage.content.data,
-                response.assistantMessage.interactiveElements
-            );
-
-            // Update Big Picture if outline exists
-            if (parsedResponse.outline && parsedResponse.outline.length > 0) {
-                setBigPictureData(parsedResponse.outline);
-            }
-
-            // Replace loading message with response
-            setMessages(prev => {
-                const newMessages = [...prev];
-                newMessages[loadingMessageIndex] = {
-                    messageId: response.assistantMessage.messageId,
-                    type: 'assistant',
-                    content: parsedResponse.content,
-                    isStreaming: false,
-                    isFlagged: false,
-                    suggestedQuestions: parsedResponse.suggestedQuestions || response.assistantMessage.interactiveElements?.suggestedQuestions || [],
-                    interactiveList: parsedResponse.interactiveList,
-                    outline: parsedResponse.outline,
-                    images: response.assistantMessage.metadata?.images || []
-                };
-                return newMessages;
-            });
-
-            console.log('✅ Interactive item query sent successfully');
-        } catch (error: any) {
-            console.error('❌ Failed to send interactive item query:', error);
-            setMessages(prev => {
-                const newMessages = [...prev];
-                newMessages[loadingMessageIndex] = {
-                    type: 'assistant',
-                    content: 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.',
-                    isStreaming: false,
-                    suggestedQuestions: []
-                };
-                return newMessages;
-            });
-        } finally {
-            setIsSendingMessage(false);
-        }
-    }
-
+    // Wrapper for sendMessage to handle input field clearing
     const handleSend = async () => {
-        if (!inputValue.trim()) return
-        if (isSendingMessage) return
-
-        // If no conversation ID, create one first
-        let currentConvId = conversationId;
-        if (!currentConvId) {
-            if (!user?.userId) {
-                console.error('No user ID available');
-                return;
-            }
-            try {
-                console.log('🆕 Creating new conversation before sending message...');
-                const newConv = await conversationService.createConversation({
-                    userId: user.userId,
-                    title: inputValue.length > 50 ? inputValue.substring(0, 50) + '...' : inputValue,
-                    subjectId: undefined
-                });
-                currentConvId = newConv.conversationId;
-                setConversationId(currentConvId);
-                // Update URL without reloading
-                navigate(`/chat/${currentConvId}`, { replace: true });
-            } catch (error) {
-                console.error('❌ Failed to create new conversation:', error);
-                toast.error('Không thể tạo cuộc trò chuyện mới');
-                return;
-            }
-        }
-
-        if (!user?.userId) {
-            console.error('No user ID available');
-            return;
-        }
+        if (!inputValue.trim()) return;
 
         const userMessage = inputValue;
-        setInputValue('');
+        setInputValue(''); // Clear input immediately
 
-        // Add user message
-        setMessages(prev => [...prev, {
-            type: 'user',
-            content: userMessage
-        }]);
-
-        // Add loading message
-        const loadingMessageIndex = messages.length + 1;
-        setMessages(prev => [...prev, {
-            type: 'assistant',
-            content: 'Đang suy nghĩ...',
-            isStreaming: true
-        }]);
-
-        setIsSendingMessage(true);
-
-        try {
-            // Step 1: Update conversation title ONLY on the very first user message
-            // Only update when this is a brand new conversation (first time chatting)
-            const isFirstMessageInConversation = initialQuery ? messages.length === 1 : messages.length === 0;
-
-            if (isFirstMessageInConversation) {
-                console.log('📝 Updating conversation title via PUT /api/v1/conversations...');
-                const conversationTitle = userMessage.length > 50
-                    ? userMessage.substring(0, 50) + '...'
-                    : userMessage;
-                await conversationService.updateConversation(currentConvId, {
-                    userId: user.userId,
-                    title: conversationTitle
-                });
-            }
-
-            // Step 2: Send message to AI and get response via POST /api/v1/chat/interactions
-            // NOTE: This endpoint automatically creates the user message, so we don't need to call POST /messages
-            console.log('🤖 Sending to chat API via POST /api/v1/chat/interactions...');
-            const response = await chatService.sendTextMessage(
-                currentConvId,
-                userMessage
-            );
-
-            const parsedResponse = parseAssistantResponse(
-                response.assistantMessage.content.data,
-                response.assistantMessage.interactiveElements  // ← Pass interactiveElements
-            );
-
-            // Update Big Picture if outline exists
-            if (parsedResponse.outline && parsedResponse.outline.length > 0) {
-                setBigPictureData(parsedResponse.outline);
-            }
-
-            // Replace loading message with response
-            setMessages(prev => {
-                const newMessages = [...prev];
-                newMessages[loadingMessageIndex] = {
-                    messageId: response.assistantMessage.messageId,
-                    type: 'assistant',
-                    content: parsedResponse.content,
-                    isStreaming: false,
-                    isFlagged: false,
-                    suggestedQuestions: parsedResponse.suggestedQuestions || response.assistantMessage.interactiveElements?.suggestedQuestions || [],
-                    interactiveList: parsedResponse.interactiveList,
-                    outline: parsedResponse.outline,
-                    images: response.assistantMessage.metadata?.images || []
-                };
-                return newMessages;
-            });
-
-            console.log('✅ All APIs called successfully');
-        } catch (error: any) {
-            console.error('❌ Failed to send message:', error);
-            setMessages(prev => {
-                const newMessages = [...prev];
-                newMessages[loadingMessageIndex] = {
-                    type: 'assistant',
-                    content: 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.',
-                    isStreaming: false,
-                    suggestedQuestions: []
-                };
-                return newMessages;
-            });
-        } finally {
-            setIsSendingMessage(false);
-        }
-    }
+        await sendMessage(userMessage);
+    };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault()
             handleSend()
         }
-    }
-
-    // Parse interactive list and related content from content
-    const parseInteractiveList = (content: string) => {
-        const parts: Array<{ type: 'text' | 'interactive-list' | 'related-content' | 'video-content', content: string, title?: string, sources?: Source[], relatedItems?: RelatedContent[], videoUrl?: string, videoTitle?: string }> = []
-        const interactiveListRegex = /\[INTERACTIVE_LIST:(.*?)\]([\s\S]*?)\[\/INTERACTIVE_LIST\]/g
-        const relatedContentRegex = /\[RELATED_CONTENT:(.*?)\]([\s\S]*?)\[\/RELATED_CONTENT\]/g
-        const videoContentRegex = /\[VIDEO_CONTENT:(.*?):(.*?)\]/g
-
-        // Create a combined regex to find all special blocks
-        const allMatches: Array<{ type: 'interactive-list' | 'related-content' | 'video-content', match: RegExpExecArray }> = []
-
-        let match
-        while ((match = interactiveListRegex.exec(content)) !== null) {
-            allMatches.push({ type: 'interactive-list', match })
-        }
-
-        while ((match = relatedContentRegex.exec(content)) !== null) {
-            allMatches.push({ type: 'related-content', match })
-        }
-
-        while ((match = videoContentRegex.exec(content)) !== null) {
-            allMatches.push({ type: 'video-content', match })
-        }
-
-        // Sort by position
-        allMatches.sort((a, b) => a.match.index - b.match.index)
-
-        let lastIndex = 0
-
-        for (const { type, match } of allMatches) {
-            // Add text before this block
-            if (match.index > lastIndex) {
-                parts.push({
-                    type: 'text',
-                    content: content.substring(lastIndex, match.index)
-                })
-            }
-
-            if (type === 'interactive-list') {
-                const title = match[1]
-                const listContent = match[2]
-                const sources: Source[] = []
-
-                // Parse sources
-                const sourceRegex = /\[SOURCE:(\d+):(.*?):(.*?):(.*?):(.*?)\]/g
-                let sourceMatch
-
-                while ((sourceMatch = sourceRegex.exec(listContent)) !== null) {
-                    sources.push({
-                        id: sourceMatch[1],
-                        title: sourceMatch[2],
-                        icon: sourceMatch[3],
-                        description: sourceMatch[4],
-                        url: sourceMatch[5]
-                    })
-                }
-
-                parts.push({
-                    type: 'interactive-list',
-                    content: listContent,
-                    title,
-                    sources
-                })
-            } else if (type === 'video-content') {
-                const videoTitle = match[1]
-                const videoUrl = match[2]
-
-                parts.push({
-                    type: 'video-content',
-                    content: '',
-                    videoTitle,
-                    videoUrl
-                })
-            } else if (type === 'related-content') {
-                const title = match[1]
-                const contentBlock = match[2]
-                const relatedItems: RelatedContent[] = []
-
-                // Parse related content items: [CONTENT:id:title:description:url:source:sourceIcon:shortTitle]
-                const contentRegex = /\[CONTENT:(\d+):(.*?):(.*?):(.*?):(.*?):(.*?):(.*?)\]/g
-                let contentMatch
-
-                while ((contentMatch = contentRegex.exec(contentBlock)) !== null) {
-                    relatedItems.push({
-                        id: contentMatch[1],
-                        title: contentMatch[2],
-                        description: contentMatch[3],
-                        url: contentMatch[4],
-                        source: contentMatch[5],
-                        sourceIcon: contentMatch[6],
-                        shortTitle: contentMatch[7]
-                    })
-                }
-
-                parts.push({
-                    type: 'related-content',
-                    content: contentBlock,
-                    title,
-                    relatedItems
-                })
-            }
-
-            lastIndex = match.index + match[0].length
-        }
-
-        // Add remaining text
-        if (lastIndex < content.length) {
-            parts.push({
-                type: 'text',
-                content: content.substring(lastIndex)
-            })
-        }
-
-        return parts.length > 0 ? parts : [{ type: 'text' as const, content }]
     }
 
     // Auto-expand all interactive lists when messages change
@@ -719,404 +215,7 @@ export default function Chat() {
         setExpandedSources(newExpandedState)
     }, [messages])
 
-    const renderInteractiveList = (items: any[]) => {
-        return (
-            <div className="interactive-list-container">
-                <div className="interactive-list-header">
-                    <List size={20} className="interactive-list-icon" />
-                    <span className="interactive-list-title">Interactive List</span>
-                </div>
-                <div className="interactive-list-items">
-                    {items.map((item, index) => (
-                        <div
-                            key={index}
-                            className="interactive-item-card"
-                            onClick={() => handleInteractiveItemClick(item.term)}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <div className="interactive-item-icon-wrapper">
-                                {item.icon ? (
-                                    <span className="interactive-item-emoji">{item.icon}</span>
-                                ) : (
-                                    <div className="interactive-item-placeholder">
-                                        <Book size={24} />
-                                    </div>
-                                )}
-                            </div>
-                            <div className="interactive-item-content">
-                                <h4 className="interactive-item-term">{item.term}</h4>
-                                <p className="interactive-item-definition">{item.definition}</p>
-                            </div>
-                            <div className="interactive-item-action">
-                                <button className="interactive-item-link-btn" aria-label="Link" onClick={(e) => e.stopPropagation()}>
-                                    <LinkIcon size={20} />
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        )
-    }
 
-    const renderMessageContent = (content: string, messageIndex: number, message?: Message) => {
-        const parts = parseInteractiveList(content)
-
-        // If we have a structured interactive list in the message object, render it
-        if (message?.interactiveList && message.interactiveList.length > 0) {
-            return (
-                <>
-                    <div className="message-text">
-                        {content.split('\n').map((line, i) => (
-                            <p key={i}>{line}</p>
-                        ))}
-                    </div>
-                    {renderInteractiveList(message.interactiveList)}
-                    {message.images && message.images.length > 0 && (
-                        <MessageImages images={message.images} />
-                    )}
-                </>
-            )
-        }
-
-        return parts.map((part, partIndex) => {
-            if (part.type === 'interactive-list') {
-                return (
-                    <div key={`part-${partIndex}`} className="message-sources">
-                        <button
-                            className="sources-toggle"
-                            onClick={() => setExpandedSources(prev => ({
-                                ...prev,
-                                [`${messageIndex}-${partIndex}`]: !prev[`${messageIndex}-${partIndex}`]
-                            }))}
-                        >
-                            <List size={18} />
-                            <span className="sources-label">Interactive List</span>
-                            <span className="sources-title">{part.title}</span>
-                            {expandedSources[`${messageIndex}-${partIndex}`] ? (
-                                <ChevronUp size={18} className="sources-chevron" />
-                            ) : (
-                                <ChevronDown size={18} className="sources-chevron" />
-                            )}
-                        </button>
-
-                        {expandedSources[`${messageIndex}-${partIndex}`] && (
-                            <div className="sources-list">
-                                {part.sources?.map((source) => (
-                                    <a
-                                        key={`${messageIndex}-${partIndex}-source-${source.id}`}
-                                        href={source.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="source-item"
-                                    >
-                                        <div className="source-icon-wrapper">
-                                            {source.icon ? (
-                                                <span className="source-icon-emoji">{source.icon}</span>
-                                            ) : (
-                                                <div className="source-icon-placeholder">
-                                                    <Book size={24} />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="source-content">
-                                            <h4 className="source-title">{source.title}</h4>
-                                            <p className="source-description">{source.description}</p>
-                                        </div>
-                                        <button className="source-link-btn" aria-label="Open link">
-                                            <LinkIcon size={20} />
-                                        </button>
-                                    </a>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )
-            } else if (part.type === 'video-content') {
-                return (
-                    <div key={`part-${partIndex}`} className="video-content-container">
-                        <h3 className="video-content-title">{part.videoTitle || 'Related Video'}</h3>
-                        <div className="video-wrapper">
-                            <iframe
-                                src={part.videoUrl}
-                                title={part.videoTitle || 'Video'}
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                                className="video-iframe"
-                            />
-                        </div>
-                    </div>
-                )
-            } else if (part.type === 'related-content') {
-                return (
-                    <div key={`part-${partIndex}`} className="related-content">
-                        <h3 className="related-content-title">{part.title}</h3>
-                        <div className="related-content-carousel">
-                            {part.relatedItems?.map((item) => (
-                                <div
-                                    key={`${messageIndex}-${partIndex}-related-${item.id}`}
-                                    className="related-content-card"
-                                    onClick={() => handleInteractiveItemClick(item.shortTitle || item.title)}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <div className="related-card-content">
-                                        <h4 className="related-card-title">{item.title}</h4>
-                                        <p className="related-card-description">{item.description}</p>
-                                    </div>
-                                    <div className="related-card-footer">
-                                        <div className="related-card-info">
-                                            <div className="related-card-short-title">{item.shortTitle || item.title}</div>
-                                            <div className="related-card-source">
-                                                {item.sourceIcon && (
-                                                    <span className="source-icon-badge">{item.sourceIcon}</span>
-                                                )}
-                                                {/* <span className="source-name">{item.source}</span> */}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )
-            } else {
-                return (
-                    <div key={`part-${partIndex}`} className="message-text">
-                        {part.content.split('\n').map((line: string, i: number) => {
-                            // Handle bold text
-                            if (line.includes('**')) {
-                                const parts = line.split('**')
-                                return (
-                                    <p key={i}>
-                                        {parts.map((linePart: string, j: number) =>
-                                            j % 2 === 1 ? <strong key={j}>{linePart}</strong> : linePart
-                                        )}
-                                    </p>
-                                )
-                            }
-                            // Handle headings
-                            if (line.startsWith('### ')) {
-                                return <h3 key={i}>{line.replace('### ', '')}</h3>
-                            }
-                            if (line.startsWith('#### ')) {
-                                return <h4 key={i}>{line.replace('#### ', '')}</h4>
-                            }
-                            // Handle list items
-                            if (line.startsWith('- ')) {
-                                return <li key={i}>{line.replace('- ', '')}</li>
-                            }
-                            // Regular paragraph
-                            if (line.trim()) {
-                                return <p key={i}>{line}</p>
-                            }
-                            return null
-                        })}
-                    </div>
-                )
-            }
-        })
-
-        // Render images at the end if present
-        // @ts-ignore - message is optional but guaranteed to exist in this context
-        const imageComponent = message?.images && message.images.length > 0 ? (
-            // @ts-ignore
-            <MessageImages key="images" images={message.images!} />
-        ) : null
-
-        return imageComponent ? [...parts.map((part, partIndex) => renderPart(part, partIndex)), imageComponent] : parts.map((part, partIndex) => renderPart(part, partIndex))
-
-        function renderPart(part: any, partIndex: number) {
-            if (part.type === 'interactive-list') {
-                return (
-                    <div key={`part-${partIndex}`} className="message-sources">
-                        <button
-                            className="sources-toggle"
-                            onClick={() => setExpandedSources(prev => ({
-                                ...prev,
-                                [`${messageIndex}-${partIndex}`]: !prev[`${messageIndex}-${partIndex}`]
-                            }))}
-                        >
-                            <List size={18} />
-                            <span className="sources-label">Interactive List</span>
-                            <span className="sources-title">{part.title}</span>
-                            {expandedSources[`${messageIndex}-${partIndex}`] ? (
-                                <ChevronUp size={18} className="sources-chevron" />
-                            ) : (
-                                <ChevronDown size={18} className="sources-chevron" />
-                            )}
-                        </button>
-
-                        {expandedSources[`${messageIndex}-${partIndex}`] && (
-                            <div className="sources-list">
-                                {part.sources?.map((source: any) => (
-                                    <a
-                                        key={`${messageIndex}-${partIndex}-source-${source.id}`}
-                                        href={source.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="source-item"
-                                    >
-                                        <div className="source-icon-wrapper">
-                                            {source.icon ? (
-                                                <span className="source-icon-emoji">{source.icon}</span>
-                                            ) : (
-                                                <div className="source-icon-placeholder">
-                                                    <Book size={24} />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="source-content">
-                                            <h4 className="source-title">{source.title}</h4>
-                                            <p className="source-description">{source.description}</p>
-                                        </div>
-                                        <button className="source-link-btn" aria-label="Open link">
-                                            <LinkIcon size={20} />
-                                        </button>
-                                    </a>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )
-            } else if (part.type === 'video-content') {
-                return (
-                    <div key={`part-${partIndex}`} className="video-content-container">
-                        <h3 className="video-content-title">{part.videoTitle || 'Related Video'}</h3>
-                        <div className="video-wrapper">
-                            <iframe
-                                src={part.videoUrl}
-                                title={part.videoTitle || 'Video'}
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                                className="video-iframe"
-                            />
-                        </div>
-                    </div>
-                )
-            } else if (part.type === 'related-content') {
-                return (
-                    <div key={`part-${partIndex}`} className="related-content">
-                        <h3 className="related-content-title">{part.title}</h3>
-                        <div className="related-content-carousel">
-                            {part.relatedItems?.map((item: any) => (
-                                <div
-                                    key={`${messageIndex}-${partIndex}-related-${item.id}`}
-                                    className="related-content-card"
-                                    onClick={() => handleInteractiveItemClick(item.shortTitle || item.title)}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <div className="related-card-content">
-                                        <h4 className="related-card-title">{item.title}</h4>
-                                        <p className="related-card-description">{item.description}</p>
-                                    </div>
-                                    <div className="related-card-footer">
-                                        <div className="related-card-info">
-                                            <div className="related-card-short-title">{item.shortTitle || item.title}</div>
-                                            <div className="related-card-source">
-                                                {item.sourceIcon && (
-                                                    <span className="source-icon-badge">{item.sourceIcon}</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )
-            } else {
-                return (
-                    <div key={`part-${partIndex}`} className="message-text">
-                        {part.content.split('\n').map((line: string, i: number) => {
-                            // Handle bold text
-                            if (line.includes('**')) {
-                                const parts = line.split('**')
-                                return (
-                                    <p key={i}>
-                                        {parts.map((linePart: string, j: number) =>
-                                            j % 2 === 1 ? <strong key={j}>{linePart}</strong> : linePart
-                                        )}
-                                    </p>
-                                )
-                            }
-                            // Handle headings
-                            if (line.startsWith('### ')) {
-                                return <h3 key={i}>{line.replace('### ', '')}</h3>
-                            }
-                            if (line.startsWith('#### ')) {
-                                return <h4 key={i}>{line.replace('#### ', '')}</h4>
-                            }
-                            // Handle list items
-                            if (line.startsWith('- ')) {
-                                return <li key={i}>{line.replace('- ', '')}</li>
-                            }
-                            // Regular paragraph
-                            if (line.trim()) {
-                                return <p key={i}>{line}</p>
-                            }
-                            return null
-                        })}
-                    </div>
-                )
-            }
-        }
-    }
-
-
-    // Update conversationId when location state changes (e.g. from sidebar navigation)
-    useEffect(() => {
-        if (location.state?.conversationId) {
-            setConversationId(location.state.conversationId);
-        }
-    }, [location.state]);
-
-    // Reload messages when conversationId changes
-    useEffect(() => {
-        // Only load if: conversationId exists, no initialQuery (not from Learn), user is logged in, AND NOT SENDING MESSAGE
-        if (conversationId && !initialQuery && user?.userId && !isSendingMessage) {
-            const loadConversationHistory = async () => {
-                try {
-                    console.log('📥 Loading conversation history for ID:', conversationId);
-
-                    const conversationDetails = await conversationService.getConversation(conversationId, user.userId);
-                    console.log('✅ Loaded conversation:', conversationDetails);
-
-                    const transformedMessages: Message[] = conversationDetails.messages.map(msg => {
-                        const interactiveElements = msg.metadata?.interactive_elements || msg.metadata?.interactiveElements;
-                        const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content, interactiveElements) : {};
-
-                        return {
-                            messageId: msg.messageId,
-                            type: msg.role === 'user' || msg.role === 'student' ? 'user' : 'assistant',
-                            content: msg.content,
-                            isStreaming: false,
-                            isFlagged: false,
-                            suggestedQuestions: [],
-                            ...parsed
-                        };
-                    });
-
-                    setMessages(transformedMessages);
-                    setBigPictureData([]);
-
-                    transformedMessages.forEach(msg => {
-                        if (msg.type === 'assistant' && msg.outline && msg.outline.length > 0) {
-                            setBigPictureData(msg.outline);
-                        }
-                    });
-                } catch (error) {
-                    console.error('❌ Failed to load conversation:', error);
-                    // If we fail to load (e.g. 404 deleted), reset to empty state
-                    setConversationId(null);
-                    setMessages([]);
-                    navigate('/chat', { replace: true });
-                }
-            };
-            loadConversationHistory();
-        }
-    }, [conversationId, initialQuery, user?.userId, isSendingMessage]);
 
     return (
         <div className="chat-container">
@@ -1136,8 +235,8 @@ export default function Chat() {
             />
 
 
-            {/* Main Chat Area */}
-            < main className="chat-main" style={{ display: 'flex', gap: '0', padding: '24px', alignItems: 'stretch' }}>
+
+            <main className="chat-main" style={{ display: 'flex', gap: '0', padding: '24px', alignItems: 'stretch' }}>
                 {/* Big Picture Sidebar - Left */}
                 < BigPictureSidebar
                     isOpen={isBigPictureOpen}
@@ -1166,81 +265,21 @@ export default function Chat() {
                     {/* Messages */}
                     <div className="messages-container">
                         {messages.map((message, index) => (
-                            <div key={index} className={`message ${message.type}-message`}>
-                                {message.type === 'assistant' && (
-                                    <div className="message-avatar">
-                                        <Sparkles size={20} color="#4285F4" />
-                                    </div>
-                                )}
-                                <div className="message-content">
-                                    {renderMessageContent(message.content, index, message)}
-                                    {message.type === 'assistant' && !message.isStreaming && (
-                                        <>
-                                            <div className="message-actions-container">
-                                                <div className="message-suggestions">
-                                                    <button
-                                                        className="suggestion-btn"
-                                                        onClick={() => {
-                                                            const previousUserMessage = messages[index - 1]?.content || '';
-                                                            handleInteractiveItemClick(`Đơn giản hóa: ${previousUserMessage}`);
-                                                        }}
-                                                    >
-                                                        <span className="suggestion-icon">≡</span>
-                                                        <span>Đơn giản hóa</span>
-                                                    </button>
-                                                    <button
-                                                        className="suggestion-btn"
-                                                        onClick={() => {
-                                                            const previousUserMessage = messages[index - 1]?.content || '';
-                                                            handleInteractiveItemClick(`Tìm hiểu sâu hơn: ${previousUserMessage}`);
-                                                        }}
-                                                    >
-                                                        <span className="suggestion-icon">≡</span>
-                                                        <span>Tìm hiểu sâu hơn</span>
-                                                    </button>
-                                                </div>
-                                                <div className="message-actions">
-                                                    <button className="action-btn" aria-label="Phản hồi tốt">
-                                                        <ThumbsUp size={16} />
-                                                    </button>
-                                                    <button className="action-btn" aria-label="Phản hồi không tốt">
-                                                        <ThumbsDown size={16} />
-                                                    </button>
-                                                    <button className="action-btn" aria-label="Chia sẻ">
-                                                        <Share2 size={16} />
-                                                    </button>
-                                                    <button
-                                                        className={`action-btn ${message.isFlagged ? 'flagged' : ''}`}
-                                                        aria-label="Báo cáo"
-                                                        onClick={() => {
-                                                            if (!message.isFlagged && message.messageId) {
-                                                                setFlaggingMessageId(message.messageId);
-                                                                setShowFlagModal(true);
-                                                            }
-                                                        }}
-                                                        disabled={message.isFlagged || !message.messageId}
-                                                    >
-                                                        <Flag size={16} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            {message.suggestedQuestions && message.suggestedQuestions.length > 0 && (
-                                                <div className="follow-up-questions">
-                                                    {message.suggestedQuestions.map((question, qIndex) => (
-                                                        <button
-                                                            key={qIndex}
-                                                            className="follow-up-btn"
-                                                            onClick={() => handleInteractiveItemClick(question)}
-                                                        >
-                                                            {question}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                            </div>
+                            <MessageDisplay
+                                key={index}
+                                message={message}
+                                messageIndex={index}
+                                expandedSources={expandedSources}
+                                onToggleSource={(key) => setExpandedSources(prev => ({
+                                    ...prev,
+                                    [key]: !prev[key]
+                                }))}
+                                onInteractiveItemClick={handleInteractiveItemClick}
+                                onFlagMessage={(messageId) => {
+                                    setFlaggingMessageId(messageId);
+                                    setShowFlagModal(true);
+                                }}
+                            />
                         ))}
                     </div>
 
@@ -1266,7 +305,7 @@ export default function Chat() {
                             <button
                                 className={`send-btn ${inputValue.trim() ? 'active' : ''}`}
                                 onClick={handleSend}
-                                disabled={!inputValue.trim()}
+                                disabled={!inputValue.trim() || isSendingMessage}
                                 aria-label="Gửi tin nhắn"
                             >
                                 <Send size={20} />
@@ -1402,7 +441,11 @@ export default function Chat() {
                     setShowFlagModal(false);
                     setFlaggingMessageId(null);
                 }}
-                onSubmit={handleFlagMessage}
+                onSubmit={(reason) => {
+                    if (flaggingMessageId) {
+                        flagMessage(flaggingMessageId, reason);
+                    }
+                }}
                 isSubmitting={isFlaggingMessage}
             />
         </div >

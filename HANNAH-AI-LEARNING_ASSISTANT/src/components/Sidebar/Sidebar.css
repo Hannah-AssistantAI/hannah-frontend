@@ -36,12 +36,14 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  width: 100%;
+  flex: 1; /* Changed from width: 100% to prevent overlap */
+  min-width: 0; /* Allow text truncation if needed */
 }
 
 .sidebar.collapsed .sidebar-logo {
   justify-content: center;
   gap: 0;
+  flex: unset; /* Reset flex in collapsed state */
 }
 
 .sidebar-toggle-btn {
@@ -58,6 +60,9 @@
   width: 40px;
   height: 40px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 1000; /* Increased to ensure it's above everything */
+  pointer-events: auto; /* Explicitly enable click events */
 }
 
 .sidebar-toggle-btn:hover {
@@ -66,7 +71,7 @@
 }
 
 .logo-icon {
-  color: #4CAF50;
+  color: #4caf50;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
@@ -153,13 +158,13 @@
 .sidebar-link:hover {
   background: #2a2a2a;
   color: white;
-  border-left-color: #4CAF50;
+  border-left-color: #4caf50;
 }
 
 .sidebar-link.active {
   background: #333;
   color: white;
-  border-left-color: #4CAF50;
+  border-left-color: #4caf50;
   font-weight: 600;
 }
 
@@ -174,7 +179,7 @@
 }
 
 .sidebar-badge {
-  background: #4CAF50;
+  background: #4caf50;
   color: white;
   font-size: 0.75rem;
   font-weight: 600;
@@ -233,14 +238,14 @@
 .sidebar-sublink:hover {
   background: #2a2a2a;
   color: white;
-  border-left-color: #4CAF50;
+  border-left-color: #4caf50;
 }
 
 .sidebar-sublink.active {
   background: #333;
   color: white;
   font-weight: 600;
-  border-left-color: #4CAF50;
+  border-left-color: #4caf50;
 }
 
 .sidebar-sublink svg {
@@ -343,7 +348,7 @@
 .sidebar.collapsed .sidebar-link:hover {
   background: #2a2a2a;
   color: white;
-  border-left-color: #4CAF50;
+  border-left-color: #4caf50;
   position: relative;
 }
 
