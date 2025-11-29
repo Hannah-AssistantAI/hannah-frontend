@@ -1,73 +1,60 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getFlaggedQuizAttempts, getQuizAttemptDetail, unflagQuizAttempt } from '../../service/mockApi';
+import flaggingService, { type FlaggedItem } from '../../service/flaggingService';
 import AdminPageWrapper from './components/AdminPageWrapper';
 
-interface FlaggedQuizRow {
-  id: string;
-  reason: string;
-  flaggedAt: string;
-  status: 'pending' | 'resolved';
-  studentName?: string;
-  topic?: string;
-  course?: string;
-}
-
 export default function FlaggedQuizzes() {
-  const [rows, setRows] = useState<FlaggedQuizRow[]>([]);
+  const [rows, setRows] = useState<FlaggedItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'resolved'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'Pending' | 'Resolved'>('all');
   const navigate = useNavigate();
 
   const load = async () => {
     setLoading(true);
     try {
-      const res = await getFlaggedQuizAttempts();
-      if (res.success) {
-        const enriched: FlaggedQuizRow[] = [];
-        for (const r of res.data as any[]) {
-          const detail = await getQuizAttemptDetail(r.id);
-          enriched.push({
-            id: r.id,
-            reason: r.reason,
-            flaggedAt: r.flaggedAt,
-            status: r.status,
-            studentName: detail.success ? (detail as any).data.studentName : undefined,
-            topic: detail.success ? (detail as any).data.topic : undefined,
-            course: detail.success ? (detail as any).data.course : undefined
-          });
-        }
-        setRows(enriched);
+      const status = statusFilter === 'all' ? undefined : statusFilter;
+      console.log('Fetching flagged quizzes...');
+      const data = await flaggingService.getFlaggedQuizzes(status);
+      console.log('Received flagged quizzes data:', data);
+
+      if (Array.isArray(data)) {
+        setRows(data);
+      } else if (data && Array.isArray((data as any).data)) {
+        // Handle case where data is wrapped in { data: [...] }
+        setRows((data as any).data);
+      } else {
+        console.error('Invalid data format received:', data);
+        setRows([]);
       }
+    } catch (error) {
+      console.error('Failed to load flagged quizzes:', error);
+      setRows([]);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [statusFilter]);
 
   const filtered = useMemo(() => {
     const term = search.toLowerCase();
     return rows.filter(r => {
-      const matchesSearch = !term || [r.id, r.studentName, r.topic, r.course, r.reason].some(v => (v || '').toLowerCase().includes(term));
-      const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesSearch = !term || [
+        r.id?.toString(),
+        r.reason,
+        r.flaggedByName,
+        r.assignedToName
+      ].some(v => (v || '').toLowerCase().includes(term));
+      return matchesSearch;
     });
-  }, [rows, search, statusFilter]);
+  }, [rows, search]);
 
   const stats = useMemo(() => {
-    const pending = rows.filter(r => r.status === 'pending').length;
+    const pending = rows.filter(r => r.status === 'Pending').length;
     const resolved = rows.length - pending;
     return { total: rows.length, pending, resolved };
   }, [rows]);
-
-  const unflag = async (id: string) => {
-    const res = await unflagQuizAttempt(id);
-    if (res.success) {
-      setRows(prev => prev.filter(r => r.id !== id));
-    }
-  };
 
   return (
     <AdminPageWrapper title="Flagged Quizzes">
@@ -75,7 +62,7 @@ export default function FlaggedQuizzes() {
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div>
-              <h2 className="text-xl font-semibold text-slate-800">Flagged Quiz Attempts</h2>
+              <h2 className="text-xl font-semibold text-slate-800">Flagged Quizzes</h2>
               <p className="text-sm text-slate-500">Quản lý các bài quiz bị gắn cờ để rà soát chất lượng nội dung.</p>
             </div>
             <div className="flex gap-2">
@@ -111,7 +98,7 @@ export default function FlaggedQuizzes() {
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="ID, Student, Topic, Reason..."
+                placeholder="ID, Reason, Flagged By..."
                 className="px-3 py-2 text-sm rounded-md border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-60"
               />
             </div>
@@ -123,8 +110,8 @@ export default function FlaggedQuizzes() {
                 className="px-3 py-2 text-sm rounded-md border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">Tất cả</option>
-                <option value="pending">Pending</option>
-                <option value="resolved">Resolved</option>
+                <option value="Pending">Pending</option>
+                <option value="Resolved">Resolved</option>
               </select>
             </div>
             {loading && <div className="text-sm text-slate-500">Đang tải dữ liệu...</div>}
@@ -136,11 +123,11 @@ export default function FlaggedQuizzes() {
             <thead className="bg-slate-50">
               <tr>
                 <th className="px-4 py-2 text-left font-medium text-slate-600">ID</th>
-                <th className="px-4 py-2 text-left font-medium text-slate-600">Student</th>
-                <th className="px-4 py-2 text-left font-medium text-slate-600">Topic</th>
-                <th className="px-4 py-2 text-left font-medium text-slate-600">Course</th>
+                <th className="px-4 py-2 text-left font-medium text-slate-600">Quiz ID</th>
                 <th className="px-4 py-2 text-left font-medium text-slate-600">Reason</th>
+                <th className="px-4 py-2 text-left font-medium text-slate-600">Flagged By</th>
                 <th className="px-4 py-2 text-left font-medium text-slate-600">Flagged At</th>
+                <th className="px-4 py-2 text-left font-medium text-slate-600">Assigned To</th>
                 <th className="px-4 py-2 text-left font-medium text-slate-600">Status</th>
                 <th className="px-4 py-2 text-left font-medium text-slate-600">Actions</th>
               </tr>
@@ -149,17 +136,17 @@ export default function FlaggedQuizzes() {
               {filtered.map(r => (
                 <tr key={r.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-2 font-mono text-xs text-slate-600">{r.id}</td>
-                  <td className="px-4 py-2">{r.studentName || '-'}</td>
-                  <td className="px-4 py-2">{r.topic || '-'}</td>
-                  <td className="px-4 py-2">{r.course || '-'}</td>
+                  <td className="px-4 py-2">{r.metadata?.quizId || '-'}</td>
                   <td className="px-4 py-2 max-w-xs">
                     <div className="truncate" title={r.reason}>{r.reason || '(no reason)'}</div>
                   </td>
+                  <td className="px-4 py-2">{r.flaggedByName || '-'}</td>
                   <td className="px-4 py-2 whitespace-nowrap text-xs text-slate-600">{new Date(r.flaggedAt).toLocaleString('vi-VN')}</td>
+                  <td className="px-4 py-2">{r.assignedToName || '-'}</td>
                   <td className="px-4 py-2">
-                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${r.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-                      <span className="inline-block w-2 h-2 rounded-full ${r.status === 'pending' ? 'bg-amber-500' : 'bg-green-500'}"></span>
-                      {r.status === 'pending' ? 'Pending' : 'Resolved'}
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${r.status === 'Pending' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                      <span className={`inline-block w-2 h-2 rounded-full ${r.status === 'Pending' ? 'bg-amber-500' : 'bg-green-500'}`}></span>
+                      {r.status}
                     </span>
                   </td>
                   <td className="px-4 py-2">
@@ -167,11 +154,7 @@ export default function FlaggedQuizzes() {
                       <button
                         onClick={() => navigate(`/admin/flagged-quizzes/${r.id}`)}
                         className="px-3 py-1.5 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
-                      >Detail</button>
-                      <button
-                        onClick={() => unflag(r.id)}
-                        className="px-3 py-1.5 text-xs rounded-md bg-slate-200 text-slate-700 hover:bg-slate-300 shadow-sm"
-                      >Unflag</button>
+                      >View Details</button>
                     </div>
                   </td>
                 </tr>

@@ -13,6 +13,7 @@ import { QuizSideModal } from './components/modals/QuizSideModal'
 import { CustomizeFeatureModal } from './components/modals/CustomizeFeatureModal'
 import { ShareModal } from './components/modals/ShareModal'
 import { FlagMessageModal } from './components/modals/FlagMessageModal'
+import { FlagQuizModal } from './components/modals/FlagQuizModal'
 import { BigPictureSidebar } from './components/BigPictureSidebar'
 import { StudioSidebar } from './components/StudioSidebar'
 import { HistorySidebar } from '../../components/HistorySidebar'
@@ -44,6 +45,9 @@ export default function Chat() {
     const [showFlagModal, setShowFlagModal] = useState(false)
     const [flaggingMessageId, setFlaggingMessageId] = useState<number | null>(null)
     const [isFlaggingMessage, setIsFlaggingMessage] = useState(false)
+    const [showFlagQuizModal, setShowFlagQuizModal] = useState(false)
+    const [flaggingQuizId, setFlaggingQuizId] = useState<string | null>(null)
+    const [isFlaggingQuiz, setIsFlaggingQuiz] = useState(false)
     const [bigPictureData, setBigPictureData] = useState<BigPictureTopic[]>([])
 
     // Use custom hook for message management
@@ -118,6 +122,12 @@ export default function Chat() {
 
     const handleDeleteItem = (itemId: string) => {
         studio.handleDeleteItem(itemId)
+        setOpenMenuId(null)
+    }
+
+    const handleFlagQuiz = (itemId: string) => {
+        setFlaggingQuizId(itemId)
+        setShowFlagQuizModal(true)
         setOpenMenuId(null)
     }
 
@@ -326,6 +336,7 @@ export default function Chat() {
                     }}
                     onItemClick={handleStudioItemClick}
                     onDeleteItem={handleDeleteItem}
+                    onFlagItem={handleFlagQuiz}
                     openMenuId={openMenuId}
                     onToggleMenu={toggleMenu}
                 />
@@ -443,6 +454,49 @@ export default function Chat() {
                     }
                 }}
                 isSubmitting={isFlaggingMessage}
+            />
+
+            {/* Flag Quiz Modal */}
+            <FlagQuizModal
+                isOpen={showFlagQuizModal}
+                onClose={() => {
+                    setShowFlagQuizModal(false);
+                    setFlaggingQuizId(null);
+                }}
+                onSubmit={async (reason) => {
+                    if (!flaggingQuizId) return;
+
+                    setIsFlaggingQuiz(true);
+                    try {
+                        // Extract numeric ID
+                        const numericId = flaggingQuizId.replace('quiz-', '');
+
+                        // Call quiz API to flag
+                        const response = await fetch(`http://localhost:8001/api/v1/studio/quiz/${numericId}/flag`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                            body: JSON.stringify({ reason })
+                        });
+
+                        if (response.ok) {
+                            alert('Báo cáo đã được gửi thành công!');
+                            setShowFlagQuizModal(false);
+                            setFlaggingQuizId(null);
+                        } else {
+                            throw new Error('Failed to flag quiz');
+                        }
+                    } catch (error) {
+                        console.error('Error flagging quiz:', error);
+                        alert('Không thể gửi báo cáo. Vui lòng thử lại.');
+                    } finally {
+                        setIsFlaggingQuiz(false);
+                    }
+                }}
+                isSubmitting={isFlaggingQuiz}
+                quizTitle={studio.studioItems.find(item => item.id === flaggingQuizId)?.title}
             />
         </div>
     )
