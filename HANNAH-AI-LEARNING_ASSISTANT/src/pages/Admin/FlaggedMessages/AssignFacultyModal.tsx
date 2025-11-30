@@ -3,9 +3,10 @@ import { STORAGE_KEYS } from '../../../config/apiConfig';
 import './AssignFacultyModal.css';
 
 interface User {
-    id: number;
+    userId: number;
     fullName: string;
     email: string;
+    role: string;
 }
 
 interface AssignFacultyModalProps {
@@ -34,11 +35,22 @@ const AssignFacultyModal: React.FC<AssignFacultyModalProps> = ({ flagId, onClose
 
             if (!response.ok) throw new Error('Failed to load faculty list');
 
-            const users: User[] = await response.json();
-            // Filter only faculty members
-            const faculty = users.filter(u => u.email?.includes('faculty') || u.email?.includes('gv'));
+            const apiResponse = await response.json();
+
+            // Extract users array from items property (API returns { items: [...] })
+            const users: User[] = apiResponse.items || [];
+
+            console.log('[DEBUG] Total users:', users.length);
+
+            // Filter only faculty members by role
+            const faculty = users.filter(u => u.role === 'faculty');
+
+            console.log('[DEBUG] Faculty count:', faculty.length);
+            console.log('[DEBUG] Faculty list:', faculty);
+
             setFacultyList(faculty);
         } catch (err) {
+            console.error('[ERROR] Failed to load faculty:', err);
             setError(err instanceof Error ? err.message : 'Failed to load faculty');
         }
     };
@@ -102,7 +114,7 @@ const AssignFacultyModal: React.FC<AssignFacultyModalProps> = ({ flagId, onClose
                         >
                             <option value="">-- Chọn giảng viên --</option>
                             {facultyList.map((faculty) => (
-                                <option key={faculty.id} value={faculty.id}>
+                                <option key={faculty.userId} value={faculty.userId}>
                                     {faculty.fullName} ({faculty.email})
                                 </option>
                             ))}

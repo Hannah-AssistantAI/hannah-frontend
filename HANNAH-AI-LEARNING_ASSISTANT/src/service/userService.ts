@@ -303,6 +303,20 @@ class UserService {
   }
 
   /**
+   * Get all faculty users
+   * Helper method to fetch only users with role 'faculty'
+   */
+  async getFacultyList(): Promise<User[]> {
+    try {
+      const allUsers = await this.getAllUsers();
+      return allUsers.filter(user => user.role === 'faculty');
+    } catch (error) {
+      console.error('Get faculty list error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get import faculty template
    */
   async getImportTemplate(): Promise<Blob> {
