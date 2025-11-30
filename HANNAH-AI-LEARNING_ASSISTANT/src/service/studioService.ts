@@ -155,6 +155,26 @@ class StudioService {
         const params = conversationId ? { conversation_id: conversationId } : {};
         return pythonApiClient.get<any>('/api/v1/studio/reports', params);
     }
+
+    async getMindMapNodeDetails(data: GetMindMapNodeDetailsRequest) {
+        return pythonApiClient.post<GetMindMapNodeDetailsResponse>('/api/v1/studio/mindmap/node-details', data);
+    }
+}
+
+export interface GetMindMapNodeDetailsRequest {
+    conversationId: number;
+    nodeLabel: string;
+    mindmapContext?: string;
+}
+
+export interface GetMindMapNodeDetailsResponse {
+    nodeLabel: string;
+    description: string;
+    resources: Array<{
+        title: string;
+        url: string;
+        type: string;
+    }>;
 }
 
 export const studioService = new StudioService();
