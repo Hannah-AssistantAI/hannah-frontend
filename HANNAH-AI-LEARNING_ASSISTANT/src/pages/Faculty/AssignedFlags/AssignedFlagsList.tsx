@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { FlaggedItem } from '../../../service/flaggingService';
 import flaggingService from '../../../service/flaggingService';
 import MessageDetailModal from './MessageDetailModal';
@@ -8,6 +9,7 @@ import './AssignedFlagsList.css';
 type FilterStatus = 'processing' | 'resolved';
 
 const AssignedFlagsList: React.FC = () => {
+    const navigate = useNavigate();
     const [assignedFlags, setAssignedFlags] = useState<FlaggedItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -34,8 +36,14 @@ const AssignedFlagsList: React.FC = () => {
     };
 
     const handleViewDetails = (item: FlaggedItem) => {
-        setSelectedItem(item);
-        setShowDetailModal(true);
+        // Navigate to quiz detail page for quiz flags
+        if (item.type === 'quiz') {
+            navigate(`/faculty/assigned-flags/${item.id}`);
+        } else {
+            // Show modal for other types
+            setSelectedItem(item);
+            setShowDetailModal(true);
+        }
     };
 
     const handleCloseModal = () => {

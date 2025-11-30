@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Send, Upload, GitBranch, FileText, ClipboardCheck, StickyNote } from 'lucide-react'
 import subjectService, { type Subject } from '../../service/subjectService'
+import flaggingService from '../../service/flaggingService'
 import { useStudio } from './hooks/useStudio'
 import { useQuiz } from './hooks/useQuiz'
 import { ReportFormatModal } from './components/modals/ReportFormatModal'
@@ -468,29 +469,18 @@ export default function Chat() {
 
                     setIsFlaggingQuiz(true);
                     try {
-                        // Extract numeric ID
-                        const numericId = flaggingQuizId.replace('quiz-', '');
+                        // Extract numeric ID from quiz-XXX format
+                        const numericId = parseInt(flaggingQuizId.replace('quiz-', ''));
 
-                        // Call quiz API to flag
-                        const response = await fetch(`http://localhost:8001/api/v1/studio/quiz/${numericId}/flag`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
-                            },
-                            body: JSON.stringify({ reason })
-                        });
+                        // Use flaggingService instead of direct fetch
+                        await flaggingService.flagQuiz(numericId, reason);
 
-                        if (response.ok) {
-                            alert('Báo cáo đã được gửi thành công!');
-                            setShowFlagQuizModal(false);
-                            setFlaggingQuizId(null);
-                        } else {
-                            throw new Error('Failed to flag quiz');
-                        }
-                    } catch (error) {
+                        alert('Báo cáo đã được gửi thành công!');
+                        setShowFlagQuizModal(false);
+                        setFlaggingQuizId(null);
+                    } catch (error: any) {
                         console.error('Error flagging quiz:', error);
-                        alert('Không thể gửi báo cáo. Vui lòng thử lại.');
+                        alert(error.message || 'Không thể gửi báo cáo. Vui lòng thử lại.');
                     } finally {
                         setIsFlaggingQuiz(false);
                     }

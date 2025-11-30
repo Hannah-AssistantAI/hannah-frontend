@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import flaggingService, { type FlaggedItem } from '../../service/flaggingService';
 import AdminPageWrapper from './components/AdminPageWrapper';
+import { AssignFacultyModal } from './components/AssignFacultyModal';
 
 export default function FlaggedQuizzes() {
   const [rows, setRows] = useState<FlaggedItem[]>([]);
@@ -9,6 +10,11 @@ export default function FlaggedQuizzes() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'Pending' | 'Resolved'>('all');
   const navigate = useNavigate();
+
+  // Assignment modal state
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedFlagId, setSelectedFlagId] = useState<number | null>(null);
+  const [selectedFlagAssignee, setSelectedFlagAssignee] = useState<string | undefined>();
 
   const load = async () => {
     setLoading(true);
@@ -33,6 +39,16 @@ export default function FlaggedQuizzes() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOpenAssignModal = (flagId: number, currentAssignee?: string) => {
+    setSelectedFlagId(flagId);
+    setSelectedFlagAssignee(currentAssignee);
+    setAssignModalOpen(true);
+  };
+
+  const handleAssignSuccess = () => {
+    load(); // Reload list after assignment
   };
 
   useEffect(() => { load(); }, [statusFilter]);
@@ -155,6 +171,14 @@ export default function FlaggedQuizzes() {
                         onClick={() => navigate(`/admin/flagged-quizzes/${r.id}`)}
                         className="px-3 py-1.5 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
                       >View Details</button>
+                      {r.status === 'Pending' && !r.assignedToName && (
+                        <button
+                          onClick={() => handleOpenAssignModal(r.id, r.assignedToName)}
+                          className="px-3 py-1.5 text-xs rounded-md bg-purple-600 text-white hover:bg-purple-700 shadow-sm"
+                        >
+                          Assign
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -176,6 +200,17 @@ export default function FlaggedQuizzes() {
           </table>
         </div>
       </div>
+
+      {/* Assignment Modal */}
+      {selectedFlagId && (
+        <AssignFacultyModal
+          isOpen={assignModalOpen}
+          onClose={() => setAssignModalOpen(false)}
+          onSuccess={handleAssignSuccess}
+          flagId={selectedFlagId}
+          currentAssignee={selectedFlagAssignee}
+        />
+      )}
     </AdminPageWrapper>
   );
 }
