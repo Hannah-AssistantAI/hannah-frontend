@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import flaggingService, { type FlaggedItem } from '../../../service/flaggingService';
 import MessageDetailModal from './MessageDetailModal';
+import { isPending, isProcessing, isResolved } from '../../../utils/statusHelpers';
 import './FlaggedMessagesList.css';
 
-type FilterStatus = 'all' | 'Pending' | 'Assigned' | 'Resolved';
+type FilterStatus = 'Pending' | 'Assigned' | 'Resolved';
 
 const FlaggedMessagesList: React.FC = () => {
+    const [allItems, setAllItems] = useState<FlaggedItem[]>([]); // Store all items for counting
     const [flaggedItems, setFlaggedItems] = useState<FlaggedItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
+    const [filterStatus, setFilterStatus] = useState<FilterStatus>('Pending');
     const [selectedItem, setSelectedItem] = useState<FlaggedItem | null>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
 
@@ -21,8 +23,13 @@ const FlaggedMessagesList: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
-            const status = filterStatus === 'all' ? undefined : filterStatus;
-            const items = await flaggingService.getFlaggedItems(status);
+
+            // Load all items for counting
+            const allItemsData = await flaggingService.getFlaggedItems();
+            setAllItems(allItemsData);
+
+            // Filter items by selected status
+            const items = await flaggingService.getFlaggedItems(filterStatus);
             setFlaggedItems(items);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load flagged items');
@@ -30,6 +37,19 @@ const FlaggedMessagesList: React.FC = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // Calculate counts for each status using helper functions
+    const getStatusCount = (status: FilterStatus): number => {
+        let count = 0;
+        if (status === 'Pending') {
+            count = allItems.filter(item => isPending(item.status || '')).length;
+        } else if (status === 'Assigned') {
+            count = allItems.filter(item => isProcessing(item.status || '')).length;
+        } else if (status === 'Resolved') {
+            count = allItems.filter(item => isResolved(item.status || '')).length;
+        }
+        return count;
     };
 
     const handleViewDetails = (item: FlaggedItem) => {
@@ -128,22 +148,16 @@ const FlaggedMessagesList: React.FC = () => {
                 <div className="filter-group">
                     <label>Lọc theo trạng thái:</label>
                     <div className="filter-buttons">
-                        {(['all', 'Pending', 'Assigned', 'Resolved'] as FilterStatus[]).map((status) => (
+                        {(['Pending', 'Assigned', 'Resolved'] as FilterStatus[]).map((status) => (
                             <button
                                 key={status}
                                 className={`filter-btn ${filterStatus === status ? 'active' : ''}`}
                                 onClick={() => setFilterStatus(status)}
                             >
-                                {status === 'all' ? 'Tất cả' : status}
+                                {status}
+                                <span className="filter-count">{getStatusCount(status)}</span>
                             </button>
                         ))}
-                    </div>
-                </div>
-
-                <div className="stats-summary">
-                    <div className="stat-item">
-                        <span className="stat-value">{flaggedItems.length}</span>
-                        <span className="stat-label">Tổng số</span>
                     </div>
                 </div>
             </div>
@@ -152,11 +166,7 @@ const FlaggedMessagesList: React.FC = () => {
                 <div className="empty-state">
                     <div className="empty-icon">📭</div>
                     <h3>Không có báo cáo nào</h3>
-                    <p>
-                        {filterStatus === 'all'
-                            ? 'Chưa có nội dung nào được báo cáo'
-                            : `Không có báo cáo nào ở trạng thái "${filterStatus}"`}
-                    </p>
+                    <p>Không có báo cáo nào ở trạng thái "{filterStatus}"</p>
                 </div>
             ) : (
                 <div className="table-container">

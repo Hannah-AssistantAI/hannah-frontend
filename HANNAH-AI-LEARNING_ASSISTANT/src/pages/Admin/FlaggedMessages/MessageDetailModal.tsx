@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import flaggingService, { type FlaggedItem, type MessageContext } from '../../../service/flaggingService';
-import AssignFacultyModal from './AssignFacultyModal';
+import userService, { type User } from '../../../service/userService';
 import './MessageDetailModal.css';
 
 interface MessageDetailModalProps {
@@ -13,7 +13,14 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
     const [messageContext, setMessageContext] = useState<MessageContext | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [showAssignModal, setShowAssignModal] = useState(false);
+
+    // Inline assignment states
+    const [showAssignSection, setShowAssignSection] = useState(false);
+    const [facultyList, setFacultyList] = useState<User[]>([]);
+    const [facultySearch, setFacultySearch] = useState('');
+    const [selectedFacultyId, setSelectedFacultyId] = useState<number | null>(null);
+    const [assignLoading, setAssignLoading] = useState(false);
+    const [assignError, setAssignError] = useState<string | null>(null);
 
     useEffect(() => {
         if (item.type === 'message' && item.conversationId && item.messageId) {
@@ -28,12 +35,6 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
             setLoading(true);
             setError(null);
 
-            console.log('[DEBUG] Loading context for:', {
-                conversationId: item.conversationId,
-                messageId: item.messageId,
-                messageIdType: typeof item.messageId
-            });
-
             const context = await flaggingService.getMessageContext(
                 item.conversationId,
                 String(item.messageId),
@@ -41,7 +42,6 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
             );
             setMessageContext(context);
         } catch (err) {
-            // Handle 404 gracefully - message might not exist in MongoDB
             if (err instanceof Error && err.message.includes('Not Found')) {
                 setError('⚠️ Không tìm thấy nội dung hội thoại. Message có thể đã bị xóa hoặc chưa được đồng bộ.');
             } else {
@@ -53,18 +53,55 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
         }
     };
 
+    const loadFacultyList = async () => {
+        try {
+            const faculty = await userService.getFacultyList();
+            setFacultyList(faculty);
+        } catch (err) {
+            console.error('[ERROR] Failed to load faculty:', err);
+            setAssignError(err instanceof Error ? err.message : 'Failed to load faculty');
+        }
+    };
+
     const handleAssignClick = () => {
-        setShowAssignModal(true);
+        setShowAssignSection(true);
+        setFacultySearch('');
+        loadFacultyList();
     };
 
-    const handleAssignClose = () => {
-        setShowAssignModal(false);
+    const handleCancelAssign = () => {
+        setShowAssignSection(false);
+        setSelectedFacultyId(null);
+        setFacultySearch('');
+        setAssignError(null);
     };
 
-    const handleAssignSuccess = () => {
-        setShowAssignModal(false);
-        onUpdate(); // Refresh parent list
+    const handleConfirmAssign = async () => {
+        if (!selectedFacultyId) {
+            setAssignError('Vui lòng chọn giảng viên');
+            return;
+        }
+
+        try {
+            setAssignLoading(true);
+            setAssignError(null);
+
+            await flaggingService.assignToFaculty(item.id, selectedFacultyId);
+
+            onUpdate();
+            onClose();
+        } catch (err) {
+            setAssignError(err instanceof Error ? err.message : 'Assignment failed');
+        } finally {
+            setAssignLoading(false);
+        }
     };
+
+    // Filter faculty list by search term
+    const filteredFacultyList = facultyList.filter(faculty =>
+        faculty.fullName.toLowerCase().includes(facultySearch.toLowerCase()) ||
+        faculty.email.toLowerCase().includes(facultySearch.toLowerCase())
+    );
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -89,10 +126,12 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
         return labels[type] || type;
     };
 
-    const getRoleLabel = (role: string) => {
+    const getRoleLabel = (role: string, senderName?: string) => {
+        if (role === 'user' || role === 'student') {
+            // Use student name from message context or fallback to flaggedByName
+            return senderName || item.flaggedByName || 'Học sinh';
+        }
         const labels: Record<string, string> = {
-            user: 'Học sinh',
-            student: 'Học sinh',
             assistant: 'AI Assistant',
             faculty: 'Giảng viên'
         };
@@ -100,157 +139,226 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
     };
 
     return (
-        <>
-            <div className="modal-overlay" onClick={onClose}>
-                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                    <div className="modal-header">
-                        <h2>Chi Tiết Báo Cáo</h2>
-                        <button className="close-button" onClick={onClose}>
-                            ✕
-                        </button>
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h2>Chi Tiết Báo Cáo</h2>
+                    <button className="close-button" onClick={onClose}>✕</button>
+                </div>
+
+                <div className="modal-body">
+                    <div className="info-section">
+                        <h3 className="section-title">Thông Tin Báo Cáo</h3>
+                        <div className="info-grid">
+                            <div className="info-item">
+                                <span className="info-label">Loại:</span>
+                                <span className="info-value">{getTypeLabel(item.type)}</span>
+                            </div>
+                            <div className="info-item">
+                                <span className="info-label">Trạng thái:</span>
+                                <span className={`status-badge status-${item.status.toLowerCase()}`}>
+                                    {item.status}
+                                </span>
+                            </div>
+                            <div className="info-item">
+                                <span className="info-label">Ưu tiên:</span>
+                                <span className={`priority-badge priority-${item.priority?.toLowerCase() || 'medium'}`}>
+                                    {item.priority || 'Medium'}
+                                </span>
+                            </div>
+                            <div className="info-item">
+                                <span className="info-label">Người báo cáo:</span>
+                                <span className="info-value">{item.flaggedByName}</span>
+                            </div>
+                            <div className="info-item">
+                                <span className="info-label">Thời gian:</span>
+                                <span className="info-value">{formatDate(item.flaggedAt)}</span>
+                            </div>
+                            {item.assignedToName && (
+                                <div className="info-item">
+                                    <span className="info-label">Được giao cho:</span>
+                                    <span className="info-value">{item.assignedToName}</span>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="modal-body">
-                        {/* Flag Info Section */}
-                        <div className="info-section">
-                            <h3 className="section-title">Thông Tin Báo Cáo</h3>
-                            <div className="info-grid">
-                                <div className="info-item">
-                                    <span className="info-label">Loại:</span>
-                                    <span className="info-value">{getTypeLabel(item.type)}</span>
-                                </div>
-                                <div className="info-item">
-                                    <span className="info-label">Trạng thái:</span>
-                                    <span className={`status-badge status-${item.status.toLowerCase()}`}>
-                                        {item.status}
-                                    </span>
-                                </div>
-                                <div className="info-item">
-                                    <span className="info-label">Ưu tiên:</span>
-                                    <span className={`priority-badge priority-${item.priority?.toLowerCase() || 'medium'}`}>
-                                        {item.priority || 'Medium'}
-                                    </span>
-                                </div>
-                                <div className="info-item">
-                                    <span className="info-label">Người báo cáo:</span>
-                                    <span className="info-value">{item.flaggedByName}</span>
-                                </div>
-                                <div className="info-item">
-                                    <span className="info-label">Thời gian:</span>
-                                    <span className="info-value">{formatDate(item.flaggedAt)}</span>
-                                </div>
-                                {item.assignedToName && (
-                                    <div className="info-item">
-                                        <span className="info-label">Được giao cho:</span>
-                                        <span className="info-value">{item.assignedToName}</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                    <div className="info-section">
+                        <h3 className="section-title">Lý Do Báo Cáo</h3>
+                        <div className="reason-box">{item.reason}</div>
+                    </div>
 
-                        {/* Reason Section */}
+                    {item.type === 'message' && (
                         <div className="info-section">
-                            <h3 className="section-title">Lý Do Báo Cáo</h3>
-                            <div className="reason-box">
-                                {item.reason}
-                            </div>
-                        </div>
+                            <h3 className="section-title">Nội Dung Hội Thoại</h3>
+                            {loading && (
+                                <div className="loading-indicator">
+                                    <div className="spinner-small"></div>
+                                    <span>Đang tải...</span>
+                                </div>
+                            )}
+                            {error && (
+                                <div className="error-message">
+                                    <span>⚠️ {error}</span>
+                                    <button onClick={loadMessageContext} className="retry-btn-small">
+                                        Thử lại
+                                    </button>
+                                </div>
+                            )}
+                            {messageContext && (
+                                <div className="message-context">
+                                    {messageContext.messages.map((msg, index) => {
+                                        const isStudent = msg.role === 'user' || msg.role === 'student';
+                                        const isFlagged = msg.messageId === messageContext.flaggedMessageId;
 
-                        {/* Message Context Section */}
-                        {item.type === 'message' && (
-                            <div className="info-section">
-                                <h3 className="section-title">Nội Dung Hội Thoại</h3>
-                                {loading && (
-                                    <div className="loading-indicator">
-                                        <div className="spinner-small"></div>
-                                        <span>Đang tải...</span>
-                                    </div>
-                                )}
-                                {error && (
-                                    <div className="error-message">
-                                        <span>⚠️ {error}</span>
-                                        <button onClick={loadMessageContext} className="retry-btn-small">
-                                            Thử lại
-                                        </button>
-                                    </div>
-                                )}
-                                {messageContext && (
-                                    <div className="message-context">
-                                        {messageContext.messages.map((msg, index) => (
-                                            <div
-                                                key={index}
-                                                className={`message-bubble ${msg.role} ${msg.messageId === messageContext.flaggedMessageId ? 'flagged' : ''
-                                                    }`}
-                                            >
-                                                <div className="message-header">
-                                                    <span className="message-role">{getRoleLabel(msg.role)}</span>
-                                                    <span className="message-time">
-                                                        {formatDate(msg.timestamp)}
-                                                    </span>
+                                        return (
+                                            <React.Fragment key={index}>
+                                                {/* Regular message */}
+                                                <div
+                                                    className={`message-bubble ${isStudent ? 'student-message' : 'assistant-message'} ${isFlagged ? 'flagged' : ''}`}
+                                                >
+                                                    <div className="message-header">
+                                                        <div className="message-sender-info">
+                                                            <span className="message-role">{getRoleLabel(msg.role, item.flaggedByName)}</span>
+                                                            <span className="role-label">{isStudent ? '(Học sinh)' : '(AI Assistant)'}</span>
+                                                        </div>
+                                                        <span className="message-time">{formatDate(msg.timestamp)}</span>
+                                                    </div>
+                                                    <div className="message-content">{msg.content}</div>
+                                                    {isFlagged && (
+                                                        <div className="flagged-indicator">
+                                                            🚩 Tin nhắn được báo cáo
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <div className="message-content">{msg.content}</div>
-                                                {msg.messageId === messageContext.flaggedMessageId && (
-                                                    <div className="flagged-indicator">
-                                                        🚩 Tin nhắn được báo cáo
+
+                                                {/* Show resolution right after flagged message */}
+                                                {isFlagged && item.status?.toLowerCase() === 'resolved' && (item.resolvedByName || item.resolutionNotes) && (
+                                                    <div className="message-bubble resolution-message">
+                                                        <div className="message-header">
+                                                            <div className="resolution-header-left">
+                                                                <span className="message-role">{item.resolvedByName || 'Faculty'}</span>
+                                                                <span className="role-label">(Giảng viên)</span>
+                                                                <span className="resolution-badge-inline">đã xử lý</span>
+                                                            </div>
+                                                            {item.resolvedAt && (
+                                                                <span className="message-time">{formatDate(item.resolvedAt)}</span>
+                                                            )}
+                                                        </div>
+                                                        {item.resolutionNotes && (
+                                                            <div className="message-content">{item.resolutionNotes}</div>
+                                                        )}
                                                     </div>
                                                 )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Content Details for non-message types */}
-                        {item.type !== 'message' && (
-                            <div className="info-section">
-                                <h3 className="section-title">Thông Tin Nội Dung</h3>
-                                <div className="info-grid">
-                                    <div className="info-item">
-                                        <span className="info-label">{getTypeLabel(item.type)} ID:</span>
-                                        <span className="info-value">{item.contentId}</span>
-                                    </div>
-                                    <div className="info-item">
-                                        <span className="info-label">Conversation ID:</span>
-                                        <span className="info-value">{item.conversationId}</span>
-                                    </div>
+                                            </React.Fragment>
+                                        );
+                                    })}
                                 </div>
-                                {item.metadata && Object.keys(item.metadata).length > 0 && (
-                                    <div className="metadata-section">
-                                        <h4>Metadata:</h4>
-                                        <pre className="metadata-box">
-                                            {JSON.stringify(item.metadata, null, 2)}
-                                        </pre>
-                                    </div>
+                            )}
+                        </div>
+                    )}
+
+                    {item.type !== 'message' && (
+                        <div className="info-section">
+                            <h3 className="section-title">Thông Tin Nội Dung</h3>
+                            <div className="info-grid">
+                                <div className="info-item">
+                                    <span className="info-label">{getTypeLabel(item.type)} ID:</span>
+                                    <span className="info-value">{item.contentId}</span>
+                                </div>
+                                <div className="info-item">
+                                    <span className="info-label">Conversation ID:</span>
+                                    <span className="info-value">{item.conversationId}</span>
+                                </div>
+                            </div>
+                            {item.metadata && Object.keys(item.metadata).length > 0 && (
+                                <div className="metadata-section">
+                                    <h4>Metadata:</h4>
+                                    <pre className="metadata-box">
+                                        {JSON.stringify(item.metadata, null, 2)}
+                                    </pre>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                <div className="modal-footer">
+                    {!showAssignSection ? (
+                        <>
+                            {item.status?.toLowerCase() === 'pending' && (
+                                <button className="btn-assign" onClick={handleAssignClick}>
+                                    📋 Giao Cho Giảng Viên
+                                </button>
+                            )}
+                            <button className="btn-close" onClick={onClose}>Đóng</button>
+                        </>
+                    ) : (
+                        <div className="assign-section">
+                            <div className="assign-header">
+                                <h4>Giao cho giảng viên</h4>
+                            </div>
+
+                            {assignError && (
+                                <div className="error-message">
+                                    <span>⚠️ {assignError}</span>
+                                </div>
+                            )}
+
+                            <div className="form-group">
+                                <label>Tìm kiếm giảng viên:</label>
+                                <input
+                                    type="text"
+                                    value={facultySearch}
+                                    onChange={(e) => setFacultySearch(e.target.value)}
+                                    placeholder="Nhập tên hoặc email..."
+                                    className="faculty-search"
+                                    disabled={assignLoading}
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Chọn giảng viên:</label>
+                                <select
+                                    value={selectedFacultyId || ''}
+                                    onChange={(e) => setSelectedFacultyId(Number(e.target.value))}
+                                    className="faculty-select"
+                                    disabled={assignLoading}
+                                    size={5}
+                                >
+                                    <option value="">-- Chọn giảng viên --</option>
+                                    {filteredFacultyList.map((faculty) => (
+                                        <option key={faculty.userId} value={faculty.userId}>
+                                            {faculty.fullName} ({faculty.email})
+                                        </option>
+                                    ))}
+                                </select>
+                                {filteredFacultyList.length === 0 && facultySearch && (
+                                    <small className="text-muted">Không tìm thấy giảng viên</small>
                                 )}
                             </div>
-                        )}
-                    </div>
 
-                    <div className="modal-footer">
-                        {item.status === 'Pending' && (
-                            <button
-                                className="btn-assign"
-                                onClick={handleAssignClick}
-                            >
-                                📋 Giao Cho Giảng Viên
-                            </button>
-                        )}
-                        <button className="btn-close" onClick={onClose}>
-                            Đóng
-                        </button>
-                    </div>
+                            <div className="assign-actions">
+                                <button
+                                    className="btn-confirm"
+                                    onClick={handleConfirmAssign}
+                                    disabled={assignLoading || !selectedFacultyId}
+                                >
+                                    {assignLoading ? 'Đang giao...' : 'Xác nhận'}
+                                </button>
+                                <button
+                                    className="btn-cancel"
+                                    onClick={handleCancelAssign}
+                                    disabled={assignLoading}
+                                >
+                                    Hủy
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
-
-            {showAssignModal && (
-                <AssignFacultyModal
-                    flagId={item.id}
-                    onClose={handleAssignClose}
-                    onSuccess={handleAssignSuccess}
-                />
-            )}
-        </>
+        </div>
     );
 };
 
