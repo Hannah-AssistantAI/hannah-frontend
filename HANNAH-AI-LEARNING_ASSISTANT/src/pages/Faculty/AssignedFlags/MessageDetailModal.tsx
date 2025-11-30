@@ -157,22 +157,52 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
                                 )}
                                 {messageContext && (
                                     <div className="message-context">
-                                        {messageContext.messages.map((msg, index) => (
-                                            <div
-                                                key={index}
-                                                className={`message-bubble ${msg.role} ${msg.messageId === messageContext.flaggedMessageId ? 'flagged' : ''
-                                                    }`}
-                                            >
-                                                <div className="message-header">
-                                                    <span className="message-role">{getRoleLabel(msg.role)}</span>
-                                                    <span className="message-time">{formatDate(msg.timestamp)}</span>
-                                                </div>
-                                                <div className="message-content">{msg.content}</div>
-                                                {msg.messageId === messageContext.flaggedMessageId && (
-                                                    <div className="flagged-indicator">🚩 Tin nhắn được báo cáo</div>
-                                                )}
-                                            </div>
-                                        ))}
+                                        {messageContext.messages.map((msg, index) => {
+                                            const isStudent = msg.role === 'user' || msg.role === 'student';
+                                            const isFlagged = msg.messageId === messageContext.flaggedMessageId;
+
+                                            return (
+                                                <React.Fragment key={index}>
+                                                    {/* Regular message */}
+                                                    <div
+                                                        className={`message-bubble ${isStudent ? 'student-message' : 'assistant-message'} ${isFlagged ? 'flagged' : ''}`}
+                                                    >
+                                                        <div className="message-header">
+                                                            <div className="message-sender-info">
+                                                                <span className="message-role">{getRoleLabel(msg.role)}</span>
+                                                                <span className="role-label">{isStudent ? '(Học sinh)' : '(AI Assistant)'}</span>
+                                                            </div>
+                                                            <span className="message-time">{formatDate(msg.timestamp)}</span>
+                                                        </div>
+                                                        <div className="message-content">{msg.content}</div>
+                                                        {isFlagged && (
+                                                            <div className="flagged-indicator">
+                                                                🚩 Tin nhắn được báo cáo
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Show resolution right after flagged message */}
+                                                    {isFlagged && item.status?.toLowerCase() === 'resolved' && (item.resolvedByName || item.resolutionNotes) && (
+                                                        <div className="message-bubble resolution-message">
+                                                            <div className="message-header">
+                                                                <div className="resolution-header-left">
+                                                                    <span className="message-role">{item.resolvedByName || 'Faculty'}</span>
+                                                                    <span className="role-label">(Giảng viên)</span>
+                                                                    <span className="resolution-badge-inline">đã xử lý</span>
+                                                                </div>
+                                                                {item.resolvedAt && (
+                                                                    <span className="message-time">{formatDate(item.resolvedAt)}</span>
+                                                                )}
+                                                            </div>
+                                                            {item.resolutionNotes && (
+                                                                <div className="message-content">{item.resolutionNotes}</div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </React.Fragment>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>

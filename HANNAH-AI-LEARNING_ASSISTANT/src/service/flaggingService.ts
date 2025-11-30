@@ -14,6 +14,11 @@ export interface FlaggedItem {
   flaggedAt: string;
   assignedToName?: string;
   metadata?: Record<string, any>;
+  
+  // Resolution data (for resolved flags)
+  resolvedByName?: string;
+  resolvedAt?: string;
+  resolutionNotes?: string;
 }
 
 export interface MessageInContext {

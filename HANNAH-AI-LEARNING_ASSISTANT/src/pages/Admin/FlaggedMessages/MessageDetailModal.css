@@ -189,6 +189,50 @@
   word-wrap: break-word;
 }
 
+/* Resolution Section */
+.resolution-section {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
+  border: 2px solid #4CAF50;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.resolution-section .section-title {
+  color: #2e7d32;
+  margin-bottom: 16px;
+}
+
+.resolution-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.resolution-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.resolution-item strong {
+  color: #2e7d32;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.resolution-text {
+  background: white;
+  border: 1px solid #c8e6c9;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
 /* Loading & Error */
 .loading-indicator {
   display: flex;
@@ -254,25 +298,124 @@
   padding: 12px 16px;
   border-radius: 12px;
   position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s;
 }
 
+.message-bubble:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+/* Student messages - align right */
+.message-bubble.student-message {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  align-self: flex-end;
+  max-width: 75%;
+  margin-left: auto;
+  border: 1px solid #90caf9;
+  box-shadow: 0 2px 6px rgba(33, 150, 243, 0.15);
+}
+
+.message-bubble.student-message:hover {
+  box-shadow: 0 4px 10px rgba(33, 150, 243, 0.25);
+}
+
+/* Assistant messages - align left */
+.message-bubble.assistant-message {
+  background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
+  align-self: flex-start;
+  max-width: 85%;
+  margin-right: auto;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.message-bubble.assistant-message:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Legacy support for old classnames */
 .message-bubble.user,
 .message-bubble.student {
-  background: #e3f2fd;
-  align-self: flex-start;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  align-self: flex-end;
   max-width: 75%;
+  margin-left: auto;
+  border: 1px solid #90caf9;
+  box-shadow: 0 2px 6px rgba(33, 150, 243, 0.15);
 }
 
 .message-bubble.assistant {
-  background: #f5f5f5;
+  background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
   align-self: flex-start;
   max-width: 85%;
+  margin-right: auto;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .message-bubble.faculty {
-  background: #fff3cd;
+  background: linear-gradient(135deg, #fff3cd 0%, #ffe082 100%);
   align-self: flex-start;
   max-width: 85%;
+  margin-right: auto;
+  border: 1px solid #ffd54f;
+  box-shadow: 0 2px 6px rgba(255, 193, 7, 0.2);
+}
+
+/* Resolution message - appears after flagged message */
+.message-bubble.resolution-message {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  align-self: flex-start;
+  max-width: 85%;
+  margin-right: auto;
+  border: 2px solid #4CAF50;
+  box-shadow: 0 3px 8px rgba(76, 175, 80, 0.25);
+  position: relative;
+}
+
+.message-bubble.resolution-message:hover {
+  box-shadow: 0 5px 12px rgba(76, 175, 80, 0.35);
+}
+
+.message-bubble.resolution-message .message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.resolution-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.resolution-badge-inline {
+  display: inline-block;
+  background: #4CAF50;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.message-bubble.resolution-message .message-role {
+  color: #2e7d32;
+  font-weight: 700;
+}
+
+.message-bubble.resolution-message .message-content {
+  background: white;
+  border: 1px solid #a5d6a7;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
 }
 
 .message-bubble.flagged {
@@ -280,22 +423,33 @@
   box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
 }
 
+/* Message header and sender info */
 .message-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
-  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.message-sender-info {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
 .message-role {
-  font-size: 11px;
   font-weight: 700;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 13px;
+  color: #333;
 }
 
+.role-label {
+  font-size: 10px;
+  color: #888;
+  font-weight: 400;
+  text-transform: lowercase;
+  margin-left: 2px;
+}
 .message-time {
   font-size: 11px;
   color: #999;
