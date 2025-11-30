@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, Share2 } from 'lucide-react';
 import ProfileIcon from './ProfileIcon';
 import ThemeToggle from './ThemeToggle';
+import NotificationBell from './NotificationBell/NotificationBell';
 import './Header.css';
 
 interface HeaderProps {
@@ -19,6 +20,26 @@ export const Header: React.FC<HeaderProps> = ({
     className = ''
 }) => {
     const navigate = useNavigate();
+
+    // Check if current user is student - read from user_data object
+    const getUserRole = (): string => {
+        try {
+            const userData = localStorage.getItem('user_data');
+            if (userData) {
+                const parsed = JSON.parse(userData);
+                return parsed.role || '';
+            }
+        } catch (error) {
+            console.error('Error parsing user_data:', error);
+        }
+        return '';
+    };
+
+    const userRole = getUserRole();
+    const isStudent = userRole.toLowerCase() === 'student';
+
+    // Debug: Log role check
+    console.log('Header - User Role:', userRole, 'Is Student:', isStudent);
 
     return (
         <header className={`app-header ${className}`}>
@@ -48,6 +69,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </button>
                 )}
                 <ThemeToggle />
+                {isStudent && <NotificationBell />}
                 <ProfileIcon />
             </div>
         </header>
