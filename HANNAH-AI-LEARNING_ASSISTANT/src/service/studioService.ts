@@ -156,6 +156,30 @@ class StudioService {
         return pythonApiClient.get<any>('/api/v1/studio/reports', params);
     }
 
+    // --- Delete Methods ---
+    // Unified delete endpoint: DELETE /api/v1/studio/{item_type}/{item_id}
+
+    async deleteQuiz(quizId: number) {
+        return pythonApiClient.delete(`/api/v1/studio/quiz/${quizId}`);
+    }
+
+    async deleteMindMap(mindmapId: number) {
+        return pythonApiClient.delete(`/api/v1/studio/mindmap/${mindmapId}`);
+    }
+
+    async deleteFlashcard(flashcardSetId: string) {
+        return pythonApiClient.delete(`/api/v1/studio/flashcard/${flashcardSetId}` );
+    }
+
+    async deleteReport(reportId: string) {
+        return pythonApiClient.delete(`/api/v1/studio/report/${reportId}`);
+    }
+
+    // Generic delete method (if you prefer)
+    async deleteStudioItem(itemType: 'quiz' | 'mindmap' | 'flashcard' | 'report', itemId: string | number) {
+        return pythonApiClient.delete(`/api/v1/studio/${itemType}/${itemId}`);
+    }
+
     async getMindMapNodeDetails(data: GetMindMapNodeDetailsRequest) {
         return pythonApiClient.post<GetMindMapNodeDetailsResponse>('/api/v1/studio/mindmap/node-details', data);
     }

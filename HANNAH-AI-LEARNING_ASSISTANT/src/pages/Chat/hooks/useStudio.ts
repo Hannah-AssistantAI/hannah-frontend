@@ -16,6 +16,8 @@ export const useStudio = (conversationId: number | null) => {
     const [showQuizModal, setShowQuizModal] = useState(false)
     const [showQuizSideModal, setShowQuizSideModal] = useState(false)
     const [showCustomizeModal, setShowCustomizeModal] = useState(false)
+    const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
+    const [itemToDelete, setItemToDelete] = useState<string | null>(null)
 
     // Content States
     const [selectedMindmapId, setSelectedMindmapId] = useState<string | null>(null)
@@ -401,7 +403,62 @@ export const useStudio = (conversationId: number | null) => {
     }
 
     const handleDeleteItem = (itemId: string) => {
-        setStudioItems(prev => prev.filter(item => item.id !== itemId))
+        // Open confirmation modal instead of window.confirm
+        setItemToDelete(itemId);
+        setShowDeleteConfirmModal(true);
+    }
+
+    const confirmDeleteItem = async () => {
+        if (!itemToDelete) return;
+
+        // Parse item type and ID from prefixed ID (e.g., "quiz-123" -> type="quiz", id="123")
+        const [itemType, ...idParts] = itemToDelete.split('-');
+        const actualId = idParts.join('-'); // Handle IDs that might contain dashes
+
+        try {
+            // Call the appropriate delete API based on item type
+            switch (itemType) {
+                case 'quiz':
+                    await studioService.deleteQuiz(parseInt(actualId));
+                    break;
+                case 'mindmap':
+                    await studioService.deleteMindMap(parseInt(actualId));
+                    break;
+                case 'notecard':
+                    await studioService.deleteFlashcard(actualId); // Flashcard uses string ID
+                    break;
+                case 'report':
+                    await studioService.deleteReport(actualId); // Report uses string ID
+                    break;
+                default:
+                    console.error(`Unknown item type: ${itemType}`);
+                    return;
+            }
+
+            // Remove from UI after successful deletion
+            setStudioItems(prev => prev.filter(item => item.id !== itemToDelete));
+            
+            console.log(`Successfully deleted ${itemType} with ID ${actualId}`);
+        } catch (error: any) {
+            console.error(`Failed to delete ${itemType}:`, error);
+            
+            // Show user-friendly error messages
+            let errorMessage = 'Không thể xóa item này.';
+            
+            if (error.response?.status === 404) {
+                errorMessage = 'Item không tồn tại.';
+            } else if (error.response?.status === 403) {
+                errorMessage = 'Bạn không có quyền xóa item này.';
+            } else if (error.response?.status === 400) {
+                errorMessage = 'Lỗi: Dữ liệu không hợp lệ.';
+            }
+            
+            alert(errorMessage);
+        } finally {
+            // Close modal and reset state
+            setShowDeleteConfirmModal(false);
+            setItemToDelete(null);
+        }
     }
 
     return {
@@ -438,6 +495,10 @@ export const useStudio = (conversationId: number | null) => {
         handleStudioItemClick,
         handleReportFormatSelect,
         handleStudioFeatureClick,
-        handleDeleteItem
+        handleDeleteItem,
+        showDeleteConfirmModal,
+        setShowDeleteConfirmModal,
+        itemToDelete,
+        confirmDeleteItem
     }
 }

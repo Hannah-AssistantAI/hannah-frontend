@@ -54,7 +54,8 @@ export interface AssistantMessage {
     sources: Source[];
     interactiveElements: InteractiveElements;
     metadata: MessageMetadata;
-    images?: ImageData[];  // RAG images from MinIO
+    images?: ImageData[];  // RAG images from document chunks
+
 }
 
 export interface ChatInteractionResponse {
