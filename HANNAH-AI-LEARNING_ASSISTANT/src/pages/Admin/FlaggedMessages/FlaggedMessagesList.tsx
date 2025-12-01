@@ -25,11 +25,11 @@ const FlaggedMessagesList: React.FC = () => {
             setError(null);
 
             // Load all items for counting
-            const allItemsData = await flaggingService.getFlaggedItems();
+            const allItemsData = await flaggingService.getFlaggedMessages();
             setAllItems(allItemsData);
 
             // Filter items by selected status
-            const items = await flaggingService.getFlaggedItems(filterStatus);
+            const items = await flaggingService.getFlaggedMessages(filterStatus);
             setFlaggedItems(items);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load flagged items');

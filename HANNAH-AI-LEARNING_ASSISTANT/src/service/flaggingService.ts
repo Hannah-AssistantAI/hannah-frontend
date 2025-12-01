@@ -250,6 +250,35 @@ class FlaggingService {
   }
 
   /**
+   * Get flagged messages only (Admin & Faculty)
+   * Fetches message flags from the flagging endpoint filtered by entity type
+   */
+  async getFlaggedMessages(status?: string): Promise<FlaggedItem[]> {
+    try {
+      // Use the general flagging endpoint and filter by entity_type=message
+      const statusParam = status ? `?status=${status}&entity_type=message` : '?entity_type=message';
+      const url = `${API_BASE_URL}${API_ENDPOINTS.FLAGGING.GET_FLAGGED}${statusParam}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch flagged messages: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching flagged messages:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Flag a quiz (Student) - Calls Python API
    * @param quizId Quiz ID from MongoDB
    * @param reason Reason for flagging
