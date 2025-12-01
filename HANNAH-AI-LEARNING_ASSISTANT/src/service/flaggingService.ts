@@ -101,6 +101,41 @@ class FlaggingService {
   }
 
   /**
+   * Get a single flagged item by ID
+   * Uses the existing /flagged endpoint and filters the result
+   */
+  async getFlagById(flagId: number): Promise<FlaggedItem> {
+    try {
+      // Fetch all flags (or use status filter if available)
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.FLAGGING.GET_FLAGGED}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch flags: ${response.statusText}`);
+      }
+
+      const flags: FlaggedItem[] = await response.json();
+      
+      // Find the flag with matching ID
+      const flag = flags.find(f => f.id === flagId);
+      
+      if (!flag) {
+        throw new Error(`Flag with ID ${flagId} not found`);
+      }
+
+      return flag;
+    } catch (error) {
+      console.error('Error fetching flag by ID:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get message context for a flagged message
    * @param conversationId Conversation ID
    * @param messageId MongoDB message ID
