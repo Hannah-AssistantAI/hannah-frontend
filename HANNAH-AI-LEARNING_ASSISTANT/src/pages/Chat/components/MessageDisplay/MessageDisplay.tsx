@@ -178,11 +178,11 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
                     }
                     return null;
                 })}
-                {/* Render images even in legacy path */}
+
                 {message.images && message.images.length > 0 && (
                     <MessageImages images={message.images} />
                 )}
-                {/* Render YouTube videos even in legacy path */}
+
                 {message.youtubeResources && message.youtubeResources.length > 0 && (
                     <div className="youtube-resources-section">
                         <h3 className="youtube-resources-title">📺 Video liên quan</h3>
