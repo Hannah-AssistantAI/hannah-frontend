@@ -41,6 +41,7 @@ export interface OutlineItem {
 export interface ImageMetadata {
     url: string
     source: string
+    is_full_page?: boolean
 }
 
 export interface YoutubeResource {
