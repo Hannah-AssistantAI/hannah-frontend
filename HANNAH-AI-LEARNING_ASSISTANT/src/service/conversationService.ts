@@ -36,6 +36,7 @@ export interface Message {
     metadata?: any;
     interactiveElements?: any;
     interactive_elements?: any; // Handle potential snake_case from backend
+    images?: any[];  // RAG images from MinIO
 }
 
 export interface BaseResponse<T> {
