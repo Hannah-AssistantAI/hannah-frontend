@@ -1,4 +1,5 @@
 import { API_ENDPOINTS, API_BASE_URL, STORAGE_KEYS } from '../config/apiConfig';
+// Service for flagging operations
 
 export interface FlaggedItem {
   id: number;
@@ -49,13 +50,13 @@ class FlaggingService {
    */
   async getFlaggedItems(status?: string): Promise<FlaggedItem[]> {
     try {
-      const url = status 
+      const url = status
         ? `${API_BASE_URL}${API_ENDPOINTS.FLAGGING.GET_FLAGGED}?status=${status}`
         : `${API_BASE_URL}${API_ENDPOINTS.FLAGGING.GET_FLAGGED}`;
-      
+
       const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       console.log('[DEBUG] Token:', token?.substring(0, 20) + '...');
-      
+
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -142,13 +143,13 @@ class FlaggingService {
    * @param windowSize Number of messages before/after (default 5)
    */
   async getMessageContext(
-    conversationId: number, 
-    messageId: string, 
+    conversationId: number,
+    messageId: string,
     windowSize: number = 5
   ): Promise<MessageContext> {
     try {
       const url = `${API_BASE_URL}${API_ENDPOINTS.CONVERSATIONS.BASE}/${conversationId}/context-for-message/${messageId}?windowSize=${windowSize}`;
-      
+
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -256,6 +257,127 @@ class FlaggingService {
       return await response.json();
     } catch (error) {
       console.error('Error flagging message:', error);
+      throw error;
+    }
+  }
+  /**
+   * Get flagged quizzes (Admin)
+   * Fetches quizzes from the flagging endpoint filtered by entity type
+   */
+  async getFlaggedQuizzes(status?: string): Promise<FlaggedItem[]> {
+    try {
+      // Use the general flagging endpoint and filter by entity_type=quiz
+      const statusParam = status ? `?status=${status}&entity_type=quiz` : '?entity_type=quiz';
+      const url = `${API_BASE_URL}${API_ENDPOINTS.FLAGGING.GET_FLAGGED}${statusParam}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch flagged quizzes: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching flagged quizzes:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get flagged messages only (Admin & Faculty)
+   * Fetches message flags from the flagging endpoint filtered by entity type
+   */
+  async getFlaggedMessages(status?: string): Promise<FlaggedItem[]> {
+    try {
+      // Use the general flagging endpoint and filter by entity_type=message
+      const statusParam = status ? `?status=${status}&entity_type=message` : '?entity_type=message';
+      const url = `${API_BASE_URL}${API_ENDPOINTS.FLAGGING.GET_FLAGGED}${statusParam}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch flagged messages: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching flagged messages:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Flag a quiz (Student) - Calls Python API
+   * @param quizId Quiz ID from MongoDB
+   * @param reason Reason for flagging
+   */
+  async flagQuiz(quizId: number, reason: string): Promise<any> {
+    try {
+      // Python API base URL
+      const PYTHON_API_BASE_URL = 'http://localhost:8001';
+
+      const response = await fetch(
+        `${PYTHON_API_BASE_URL}/api/v1/studio/quiz/${quizId}/flag`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)}`
+          },
+          body: JSON.stringify({ reason })
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || errorData.message || `Failed to flag quiz: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error flagging quiz:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Assign a flag to a faculty member - UNIVERSAL method (Admin only)
+   * Works for both messages and quizzes
+   * @param flagId Flag ID from FlaggingHistory table
+   * @param facultyId Faculty user ID
+   */
+  async assignFlagToFaculty(flagId: number, facultyId: number): Promise<void> {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/Flagging/${flagId}/assign`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)}`
+          },
+          body: JSON.stringify({ facultyId })
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Failed to assign flag: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error assigning flag to faculty:', error);
       throw error;
     }
   }

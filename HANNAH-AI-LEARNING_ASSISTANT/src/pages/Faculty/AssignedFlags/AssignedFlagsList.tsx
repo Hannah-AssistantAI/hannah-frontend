@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { Eye, Flag, MessageSquare, AlertCircle, CheckCircle, Clock, User, Calendar } from 'lucide-react';
+
 import type { FlaggedItem } from '../../../service/flaggingService';
 import flaggingService from '../../../service/flaggingService';
 import { getStatusDisplay, getStatusClass, isResolved } from '../../../utils/statusHelpers';
@@ -32,6 +34,29 @@ const AssignedFlagsList: React.FC = () => {
             setLoading(false);
         }
     };
+
+
+    const handleViewDetails = (item: FlaggedItem) => {
+        // Navigate to quiz detail page for quiz flags
+        if (item.type === 'quiz') {
+            navigate(`/faculty/assigned-flags/${item.id}`);
+        } else {
+            // Show modal for other types
+            setSelectedItem(item);
+            setShowDetailModal(true);
+        }
+    };
+
+    const handleCloseModal = () => {
+        setShowDetailModal(false);
+        setSelectedItem(null);
+    };
+
+    const handleItemUpdated = () => {
+        loadAssignedFlags();
+        handleCloseModal();
+    };
+
 
     const getTypeIcon = (type: string) => {
         switch (type) {
