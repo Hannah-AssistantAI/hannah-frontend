@@ -15,6 +15,7 @@ import { CustomizeFeatureModal } from './components/modals/CustomizeFeatureModal
 import { ShareModal } from './components/modals/ShareModal'
 import { FlagMessageModal } from './components/modals/FlagMessageModal'
 import { FlagQuizModal } from './components/modals/FlagQuizModal'
+import ConfirmModal from '../../components/ConfirmModal/ConfirmModal'
 import { BigPictureSidebar } from './components/BigPictureSidebar'
 import { StudioSidebar } from './components/StudioSidebar'
 import { HistorySidebar } from '../../components/HistorySidebar'
@@ -487,6 +488,18 @@ export default function Chat() {
                 }}
                 isSubmitting={isFlaggingQuiz}
                 quizTitle={studio.studioItems.find(item => item.id === flaggingQuizId)?.title}
+            />
+
+            {/* Delete Confirm Modal */}
+            <ConfirmModal
+                isOpen={studio.showDeleteConfirmModal}
+                onClose={() => studio.setShowDeleteConfirmModal(false)}
+                onConfirm={studio.confirmDeleteItem}
+                title="Xác nhận xóa"
+                message={`Bạn có chắc muốn xóa "${studio.studioItems.find(item => item.id === studio.itemToDelete)?.title}"? Hành động này không thể hoàn tác.`}
+                confirmText="Xóa"
+                cancelText="Hủy"
+                type="danger"
             />
         </div>
     )
