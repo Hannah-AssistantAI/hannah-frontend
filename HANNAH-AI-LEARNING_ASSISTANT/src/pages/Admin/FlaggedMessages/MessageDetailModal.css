@@ -433,10 +433,10 @@
 
 .message-sender-info {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
+  flex: 1;
 }
-
 .message-role {
   font-weight: 700;
   font-size: 13px;
@@ -448,7 +448,6 @@
   color: #888;
   font-weight: 400;
   text-transform: lowercase;
-  margin-left: 2px;
 }
 .message-time {
   font-size: 11px;

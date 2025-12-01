@@ -34,7 +34,7 @@ import QuizAttemptDetail from './pages/Faculty/QuestionAnalytics/QuizAttemptDeta
 import QuizDetail from './pages/Faculty/QuestionAnalytics/QuizDetail'
 import FlaggedQuizzes from './pages/Admin/FlaggedQuizzes'
 import FlaggedQuizDetail from './pages/Admin/FlaggedQuizDetail'
-import { FlaggedMessagesList } from './pages/Admin/FlaggedMessages'
+import { FlaggedMessagesList, FlaggedMessageDetail } from './pages/Admin/FlaggedMessages'
 import { AssignedFlagsList } from './pages/Faculty/AssignedFlags'
 
 const AuthRedirectHandler = () => {
@@ -135,6 +135,7 @@ function App() {
             <Route path="flagged-quizzes" element={<FlaggedQuizzes />} />
             <Route path="flagged-quizzes/:id" element={<FlaggedQuizDetail />} />
             <Route path="flagged-messages" element={<FlaggedMessagesList />} />
+            <Route path="flagged-messages/:id" element={<FlaggedMessageDetail />} />
           </Route>
         </Route>
 
@@ -156,6 +157,7 @@ function App() {
             <Route path="analytics/quiz/:quizId/attempt/:id" element={<QuizAttemptDetail />} />
             <Route path="questions" element={<QuestionStatistics />} />
             <Route path="assigned-flags" element={<AssignedFlagsList />} />
+            <Route path="assigned-flags/:id" element={<FlaggedMessageDetail />} />
             <Route path="profile" element={<Profile embedded={true} />} />
           </Route>
         </Route>

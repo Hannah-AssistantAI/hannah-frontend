@@ -139,6 +139,7 @@ export const useStudio = (conversationId: number | null) => {
             courseCode?: string;
             documentIds?: number[];
             sourceType?: 'conversation' | 'documents' | 'hybrid';
+            reportType?: 'summary' | 'detailed' | 'analysis';
         }
     ) => {
         // Validate conversationId exists
@@ -215,7 +216,7 @@ export const useStudio = (conversationId: number | null) => {
                     response = await studioService.generateReport({
                         conversationId,
                         title: effectiveTitle,
-                        reportType: 'standard', // Default report type
+                        reportType: options?.reportType || 'summary',
                         sourceSubjectIds,
                         sourceDocumentIds
                     });
@@ -379,7 +380,15 @@ export const useStudio = (conversationId: number | null) => {
     }
 
     const handleReportFormatSelect = (format: string) => {
-        createStudioItem('report', `Báo cáo ${format}`)
+        let reportType: 'summary' | 'detailed' | 'analysis' = 'summary';
+
+        if (format.toLowerCase().includes('chi tiết') || format.toLowerCase() === 'detailed') {
+            reportType = 'detailed';
+        } else if (format.toLowerCase().includes('phân tích') || format.toLowerCase() === 'analysis') {
+            reportType = 'analysis';
+        }
+
+        createStudioItem('report', `Báo cáo ${format}`, { reportType })
         setShowReportFormatModal(false)
     }
 
