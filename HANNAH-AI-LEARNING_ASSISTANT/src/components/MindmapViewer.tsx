@@ -48,6 +48,7 @@ interface MindmapViewerProps {
         nodes: any[];
         edges: any[];
     };
+    onNodeClick?: (nodeData: any) => void;
 }
 
 const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'LR') => {
@@ -83,7 +84,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'LR') => 
     return { nodes: layoutedNodes, edges };
 };
 
-export default function MindmapViewer({ data }: MindmapViewerProps) {
+export default function MindmapViewer({ data, onNodeClick }: MindmapViewerProps) {
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
@@ -91,14 +92,11 @@ export default function MindmapViewer({ data }: MindmapViewerProps) {
         console.log('MindmapViewer received data:', data);
 
         if (data && data.nodes && data.edges) {
-            console.log('Processing nodes:', data.nodes);
-            console.log('Processing edges:', data.edges);
-
             // Transform data to React Flow format
             const initialNodes: Node[] = data.nodes.map((n: any) => ({
                 id: n.id,
                 type: n.type === 'root' ? 'root' : 'default',
-                data: { label: n.label, type: n.type },
+                data: { label: n.label, type: n.type, description: n.description },
                 position: { x: 0, y: 0 }, // Layout will handle this
             }));
 
@@ -113,16 +111,10 @@ export default function MindmapViewer({ data }: MindmapViewerProps) {
                 animated: true,
             }));
 
-            console.log('Transformed nodes:', initialNodes);
-            console.log('Transformed edges:', initialEdges);
-
             const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
                 initialNodes,
                 initialEdges
             );
-
-            console.log('Layouted nodes:', layoutedNodes);
-            console.log('Layouted edges:', layoutedEdges);
 
             setNodes(layoutedNodes);
             setEdges(layoutedEdges);
@@ -136,6 +128,12 @@ export default function MindmapViewer({ data }: MindmapViewerProps) {
         [setEdges],
     );
 
+    const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+        if (onNodeClick && node.data) {
+            onNodeClick(node.data);
+        }
+    }, [onNodeClick]);
+
     return (
         <div style={{ width: '100%', height: '600px', position: 'relative' }}>
             <ReactFlow
@@ -144,6 +142,7 @@ export default function MindmapViewer({ data }: MindmapViewerProps) {
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                onNodeClick={handleNodeClick}
                 nodeTypes={nodeTypes}
                 fitView
                 attributionPosition="bottom-right"
