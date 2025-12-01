@@ -81,7 +81,9 @@ export const useChatMessages = ({
                             isStreaming: false,
                             isFlagged: false,
                             suggestedQuestions: [],
+
                             images: msg.images || msg.metadata?.images || [],  // Support both root and metadata level
+
                             ...parsed
                         };
                     });
@@ -160,8 +162,11 @@ export const useChatMessages = ({
                         interactiveList: parsedResponse.interactiveList,
                         outline: parsedResponse.outline,
                         youtubeResources: parsedResponse.youtubeResources,
+
                         images: response.assistantMessage.images || response.assistantMessage.metadata?.images || []
+
                     };
+                    console.log('🖼️ Images in message:', newMessages[1].images);
                     return newMessages;
                 });
             } catch (error: any) {
@@ -354,6 +359,7 @@ export const useChatMessages = ({
                     outline: parsedResponse.outline,
                     youtubeResources: parsedResponse.youtubeResources,
                     images: response.assistantMessage.images || response.assistantMessage.metadata?.images || []
+
                 };
                 return newMessages;
             });
@@ -454,6 +460,7 @@ export const useChatMessages = ({
                     outline: parsedResponse.outline,
                     youtubeResources: parsedResponse.youtubeResources,
                     images: response.assistantMessage.images || response.assistantMessage.metadata?.images || []
+
                 };
                 return newMessages;
             });

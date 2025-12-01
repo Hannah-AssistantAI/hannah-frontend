@@ -178,9 +178,11 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
                     }
                     return null;
                 })}
+
                 {message.images && message.images.length > 0 && (
                     <MessageImages images={message.images} />
                 )}
+
                 {message.youtubeResources && message.youtubeResources.length > 0 && (
                     <div className="youtube-resources-section">
                         <h3 className="youtube-resources-title">📺 Video liên quan</h3>
