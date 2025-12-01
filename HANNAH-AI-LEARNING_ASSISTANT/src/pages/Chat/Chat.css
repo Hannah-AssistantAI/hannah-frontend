@@ -17,6 +17,7 @@
 @import './styles/chat/video-content.css';
 @import './styles/chat/related-content.css';
 @import './styles/chat/input.css';
+@import './styles/chat/code-blocks.css';
 
 /* Modals */
 @import './styles/modals/base.css';
