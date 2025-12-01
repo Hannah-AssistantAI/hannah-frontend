@@ -36,6 +36,7 @@ export interface Message {
     metadata?: any;
     interactiveElements?: any;
     interactive_elements?: any; // Handle potential snake_case from backend
+    images?: Array<{ url: string; source: string }>;  // RAG images from document chunks
 }
 
 export interface BaseResponse<T> {

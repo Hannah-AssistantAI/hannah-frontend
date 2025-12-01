@@ -138,44 +138,82 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
         }
 
         // Legacy rendering for parts
-        return parts.map((part, partIndex) => {
-            if (part.type === 'text') {
-                return (
-                    <div key={`part-${partIndex}`} className="message-text">
-                        {part.content.split('\n').map((line: string, i: number) => {
-                            // Handle bold text
-                            if (line.includes('**')) {
-                                const lineParts = line.split('**');
-                                return (
-                                    <p key={i}>
-                                        {lineParts.map((linePart: string, j: number) =>
-                                            j % 2 === 1 ? <strong key={j}>{linePart}</strong> : linePart
+        return (
+            <>
+                {parts.map((part, partIndex) => {
+                    if (part.type === 'text') {
+                        return (
+                            <div key={`part-${partIndex}`} className="message-text">
+                                {part.content.split('\n').map((line: string, i: number) => {
+                                    // Handle bold text
+                                    if (line.includes('**')) {
+                                        const lineParts = line.split('**');
+                                        return (
+                                            <p key={i}>
+                                                {lineParts.map((linePart: string, j: number) =>
+                                                    j % 2 === 1 ? <strong key={j}>{linePart}</strong> : linePart
+                                                )}
+                                            </p>
+                                        );
+                                    }
+                                    // Handle headings
+                                    if (line.startsWith('### ')) {
+                                        return <h3 key={i}>{line.replace('### ', '')}</h3>;
+                                    }
+                                    if (line.startsWith('#### ')) {
+                                        return <h4 key={i}>{line.replace('#### ', '')}</h4>;
+                                    }
+                                    // Handle list items
+                                    if (line.startsWith('- ')) {
+                                        return <li key={i}>{line.replace('- ', '')}</li>;
+                                    }
+                                    // Regular paragraph
+                                    if (line.trim()) {
+                                        return <p key={i}>{line}</p>;
+                                    }
+                                    return null;
+                                })}
+                            </div>
+                        );
+                    }
+                    return null;
+                })}
+                {message.images && message.images.length > 0 && (
+                    <MessageImages images={message.images} />
+                )}
+                {message.youtubeResources && message.youtubeResources.length > 0 && (
+                    <div className="youtube-resources-section">
+                        <h3 className="youtube-resources-title">📺 Video liên quan</h3>
+                        <div className="youtube-resources-grid">
+                            {message.youtubeResources.map((video, index) => (
+                                <div
+                                    key={index}
+                                    className="youtube-card"
+                                    onClick={() => {
+                                        setSelectedVideo(video);
+                                        setShowYouTubeModal(true);
+                                    }}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <div className="youtube-thumbnail">
+                                        <img src={video.thumbnail} alt={video.title} />
+                                        <div className="youtube-play-overlay">
+                                            <div className="play-icon">▶</div>
+                                        </div>
+                                    </div>
+                                    <div className="youtube-info">
+                                        <h4 className="youtube-video-title">{video.title}</h4>
+                                        {video.channel && (
+                                            <p className="youtube-channel">{video.channel}</p>
                                         )}
-                                    </p>
-                                );
-                            }
-                            // Handle headings
-                            if (line.startsWith('### ')) {
-                                return <h3 key={i}>{line.replace('### ', '')}</h3>;
-                            }
-                            if (line.startsWith('#### ')) {
-                                return <h4 key={i}>{line.replace('#### ', '')}</h4>;
-                            }
-                            // Handle list items
-                            if (line.startsWith('- ')) {
-                                return <li key={i}>{line.replace('- ', '')}</li>;
-                            }
-                            // Regular paragraph
-                            if (line.trim()) {
-                                return <p key={i}>{line}</p>;
-                            }
-                            return null;
-                        })}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                );
-            }
-            return null;
-        });
+                )}
+            </>
+        );
     };
 
     return (

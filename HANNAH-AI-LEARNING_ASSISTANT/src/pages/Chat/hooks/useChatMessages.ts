@@ -81,7 +81,7 @@ export const useChatMessages = ({
                             isStreaming: false,
                             isFlagged: false,
                             suggestedQuestions: [],
-                            images: msg.metadata?.images || [],
+                            images: msg.images || msg.metadata?.images || [],  // Support both root and metadata level
                             ...parsed
                         };
                     });
@@ -160,7 +160,7 @@ export const useChatMessages = ({
                         interactiveList: parsedResponse.interactiveList,
                         outline: parsedResponse.outline,
                         youtubeResources: parsedResponse.youtubeResources,
-                        images: response.assistantMessage.metadata?.images || []
+                        images: response.assistantMessage.images || response.assistantMessage.metadata?.images || []
                     };
                     return newMessages;
                 });
@@ -353,7 +353,7 @@ export const useChatMessages = ({
                     interactiveList: parsedResponse.interactiveList,
                     outline: parsedResponse.outline,
                     youtubeResources: parsedResponse.youtubeResources,
-                    images: response.assistantMessage.metadata?.images || []
+                    images: response.assistantMessage.images || response.assistantMessage.metadata?.images || []
                 };
                 return newMessages;
             });
@@ -453,7 +453,7 @@ export const useChatMessages = ({
                     interactiveList: parsedResponse.interactiveList,
                     outline: parsedResponse.outline,
                     youtubeResources: parsedResponse.youtubeResources,
-                    images: response.assistantMessage.metadata?.images || []
+                    images: response.assistantMessage.images || response.assistantMessage.metadata?.images || []
                 };
                 return newMessages;
             });
