@@ -8,6 +8,7 @@ export interface GenerateQuizRequest {
     questionCount?: number;
     difficulty?: string;
     topics?: string[];
+    subjectId?: number;  // Subject ID for quiz topic generation
     sourceType?: 'conversation' | 'documents' | 'hybrid';
     sourceSubjectIds?: number[];
     sourceDocumentIds?: number[];
@@ -168,7 +169,7 @@ class StudioService {
     }
 
     async deleteFlashcard(flashcardSetId: string) {
-        return pythonApiClient.delete(`/api/v1/studio/flashcard/${flashcardSetId}` );
+        return pythonApiClient.delete(`/api/v1/studio/flashcard/${flashcardSetId}`);
     }
 
     async deleteReport(reportId: string) {

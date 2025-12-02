@@ -2,25 +2,25 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../../contexts/AppContext';
 import { useAuth } from '../../../contexts/AuthContext';
-import { AlertCircle, Clock, Users, Target } from 'lucide-react';
+import { AlertCircle, Users, Target } from 'lucide-react';
 import { getFlaggedQuizAttempts } from '../../../service/mockApi';
 import QuestionAnalyticsFilter from './QuestionAnalyticsFilter';
 import quizApiService from '../../../service/quizApi';
-import {
-  formatTime
-} from '../../../service/quizApi';
 import type {
   QuizDto,
   QuizResultsDto,
   QuizStatisticsDto,
   QuizAttemptDto
 } from '../../../service/quizApi';
+import TopicPerformanceChart from '../../../components/Charts/TopicPerformanceChart';
+import KnowledgeGapHeatmap from '../../../components/Charts/KnowledgeGapHeatmap';
 
 // ==================== INTERFACES ====================
 
 interface QuizWithAnalytics extends QuizDto {
   results?: QuizResultsDto;
   statistics?: QuizStatisticsDto;
+  topics?: string[];  // Inherited from QuizDto but explicit for clarity
 }
 
 interface QuizAttemptWithTitle extends QuizAttemptDto {
@@ -70,6 +70,9 @@ const QuestionAnalytics = () => {
 
   // Flagged quizzes
   const [flaggedMap, setFlaggedMap] = useState<Record<string, { reason: string; status: string }>>({});
+
+  // Subject search filter for charts
+  const [subjectSearch, setSubjectSearch] = useState<string>('');
 
   // ==================== DATA LOADING ====================
 
@@ -351,22 +354,6 @@ const QuestionAnalytics = () => {
     };
   });
 
-  let filteredTotalAttempts = 0;
-  let filteredTotalScore = 0;
-  let filteredScoreCount = 0;
-
-  filteredQuizzes.forEach(quiz => {
-    if (quiz.results) {
-      filteredTotalAttempts += quiz.results.totalAttempts;
-      if (quiz.results.averageScore !== undefined) {
-        filteredTotalScore += quiz.results.averageScore;
-        filteredScoreCount++;
-      }
-    }
-  });
-
-  const filteredAverageScore = filteredScoreCount > 0 ? filteredTotalScore / filteredScoreCount : 0;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -384,63 +371,131 @@ const QuestionAnalytics = () => {
           onReset={handleResetFilters}
         />
 
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100 text-sm font-medium mb-1">Total Quizzes</p>
-                <p className="text-4xl font-bold">{filteredQuizzes.length}</p>
-                {filteredQuizzes.length !== analyticsData.totalQuizzes && (
-                  <p className="text-blue-200 text-xs mt-1">
-                    (Overall: {analyticsData.totalQuizzes})
-                  </p>
-                )}
-              </div>
-              <div className="text-6xl opacity-20">📝</div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100 text-sm font-medium mb-1">Total Attempts</p>
-                <p className="text-4xl font-bold">{filteredTotalAttempts}</p>
-                {filteredTotalAttempts !== analyticsData.totalAttempts && (
-                  <p className="text-purple-200 text-xs mt-1">
-                    (Overall: {analyticsData.totalAttempts})
-                  </p>
-                )}
-              </div>
-              <div className="text-6xl opacity-20">✍️</div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100 text-sm font-medium mb-1">Average Score</p>
-                <p className="text-4xl font-bold">{filteredAverageScore.toFixed(1)}%</p>
-                {filteredAverageScore.toFixed(1) !== analyticsData.averageScore.toFixed(1) && (
-                  <p className="text-green-200 text-xs mt-1">
-                    (Overall: {analyticsData.averageScore.toFixed(1)}%)
-                  </p>
-                )}
-              </div>
-              <div className="text-6xl opacity-20">📈</div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-orange-100 text-sm font-medium mb-1">Total Students</p>
-                <p className="text-4xl font-bold">{analyticsData.totalStudents}</p>
-              </div>
-              <div className="text-6xl opacity-20">👥</div>
-            </div>
+        {/* Subject Search for Charts */}
+        <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
+          <div className="flex items-center gap-3">
+            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search subject code (e.g., PRN222, MAD101)..."
+              value={subjectSearch}
+              onChange={(e) => setSubjectSearch(e.target.value)}
+              className="flex-1 outline-none text-slate-700 placeholder-slate-400"
+            />
+            {subjectSearch && (
+              <button
+                onClick={() => setSubjectSearch('')}
+                className="text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Topic-Based Analytics */}
+        {(() => {
+          // Extract topic performance from quiz data
+          const topicMap = new Map<string, { totalScore: number; count: number; passCount: number; totalAttempts: number }>();
+
+          // 🔍 DEBUG: Check topics from API
+          console.log('🔍 Filtered Quizzes:', filteredQuizzes.map(q => ({
+            id: q.quizId,
+            title: q.title,
+            topics: q.topics
+          })));
+
+          // ✅ Helper: Check if topic is a valid subject code (not generic)
+          const isValidSubjectCode = (topic: string): boolean => {
+            const invalidTopics = ['General Knowledge', 'General', 'N/A', '', 'undefined'];
+            return !invalidTopics.includes(topic) && topic.length > 0;
+          };
+
+          // ✅ FILTER: Only process quizzes with valid subject code topics
+          const quizzesWithSubjectTopics = filteredQuizzes.filter(quiz => {
+            return quiz.topics && quiz.topics.length > 0 && quiz.topics.some(isValidSubjectCode);
+          });
+
+          console.log(`📊 Quizzes with subject codes: ${quizzesWithSubjectTopics.length}/${filteredQuizzes.length}`);
+
+          quizzesWithSubjectTopics.forEach(quiz => {
+            // ✨ Use topics from API (subject code) - already filtered
+            const topicsList = quiz.topics || [];
+
+            // Process each VALID topic only
+            topicsList.forEach((topicName: string) => {
+              if (!isValidSubjectCode(topicName)) return; // Skip invalid topics
+
+              if (quiz.results) {
+                const existing = topicMap.get(topicName) || { totalScore: 0, count: 0, passCount: 0, totalAttempts: 0 };
+                topicMap.set(topicName, {
+                  totalScore: existing.totalScore + (quiz.results.averageScore || 0),
+                  count: existing.count + 1,
+                  passCount: existing.passCount + (quiz.results.passRate || 0),
+                  totalAttempts: existing.totalAttempts + quiz.results.totalAttempts
+                });
+              }
+            });
+          });
+
+          const topicPerformanceData = Array.from(topicMap.entries()).map(([topic, data]) => ({
+            topic,
+            averageScore: data.count > 0 ? data.totalScore / data.count : 0,
+            passRate: data.count > 0 ? data.passCount / data.count : 0,
+            totalAttempts: data.totalAttempts
+          }));
+
+          const knowledgeGaps = topicPerformanceData.map(item => ({
+            ...item,
+            failRate: 100 - item.passRate
+          }));
+
+          // ✅ FILTER: Apply subject search if provided
+          const filteredTopicData = subjectSearch.trim()
+            ? topicPerformanceData.filter(item =>
+              item.topic.toLowerCase().includes(subjectSearch.toLowerCase())
+            )
+            : topicPerformanceData;
+
+          const filteredKnowledgeGaps = subjectSearch.trim()
+            ? knowledgeGaps.filter(item =>
+              item.topic.toLowerCase().includes(subjectSearch.toLowerCase())
+            )
+            : knowledgeGaps;
+
+          return filteredTopicData.length > 0 ? (
+            <>
+              {/* Topic Performance Chart */}
+              <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-800">📊 Performance by Topic</h2>
+                    <p className="text-sm text-slate-600 mt-1">Compare average scores and pass rates across different topics</p>
+                  </div>
+                </div>
+                <TopicPerformanceChart data={filteredTopicData} />
+              </div>
+
+              {/* Knowledge Gap Heatmap */}
+              <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-800">🎯 Knowledge Gaps</h2>
+                    <p className="text-sm text-slate-600 mt-1">Topics where students need more support (score &lt; 60%)</p>
+                  </div>
+                  <div className="text-sm text-slate-500">
+                    Threshold: <span className="font-semibold">60%</span>
+                  </div>
+                </div>
+                <KnowledgeGapHeatmap gaps={filteredKnowledgeGaps} threshold={60} />
+              </div>
+            </>
+          ) : null;
+        })()}
 
         {/* Quiz List (Grouped by Title) */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
@@ -464,7 +519,6 @@ const QuestionAnalytics = () => {
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Avg Score</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Pass Rate</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Students</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Avg Time</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Actions</th>
                 </tr>
               </thead>
@@ -475,11 +529,6 @@ const QuestionAnalytics = () => {
                       <div>
                         <div className="font-semibold text-slate-800 flex items-center gap-2">
                           {group.title}
-                          {group.quizIds.length > 1 && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                              {group.quizIds.length} versions
-                            </span>
-                          )}
                           {group.isFlagged && (
                             <span
                               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs"
@@ -521,14 +570,7 @@ const QuestionAnalytics = () => {
                         <span className="font-medium text-slate-700">{group.uniqueStudents}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4 text-slate-500" />
-                        <span className="text-sm text-slate-600">
-                          {formatTime(group.averageTime)}
-                        </span>
-                      </div>
-                    </td>
+
                     <td className="px-6 py-4">
                       <button
                         onClick={() => {
@@ -568,7 +610,6 @@ const QuestionAnalytics = () => {
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Student</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Quiz Title</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Score</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Time Taken</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Submitted At</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Status</th>
                   </tr>
@@ -598,11 +639,6 @@ const QuestionAnalytics = () => {
                         >
                           {attempt.score !== undefined ? `${attempt.score}%` : 'N/A'}
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-slate-600">
-                          {formatTime(attempt.timeTaken)}
-                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-sm text-slate-500">

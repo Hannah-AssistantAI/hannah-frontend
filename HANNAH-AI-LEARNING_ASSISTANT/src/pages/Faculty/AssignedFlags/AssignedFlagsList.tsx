@@ -36,28 +36,6 @@ const AssignedFlagsList: React.FC = () => {
     };
 
 
-    const handleViewDetails = (item: FlaggedItem) => {
-        // Navigate to quiz detail page for quiz flags
-        if (item.type === 'quiz') {
-            navigate(`/faculty/assigned-flags/${item.id}`);
-        } else {
-            // Show modal for other types
-            setSelectedItem(item);
-            setShowDetailModal(true);
-        }
-    };
-
-    const handleCloseModal = () => {
-        setShowDetailModal(false);
-        setSelectedItem(null);
-    };
-
-    const handleItemUpdated = () => {
-        loadAssignedFlags();
-        handleCloseModal();
-    };
-
-
     const getTypeIcon = (type: string) => {
         switch (type) {
             case 'message':
@@ -204,14 +182,14 @@ const AssignedFlagsList: React.FC = () => {
                                     key={status}
                                     onClick={() => setFilterStatus(status)}
                                     className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 text-sm ${filterStatus === status
-                                            ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white scale-105'
-                                            : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200'
+                                        ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white scale-105'
+                                        : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200'
                                         }`}
                                 >
                                     <span>{status === 'processing' ? 'Đang xử lý' : 'Đã giải quyết'}</span>
                                     <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${filterStatus === status
-                                            ? 'bg-white/30 text-white'
-                                            : 'bg-gray-100 text-gray-600'
+                                        ? 'bg-white/30 text-white'
+                                        : 'bg-gray-100 text-gray-600'
                                         }`}>
                                         {getStatusCount(status)}
                                     </span>
@@ -246,8 +224,8 @@ const AssignedFlagsList: React.FC = () => {
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-start gap-3 flex-1">
                                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-110 ${item.type === 'message'
-                                                ? 'bg-gradient-to-br from-purple-500 to-pink-600 shadow-purple-500/20'
-                                                : 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/20'
+                                            ? 'bg-gradient-to-br from-purple-500 to-pink-600 shadow-purple-500/20'
+                                            : 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/20'
                                             }`}>
                                             {getTypeIcon(item.type)}
                                         </div>
@@ -255,8 +233,8 @@ const AssignedFlagsList: React.FC = () => {
                                             <div className="flex items-center gap-2 mb-2">
                                                 <h3 className="text-base font-bold text-gray-900">{getTypeLabel(item.type)}</h3>
                                                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getStatusClass(item.status) === 'resolved'
-                                                        ? 'bg-green-100 text-green-700 border-green-200'
-                                                        : 'bg-blue-100 text-blue-700 border-blue-200'
+                                                    ? 'bg-green-100 text-green-700 border-green-200'
+                                                    : 'bg-blue-100 text-blue-700 border-blue-200'
                                                     }`}>
                                                     {getStatusDisplay(item.status)}
                                                 </span>

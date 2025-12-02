@@ -5,7 +5,7 @@ import conversationService from '../../../service/conversationService';
 import messageService from '../../../service/messageService';
 import type { Message, BigPictureTopic } from '../types';
 import { parseAssistantResponse } from '../utils/messageHelpers';
-import { cacheMessageData, getCachedMessageData } from '../utils/messageCache';
+
 
 interface UseChatMessagesParams {
     initialQuery: string;
@@ -63,15 +63,6 @@ export const useChatMessages = ({
                         // Try to get interactiveElements from backend or cache
                         let interactiveElements = msg.interactiveElements || msg.interactive_elements || msg.metadata?.interactive_elements || msg.metadata?.interactiveElements;
 
-                        // Try to restore from cache if not provided by backend
-                        if (!interactiveElements && msg.messageId && conversationId) {
-                            const cached = getCachedMessageData(conversationId, msg.messageId);
-                            if (cached) {
-                                console.log(`  💾 ✅ AUTO-SEND: Restored from cache for message ${msg.messageId}:`, cached);
-                                interactiveElements = cached;
-                            }
-                        }
-
                         const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content, interactiveElements) : {};
 
                         return {
@@ -128,26 +119,6 @@ export const useChatMessages = ({
 
                 if (parsedResponse.outline && parsedResponse.outline.length > 0) {
                     setBigPictureData(parsedResponse.outline);
-                }
-
-                // Cache interactive elements for persistence
-                if (response.assistantMessage.messageId && conversationId) {
-                    console.log('💾 SAVING TO CACHE:', {
-                        conversationId,
-                        messageId: response.assistantMessage.messageId,
-                        data: {
-                            interactiveList: parsedResponse.interactiveList,
-                            suggestedQuestions: parsedResponse.suggestedQuestions,
-                            outline: parsedResponse.outline,
-                            youtubeResources: parsedResponse.youtubeResources
-                        }
-                    });
-                    cacheMessageData(conversationId, response.assistantMessage.messageId, {
-                        interactiveList: parsedResponse.interactiveList,
-                        suggestedQuestions: parsedResponse.suggestedQuestions,
-                        outline: parsedResponse.outline,
-                        youtubeResources: parsedResponse.youtubeResources
-                    });
                 }
 
                 setMessages(prev => {
@@ -215,32 +186,11 @@ export const useChatMessages = ({
                     const transformedMessages: Message[] = conversationDetails.messages.map((msg, index) => {
                         console.log(`🔍 Processing message ${index}:`, msg);
                         console.log(`  - role:`, msg.role);
-                        console.log(`  - content type:`, typeof msg.content);
-                        console.log(`  - content:`, msg.content);
-                        console.log(`  - interactiveElements:`, msg.interactiveElements);
-                        console.log(`  - interactive_elements:`, msg.interactive_elements);
-                        console.log(`  - metadata:`, msg.metadata);
 
+                        // Try to get interactiveElements from backend
                         let interactiveElements = msg.interactiveElements || msg.interactive_elements || msg.metadata?.interactive_elements || msg.metadata?.interactiveElements;
 
-                        // Try to restore from cache if not provided by backend
-                        if (!interactiveElements && msg.messageId && conversationId) {
-                            console.log(`  🔍 CACHE LOOKUP for message ${msg.messageId} in conversation ${conversationId}`);
-                            const cached = getCachedMessageData(conversationId, msg.messageId);
-                            if (cached) {
-                                console.log(`  💾 ✅ RESTORED FROM CACHE:`, cached);
-                                interactiveElements = cached;
-                            } else {
-                                console.log(`  💾 ❌ NO CACHE FOUND`);
-                            }
-                        }
-
-                        console.log(`  - extracted interactiveElements:`, interactiveElements);
-
-                        const parsed = msg.role === 'assistant'
-                            ? parseAssistantResponse(msg.content, interactiveElements)
-                            : {};
-
+                        const parsed = msg.role === 'assistant' ? parseAssistantResponse(msg.content, interactiveElements) : {};
                         console.log(`  - parsed result:`, parsed);
 
                         return {
@@ -250,6 +200,7 @@ export const useChatMessages = ({
                             isStreaming: false,
                             isFlagged: false,
                             suggestedQuestions: [],
+                            images: msg.images || [],
                             ...parsed
                         };
                     });
@@ -336,16 +287,6 @@ export const useChatMessages = ({
                 setBigPictureData(parsedResponse.outline);
             }
 
-            // Cache interactive elements for persistence
-            if (response.assistantMessage.messageId && conversationId) {
-                cacheMessageData(conversationId, response.assistantMessage.messageId, {
-                    interactiveList: parsedResponse.interactiveList,
-                    suggestedQuestions: parsedResponse.suggestedQuestions,
-                    outline: parsedResponse.outline,
-                    youtubeResources: parsedResponse.youtubeResources
-                });
-            }
-
             setMessages(prev => {
                 const newMessages = [...prev];
                 newMessages[loadingMessageIndex] = {
@@ -420,31 +361,11 @@ export const useChatMessages = ({
 
             const parsedResponse = parseAssistantResponse(
                 response.assistantMessage.content.data,
-                response.assistantMessage.interactiveElements  // ✅ FIX: Pass interactiveElements
+                response.assistantMessage.interactiveElements
             );
 
             if (parsedResponse.outline && parsedResponse.outline.length > 0) {
                 setBigPictureData(parsedResponse.outline);
-            }
-
-            // Cache interactive elements for persistence
-            if (response.assistantMessage.messageId && conversationId) {
-                console.log('💾 SAVING TO CACHE (interactive item):', {
-                    conversationId,
-                    messageId: response.assistantMessage.messageId,
-                    data: {
-                        interactiveList: parsedResponse.interactiveList,
-                        suggestedQuestions: parsedResponse.suggestedQuestions,
-                        outline: parsedResponse.outline,
-                        youtubeResources: parsedResponse.youtubeResources
-                    }
-                });
-                cacheMessageData(conversationId, response.assistantMessage.messageId, {
-                    interactiveList: parsedResponse.interactiveList,
-                    suggestedQuestions: parsedResponse.suggestedQuestions,
-                    outline: parsedResponse.outline,
-                    youtubeResources: parsedResponse.youtubeResources
-                });
             }
 
             setMessages(prev => {

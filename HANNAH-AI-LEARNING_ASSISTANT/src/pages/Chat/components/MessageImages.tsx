@@ -22,6 +22,16 @@ export function MessageImages({ images }: MessageImagesProps) {
         setExpandedImage(null)
     }
 
+    const fullPageImages = images.filter(img => img.is_full_page);
+    const regularImages = images.filter(img => !img.is_full_page);
+
+    console.log('🖼️ MessageImages Debug:', {
+        total: images.length,
+        fullPageCount: fullPageImages.length,
+        regularCount: regularImages.length,
+        allImages: images
+    });
+
     return (
         <>
             <div className="message-images">
@@ -31,24 +41,29 @@ export function MessageImages({ images }: MessageImagesProps) {
                     <span className="message-images-count">({images.length})</span>
                 </div>
 
-                <div className={`message-images-grid ${images.length === 1 ? 'single' : images.length === 2 ? 'double' : ''}`}>
-                    {images.map((image, index) => (
-                        <div key={index} className="message-image-item">
-                            <div className="message-image-wrapper" onClick={() => handleImageClick(image.url)}>
-                                <img
-                                    src={image.url}
-                                    alt={image.source}
-                                    className="message-image"
-                                    loading="lazy"
-                                />
-                                <div className="message-image-overlay">
-                                    <Maximize2 size={20} />
+                {/* Full Page Slides Section */}
+                {fullPageImages.length > 0 && (
+                    <div className="full-page-slides">
+                        {fullPageImages.map((image, index) => (
+                            <div key={`full-${index}`} className="full-slide-item">
+                                <div className="full-slide-wrapper" onClick={() => handleImageClick(image.url)}>
+                                    <img
+                                        src={image.url}
+                                        alt={image.source}
+                                        className="full-slide-image"
+                                        loading="lazy"
+                                    />
+                                    <div className="full-slide-overlay">
+                                        <Maximize2 size={24} />
+                                        <span className="full-slide-label">Click to view full slide</span>
+                                    </div>
+                                    <div className="full-slide-badge">Full Slide</div>
                                 </div>
+                                <p className="message-image-source">{image.source}</p>
                             </div>
-                            <p className="message-image-source">{image.source}</p>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Expanded Image Modal */}
