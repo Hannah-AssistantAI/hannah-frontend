@@ -133,11 +133,15 @@ export default function FAQSection() {
         return () => observer.disconnect();
     }, [loading]);
 
-    const handleQuestionClick = (question: string) => {
+    const handleQuestionClick = (question: string, faqId: string | number) => {
         if (!isAuthenticated) {
             alert('Vui lòng đăng nhập để sử dụng tính năng này!');
             return;
         }
+
+        // Track FAQ usage - pass ID as-is (MongoDB ObjectID string)
+        customResponseService.incrementUsageCount(faqId);
+
         navigate('/chat', { state: { query: question } });
     };
 
@@ -206,7 +210,7 @@ export default function FAQSection() {
                     {faqs.map((faq, index) => (
                         <div
                             key={faq.id}
-                            onClick={() => handleQuestionClick(faq.question)}
+                            onClick={() => handleQuestionClick(faq.question, faq.id)}
                             className={`group bg-white/5 backdrop-blur-sm hover:bg-white/10 border border-white/10 rounded-xl p-5 cursor-pointer transition-all duration-300 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                                 }`}
                             style={{ transitionDelay: `${index * 50}ms` }}

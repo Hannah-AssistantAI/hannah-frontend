@@ -34,7 +34,8 @@ class CustomResponseService {
         subjectId?: number,
         page: number = 1,
         limit: number = 20,
-        search?: string
+        search?: string,
+        sortByUsage: boolean = false
     ): Promise<CustomResponseListResponse> {
         const params: Record<string, any> = { page, limit };
         if (subjectId !== undefined) {
@@ -42,6 +43,9 @@ class CustomResponseService {
         }
         if (search) {
             params.search = search;
+        }
+        if (sortByUsage) {
+            params.sortByUsage = sortByUsage;
         }
 
         const response = await pythonApiClient.get<{ data: CustomResponseListResponse }>(
@@ -139,6 +143,20 @@ class CustomResponseService {
             { query, subjectId }
         );
         return response.data.data;
+    }
+
+    /**
+     * Increment usage count for a FAQ (click tracking, public endpoint)
+     */
+    async incrementUsageCount(responseId: string | number): Promise<void> {
+        try {
+            await pythonApiClient.post(
+                `/api/v1/custom-responses/${responseId}/increment-usage`
+            );
+        } catch (error) {
+            console.error('Failed to increment FAQ usage count:', error);
+            // Don't throw error - tracking shouldn't block user flow
+        }
     }
 }
 
