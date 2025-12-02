@@ -113,7 +113,8 @@ export default function Chat() {
                 quantity: data.cardQuantity,
                 topic: data.cardTopic,
                 courseCode: data.customizeTab === 'course' ? data.selectedCourseCode : undefined,
-                documentIds: data.customizeTab === 'course' && data.selectedSubjectIds.length > 0 ? data.selectedSubjectIds : undefined,
+                sourceSubjectIds: data.customizeTab === 'course' && data.selectedSubjectIds.length > 0 ? data.selectedSubjectIds : undefined,
+                documentIds: undefined,
                 sourceType: (data.customizeTab === 'course' && data.selectedSubjectIds.length > 0) ? 'documents' as const : 'conversation' as const
             };
 
