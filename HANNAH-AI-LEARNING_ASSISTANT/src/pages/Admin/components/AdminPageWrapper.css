@@ -1,10 +1,22 @@
 .admin-page-wrapper {
+  min-height: calc(100vh - 88px); /* Adjust for admin layout padding */
+}
+
+/* Classic variant - White background with box shadow */
+.admin-page-wrapper--classic {
   padding: 24px;
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 24px;
-  min-height: calc(100vh - 88px); /* Adjust for admin layout padding */
+}
+
+/* Modern variant - Beautiful gradient background matching original Flagged pages */
+.admin-page-wrapper--modern {
+  /* Exact match of: bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/30 */
+  background: linear-gradient(to bottom right, #f8fafc 0%, rgba(239, 246, 255, 0.4) 50%, rgba(238, 242, 255, 0.3) 100%);
+  padding: 0;
+  margin: 0;
 }
 
 .admin-page-title {
@@ -13,6 +25,18 @@
   margin-bottom: 24px;
   color: #1a1a1a;
   border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 12px;
+}
+
+/* Modern title - gradient text */
+.admin-page-title--modern {
+  font-size: 30px;
+  font-weight: 700;
+  background: linear-gradient(to right, #111827, #374151);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0;
   padding-bottom: 12px;
 }
 
