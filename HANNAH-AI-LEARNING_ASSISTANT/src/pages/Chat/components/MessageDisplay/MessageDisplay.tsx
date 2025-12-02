@@ -5,6 +5,11 @@ import { MessageImages } from '../MessageImages';
 import { parseInteractiveList } from '../../utils/messageHelpers';
 import { YouTubeModal } from '../YouTubeModal/YouTubeModal';
 import '../YouTubeModal/youtube-modal.css';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/vs2015.css';
+import toast from 'react-hot-toast';
 
 interface MessageDisplayProps {
     message: Message;
@@ -103,9 +108,55 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
             return (
                 <>
                     <div className="message-text">
-                        {content.split('\n').map((line, i) => (
-                            <p key={i}>{line}</p>
-                        ))}
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            rehypePlugins={[rehypeHighlight]}
+                            components={{
+                                code({ node, inline, className, children, ...props }: any) {
+                                    const match = /language-(\w+)/.exec(className || '');
+                                    const language = match ? match[1] : '';
+
+                                    const handleCopy = () => {
+                                        const codeText = String(children).replace(/\n$/, '');
+                                        navigator.clipboard.writeText(codeText);
+                                        toast.success('Copied to clipboard', {
+                                            position: 'bottom-left',
+                                            duration: 2000,
+                                        });
+                                    };
+
+                                    return !inline && match ? (
+                                        <div className="code-block-wrapper">
+                                            <div className="code-block-header">
+                                                <span className="code-language">{language}</span>
+                                                <button
+                                                    className="code-copy-btn"
+                                                    onClick={handleCopy}
+                                                    aria-label="Copy code"
+                                                    title="Copy code"
+                                                >
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <pre className="code-block">
+                                                <code className={className} {...props}>
+                                                    {children}
+                                                </code>
+                                            </pre>
+                                        </div>
+                                    ) : (
+                                        <code className="inline-code" {...props}>
+                                            {children}
+                                        </code>
+                                    );
+                                }
+                            }}
+                        >
+                            {content}
+                        </ReactMarkdown>
                     </div>
                     {renderInteractiveList(message.interactiveList)}
                     {message.images && message.images.length > 0 && (
@@ -146,42 +197,62 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
             );
         }
 
-        // Legacy rendering for parts
+        // Legacy rendering for parts - also use ReactMarkdown
         return (
             <>
                 {parts.map((part, partIndex) => {
                     if (part.type === 'text') {
                         return (
                             <div key={`part-${partIndex}`} className="message-text">
-                                {part.content.split('\n').map((line: string, i: number) => {
-                                    // Handle bold text
-                                    if (line.includes('**')) {
-                                        const lineParts = line.split('**');
-                                        return (
-                                            <p key={i}>
-                                                {lineParts.map((linePart: string, j: number) =>
-                                                    j % 2 === 1 ? <strong key={j}>{linePart}</strong> : linePart
-                                                )}
-                                            </p>
-                                        );
-                                    }
-                                    // Handle headings
-                                    if (line.startsWith('### ')) {
-                                        return <h3 key={i}>{line.replace('### ', '')}</h3>;
-                                    }
-                                    if (line.startsWith('#### ')) {
-                                        return <h4 key={i}>{line.replace('#### ', '')}</h4>;
-                                    }
-                                    // Handle list items
-                                    if (line.startsWith('- ')) {
-                                        return <li key={i}>{line.replace('- ', '')}</li>;
-                                    }
-                                    // Regular paragraph
-                                    if (line.trim()) {
-                                        return <p key={i}>{line}</p>;
-                                    }
-                                    return null;
-                                })}
+                                <ReactMarkdown
+                                    remarkPlugins={[remarkGfm]}
+                                    rehypePlugins={[rehypeHighlight]}
+                                    components={{
+                                        code({ node, inline, className, children, ...props }: any) {
+                                            const match = /language-(\w+)/.exec(className || '');
+                                            const language = match ? match[1] : '';
+
+                                            const handleCopy = () => {
+                                                const codeText = String(children).replace(/\n$/, '');
+                                                navigator.clipboard.writeText(codeText);
+                                                toast.success('Copied to clipboard', {
+                                                    position: 'bottom-left',
+                                                    duration: 2000,
+                                                });
+                                            };
+
+                                            return !inline && match ? (
+                                                <div className="code-block-wrapper">
+                                                    <div className="code-block-header">
+                                                        <span className="code-language">{language}</span>
+                                                        <button
+                                                            className="code-copy-btn"
+                                                            onClick={handleCopy}
+                                                            aria-label="Copy code"
+                                                            title="Copy code"
+                                                        >
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                    <pre className="code-block">
+                                                        <code className={className} {...props}>
+                                                            {String(children).replace(/\n$/, '')}
+                                                        </code>
+                                                    </pre>
+                                                </div>
+                                            ) : (
+                                                <code className="inline-code" {...props}>
+                                                    {children}
+                                                </code>
+                                            );
+                                        }
+                                    }}
+                                >
+                                    {part.content}
+                                </ReactMarkdown>
                             </div>
                         );
                     }
