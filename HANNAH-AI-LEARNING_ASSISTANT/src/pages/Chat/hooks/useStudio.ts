@@ -141,6 +141,7 @@ export const useStudio = (conversationId: number | null) => {
             courseCode?: string;
             documentIds?: number[];
             sourceType?: 'conversation' | 'documents' | 'hybrid';
+            sourceSubjectIds?: number[];
             reportType?: 'summary' | 'detailed' | 'analysis';
         }
     ) => {
@@ -194,14 +195,16 @@ export const useStudio = (conversationId: number | null) => {
             let sourceDocumentIds: number[] | undefined = undefined;
             let sourceType: 'conversation' | 'documents' | 'hybrid' = 'conversation';
 
-            // Enable document mode when documents are selected
-            if (options?.documentIds && options.documentIds.length > 0) {
-                sourceDocumentIds = options.documentIds;
-                sourceType = 'documents';
-                console.log('Using document mode with selected document IDs:', sourceDocumentIds);
-            }
+            // Enable document mode when documents OR subjects are selected
+            if ((options?.documentIds && options.documentIds.length > 0) ||
+                (options?.sourceSubjectIds && options.sourceSubjectIds.length > 0)) {
 
-            const sourceSubjectIds = undefined; // Will need to implement subject ID mapping
+                if (options?.documentIds && options.documentIds.length > 0) {
+                    sourceDocumentIds = options.documentIds;
+                }
+                sourceType = 'documents';
+                console.log('Using document mode. Docs:', sourceDocumentIds, 'Subjects:', options?.sourceSubjectIds);
+            }
 
             switch (type) {
                 case 'mindmap':
@@ -219,8 +222,9 @@ export const useStudio = (conversationId: number | null) => {
                         conversationId,
                         title: effectiveTitle,
                         reportType: options?.reportType || 'summary',
-                        sourceSubjectIds,
-                        sourceDocumentIds
+                        sourceType,
+                        sourceSubjectIds: options?.sourceSubjectIds,
+                        sourceDocumentIds: sourceDocumentIds
                     });
                     break;
                 case 'quiz':
@@ -230,8 +234,9 @@ export const useStudio = (conversationId: number | null) => {
                         difficulty: 'medium',
                         questionCount: effectiveQuantity,
                         topics: generationContext ? [generationContext] : [],
-                        sourceSubjectIds,
-                        sourceDocumentIds
+                        sourceType,
+                        sourceSubjectIds: options?.sourceSubjectIds,
+                        sourceDocumentIds: sourceDocumentIds
                     });
                     break;
                 case 'notecard':
@@ -437,14 +442,14 @@ export const useStudio = (conversationId: number | null) => {
 
             // Remove from UI after successful deletion
             setStudioItems(prev => prev.filter(item => item.id !== itemToDelete));
-            
+
             console.log(`Successfully deleted ${itemType} with ID ${actualId}`);
         } catch (error: any) {
             console.error(`Failed to delete ${itemType}:`, error);
-            
+
             // Show user-friendly error messages
             let errorMessage = 'Không thể xóa item này.';
-            
+
             if (error.response?.status === 404) {
                 errorMessage = 'Item không tồn tại.';
             } else if (error.response?.status === 403) {
@@ -452,7 +457,7 @@ export const useStudio = (conversationId: number | null) => {
             } else if (error.response?.status === 400) {
                 errorMessage = 'Lỗi: Dữ liệu không hợp lệ.';
             }
-            
+
             alert(errorMessage);
         } finally {
             // Close modal and reset state
