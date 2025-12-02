@@ -1,15 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Share2, ChevronDown, Link as LinkIcon } from 'lucide-react'
+import conversationService from '../../../../service/conversationService'
+import { useAuth } from '../../../../contexts/AuthContext'
 
 interface ShareModalProps {
     isOpen: boolean
     onClose: () => void
+    conversationId: number | null
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
-    const [shareEmail, setShareEmail] = useState('')
+export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, conversationId }) => {
+    const { user } = useAuth()
     const [generalAccess, setGeneralAccess] = useState<'restricted' | 'anyone'>('restricted')
     const [showAccessDropdown, setShowAccessDropdown] = useState(false)
+    const [shareUrl, setShareUrl] = useState<string | null>(null)
+    const [isLoading, setIsLoading] = useState(false)
     const accessDropdownRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -25,12 +30,48 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
         }
     }, [showAccessDropdown])
 
+    // Generate share link when access is set to 'anyone'
+    useEffect(() => {
+        const generateShareLink = async () => {
+            if (!conversationId || !user) return
+
+            setIsLoading(true)
+            try {
+                const enable = generalAccess === 'anyone'
+                const result = await conversationService.shareConversation(conversationId, user.userId, enable)
+
+                if (enable && result.shareUrl) {
+                    setShareUrl(result.shareUrl)
+                } else {
+                    setShareUrl(null)
+                }
+            } catch (error) {
+                console.error('Failed to generate share link:', error)
+                alert('Không thể tạo link chia sẻ. Vui lòng thử lại.')
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        if (generalAccess === 'anyone' && conversationId) {
+            generateShareLink()
+        } else {
+            setShareUrl(null)
+        }
+    }, [generalAccess, conversationId, user])
+
     if (!isOpen) return null
 
     const handleCopyLink = () => {
-        const link = window.location.href
-        navigator.clipboard.writeText(link)
-        alert('Đã sao chép đường liên kết!')
+        if (shareUrl) {
+            navigator.clipboard.writeText(shareUrl)
+            alert('Đã sao chép đường liên kết!')
+        }
+    }
+
+    const handleAccessChange = (newAccess: 'restricted' | 'anyone') => {
+        setGeneralAccess(newAccess)
+        setShowAccessDropdown(false)
     }
 
     return (
@@ -51,39 +92,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
                 </div>
 
                 <div className="share-modal-body">
-                    {/* Add people input */}
-                    <div className="share-input-section">
-                        <input
-                            type="email"
-                            className="share-email-input"
-                            placeholder="Thêm người dùng và nhóm*"
-                            value={shareEmail}
-                            onChange={(e) => setShareEmail(e.target.value)}
-                        />
-                    </div>
-
-                    {/* People with access */}
-                    <div className="share-access-section">
-                        <h4 className="share-section-title">Người có quyền truy cập</h4>
-                        <div className="share-user-item">
-                            <div className="share-user-avatar">
-                                <img
-                                    src="https://ui-avatars.com/api/?name=Ha+Nguyen&background=4285F4&color=fff&size=40"
-                                    alt="Hà Nguyễn"
-                                />
-                            </div>
-                            <div className="share-user-info">
-                                <div className="share-user-name">Ha Nguyen</div>
-                                <div className="share-user-email">khanhhanguyen1123@gmail...</div>
-                            </div>
-                            <div className="share-user-role">
-                                <select className="share-role-select" disabled>
-                                    <option value="owner">Chủ sở hữu</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* General access */}
                     <div className="share-general-section">
                         <h4 className="share-section-title">Quyền truy cập chung</h4>
@@ -97,8 +105,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
                                 </div>
                                 <div className="share-access-description">
                                     {generalAccess === 'restricted'
-                                        ? 'Chỉ những người có quyền truy cập mới có thể mở bằng đường liên kết này'
-                                        : 'Bất kỳ ai có đường liên kết đều có thể xem'
+                                        ? 'Chỉ bạn có thể truy cập cuộc trò chuyện này'
+                                        : 'Bất kỳ ai có đường liên kết đều có thể xem (chỉ đọc)'
                                     }
                                 </div>
                             </div>
@@ -114,16 +122,13 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
                                 <div className="share-access-dropdown-menu">
                                     <button
                                         className={`share-access-option ${generalAccess === 'restricted' ? 'active' : ''}`}
-                                        onClick={() => {
-                                            setGeneralAccess('restricted')
-                                            setShowAccessDropdown(false)
-                                        }}
+                                        onClick={() => handleAccessChange('restricted')}
                                     >
                                         <div className="share-access-option-icon">🔒</div>
                                         <div className="share-access-option-info">
                                             <div className="share-access-option-title">Bị hạn chế</div>
                                             <div className="share-access-option-desc">
-                                                Chỉ những người được thêm mới có quyền truy cập
+                                                Chỉ bạn có thể truy cập
                                             </div>
                                         </div>
                                         {generalAccess === 'restricted' && (
@@ -132,16 +137,13 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
                                     </button>
                                     <button
                                         className={`share-access-option ${generalAccess === 'anyone' ? 'active' : ''}`}
-                                        onClick={() => {
-                                            setGeneralAccess('anyone')
-                                            setShowAccessDropdown(false)
-                                        }}
+                                        onClick={() => handleAccessChange('anyone')}
                                     >
                                         <div className="share-access-option-icon">🌐</div>
                                         <div className="share-access-option-info">
                                             <div className="share-access-option-title">Bất kỳ ai có đường liên kết</div>
                                             <div className="share-access-option-desc">
-                                                Bất kỳ ai có đường liên kết đều có thể xem
+                                                Bất kỳ ai có đường liên kết đều có thể xem (chỉ đọc)
                                             </div>
                                         </div>
                                         {generalAccess === 'anyone' && (
@@ -152,10 +154,37 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
                             )}
                         </div>
                     </div>
+
+                    {/* Display share URL when available */}
+                    {isLoading && (
+                        <div style={{ padding: '12px', textAlign: 'center', color: '#5f6368' }}>
+                            Đang tạo link chia sẻ...
+                        </div>
+                    )}
+
+                    {shareUrl && !isLoading && (
+                        <div style={{ padding: '12px', background: '#f1f3f4', borderRadius: '8px', marginTop: '12px' }}>
+                            <div style={{ fontSize: '13px', color: '#5f6368', marginBottom: '8px' }}>
+                                Link chia sẻ:
+                            </div>
+                            <div style={{
+                                fontSize: '14px',
+                                color: '#1a73e8',
+                                wordBreak: 'break-all',
+                                fontFamily: 'monospace'
+                            }}>
+                                {shareUrl}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="share-modal-footer">
-                    <button className="share-copy-link-btn" onClick={handleCopyLink}>
+                    <button
+                        className="share-copy-link-btn"
+                        onClick={handleCopyLink}
+                        disabled={!shareUrl || isLoading}
+                    >
                         <LinkIcon size={18} />
                         Sao chép đường liên kết
                     </button>
@@ -163,7 +192,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
                         className="share-done-btn"
                         onClick={onClose}
                     >
-                        Lưu
+                        Xong
                     </button>
                 </div>
             </div>

@@ -9,6 +9,7 @@ import Home from './pages/home/Home'
 import Learn from './pages/Learn/Learn'
 import Chat from './pages/Chat/Chat'
 import Profile from './pages/Profile/Profile'
+import SharedConversationView from './pages/SharedConversationView/SharedConversationView'
 import AdminLayout from './pages/Admin/AdminLayout'
 import UserManagement from './pages/Admin/UserManagement/UserManagement'
 import APIKeys from './pages/Admin/SystemMonitoring/APIKeys/APIKeys'
@@ -108,6 +109,9 @@ function App() {
       />
       <Routes>
         <Route path="/" element={<Home />} />
+
+        {/* Public shared conversation route - no auth required */}
+        <Route path="/shared/:shareToken" element={<SharedConversationView />} />
 
         {/* Protected Routes - Require Login */}
         <Route element={<ProtectedRoute />}>

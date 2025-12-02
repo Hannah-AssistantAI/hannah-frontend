@@ -32,12 +32,19 @@ class PythonApiClient {
      */
     private async request<T>(
         endpoint: string,
-        options: RequestInit = {}
+        options: RequestInit = {},
+        requireAuth: boolean = true
     ): Promise<ApiResponse<T>> {
         const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
         const url = `${this.baseURL}${endpoint}`;
 
-        const baseHeaders = getAuthHeaders(token || undefined);
+        const baseHeaders: Record<string, string> = requireAuth ? getAuthHeaders(token || undefined) : {};
+
+        // Only add Content-Type for non-GET requests when auth is not required
+        // GET requests shouldn't have Content-Type, avoiding unnecessary CORS preflight
+        if (!requireAuth && options.method && options.method !== 'GET') {
+            baseHeaders['Content-Type'] = 'application/json';
+        }
 
         // When the body is FormData, we must not set the 'Content-Type' header.
         // The browser will automatically set it to 'multipart/form-data' with the correct boundary.
@@ -57,7 +64,7 @@ class PythonApiClient {
             const response = await fetch(url, config);
 
             // Handle different response statuses
-            if (response.status === HTTP_STATUS.UNAUTHORIZED) {
+            if (response.status === HTTP_STATUS.UNAUTHORIZED && requireAuth) {
                 this.handleAuthError();
                 throw new Error('Unauthorized: Access token expired or invalid.');
             }
@@ -103,7 +110,7 @@ class PythonApiClient {
     /**
      * GET request
      */
-    async get<T>(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<T>> {
+    async get<T>(endpoint: string, params?: Record<string, any>, requireAuth: boolean = true): Promise<ApiResponse<T>> {
         let url = endpoint;
 
         if (params) {
@@ -113,7 +120,7 @@ class PythonApiClient {
 
         return this.request<T>(url, {
             method: 'GET',
-        });
+        }, requireAuth);
     }
 
     /**

@@ -13,6 +13,7 @@ interface MessageDisplayProps {
     onToggleSource: (key: string) => void;
     onInteractiveItemClick: (term: string) => void;
     onFlagMessage: (messageId: number) => void;
+    isReadOnly?: boolean;
 }
 
 export const MessageDisplay: React.FC<MessageDisplayProps> = ({
@@ -21,11 +22,19 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
     expandedSources,
     onToggleSource,
     onInteractiveItemClick,
-    onFlagMessage
+    onFlagMessage,
+    isReadOnly = false
 }) => {
     const [showYouTubeModal, setShowYouTubeModal] = useState(false);
     const [selectedVideo, setSelectedVideo] = useState<YoutubeResource | null>(null);
     const [isInteractiveListExpanded, setIsInteractiveListExpanded] = useState(true);
+
+    // Debug logging
+    console.log('🔍 MessageDisplay - message:', message);
+    console.log('  - suggestedQuestions:', message.suggestedQuestions);
+    console.log('  - youtubeResources:', message.youtubeResources);
+    console.log('  - interactiveList:', message.interactiveList);
+    console.log('  - isReadOnly:', isReadOnly);
 
     const renderInteractiveList = (items: any[]) => {
         return (
@@ -227,7 +236,7 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
             )}
             <div className="message-content">
                 {renderMessageContent(message.content)}
-                {message.type === 'assistant' && !message.isStreaming && (
+                {message.type === 'assistant' && !message.isStreaming && !isReadOnly && (
                     <>
                         <div className="message-actions-container">
                             <div className="message-suggestions">
@@ -264,20 +273,22 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
                                 </button>
                             </div>
                         </div>
-                        {message.suggestedQuestions && message.suggestedQuestions.length > 0 && (
-                            <div className="follow-up-questions">
-                                {message.suggestedQuestions.map((question, qIndex) => (
-                                    <button
-                                        key={qIndex}
-                                        className="follow-up-btn"
-                                        onClick={() => onInteractiveItemClick(question)}
-                                    >
-                                        {question}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
                     </>
+                )}
+                {message.suggestedQuestions && message.suggestedQuestions.length > 0 && (
+                    <div className="follow-up-questions">
+                        {message.suggestedQuestions.map((question, qIndex) => (
+                            <button
+                                key={qIndex}
+                                className="follow-up-btn"
+                                onClick={() => !isReadOnly && onInteractiveItemClick(question)}
+                                disabled={isReadOnly}
+                                style={isReadOnly ? { cursor: 'default', opacity: 0.8 } : {}}
+                            >
+                                {question}
+                            </button>
+                        ))}
+                    </div>
                 )}
             </div>
 

@@ -441,6 +441,7 @@ export default function Chat() {
             <ShareModal
                 isOpen={showShareModal}
                 onClose={() => setShowShareModal(false)}
+                conversationId={conversationId}
             />
 
             {/* Flag Message Modal */}
