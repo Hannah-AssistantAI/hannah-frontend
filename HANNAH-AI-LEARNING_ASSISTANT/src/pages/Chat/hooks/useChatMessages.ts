@@ -94,10 +94,9 @@ export const useChatMessages = ({
                             isStreaming: false,
                             isFlagged: false,
                             suggestedQuestions: [],
-
-                            images: msg.images || msg.metadata?.images || [],  // Support both root and metadata level
-
-                            ...parsed
+                            ...parsed,
+                            // Override with actual data to prevent parsed undefined from overriding
+                            images: msg.images || msg.metadata?.images || (parsed as any).images || []
                         };
                     });
 
@@ -138,6 +137,15 @@ export const useChatMessages = ({
                     response.assistantMessage.content.data,
                     response.assistantMessage.interactiveElements
                 );
+
+                console.log('🔍 Full Response Structure:', {
+                    hasImages: !!response.assistantMessage.images,
+                    hasMetadataImages: !!response.assistantMessage.metadata?.images,
+                    hasInteractiveElementsImages: !!(response.assistantMessage.interactiveElements as any)?.images,
+                    imagesCount: response.assistantMessage.images?.length || 0,
+                    metadataImagesCount: response.assistantMessage.metadata?.images?.length || 0,
+                    fullResponse: response.assistantMessage
+                });
 
                 if (parsedResponse.outline && parsedResponse.outline.length > 0) {
                     setBigPictureData(parsedResponse.outline);
@@ -234,8 +242,9 @@ export const useChatMessages = ({
                             isStreaming: false,
                             isFlagged: false,
                             suggestedQuestions: [],
-                            images: msg.images || [],
-                            ...parsed
+                            ...parsed,
+                            // Override with actual data to prevent parsed undefined from overriding
+                            images: msg.images || msg.metadata?.images || (parsed as any).images || []
                         };
                     });
 

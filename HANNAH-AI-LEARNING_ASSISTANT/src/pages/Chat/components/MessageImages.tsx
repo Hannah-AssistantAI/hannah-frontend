@@ -29,7 +29,9 @@ export function MessageImages({ images }: MessageImagesProps) {
         total: images.length,
         fullPageCount: fullPageImages.length,
         regularCount: regularImages.length,
-        allImages: images
+        allImages: images,
+        firstImage: images[0],
+        firstImageHasFlag: images[0]?.is_full_page
     });
 
     return (
@@ -41,7 +43,7 @@ export function MessageImages({ images }: MessageImagesProps) {
                     <span className="message-images-count">({images.length})</span>
                 </div>
 
-                {/* Full Page Slides Section */}
+                {/* Full Page Slides Section - ONLY show if is_full_page: true */}
                 {fullPageImages.length > 0 && (
                     <div className="full-page-slides">
                         {fullPageImages.map((image, index) => (
