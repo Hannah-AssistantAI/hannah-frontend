@@ -43,18 +43,26 @@ const FlaggedMessageDetail: React.FC = () => {
             setLoading(true);
             setError(null);
 
-            const items = await flaggingService.getFlaggedItems();
-            const foundItem = items.find(i => i.id === Number(id));
-
-            if (!foundItem) {
-                setError('Không tìm thấy flagged item');
-                return;
-            }
-
+            // Try to fetch the flag directly by ID first
+            const foundItem = await flaggingService.getFlagById(Number(id));
             setItem(foundItem);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to load flagged item');
-            console.error('Error loading flagged item:', err);
+            // If direct fetch fails, fall back to fetching from list 
+            // (for backwards compatibility or if endpoint doesn't exist yet)
+            try {
+                const items = await flaggingService.getFlaggedItems();
+                const foundItem = items.find(i => i.id === Number(id));
+
+                if (!foundItem) {
+                    setError('Không tìm thấy flagged item');
+                    return;
+                }
+
+                setItem(foundItem);
+            } catch (fallbackErr) {
+                setError(err instanceof Error ? err.message : 'Failed to load flagged item');
+                console.error('Error loading flagged item:', err);
+            }
         } finally {
             setLoading(false);
         }

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Wand2, PanelRight, PanelRightClose, Pencil, Loader2, MoreVertical, Trash2, GitBranch, FileText, StickyNote, ClipboardCheck } from 'lucide-react'
+import { Wand2, PanelRight, PanelRightClose, Pencil, Loader2, MoreVertical, Trash2, GitBranch, FileText, StickyNote, ClipboardCheck, Flag } from 'lucide-react'
 import type { StudioItem, StudioFeature } from '../types'
 
 interface StudioSidebarProps {
@@ -11,6 +11,7 @@ interface StudioSidebarProps {
     onEditFeature: (type: 'mindmap' | 'notecard' | 'quiz') => void
     onItemClick: (item: StudioItem) => void
     onDeleteItem: (itemId: string) => void
+    onFlagItem: (itemId: string) => void
     openMenuId: string | null
     onToggleMenu: (itemId: string) => void
 }
@@ -24,6 +25,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
     onEditFeature,
     onItemClick,
     onDeleteItem,
+    onFlagItem,
     openMenuId,
     onToggleMenu
 }) => {
@@ -128,6 +130,15 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                                         </button>
                                         {openMenuId === item.id && (
                                             <div className="studio-item-dropdown">
+                                                {item.type === 'quiz' && (
+                                                    <button
+                                                        className="dropdown-item flag-item"
+                                                        onClick={() => onFlagItem(item.id)}
+                                                    >
+                                                        <Flag size={16} />
+                                                        <span>Báo cáo</span>
+                                                    </button>
+                                                )}
                                                 <button
                                                     className="dropdown-item delete-item"
                                                     onClick={() => onDeleteItem(item.id)}

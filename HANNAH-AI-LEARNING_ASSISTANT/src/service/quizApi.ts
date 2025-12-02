@@ -4,8 +4,11 @@
  */
 
 import apiClient from './apiClient';
+import pythonApiClient from './pythonApiClient';
 
-// ==================== INTERFACES ====================
+// ... (existing imports)
+
+// ... (existing imports)
 
 export interface QuizDto {
     quizId: number;
@@ -315,6 +318,26 @@ class QuizApiService {
             return quizzesWithStats;
         } catch (error) {
             console.error('Error fetching quizzes with statistics:', error);
+            throw error;
+        }
+    }
+    /**
+     * Get full quiz content (questions) from Python API
+     * GET /api/v1/studio/quiz/{quizId}/content?include_answers=true
+     * 
+     * @param includeAnswers - If true, returns correct answers (for admin/faculty review). Default: false (for students)
+     */
+    async getQuizContent(quizId: number, includeAnswers: boolean = false): Promise<any> {
+        try {
+            // Build URL with query parameter
+            const url = `/api/v1/studio/quiz/${quizId}/content${includeAnswers ? '?include_answers=true' : ''}`;
+            const response = await pythonApiClient.get<any>(url);
+            // The Python API returns { success: true, data: { ... } }
+            // pythonApiClient.get returns { data: { success: true, data: { ... } }, ... }
+            // So we need to access response.data.data to get the actual content
+            return response.data.data;
+        } catch (error) {
+            console.error(`Error fetching quiz content for ${quizId}:`, error);
             throw error;
         }
     }

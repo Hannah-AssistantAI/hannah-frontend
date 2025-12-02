@@ -36,6 +36,7 @@ import FlaggedQuizzes from './pages/Admin/FlaggedQuizzes'
 import FlaggedQuizDetail from './pages/Admin/FlaggedQuizDetail'
 import { FlaggedMessagesList, FlaggedMessageDetail } from './pages/Admin/FlaggedMessages'
 import { AssignedFlagsList } from './pages/Faculty/AssignedFlags'
+import FacultyFlaggedQuizDetail from './pages/Faculty/AssignedFlags/FlaggedQuizDetail'
 
 const AuthRedirectHandler = () => {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -157,7 +158,9 @@ function App() {
             <Route path="analytics/quiz/:quizId/attempt/:id" element={<QuizAttemptDetail />} />
             <Route path="questions" element={<QuestionStatistics />} />
             <Route path="assigned-flags" element={<AssignedFlagsList />} />
-            <Route path="assigned-flags/:id" element={<FlaggedMessageDetail />} />
+
+            <Route path="assigned-flags/:id" element={<FacultyFlaggedQuizDetail />} />
+
             <Route path="profile" element={<Profile embedded={true} />} />
           </Route>
         </Route>

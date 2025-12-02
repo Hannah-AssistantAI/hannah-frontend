@@ -1,0 +1,150 @@
+/* Code Block Wrapper */
+.code-block-wrapper {
+    position: relative;
+    margin: 12px 0;
+    background: #1e1e1e;
+    border-radius: 8px;
+    border: 1px solid #3c4043;
+    overflow: hidden;
+}
+
+/* Code Block Header */
+.code-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #2d2d2d;
+    border-bottom: 1px solid #3c4043;
+}
+
+/* Language Badge */
+.code-language {
+    font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+    color: #9aa0a6;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Copy Button */
+.code-copy-btn {
+    background: none;
+    border: none;
+    color: #9aa0a6;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+    font-size: 12px;
+}
+
+.code-copy-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e8eaed;
+}
+
+.code-copy-btn:active {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Code Blocks */
+.code-block {
+    background: #1e1e1e;
+    padding: 16px;
+    margin: 0;
+    overflow-x: auto;
+    font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.code-block code {
+    font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #d4d4d4;
+    display: block;
+}
+
+/* Inline code */
+.inline-code {
+    background: #2d2d2d;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 13px;
+    color: #ce9178;
+    border: 1px solid #3c4043;
+}
+
+/* Syntax highlighting overrides for dark theme */
+.message-text pre {
+    margin: 0;
+}
+
+.message-text code.hljs {
+    background: transparent;
+    padding: 0;
+}
+
+/* Additional markdown element styling */
+.message-text h1,
+.message-text h2,
+.message-text h3,
+.message-text h4 {
+    margin-top: 16px;
+    margin-bottom: 8px;
+    color: #e8eaed;
+}
+
+.message-text p {
+    margin: 8px 0;
+    line-height: 1.6;
+}
+
+.message-text ul,
+.message-text ol {
+    margin: 8px 0;
+    padding-left: 24px;
+}
+
+.message-text li {
+    margin: 4px 0;
+}
+
+.message-text a {
+    color: #8ab4f8;
+    text-decoration: none;
+}
+
+.message-text a:hover {
+    text-decoration: underline;
+}
+
+.message-text blockquote {
+    border-left: 3px solid #8ab4f8;
+    padding-left: 12px;
+    margin: 12px 0;
+    color: #9aa0a6;
+}
+
+.message-text table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+}
+
+.message-text th,
+.message-text td {
+    border: 1px solid #3c4043;
+    padding: 8px;
+    text-align: left;
+}
+
+.message-text th {
+    background: #2d2d2d;
+    font-weight: 600;
+}
