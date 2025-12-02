@@ -80,7 +80,7 @@ const QuizDetail = () => {
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="text-slate-500 text-sm font-medium">Pass Rate</h3>
@@ -101,16 +101,6 @@ const QuizDetail = () => {
                         <p className="text-3xl font-bold text-slate-800">{stats?.completedAttempts || 0}</p>
                         <p className="text-xs text-slate-400 mt-1">Total finished sessions</p>
                     </div>
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                        <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-slate-500 text-sm font-medium">Avg Time Taken</h3>
-                            <Clock className="text-orange-500 opacity-50" size={20} />
-                        </div>
-                        <p className="text-3xl font-bold text-slate-800">
-                            {stats?.timeStatistics?.averageTime ? `${Math.round(stats.timeStatistics.averageTime / 60)}m` : 'N/A'}
-                        </p>
-                        <p className="text-xs text-slate-400 mt-1">Per attempt</p>
-                    </div>
                 </div>
 
                 {/* Attempts List */}
@@ -126,7 +116,6 @@ const QuizDetail = () => {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Student</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Score</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Time Taken</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Submitted At</th>
                                     <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Action</th>
                                 </tr>
@@ -156,9 +145,6 @@ const QuizDetail = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                                            {attempt.timeTaken ? `${Math.round(attempt.timeTaken / 60)}m ${attempt.timeTaken % 60}s` : '-'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                                             {attempt.submittedAt ? new Date(attempt.submittedAt).toLocaleString() : new Date(attempt.startedAt).toLocaleString()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -170,7 +156,7 @@ const QuizDetail = () => {
                                 ))}
                                 {attempts.length === 0 && (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                                        <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
                                             <div className="flex flex-col items-center justify-center">
                                                 <Users size={48} className="text-slate-200 mb-2" />
                                                 <p>No attempts recorded yet for this quiz.</p>
