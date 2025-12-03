@@ -6,6 +6,7 @@
 /* Smooth scroll behavior */
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }
 
 /* Enhanced smooth transitions for all interactive elements */
