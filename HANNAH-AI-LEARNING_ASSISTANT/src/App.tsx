@@ -36,8 +36,8 @@ import QuizDetail from './pages/Faculty/QuestionAnalytics/QuizDetail'
 import FlaggedQuizzes from './pages/Admin/FlaggedQuizzes'
 import FlaggedQuizDetail from './pages/Admin/FlaggedQuizDetail'
 import { FlaggedMessagesList, FlaggedMessageDetail } from './pages/Admin/FlaggedMessages'
-import { AssignedFlagsList } from './pages/Faculty/AssignedFlags'
-import FacultyFlaggedQuizDetail from './pages/Faculty/AssignedFlags/FlaggedQuizDetail'
+import { AssignedFlagsList, AssignedMessages, AssignedQuizzes } from './pages/Faculty/AssignedFlags'
+import AssignedFlagDetailRouter from './pages/Faculty/AssignedFlags/AssignedFlagDetailRouter'
 
 const AuthRedirectHandler = () => {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -161,8 +161,9 @@ function App() {
             <Route path="analytics/quiz/:quizId/attempt/:id" element={<QuizAttemptDetail />} />
             <Route path="questions" element={<QuestionStatistics />} />
             <Route path="assigned-flags" element={<AssignedFlagsList />} />
-
-            <Route path="assigned-flags/:id" element={<FacultyFlaggedQuizDetail />} />
+            <Route path="assigned-flags/messages" element={<AssignedMessages />} />
+            <Route path="assigned-flags/quizzes" element={<AssignedQuizzes />} />
+            <Route path="assigned-flags/:id" element={<AssignedFlagDetailRouter />} />
 
             <Route path="profile" element={<Profile embedded={true} />} />
           </Route>
