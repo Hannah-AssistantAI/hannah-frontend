@@ -1,6 +1,5 @@
 // src/pages/Configuration.tsx
 import React, { useState } from 'react';
-import { useConfig } from '../../hooks/useConfig';
 import type { ConfigSettings } from '../../types';
 import { Card } from '../../components/Admin/Card';
 import { Badge } from 'lucide-react';
@@ -9,9 +8,58 @@ import { Button } from '../../components/Admin/Button';
 import AdminPageWrapper from './components/AdminPageWrapper';
 
 export const Configuration: React.FC = () => {
-  const { config, loading, saving, updateConfig } = useConfig();
+  // MOCK DATA IMPLEMENTATION
+  const [config, setConfig] = useState<ConfigSettings | null>({
+    database: {
+      postgresHost: 'localhost',
+      postgresMaxConnections: 100,
+      mongodbUri: 'mongodb://localhost:27017',
+      mongodbPoolSize: 50,
+      elasticsearchUrl: 'http://localhost:9200'
+    },
+    gemini: {
+      apiKey: '**********************',
+      model: 'gemini-1.5-flash-2.0',
+      temperature: 0.7,
+      maxTokens: 2048,
+      topP: 0.9,
+      topK: 40
+    },
+    application: {
+      sessionTimeout: 60,
+      dailyQuestionLimit: 100,
+      websocketPort: 8000,
+      apiRateLimit: 60,
+      cacheExpiry: 24,
+      enableEmailNotifications: true,
+      enableRealtimeMonitoring: true
+    },
+    integrations: {
+      youtubeApiKey: '',
+      githubApiToken: '',
+      stackOverflowApiKey: '',
+      enableAutoFetch: false
+    }
+  });
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Mock update function
+  const updateConfig = async (section: keyof ConfigSettings, formData: any) => {
+    setSaving(true);
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    setConfig(prev => prev ? ({
+      ...prev,
+      [section]: formData
+    }) : null);
+
+    setSaving(false);
+    return { success: true };
+  };
 
   const handleSaveConfig = async (section: keyof ConfigSettings, formData: any) => {
     const result = await updateConfig(section, formData);
@@ -20,7 +68,7 @@ export const Configuration: React.FC = () => {
       setSuccessMessage(`Configuration ${section} saved successfully!`);
       setTimeout(() => setSuccessMessage(null), 3000);
     } else {
-      setErrorMessage(result.error || 'Unable to save configuration');
+      setErrorMessage('Unable to save configuration');
       setTimeout(() => setErrorMessage(null), 5000);
     }
   };

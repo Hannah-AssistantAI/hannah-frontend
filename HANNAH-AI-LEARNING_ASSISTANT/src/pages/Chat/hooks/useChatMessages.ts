@@ -138,14 +138,25 @@ export const useChatMessages = ({
                     response.assistantMessage.interactiveElements
                 );
 
+                // 🔍 DEBUG: Log full response to see images
                 console.log('🔍 Full Response Structure:', {
                     hasImages: !!response.assistantMessage.images,
                     hasMetadataImages: !!response.assistantMessage.metadata?.images,
                     hasInteractiveElementsImages: !!(response.assistantMessage.interactiveElements as any)?.images,
                     imagesCount: response.assistantMessage.images?.length || 0,
                     metadataImagesCount: response.assistantMessage.metadata?.images?.length || 0,
+                    images: response.assistantMessage.images,
+                    metadataImages: response.assistantMessage.metadata?.images,
                     fullResponse: response.assistantMessage
                 });
+
+                // 🔍 DEBUG: Check what images we're about to set
+                const imagesToSet = response.assistantMessage.images || response.assistantMessage.metadata?.images || [];
+                console.log('📸 Images to set in message:', imagesToSet);
+                console.log('📸 Images array length:', imagesToSet.length);
+                if (imagesToSet.length > 0) {
+                    console.log('📸 First image:', imagesToSet[0]);
+                }
 
                 if (parsedResponse.outline && parsedResponse.outline.length > 0) {
                     setBigPictureData(parsedResponse.outline);
@@ -165,9 +176,13 @@ export const useChatMessages = ({
                         youtubeResources: parsedResponse.youtubeResources,
 
                         images: response.assistantMessage.images || response.assistantMessage.metadata?.images || []
-
                     };
-                    console.log('🖼️ Images in message:', newMessages[1].images);
+
+                    // 🔍 DEBUG: Verify images are set correctly
+                    console.log('🖼️ Images in message object:', newMessages[1].images);
+                    console.log('🖼️ Images count in message:', newMessages[1].images?.length || 0);
+                    console.log('🖼️ Full message object:', newMessages[1]);
+
                     return newMessages;
                 });
             } catch (error: any) {

@@ -19,9 +19,10 @@ interface QuizResultsProps {
         answers: QuizAnswer[];
     };
     onRetry: () => void;
+    onFlag?: () => void;
 }
 
-export function QuizResults({ results, onRetry }: QuizResultsProps) {
+export function QuizResults({ results, onRetry, onFlag }: QuizResultsProps) {
     if (!results) return null;
 
     const getOptionLabel = (index: number) => String.fromCharCode(65 + index); // A, B, C, D...
@@ -151,8 +152,19 @@ export function QuizResults({ results, onRetry }: QuizResultsProps) {
             </div>
 
             <div className="quiz-results-footer">
-                <button className="quiz-retry-btn" onClick={onRetry}>
+                <button
+                    className="quiz-retry-btn"
+                    onClick={onRetry}
+                    style={{ marginRight: '10px' }}
+                >
                     🔄 Làm lại
+                </button>
+                <button
+                    className="quiz-retry-btn"
+                    onClick={onFlag}
+                    style={{ backgroundColor: '#fee2e2', color: '#991b1b', border: '1px solid #fecaca' }}
+                >
+                    🚩 Báo cáo
                 </button>
             </div>
         </div>

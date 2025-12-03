@@ -1,12 +1,6 @@
 // src/pages/SystemMonitoring.tsx
 import React from 'react';
-import {
-  useSystemMetrics,
-  useDatabaseMetrics,
-  useApplicationMetrics,
-  useGeminiMetrics,
-  useResponseSourceDistribution,
-} from '../../../hooks/useMetrics';
+
 import { InfoBox } from '../../../components/Admin/InfoBox';
 import { Card } from '../../../components/Admin/Card';
 import { MetricRow } from '../../../components/Admin/MetricRow';
@@ -14,11 +8,61 @@ import { Badge } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 
 export const SystemMonitoring: React.FC = () => {
-  const { metrics: systemMetrics, loading: systemLoading } = useSystemMetrics();
-  const { metrics: dbMetrics, loading: dbLoading } = useDatabaseMetrics();
-  const { metrics: appMetrics, loading: appLoading } = useApplicationMetrics();
-  const { metrics: geminiMetrics, loading: geminiLoading } = useGeminiMetrics();
-  const { distribution, loading: distLoading } = useResponseSourceDistribution();
+  // MOCK DATA IMPLEMENTATION
+  const systemMetrics = {
+    cpu: 45,
+    memory: { percent: 60, used: 8589934592, total: 17179869184 },
+    disk: { percent: 75, used: 322122547200, total: 536870912000 },
+    uptime: '5d 12h 30m'
+  };
+  const systemLoading = false;
+
+  const dbMetrics = {
+    sqlserver: {
+      activeConnections: 25,
+      maxConnections: 100,
+      avgQueryTime: 12,
+      size: '2.5 GB'
+    },
+    mongodb: {
+      activeConnections: 15,
+      maxConnections: 50,
+      totalConversations: 1250,
+      size: '1.2 GB'
+    },
+    elasticsearch: {
+      indexedDocuments: 5000,
+      avgSearchTime: 45,
+      indexSize: '850 MB'
+    }
+  };
+  const dbLoading = false;
+
+  const appMetrics = {
+    activeWebSocketConnections: 120,
+    requestsPerMinute: 350,
+    requestsToday: 15400,
+    cacheHitRate: 85,
+    avgBackendProcessingTime: 0.25
+  };
+  const appLoading = false;
+
+  const geminiMetrics = {
+    apiCallsToday: 2500,
+    totalTokensUsed: 1500000,
+    avgResponseTime: 1.5,
+    errorRate: 0.5,
+    slowestResponse: 4.2,
+    fastestResponse: 0.3
+  };
+  const geminiLoading = false;
+
+  const distribution = {
+    personalKB: { percentage: 40, count: 1000 },
+    globalKB: { percentage: 35, count: 875 },
+    geminiAPI: { percentage: 25, count: 625 }
+  };
+  const distLoading = false;
 
   return (
     <AdminPageWrapper title="System Monitoring">

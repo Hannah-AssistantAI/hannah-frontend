@@ -12,6 +12,7 @@ interface QuizQuestion {
   options: string[];
   correctAnswer: number;
   explanation?: string;
+  studentAnswer?: number; // Student's selected answer index
 }
 
 interface QuizMetadata {
@@ -21,12 +22,16 @@ interface QuizMetadata {
   topic?: string;
 }
 
-export default function FlaggedQuizDetail() {
+interface FlaggedQuizDetailProps {
+  initialFlagData?: FlaggedItem | null;
+}
+
+export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetailProps = {}) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [flagData, setFlagData] = useState<FlaggedItem | null>(null);
+  const [flagData, setFlagData] = useState<FlaggedItem | null>(initialFlagData || null);
   const [quizMetadata, setQuizMetadata] = useState<QuizMetadata | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialFlagData);
   const [error, setError] = useState<string | null>(null);
 
   // Assignment modal state (for admin)
@@ -46,108 +51,172 @@ export default function FlaggedQuizDetail() {
   useEffect(() => {
     const load = async () => {
       if (!id) return;
-      setLoading(true);
-      try {
-        const allFlags = await flaggingService.getFlaggedQuizzes();
-        const currentFlag = allFlags.find((f: FlaggedItem) => f.id === parseInt(id));
 
-        if (currentFlag) {
-          setFlagData(currentFlag);
+      let currentFlag: FlaggedItem | null = initialFlagData || null;
 
-          // Fetch quiz data from Python API
-          const quizId = currentFlag.metadata?.quizId || currentFlag.contentId;
-          if (quizId) {
-            try {
-              const PYTHON_API_BASE_URL = 'http://localhost:8001';
-              const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-
-              const quizResponse = await fetch(
-                `${PYTHON_API_BASE_URL}/api/v1/studio/quiz/${quizId}/content?include_answers=true`,
-                {
-                  headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                  }
-                }
-              );
-
-              if (quizResponse.ok) {
-                const responseData = await quizResponse.json();
-                console.log('Fetched quiz API response:', responseData);
-
-                const quizData = responseData.data || responseData;
-
-                const metadata: QuizMetadata = {
-                  quizId: quizId.toString(),
-                  title: quizData.title || quizData.topic,
-                  topic: quizData.topic,
-                  questions: quizData.questions?.map((q: any) => {
-                    // Convert correct_answer from letter (A, B, C, D) to index (0, 1, 2, 3)
-                    let correctIndex: number = -1;
-
-                    const answerValue = q.correctAnswer || q.correct_answer;
-                    if (answerValue) {
-                      if (typeof answerValue === 'string') {
-                        const upperAnswer = answerValue.trim().toUpperCase();
-                        // Check if it's a letter (A, B, C, D, etc.)
-                        if (upperAnswer.length === 1 && upperAnswer >= 'A' && upperAnswer <= 'Z') {
-                          correctIndex = upperAnswer.charCodeAt(0) - 'A'.charCodeAt(0);
-                        } else {
-                          // Try parsing as number
-                          const parsed = parseInt(answerValue);
-                          if (!isNaN(parsed)) correctIndex = parsed;
-                        }
-                      } else if (typeof answerValue === 'number') {
-                        correctIndex = answerValue;
-                      }
-                    }
-
-                    return {
-                      questionId: q.questionId || q.question_id,
-                      question: q.questionText || q.question_text || q.question,
-                      options: q.options,
-                      correctAnswer: correctIndex,
-                      explanation: q.explanation
-                    };
-                  })
-                };
-
-                console.log('Parsed quiz metadata:', metadata);
-                setQuizMetadata(metadata);
-              } else {
-                const errorText = await quizResponse.text();
-                console.error('Failed to fetch quiz data:', quizResponse.status, errorText);
-                console.warn(`Quiz ${quizId} may not exist in MongoDB or there's a Python API error`);
-                setQuizMetadata({
-                  quizId: quizId.toString(),
-                  title: `Quiz #${quizId} (details unavailable)`,
-                  questions: []
-                });
+      // If we don't have initial data or it doesn't match ID, fetch it
+      if (!currentFlag || currentFlag.id !== parseInt(id)) {
+        if (!flagData) {
+          setLoading(true);
+          try {
+            // If faculty, try getAssignedFlags first, otherwise getFlaggedQuizzes
+            let allFlags: FlaggedItem[] = [];
+            if (isFaculty) {
+              try {
+                allFlags = await flaggingService.getAssignedFlags();
+              } catch (e) {
+                console.warn('Failed to fetch assigned flags, trying all flags', e);
               }
-            } catch (quizErr) {
-              console.error('Error fetching quiz data:', quizErr);
-              console.warn(`Unable to load quiz ${quizId} from Python API`);
+            }
+
+            if (allFlags.length === 0) {
+              allFlags = await flaggingService.getFlaggedQuizzes();
+            }
+
+            const foundFlag = allFlags.find((f: FlaggedItem) => f.id === parseInt(id));
+            if (foundFlag) {
+              currentFlag = foundFlag;
+              setFlagData(foundFlag);
+            } else {
+              setError('Flag not found');
+              setLoading(false);
+              return;
+            }
+          } catch (err) {
+            console.error('Error loading flag details:', err);
+            setError('Failed to load flag details');
+            setLoading(false);
+            return;
+          }
+        } else {
+          currentFlag = flagData;
+        }
+      }
+
+      if (currentFlag) {
+        console.log('🐛 DEBUG: currentFlag.metadata =', currentFlag.metadata);
+
+        // Fetch quiz data from Python API
+        const quizId = currentFlag.metadata?.quizId || currentFlag.contentId;
+        if (quizId) {
+          try {
+            const PYTHON_API_BASE_URL = 'http://localhost:8001';
+            const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+
+            const quizResponse = await fetch(
+              `${PYTHON_API_BASE_URL}/api/v1/studio/quiz/${quizId}/content?include_answers=true`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                }
+              }
+            );
+
+            if (quizResponse.ok) {
+              const responseData = await quizResponse.json();
+              console.log('Fetched quiz API response:', responseData);
+
+              const quizData = responseData.data || responseData;
+
+              const metadata: QuizMetadata = {
+                quizId: quizId.toString(),
+                title: quizData.title || quizData.topic,
+                topic: quizData.topic,
+                questions: quizData.questions?.map((q: any) => {
+                  // Convert correct_answer from letter (A, B, C, D) to index (0, 1, 2, 3)
+                  let correctIndex: number = -1;
+
+                  const answerValue = q.correctAnswer || q.correct_answer;
+                  if (answerValue) {
+                    if (typeof answerValue === 'string') {
+                      const upperAnswer = answerValue.trim().toUpperCase();
+                      // Check if it's a letter (A, B, C, D, etc.)
+                      if (upperAnswer.length === 1 && upperAnswer >= 'A' && upperAnswer <= 'Z') {
+                        correctIndex = upperAnswer.charCodeAt(0) - 'A'.charCodeAt(0);
+                      } else {
+                        // Try parsing as number
+                        const parsed = parseInt(answerValue);
+                        if (!isNaN(parsed)) correctIndex = parsed;
+                      }
+                    } else if (typeof answerValue === 'number') {
+                      correctIndex = answerValue;
+                    }
+                  }
+
+                  return {
+                    questionId: q.questionId || q.question_id,
+                    question: q.questionText || q.question_text || q.question,
+                    options: q.options,
+                    correctAnswer: correctIndex,
+                    explanation: q.explanation,
+                    studentAnswer: undefined // Will be populated from flag metadata if available
+                  };
+                })
+              };
+
+              console.log('Parsed quiz metadata (before attempt):', metadata);
+
+              // Fetch attempt data if attemptId exists in flag metadata
+              if (currentFlag.metadata?.attemptId) {
+                console.log('🎯 Found attemptId in metadata:', currentFlag.metadata.attemptId);
+                try {
+                  const quizApiService = (await import('../../service/quizApi')).default;
+                  const attemptData = await quizApiService.getQuizAttemptDetail(
+                    quizId,
+                    currentFlag.metadata.attemptId
+                  );
+                  console.log('✅ Fetched attempt data:', attemptData);
+
+                  // Map attempt data to quiz questions
+                  metadata.questions = metadata.questions?.map((q) => {
+                    const attemptQuestion = attemptData.questions.find(
+                      (aq: any) => aq.questionId === q.questionId
+                    );
+                    if (attemptQuestion) {
+                      return {
+                        ...q,
+                        studentAnswer: attemptQuestion.selectedOptionIndex
+                      };
+                    }
+                    return q;
+                  });
+                  console.log('📊 Merged student answers into questions');
+                } catch (attemptErr) {
+                  console.error('❌ Error fetching attempt data:', attemptErr);
+                }
+              } else {
+                console.log('⚠️ No attemptId found in flag metadata');
+              }
+
+              setQuizMetadata(metadata);
+            } else {
+              const errorText = await quizResponse.text();
+              console.error('Failed to fetch quiz data:', quizResponse.status, errorText);
+              console.warn(`Quiz ${quizId} may not exist in MongoDB or there's a Python API error`);
               setQuizMetadata({
                 quizId: quizId.toString(),
                 title: `Quiz #${quizId} (details unavailable)`,
                 questions: []
               });
             }
-          } else {
-            setQuizMetadata(currentFlag.metadata as QuizMetadata || null);
+          } catch (quizErr) {
+            console.error('Error fetching quiz data:', quizErr);
+            console.warn(`Unable to load quiz ${quizId} from Python API`);
+            setQuizMetadata({
+              quizId: quizId.toString(),
+              title: `Quiz #${quizId} (details unavailable)`,
+              questions: []
+            });
           }
         } else {
-          setError('Flag not found');
+          setQuizMetadata(currentFlag.metadata as QuizMetadata || null);
         }
-      } catch (err) {
-        console.error('Error loading flagged quiz:', err);
-        setError('Failed to load flagged quiz data');
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
     load();
-  }, [id]);
+  }, [id, initialFlagData]);
 
   const handleResolve = async () => {
     if (!id || !flagData) return;
@@ -182,8 +251,13 @@ export default function FlaggedQuizDetail() {
         <div className="flex items-center justify-between mb-6">
           <button onClick={() => navigate(-1)} className="text-sm text-blue-600 hover:underline">← Back</button>
           {flagData && (
-            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${flagData.status?.toLowerCase() === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-700'}`}>
-              {flagData.status?.toLowerCase() === 'pending' ? 'Pending Review' : 'Resolved'}
+            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${flagData.status?.toLowerCase() === 'pending' ? 'bg-amber-100 text-amber-800' :
+                flagData.status?.toLowerCase() === 'assigned' ? 'bg-blue-100 text-blue-800' :
+                  'bg-green-100 text-green-700'
+              }`}>
+              {flagData.status?.toLowerCase() === 'pending' ? 'Pending Review' :
+                flagData.status?.toLowerCase() === 'assigned' ? 'Processing' :
+                  'Resolved'}
             </span>
           )}
         </div>
@@ -237,16 +311,35 @@ export default function FlaggedQuizDetail() {
                         <ul className="p-4 space-y-2 text-sm">
                           {q.options.map((opt: string, oi: number) => {
                             const isCorrect = oi === q.correctAnswer;
+                            const isStudentAnswer = q.studentAnswer !== undefined && oi === q.studentAnswer;
+                            const isStudentCorrect = isStudentAnswer && isCorrect;
+                            const isStudentWrong = isStudentAnswer && !isCorrect;
+
+                            // Determine background color
+                            let bgClass = 'border-slate-200 bg-slate-50';
+                            if (isCorrect && !isStudentAnswer) {
+                              bgClass = 'border-green-300 bg-green-50';
+                            } else if (isStudentCorrect) {
+                              bgClass = 'border-blue-300 bg-blue-50';
+                            } else if (isStudentWrong) {
+                              bgClass = 'border-blue-300 bg-blue-50';
+                            }
+
                             return (
                               <li
                                 key={oi}
-                                className={`rounded-md border px-3 py-2 flex items-center gap-3 ${isCorrect ? 'border-green-400 bg-green-50' : 'border-slate-200'}`}
+                                className={`rounded-md border px-3 py-2 flex items-center gap-3 ${bgClass}`}
                               >
                                 <span className="font-mono text-xs w-5 text-center text-slate-500">{letters[oi]}</span>
                                 <span className="flex-1">{opt}</span>
-                                {isCorrect && (
-                                  <span className="text-xs px-2 py-0.5 rounded bg-green-600 text-white font-semibold">✓ Correct Answer</span>
-                                )}
+                                <div className="flex gap-2">
+                                  {isStudentAnswer && (
+                                    <span className="text-blue-700 text-xs font-semibold">Selected</span>
+                                  )}
+                                  {isCorrect && (
+                                    <span className="text-green-700 text-xs font-semibold">Correct answer</span>
+                                  )}
+                                </div>
                               </li>
                             );
                           })}
@@ -279,9 +372,9 @@ export default function FlaggedQuizDetail() {
                 <div className="text-sm mb-4 text-green-700">Already resolved.</div>
               )}
 
-              {flagData.status?.toLowerCase() === 'pending' && (
+              {flagData.status?.toLowerCase() !== 'resolved' && (
                 <div className="space-y-4">
-                  {/* Admin: Show Assign to Faculty button */}
+                  {/* Admin: Show Assign/Re-assign button */}
                   {isAdmin && (
                     <button
                       onClick={() => {
@@ -294,7 +387,7 @@ export default function FlaggedQuizDetail() {
                     </button>
                   )}
 
-                  {/* Faculty: Show Resolve form */}
+                  {/* Faculty: Show Resolve form for assigned/in_progress flags */}
                   {isFaculty && (
                     <div className="space-y-3">
                       <div>

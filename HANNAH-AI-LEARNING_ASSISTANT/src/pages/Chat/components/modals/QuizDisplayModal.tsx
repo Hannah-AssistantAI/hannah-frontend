@@ -15,6 +15,7 @@ interface QuizDisplayModalProps {
     showResults: boolean
     results: any
     isSubmitting: boolean
+    onFlag?: () => void
 }
 
 export const QuizDisplayModal: React.FC<QuizDisplayModalProps> = ({
@@ -29,7 +30,8 @@ export const QuizDisplayModal: React.FC<QuizDisplayModalProps> = ({
     onSubmit,
     showResults,
     results,
-    isSubmitting
+    isSubmitting,
+    onFlag
 }) => {
     if (!isOpen) return null
 
@@ -66,6 +68,7 @@ export const QuizDisplayModal: React.FC<QuizDisplayModalProps> = ({
                         <QuizResults
                             results={results}
                             onRetry={onClose}
+                            onFlag={onFlag}
                         />
                     ) : (
                         <>
