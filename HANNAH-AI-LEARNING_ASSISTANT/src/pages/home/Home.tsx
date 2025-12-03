@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Auth from '../../components/Auth/Auth';
 import ProfileIcon from '../../components/ProfileIcon';
+import LoginRequiredModal from '../../components/LoginRequiredModal';
 import { useNavigate } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -22,6 +23,7 @@ export default function Home() {
     // UI states
     const [showAuthModal, setShowAuthModal] = useState(false)
     const [authModalType, setAuthModalType] = useState<'login' | 'register'>('login')
+    const [showLoginRequiredModal, setShowLoginRequiredModal] = useState(false)
 
 
 
@@ -144,10 +146,17 @@ export default function Home() {
     // Hàm kiểm tra yêu cầu đăng nhập
     const requireLogin = (callback: () => void) => {
         if (!isAuthenticated) {
-            alert('Vui lòng đăng nhập để sử dụng tính năng này!')
+            setShowLoginRequiredModal(true)
             return
         }
         callback()
+    }
+
+    // Handle login from modal
+    const handleLoginFromModal = () => {
+        setShowLoginRequiredModal(false)
+        setAuthModalType('login')
+        setShowAuthModal(true)
     }
 
     return (
@@ -600,6 +609,13 @@ export default function Home() {
                     </div>
                 </div>
             </footer>
+
+            {/* Login Required Modal */}
+            <LoginRequiredModal
+                isOpen={showLoginRequiredModal}
+                onClose={() => setShowLoginRequiredModal(false)}
+                onLogin={handleLoginFromModal}
+            />
 
             {/* Auth Modal */}
             <Auth
