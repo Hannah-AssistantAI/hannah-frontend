@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { X } from 'lucide-react';
 import './Modal.css';
 
 interface ModalProps {
@@ -9,12 +10,12 @@ interface ModalProps {
   maxWidth?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  children, 
+const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  children,
   title,
-  maxWidth = '400px' 
+  maxWidth = '400px'
 }) => {
   useEffect(() => {
     if (isOpen) {
@@ -48,27 +49,25 @@ const Modal: React.FC<ModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div 
-        className="modal-content" 
+      <div
+        className="modal-content"
         onClick={(e) => e.stopPropagation()}
         style={{ maxWidth }}
       >
         {title && (
           <div className="modal-header">
             <h2 className="modal-title">{title}</h2>
-            <button className="modal-close-button" onClick={onClose}>
-              ×
+            <button className="modal-close-button" onClick={onClose} aria-label="Close">
+              <X size={20} />
             </button>
           </div>
         )}
         {!title && (
-          <button className="modal-close-button-absolute" onClick={onClose}>
-            ×
+          <button className="modal-close-button-absolute" onClick={onClose} aria-label="Close">
+            <X size={20} />
           </button>
         )}
-        <div className="modal-body">
-          {children}
-        </div>
+        {children}
       </div>
     </div>
   );

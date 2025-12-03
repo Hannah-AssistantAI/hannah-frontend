@@ -20,7 +20,6 @@
 @import './styles/chat/code-blocks.css';
 
 /* Modals */
-@import './styles/modals/base.css';
 @import './styles/modals/report-format.css';
 @import './styles/modals/customize-feature.css';
 @import './styles/modals/mindmap.css';
