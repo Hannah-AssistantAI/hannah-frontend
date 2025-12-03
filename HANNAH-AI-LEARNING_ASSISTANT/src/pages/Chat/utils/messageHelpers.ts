@@ -9,7 +9,14 @@ import type { Source, RelatedContent } from '../types';
  * Parse assistant response content and interactive elements
  * Handles both new interactiveElements structure and legacy JSON parsing
  */
-export const parseAssistantResponse = (responseContent: string, interactiveElements?: any) => {
+export const parseAssistantResponse = (responseContent: string, interactiveElements?: any): {
+    content: string;
+    interactiveList?: any;
+    suggestedQuestions?: any;
+    outline?: any;
+    youtubeResources?: any;
+    images?: any;
+} => {
     console.log('🔧 parseAssistantResponse START');
     console.log('  📄 responseContent:', responseContent);
     console.log('  📦 interactiveElements:', interactiveElements);
@@ -22,11 +29,13 @@ export const parseAssistantResponse = (responseContent: string, interactiveEleme
             interactiveList: interactiveElements.interactive_list || interactiveElements.interactiveList,
             suggestedQuestions: interactiveElements.suggested_questions || interactiveElements.suggestedQuestions,
             outline: interactiveElements.outline,
-            youtubeResources: interactiveElements.youtube_resources || interactiveElements.youtubeResources
+            youtubeResources: interactiveElements.youtube_resources || interactiveElements.youtubeResources,
+            images: interactiveElements.images || interactiveElements.metadata?.images
         };
         console.log('  📋 Result:', result);
         console.log('  📚 Outline extracted:', result.outline);
         console.log('  🎥 YouTube resources:', result.youtubeResources);
+        console.log('  🖼️ Images extracted:', result.images);
         return result;
     }
 
@@ -40,26 +49,29 @@ export const parseAssistantResponse = (responseContent: string, interactiveEleme
         if (parsed.content || parsed.interactiveElements || parsed.interactive_list) {
             const content = typeof parsed.content === 'object' && parsed.content.data ? parsed.content.data : parsed.content;
             const interactiveEls = parsed.interactiveElements || {};
-            
+
             return {
                 content: content,
                 interactiveList: parsed.interactive_list || interactiveEls.interactiveList || interactiveEls.interactive_list,
                 suggestedQuestions: parsed.suggested_questions || interactiveEls.suggestedQuestions || interactiveEls.suggested_questions,
                 outline: parsed.outline || interactiveEls.outline,
-                youtubeResources: parsed.youtube_resources || parsed.youtubeResources || interactiveEls.youtubeResources || interactiveEls.youtube_resources
+                youtubeResources: parsed.youtube_resources || parsed.youtubeResources || interactiveEls.youtubeResources || interactiveEls.youtube_resources,
+                images: parsed.images || interactiveEls.images
             };
         }
 
         // If it's JSON but doesn't have the specific structure, treat as plain text (or handle otherwise)
-        return { 
+        return {
             content: responseContent,
-            youtubeResources: undefined
+            youtubeResources: undefined,
+            images: undefined
         };
     } catch (e) {
         // Not JSON, treat as plain text
-        return { 
+        return {
             content: responseContent,
-            youtubeResources: undefined
+            youtubeResources: undefined,
+            images: undefined
         };
     }
 };

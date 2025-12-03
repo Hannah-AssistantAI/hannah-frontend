@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { MessageSquare, FileText, HelpCircle, TrendingDown, ChevronDown, ChevronRight, Flag } from "lucide-react";
+import { MessageSquare, FileText, BarChart3, HelpCircle, TrendingDown, ChevronDown, ChevronRight, User, Flag, ClipboardList } from "lucide-react";
 import { useFacultyContext } from "../../../contexts/FacultyContext";
 import ReusableSidebar from "../../../components/Sidebar/Sidebar";
 
@@ -50,6 +50,13 @@ const FacultySidebarContent: React.FC<FacultySidebarContentProps> = ({
       badge: flaggedConversationsCount > 0 ? flaggedConversationsCount : null,
       description: "Conversations requiring review",
       icon: MessageSquare,
+    },
+    {
+      path: "/faculty/my-assignments",
+      label: "My Assignments",
+      badge: null,
+      description: "Flagged items assigned to you",
+      icon: ClipboardList,
     },
     {
       path: "/faculty/materials",

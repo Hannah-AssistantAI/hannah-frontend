@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 interface MessageDisplayProps {
     message: Message;
     messageIndex: number;
+    messages: Message[];
     expandedSources: { [key: string]: boolean };
     onToggleSource: (key: string) => void;
     onInteractiveItemClick: (term: string) => void;
@@ -24,6 +25,7 @@ interface MessageDisplayProps {
 export const MessageDisplay: React.FC<MessageDisplayProps> = ({
     message,
     messageIndex,
+    messages,
     expandedSources,
     onToggleSource,
     onInteractiveItemClick,
@@ -34,6 +36,31 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
     const [selectedVideo, setSelectedVideo] = useState<YoutubeResource | null>(null);
     const [isInteractiveListExpanded, setIsInteractiveListExpanded] = useState(true);
 
+    // Helper function to strip instruction prefixes from a question
+    const stripInstructionPrefix = (text: string): string => {
+        const prefixes = [
+            'Hãy giải thích đơn giản hơn: ',
+            'Hãy giải thích chi tiết và sâu hơn: ',
+            'Đơn giản hóa: ',
+            'Tìm hiểu sâu hơn: ',
+            'Giải thích thêm: '
+        ];
+
+        let result = text;
+        // Keep stripping until no more prefixes found
+        let changed = true;
+        while (changed) {
+            changed = false;
+            for (const prefix of prefixes) {
+                if (result.startsWith(prefix)) {
+                    result = result.substring(prefix.length);
+                    changed = true;
+                    break;
+                }
+            }
+        }
+        return result;
+    };
     // Debug logging
     console.log('🔍 MessageDisplay - message:', message);
     console.log('  - suggestedQuestions:', message.suggestedQuestions);
@@ -311,11 +338,31 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
                     <>
                         <div className="message-actions-container">
                             <div className="message-suggestions">
-                                <button className="suggestion-btn">
+                                <button
+                                    className="suggestion-btn"
+                                    onClick={() => {
+                                        const previousUserMessage = messages
+                                            .slice(0, messageIndex)
+                                            .reverse()
+                                            .find(m => m.type === 'user');
+                                        const userQuestion = stripInstructionPrefix(previousUserMessage?.content || '');
+                                        onInteractiveItemClick(`Hãy giải thích đơn giản hơn: ${userQuestion}`);
+                                    }}
+                                >
                                     <span className="suggestion-icon">≡</span>
                                     <span>Đơn giản hóa</span>
                                 </button>
-                                <button className="suggestion-btn">
+                                <button
+                                    className="suggestion-btn"
+                                    onClick={() => {
+                                        const previousUserMessage = messages
+                                            .slice(0, messageIndex)
+                                            .reverse()
+                                            .find(m => m.type === 'user');
+                                        const userQuestion = stripInstructionPrefix(previousUserMessage?.content || '');
+                                        onInteractiveItemClick(`Hãy giải thích chi tiết và sâu hơn: ${userQuestion}`);
+                                    }}
+                                >
                                     <span className="suggestion-icon">≡</span>
                                     <span>Tìm hiểu sâu hơn</span>
                                 </button>

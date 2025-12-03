@@ -124,7 +124,7 @@
 .conversation-item {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    justify-content: space-between;
     padding: 0.75rem 1rem;
     background: transparent;
     border: none;
@@ -136,6 +136,7 @@
     font-weight: 400;
     border-radius: 0;
     width: 100%; /* Ensure full width */
+    position: relative;
 }
 
 .conversation-item:hover {
@@ -147,6 +148,14 @@
     border-left: 3px solid #8ab4f8;
 }
 
+.conversation-item-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    overflow: hidden;
+}
+
 .conversation-icon {
     flex-shrink: 0;
     color: #9aa0a6;
@@ -156,6 +165,30 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* Delete button - hidden by default, shows on hover */
+.delete-conversation-btn {
+    display: none;
+    background: transparent;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    color: #9aa0a6;
+    transition: color 0.2s ease;
+    flex-shrink: 0;
+    border-radius: 4px;
+}
+
+.conversation-item:hover .delete-conversation-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-conversation-btn:hover {
+    color: #f28b82;
+    background: rgba(242, 139, 130, 0.1);
 }
 
 /* ===== View All Button ===== */

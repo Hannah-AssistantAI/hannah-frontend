@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Send, Upload, GitBranch, FileText, ClipboardCheck, StickyNote } from 'lucide-react'
 import subjectService, { type Subject } from '../../service/subjectService'
 import flaggingService from '../../service/flaggingService'
@@ -32,8 +32,9 @@ export default function Chat() {
     const location = useLocation()
     const navigate = useNavigate()
     const { user } = useAuth()
+    const { conversationId: paramConversationId } = useParams<{ conversationId?: string }>()
     const initialQuery = location.state?.query || ''
-    const initialConversationId = location.state?.conversationId || null
+    const initialConversationId = location.state?.conversationId || (paramConversationId ? parseInt(paramConversationId) : null)
 
     const [inputValue, setInputValue] = useState('')
     const [isBigPictureOpen, setIsBigPictureOpen] = useState(true)
@@ -236,18 +237,21 @@ export default function Chat() {
                 onToggleHistory={() => setShowHistorySidebar(!showHistorySidebar)}
                 showShareButton={true}
                 onShareClick={() => setShowShareModal(true)}
+                showNotifications={true}
             />
 
             {/* History Sidebar */}
             <HistorySidebar
                 isOpen={showHistorySidebar}
                 onClose={() => setShowHistorySidebar(false)}
+                currentConversationId={conversationId}
             />
+
 
 
             <main className="chat-main" style={{ display: 'flex', gap: '0', padding: '24px', alignItems: 'stretch' }}>
                 {/* Big Picture Sidebar - Left */}
-                <BigPictureSidebar
+                < BigPictureSidebar
                     isOpen={isBigPictureOpen}
                     onToggle={() => setIsBigPictureOpen(!isBigPictureOpen)}
                     topics={bigPictureData}
@@ -278,6 +282,7 @@ export default function Chat() {
                                 key={index}
                                 message={message}
                                 messageIndex={index}
+                                messages={messages}
                                 expandedSources={expandedSources}
                                 onToggleSource={(key) => setExpandedSources(prev => ({
                                     ...prev,
@@ -343,24 +348,24 @@ export default function Chat() {
                     openMenuId={openMenuId}
                     onToggleMenu={toggleMenu}
                 />
-            </main>
+            </main >
 
             {/* Report Format Selection Modal */}
-            <ReportFormatModal
+            < ReportFormatModal
                 isOpen={studio.showReportFormatModal}
                 onClose={() => studio.setShowReportFormatModal(false)}
                 onSelectFormat={studio.handleReportFormatSelect}
             />
 
             {/* Report Modal */}
-            <ReportModal
+            < ReportModal
                 isOpen={studio.showReportModal}
                 onClose={() => studio.setShowReportModal(false)}
                 content={studio.reportContent}
             />
 
             {/* Mindmap Modal */}
-            <MindmapModal
+            < MindmapModal
                 isOpen={studio.showMindmapModal}
                 onClose={() => studio.setShowMindmapModal(false)}
                 content={studio.mindmapContent}
@@ -369,7 +374,7 @@ export default function Chat() {
 
 
             {/* Notecard Modal */}
-            <NotecardModal
+            < NotecardModal
                 isOpen={studio.showNotecardModal}
                 onClose={() => studio.setShowNotecardModal(false)}
                 content={studio.flashcardContent}

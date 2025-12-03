@@ -27,6 +27,8 @@ export interface Source {
 
 export interface InteractiveElements {
     suggestedQuestions: string[];
+    interactiveList?: any[];
+    outline?: any[];
 }
 
 export interface ImageData {

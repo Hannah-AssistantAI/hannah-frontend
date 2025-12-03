@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import conversationService from '../service/conversationService';
 import './HistorySidebar.css';
@@ -9,9 +9,10 @@ interface HistorySidebarProps {
     isOpen: boolean;
     onClose: () => void;
     onItemClick?: (topic: string) => void; // Optional now as we handle navigation internally
+    currentConversationId?: number | null; // Pass current conversation ID to handle delete
 }
 
-export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose }) => {
+export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose, currentConversationId }) => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [conversations, setConversations] = useState<any[]>([]);
@@ -75,6 +76,47 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose 
             onClose();
         } catch (error) {
             console.error('Failed to create new conversation:', error);
+        }
+    };
+
+    const handleDeleteConversation = async (conversationId: number, e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent conversation click when clicking delete
+
+        if (!user?.userId) {
+            console.error('User not logged in');
+            return;
+        }
+
+        if (!confirm('Bạn có chắc chắn muốn xóa cuộc trò chuyện này?')) {
+            return;
+        }
+
+        try {
+            await conversationService.deleteConversation(conversationId, user.userId);
+
+            // Clear cache for deleted conversation
+            localStorage.removeItem(`conversation_${conversationId}_cache`);
+
+            // ✅ Update local state immediately (Optimistic update)
+            setConversations(prev => prev.filter(c =>
+                (c.conversation_id && c.conversation_id !== conversationId) ||
+                (c.conversationId && c.conversationId !== conversationId)
+            ));
+
+            // If deleting the currently active conversation, navigate to empty chat
+            if (conversationId === currentConversationId) {
+                // Navigate with preventAutoSend flag to block auto-send
+                navigate('/chat', {
+                    replace: true,  // Don't keep in history
+                    state: {
+                        preventAutoSend: true,  // Block auto-send
+                        timestamp: Date.now()    // Force re-render
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Failed to delete conversation:', error);
+            alert('Không thể xóa cuộc trò chuyện. Vui lòng thử lại.');
         }
     };
 
@@ -163,12 +205,21 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose 
                                                         className="conversation-item"
                                                         onClick={() => handleConversationClick(conv.conversation_id || conv.conversationId)}
                                                     >
-                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="conversation-icon">
-                                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                                                        </svg>
-                                                        <span className="conversation-text">
-                                                            {conv.title || "Cuộc trò chuyện mới"}
-                                                        </span>
+                                                        <div className="conversation-item-content">
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="conversation-icon">
+                                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                                            </svg>
+                                                            <span className="conversation-text">
+                                                                {conv.title || "Cuộc trò chuyện mới"}
+                                                            </span>
+                                                        </div>
+                                                        <button
+                                                            className="delete-conversation-btn"
+                                                            onClick={(e) => handleDeleteConversation(conv.conversation_id || conv.conversationId, e)}
+                                                            title="Xóa cuộc trò chuyện"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
                                                     </button>
                                                 ))}
                                             </div>

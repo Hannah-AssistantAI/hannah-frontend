@@ -79,6 +79,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/learn" element={<ThemedPage><Learn /></ThemedPage>} />
           <Route path="/chat" element={<ThemedPage><Chat /></ThemedPage>} />
+          <Route path="/chat/:conversationId" element={<ThemedPage><Chat /></ThemedPage>} />
           <Route path="/profile" element={<ThemedPage><Profile /></ThemedPage>} />
         </Route>
 

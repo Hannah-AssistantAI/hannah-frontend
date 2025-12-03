@@ -1,4 +1,3 @@
-import React from 'react';
 import { X } from 'lucide-react';
 import { QuizQuestion } from './QuizQuestion';
 import { QuizNavigation } from './QuizNavigation';

@@ -10,6 +10,7 @@ interface HeaderProps {
     onToggleHistory: () => void;
     showShareButton?: boolean;
     onShareClick?: () => void;
+    showNotifications?: boolean;
     className?: string;
 }
 
@@ -17,6 +18,7 @@ export const Header: React.FC<HeaderProps> = ({
     onToggleHistory,
     showShareButton = false,
     onShareClick,
+    showNotifications = false,
     className = ''
 }) => {
     const navigate = useNavigate();
@@ -72,6 +74,7 @@ export const Header: React.FC<HeaderProps> = ({
                         <span>Chia sẻ</span>
                     </button>
                 )}
+                {showNotifications && <NotificationBell />}
                 <ThemeToggle />
                 {isStudent && <NotificationBell />}
                 <ProfileIcon />

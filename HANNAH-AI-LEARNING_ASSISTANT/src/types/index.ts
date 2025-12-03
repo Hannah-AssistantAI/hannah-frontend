@@ -26,7 +26,7 @@ export interface SystemMetrics {
 }
 
 export interface DatabaseMetrics {
-  postgresql: {
+  sqlserver: {
     activeConnections: number;
     maxConnections: number;
     avgQueryTime: number;

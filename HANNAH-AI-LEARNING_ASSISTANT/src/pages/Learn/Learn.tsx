@@ -7,6 +7,7 @@ import { Header } from "../../components/Header";
 import { HistorySidebar } from "../../components/HistorySidebar";
 import conversationService from "../../service/conversationService";
 import { useAuth } from "../../contexts/AuthContext";
+import FAQSection from "../home/FAQSection";
 
 export default function Learn() {
     const navigate = useNavigate();
@@ -91,6 +92,7 @@ export default function Learn() {
             {/* Header */}
             <Header
                 onToggleHistory={() => setShowHistorySidebar(!showHistorySidebar)}
+                showNotifications={true}
             />
 
             {/* History Sidebar */}
@@ -217,6 +219,9 @@ export default function Learn() {
                     </div>
                 </div>
             </main>
+
+            {/* FAQ Section */}
+            <FAQSection />
 
             {/* Footer Section */}
             <footer className="learn-footer">

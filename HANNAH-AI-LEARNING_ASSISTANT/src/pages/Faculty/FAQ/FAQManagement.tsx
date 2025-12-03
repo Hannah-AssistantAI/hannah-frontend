@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import FAQList from './FAQList';
 import FAQForm from './FAQForm';
+import FAQUsageChart from './FAQUsageChart';
 import customResponseService from '../../../service/customResponseService';
-import type { CustomResponse } from '../../../service/customResponseService';
+import type { CustomResponse } from '../../../types/CustomResponseTypes';
 import subjectService from '../../../service/subjectService';
 import type { Subject } from '../../../service/subjectService';
 import { useApp } from '../../../contexts/AppContext';
@@ -10,7 +11,7 @@ import toast from 'react-hot-toast';
 
 
 interface FAQ {
-  id: number;
+  id: string;
   question: string;
   answer: string;
   subjectId: number | null;
@@ -50,7 +51,7 @@ const FAQManagement = () => {
       // Transform CustomResponse to FAQ format
       const transformedFAQs: FAQ[] = response.items.map((item: CustomResponse) => ({
         id: item.responseId,
-        question: item.triggerKeywords.join(', '),  // Display keywords as question
+        question: item.questionPattern || item.triggerKeywords.join(', '),  // Display question pattern or keywords
         answer: item.responseContent,
         subjectId: item.subjectId,
         subjectName: subjects.find(s => s.subjectId === item.subjectId)?.name || 'N/A',
@@ -138,25 +139,33 @@ const FAQManagement = () => {
     <>
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
+
           {/* Header Section */}
           <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">FAQ Management</h1>
-                <p className="mt-2 text-sm text-gray-600">
-                  Manage frequently asked questions and answers for students
-                </p>
-              </div>
-              <button
-                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                onClick={handleCreateFAQ}
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Add New FAQ
-              </button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">FAQ Management</h1>
+              <p className="mt-2 text-sm text-gray-600">
+                Manage frequently asked questions and answers for students
+              </p>
             </div>
+          </div>
+
+          {/* Usage Statistics Chart */}
+          <div className="mb-6">
+            <FAQUsageChart />
+          </div>
+
+          {/* Create FAQ Button */}
+          <div className="mb-6">
+            <button
+              className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              onClick={handleCreateFAQ}
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add New FAQ
+            </button>
           </div>
 
           {/* Filters Section */}

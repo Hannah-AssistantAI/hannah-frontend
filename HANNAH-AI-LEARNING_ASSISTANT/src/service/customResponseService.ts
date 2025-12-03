@@ -4,66 +4,72 @@
  */
 
 import pythonApiClient from './pythonApiClient';
+import type {
+    CustomResponse,
+    CreateCustomResponseRequest,
+    UpdateCustomResponseRequest,
+    CustomResponseListResponse,
+    MatchCustomResponseRequest,
+    MatchCustomResponseResponse,
+    SimilarityCheckResponse
+} from '../types/CustomResponseTypes';
 
-export interface CustomResponse {
-    responseId: number;
-    subjectId: number | null;
-    createdBy: number;
-    triggerKeywords: string[];
-    questionPattern: string | null;
-    responseContent: string;
-    isActive: boolean;
-    usageCount: number;
-    lastUsedAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface CreateCustomResponseRequest {
-    subjectId: number | null;
-    triggerKeywords: string[];
-    questionPattern?: string;
-    responseContent: string;
-    isActive: boolean;
-}
-
-export interface UpdateCustomResponseRequest {
-    triggerKeywords?: string[];
-    questionPattern?: string;
-    responseContent?: string;
-    isActive?: boolean;
-}
-
-export interface CustomResponseListResponse {
-    items: CustomResponse[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-}
-
-export interface MatchCustomResponseRequest {
-    query: string;
-    subjectId?: number;
-}
-
-export interface MatchCustomResponseResponse {
-    matched: boolean;
-    response: CustomResponse | null;
-}
+// Re-export types for backward compatibility (optional, but good for gradual migration)
+export type {
+    CustomResponse,
+    CreateCustomResponseRequest,
+    UpdateCustomResponseRequest,
+    CustomResponseListResponse,
+    MatchCustomResponseRequest,
+    MatchCustomResponseResponse,
+    SimilarResponseItem,
+    SimilarityCheckResponse
+} from '../types/CustomResponseTypes';
 
 class CustomResponseService {
+    /**
+     * Get all custom responses with pagination and filters (public, no auth required)
+     */
+    async getPublicCustomResponses(
+        subjectId?: number,
+        page: number = 1,
+        limit: number = 20,
+        search?: string,
+        sortByUsage: boolean = false
+    ): Promise<CustomResponseListResponse> {
+        const params: Record<string, any> = { page, limit };
+        if (subjectId !== undefined) {
+            params.subjectId = subjectId;
+        }
+        if (search) {
+            params.search = search;
+        }
+        if (sortByUsage) {
+            params.sortByUsage = sortByUsage;
+        }
+
+        const response = await pythonApiClient.get<{ data: CustomResponseListResponse }>(
+            '/api/v1/custom-responses/public',
+            params
+        );
+        return response.data.data;
+    }
+
     /**
      * Get all custom responses with pagination and filters
      */
     async getCustomResponses(
         subjectId?: number,
         page: number = 1,
-        limit: number = 20
+        limit: number = 20,
+        search?: string
     ): Promise<CustomResponseListResponse> {
         const params: Record<string, any> = { page, limit };
-        if (subjectId) {
+        if (subjectId !== undefined) {
             params.subjectId = subjectId;
+        }
+        if (search) {
+            params.search = search;
         }
 
         const response = await pythonApiClient.get<{ data: CustomResponseListResponse }>(
@@ -76,7 +82,7 @@ class CustomResponseService {
     /**
      * Get a single custom response by ID
      */
-    async getCustomResponseById(responseId: number): Promise<CustomResponse> {
+    async getCustomResponseById(responseId: string): Promise<CustomResponse> {
         const response = await pythonApiClient.get<{ data: CustomResponse }>(
             `/api/v1/custom-responses/${responseId}`
         );
@@ -100,7 +106,7 @@ class CustomResponseService {
      * Update an existing custom response
      */
     async updateCustomResponse(
-        responseId: number,
+        responseId: string,
         request: UpdateCustomResponseRequest
     ): Promise<CustomResponse> {
         const response = await pythonApiClient.put<{ data: CustomResponse }>(
@@ -113,7 +119,7 @@ class CustomResponseService {
     /**
      * Delete a custom response
      */
-    async deleteCustomResponse(responseId: number): Promise<void> {
+    async deleteCustomResponse(responseId: string): Promise<void> {
         await pythonApiClient.delete(`/api/v1/custom-responses/${responseId}`);
     }
 
@@ -126,6 +132,31 @@ class CustomResponseService {
             request
         );
         return response.data.data;
+    }
+
+    /**
+     * Check for similar existing FAQs
+     */
+    async checkSimilarity(query: string, subjectId?: number): Promise<SimilarityCheckResponse> {
+        const response = await pythonApiClient.post<{ data: SimilarityCheckResponse }>(
+            '/api/v1/custom-responses/check-similarity',
+            { query, subjectId }
+        );
+        return response.data.data;
+    }
+
+    /**
+     * Increment usage count for a FAQ (click tracking, public endpoint)
+     */
+    async incrementUsageCount(responseId: string | number): Promise<void> {
+        try {
+            await pythonApiClient.post(
+                `/api/v1/custom-responses/${responseId}/increment-usage`
+            );
+        } catch (error) {
+            console.error('Failed to increment FAQ usage count:', error);
+            // Don't throw error - tracking shouldn't block user flow
+        }
     }
 }
 

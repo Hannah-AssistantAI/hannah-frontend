@@ -9,7 +9,6 @@ import {
   buildApiUrl,
   getAuthHeaders,
   STORAGE_KEYS,
-  HTTP_STATUS,
 } from '../config/apiConfig';
 
 // Type definitions for Auth API
@@ -34,9 +33,11 @@ export interface LoginResponse {
 
 export interface UserData {
   userId: number;
+  id?: number; // Alias for userId
   email: string;
   username: string;
   fullName: string;
+  name?: string; // Alias for fullName
   role: string;
   avatarUrl: string | null;
   isActive: boolean;

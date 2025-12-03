@@ -42,13 +42,35 @@ export const useChatMessages = ({
     useEffect(() => {
         const sendInitialQuery = async () => {
             if (hasAutoSentRef.current) return;
-            if (!initialQuery || !conversationId || !user?.userId) return;
+            if (!initialQuery || !user?.userId) return;
 
-            console.log('🚀 Checking conversation before auto-send:', initialQuery);
+            // ✅ Block auto-send if coming from delete
+            if (locationState?.preventAutoSend) {
+                console.log('⛔ Auto-send blocked: preventAutoSend flag detected');
+                hasAutoSentRef.current = true; // Mark as handled
+                setMessages([]); // Clear any initial messages
+                return;
+            }
+
+            console.log('🚀 Processing initial query:', initialQuery);
             hasAutoSentRef.current = true;
 
             try {
-                const conversationDetails = await conversationService.getConversation(conversationId, user.userId);
+                // Create conversation if needed
+                let currentConversationId = conversationId;
+                if (!currentConversationId) {
+                    console.log('📝 No conversation ID, creating new conversation...');
+                    const newConv = await conversationService.createConversation({
+                        userId: user.userId,
+                        title: initialQuery.length > 50 ? initialQuery.substring(0, 50) + '...' : initialQuery,
+                        subjectId: subjectId || undefined
+                    });
+                    currentConversationId = newConv.conversationId;
+                    setConversationId(currentConversationId);
+                    console.log('✅ Created new conversation:', currentConversationId);
+                }
+
+                const conversationDetails = await conversationService.getConversation(currentConversationId, user.userId);
 
                 // Extract subjectId from conversation if not already set
                 if (conversationDetails.subjectId && !subjectId) {
@@ -72,10 +94,9 @@ export const useChatMessages = ({
                             isStreaming: false,
                             isFlagged: false,
                             suggestedQuestions: [],
-
-                            images: msg.images || msg.metadata?.images || [],  // Support both root and metadata level
-
-                            ...parsed
+                            ...parsed,
+                            // Override with actual data to prevent parsed undefined from overriding
+                            images: msg.images || msg.metadata?.images || (parsed as any).images || []
                         };
                     });
 
@@ -101,7 +122,7 @@ export const useChatMessages = ({
                 }]);
 
                 const response = await chatService.sendTextMessage(
-                    conversationId,
+                    currentConversationId,
                     initialQuery,
                     subjectId || undefined
                 );
@@ -116,6 +137,15 @@ export const useChatMessages = ({
                     response.assistantMessage.content.data,
                     response.assistantMessage.interactiveElements
                 );
+
+                console.log('🔍 Full Response Structure:', {
+                    hasImages: !!response.assistantMessage.images,
+                    hasMetadataImages: !!response.assistantMessage.metadata?.images,
+                    hasInteractiveElementsImages: !!(response.assistantMessage.interactiveElements as any)?.images,
+                    imagesCount: response.assistantMessage.images?.length || 0,
+                    metadataImagesCount: response.assistantMessage.metadata?.images?.length || 0,
+                    fullResponse: response.assistantMessage
+                });
 
                 if (parsedResponse.outline && parsedResponse.outline.length > 0) {
                     setBigPictureData(parsedResponse.outline);
@@ -164,12 +194,24 @@ export const useChatMessages = ({
     useEffect(() => {
         if (locationState?.conversationId) {
             setConversationId(locationState.conversationId);
+        } else if (locationState?.preventAutoSend) {
+            // ✅ Reset state when navigating with preventAutoSend flag (e.g. after delete)
+            console.log('🧹 Resetting chat state due to preventAutoSend flag');
+            setConversationId(null);
+            setMessages([]);
+            setBigPictureData([]);
         }
-    }, [locationState]);
+    }, [locationState, setBigPictureData]);
 
     // Reload messages when conversationId changes
     useEffect(() => {
         if (conversationId && !initialQuery && user?.userId) {
+            // ✅ Prevent overwriting optimistic state when sending a message
+            if (isSendingMessage) {
+                console.log('⏳ Skipping history load while sending message...');
+                return;
+            }
+
             const loadConversationHistory = async () => {
                 try {
                     console.log('📥 Loading conversation history for ID:', conversationId);
@@ -200,8 +242,9 @@ export const useChatMessages = ({
                             isStreaming: false,
                             isFlagged: false,
                             suggestedQuestions: [],
-                            images: msg.images || [],
-                            ...parsed
+                            ...parsed,
+                            // Override with actual data to prevent parsed undefined from overriding
+                            images: msg.images || msg.metadata?.images || (parsed as any).images || []
                         };
                     });
 
@@ -231,11 +274,8 @@ export const useChatMessages = ({
     const handleSend = async (userMessage: string) => {
         if (!userMessage.trim()) return;
         if (isSendingMessage) return;
-        if (!conversationId || !user?.userId) {
-            console.error('No conversation ID or user ID available');
-            return;
-        }
 
+        // ✅ 1. Update UI immediately (Optimistic UI)
         setMessages(prev => [...prev, {
             type: 'user',
             content: userMessage
@@ -250,6 +290,38 @@ export const useChatMessages = ({
 
         setIsSendingMessage(true);
 
+        // ✅ 2. Lazy create conversation if needed (e.g., after delete)
+        let currentConversationId = conversationId;
+
+        if (!currentConversationId && user?.userId) {
+            console.log('📝 No conversation ID, creating new conversation...');
+            try {
+                const newConv = await conversationService.createConversation({
+                    userId: user.userId,
+                    title: userMessage.length > 50
+                        ? userMessage.substring(0, 50) + '...'
+                        : userMessage,
+                    subjectId: subjectId || undefined
+                });
+                currentConversationId = newConv.conversationId;
+                setConversationId(currentConversationId);
+                console.log('✅ Created new conversation:', currentConversationId);
+            } catch (error) {
+                console.error('Failed to create conversation:', error);
+                // Remove the optimistic messages on failure
+                setMessages(prev => prev.slice(0, -2));
+                setIsSendingMessage(false);
+                return;
+            }
+        }
+
+        if (!currentConversationId || !user?.userId) {
+            console.error('No conversation ID or user ID available');
+            setMessages(prev => prev.slice(0, -2)); // Cleanup
+            setIsSendingMessage(false);
+            return;
+        }
+
         try {
             const isFirstMessageInConversation = initialQuery ? messages.length === 1 : messages.length === 0;
 
@@ -258,7 +330,7 @@ export const useChatMessages = ({
                 const conversationTitle = userMessage.length > 50
                     ? userMessage.substring(0, 50) + '...'
                     : userMessage;
-                await conversationService.updateConversation(conversationId, {
+                await conversationService.updateConversation(currentConversationId, {
                     userId: user.userId,
                     title: conversationTitle
                 });
@@ -267,7 +339,7 @@ export const useChatMessages = ({
             console.log('🤖 Sending to chat API...');
             console.log('📚 Using Subject ID:', subjectId);
             const response = await chatService.sendTextMessage(
-                conversationId,
+                currentConversationId,
                 userMessage,
                 subjectId || undefined
             );
