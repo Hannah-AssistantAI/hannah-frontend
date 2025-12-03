@@ -102,7 +102,30 @@ class AuthService {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Login failed');
+        
+        // Map HTTP status to specific error codes
+        switch (response.status) {
+          case 401:
+            throw new Error('INVALID_CREDENTIALS');
+          case 403:
+            // Check for specific 403 sub-types from backend
+            if (error.code === 'ACCOUNT_LOCKED' || error.message?.includes('locked')) {
+              throw new Error('ACCOUNT_LOCKED');
+            } else if (error.code === 'ACCOUNT_INACTIVE' || error.message?.includes('inactive')) {
+              throw new Error('ACCOUNT_INACTIVE');
+            } else if (error.code === 'EMAIL_NOT_VERIFIED' || error.message?.includes('verify')) {
+              throw new Error('EMAIL_NOT_VERIFIED');
+            }
+            throw new Error('FORBIDDEN');
+          case 429:
+            throw new Error('TOO_MANY_REQUESTS');
+          case 500:
+            throw new Error('SERVER_ERROR');
+          case 503:
+            throw new Error('SERVICE_UNAVAILABLE');
+          default:
+            throw new Error(error.message || 'LOGIN_FAILED');
+        }
       }
 
       const result = await response.json();
@@ -154,6 +177,10 @@ class AuthService {
       this.saveUserData(result.user);
       return result;
     } catch (error) {
+      // Handle network errors (fetch failures)
+      if (error instanceof TypeError && (error.message.includes('fetch') || error.message.includes('network'))) {
+        throw new Error('NETWORK_ERROR');
+      }
       console.error('Login error:', error);
       throw error;
     }

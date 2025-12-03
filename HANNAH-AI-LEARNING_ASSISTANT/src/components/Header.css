@@ -47,11 +47,12 @@
 }
 
 .header-logo-image {
-    width: clamp(44px, 44px + 10 * (100vw - 375px) / 455, 54px);
+    width: clamp(100px, 10vw, 120px);
     height: auto;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
     transition: transform 0.2s ease;
     margin-left: 0.5rem;
+    object-fit: contain;
 }
 
 .app-header-right {

@@ -13,6 +13,20 @@ interface AuthProps {
   initialTab?: 'login' | 'register';
 }
 
+// Error messages mapping for user-friendly feedback
+const ERROR_MESSAGES: Record<string, string> = {
+  INVALID_CREDENTIALS: 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.',
+  ACCOUNT_LOCKED: 'Tài khoản đã bị khóa do đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.',
+  ACCOUNT_INACTIVE: 'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.',
+  EMAIL_NOT_VERIFIED: 'Vui lòng xác thực email trước khi đăng nhập. Kiểm tra hộp thư của bạn.',
+  TOO_MANY_REQUESTS: 'Bạn đã đăng nhập quá nhiều lần. Vui lòng đợi 5 phút.',
+  NETWORK_ERROR: 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối internet.',
+  SERVER_ERROR: 'Lỗi hệ thống. Vui lòng thử lại sau ít phút.',
+  SERVICE_UNAVAILABLE: 'Hệ thống đang bảo trì. Vui lòng thử lại sau.',
+  FORBIDDEN: 'Bạn không có quyền truy cập. Vui lòng liên hệ quản trị viên.',
+  LOGIN_FAILED: 'Đăng nhập thất bại. Vui lòng thử lại.',
+};
+
 const Auth: React.FC<AuthProps> = ({ isOpen, onClose, initialTab = 'login' }) => {
   const { login } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialTab);
@@ -44,7 +58,12 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, initialTab = 'login' }) =>
       toast.success('Đăng nhập thành công!');
       onClose(); // Close the modal. Home.tsx will handle the redirect.
     } catch (error: any) {
-      const errorMessage = error.message || 'Email hoặc mật khẩu không đúng.';
+      // Map error code to user-friendly message
+      const errorKey = error.message && error.message in ERROR_MESSAGES
+        ? error.message
+        : 'LOGIN_FAILED';
+      const errorMessage = ERROR_MESSAGES[errorKey];
+
       toast.error(errorMessage);
       setLoginError(errorMessage);
     } finally {

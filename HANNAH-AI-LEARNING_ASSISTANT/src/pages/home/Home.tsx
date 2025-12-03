@@ -316,7 +316,7 @@ export default function Home() {
             <header className={`relative header-fade-in ${isVisible ? 'visible' : 'hidden'}`}>
                 {/* Left side - Logo */}
                 <div className="header-logo">
-                    <img src="https://daihoc.fpt.edu.vn/wp-content/uploads/2023/04/cropped-cropped-2021-FPTU-Long.png" alt="Hannah Logo" className="header-logo-image" />
+                    <img src="/images/header/2021-FPTU-Logo.png" alt="FPT University Logo" className="header-logo-image" />
                     <h1 className="header-logo-text">Hannah</h1>
                     <span className="header-logo-tag">AI Assistant</span>
                 </div>
