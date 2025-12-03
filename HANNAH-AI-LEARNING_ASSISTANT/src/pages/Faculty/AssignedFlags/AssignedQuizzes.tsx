@@ -1,23 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-import { Eye, Flag, MessageSquare, AlertCircle, CheckCircle, Clock, User, Calendar } from 'lucide-react';
-
+import { Eye, AlertCircle, User, Calendar } from 'lucide-react';
 import type { FlaggedItem } from '../../../service/flaggingService';
 import flaggingService from '../../../service/flaggingService';
 import { getStatusDisplay, getStatusClass, isResolved } from '../../../utils/statusHelpers';
 import './AssignedFlagsList.css';
 
 type FilterStatus = 'processing' | 'resolved';
-type FilterType = 'all' | 'message' | 'quiz';
 
-const AssignedFlagsList: React.FC = () => {
+const AssignedQuizzes: React.FC = () => {
     const navigate = useNavigate();
     const [assignedFlags, setAssignedFlags] = useState<FlaggedItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('processing');
-    const [filterType, setFilterType] = useState<FilterType>('all');
 
     useEffect(() => {
         loadAssignedFlags();
@@ -28,36 +24,15 @@ const AssignedFlagsList: React.FC = () => {
             setLoading(true);
             setError(null);
             const flags = await flaggingService.getAssignedFlags();
-            setAssignedFlags(flags);
+            // Filter only quiz flags
+            const quizFlags = flags.filter(f => f.type === 'quiz');
+            setAssignedFlags(quizFlags);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Không thể tải danh sách báo cáo');
-            console.error('Error loading assigned flags:', err);
+            setError(err instanceof Error ? err.message : 'Không thể tải danh sách quiz');
+            console.error('Error loading assigned quiz flags:', err);
         } finally {
             setLoading(false);
         }
-    };
-
-
-    const getTypeIcon = (type: string) => {
-        switch (type) {
-            case 'message':
-                return <MessageSquare className="w-5 h-5" />;
-            case 'quiz':
-                return <AlertCircle className="w-5 h-5" />;
-            default:
-                return <Flag className="w-5 h-5" />;
-        }
-    };
-
-    const getTypeLabel = (type: string) => {
-        const labels: Record<string, string> = {
-            message: 'Tin nhắn',
-            quiz: 'Quiz',
-            flashcard: 'Flashcard',
-            report: 'Báo cáo',
-            mindmap: 'Sơ đồ tư duy'
-        };
-        return labels[type] || type;
     };
 
     const getPriorityBadgeClass = (priority?: string) => {
@@ -84,38 +59,21 @@ const AssignedFlagsList: React.FC = () => {
     };
 
     const filteredFlags = assignedFlags.filter(flag => {
-        // Filter by status
-        let statusMatch = true;
-        if (filterStatus === 'resolved') statusMatch = isResolved(flag.status);
-        if (filterStatus === 'processing') statusMatch = !isResolved(flag.status);
-
-        // Filter by type
-        let typeMatch = true;
-        if (filterType !== 'all') typeMatch = flag.type === filterType;
-
-        return statusMatch && typeMatch;
+        if (filterStatus === 'resolved') return isResolved(flag.status);
+        if (filterStatus === 'processing') return !isResolved(flag.status);
+        return true;
     });
 
     const getStatusCount = (status: FilterStatus): number => {
-        const filtered = assignedFlags.filter(f => {
-            const statusMatch = status === 'resolved' ? isResolved(f.status) : !isResolved(f.status);
-            const typeMatch = filterType === 'all' || f.type === filterType;
-            return statusMatch && typeMatch;
-        });
-        return filtered.length;
-    };
-
-    const getTypeCount = (type: FilterType): number => {
-        if (type === 'all') return assignedFlags.length;
-        return assignedFlags.filter(f => f.type === type).length;
+        if (status === 'resolved') return assignedFlags.filter(f => isResolved(f.status)).length;
+        if (status === 'processing') return assignedFlags.filter(f => !isResolved(f.status)).length;
+        return 0;
     };
 
     const stats = {
         total: assignedFlags.length,
         processing: getStatusCount('processing'),
-        resolved: getStatusCount('resolved'),
-        messages: assignedFlags.filter(f => f.type === 'message').length,
-        quizzes: assignedFlags.filter(f => f.type === 'quiz').length
+        resolved: getStatusCount('resolved')
     };
 
     if (loading && assignedFlags.length === 0) {
@@ -135,10 +93,10 @@ const AssignedFlagsList: React.FC = () => {
                 {/* Page Header */}
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-900 to-indigo-700 bg-clip-text text-transparent mb-2">
-                        📋 Báo Cáo Được Giao Cho Tôi
+                        📝 Quiz Được Giao
                     </h1>
                     <p className="text-gray-600 text-base font-medium">
-                        Quản lý và xử lý các báo cáo được giao cho bạn
+                        Quản lý và xử lý các quiz bị flag được giao cho bạn
                     </p>
                 </div>
 
@@ -162,10 +120,10 @@ const AssignedFlagsList: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                     <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-default">
                         <div className="flex flex-col items-center text-center">
-                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md shadow-purple-500/20 mb-2 group-hover:scale-110 transition-transform duration-300">
-                                <Flag className="w-5 h-5 text-white" />
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md shadow-blue-500/20 mb-2 group-hover:scale-110 transition-transform duration-300">
+                                <AlertCircle className="w-5 h-5 text-white" />
                             </div>
-                            <div className="text-xs font-semibold text-gray-600 mb-1">Tổng Báo Cáo</div>
+                            <div className="text-xs font-semibold text-gray-600 mb-1">Tổng Quiz</div>
                             <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
                         </div>
                     </div>
@@ -173,7 +131,7 @@ const AssignedFlagsList: React.FC = () => {
                     <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-md border border-blue-50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-default">
                         <div className="flex flex-col items-center text-center">
                             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center shadow-md shadow-blue-500/20 mb-2 group-hover:scale-110 transition-transform duration-300">
-                                <Clock className="w-5 h-5 text-white" />
+                                <AlertCircle className="w-5 h-5 text-white" />
                             </div>
                             <div className="text-xs font-semibold text-blue-700 mb-1">Đang Xử Lý</div>
                             <div className="text-2xl font-bold text-blue-800">{stats.processing}</div>
@@ -183,7 +141,7 @@ const AssignedFlagsList: React.FC = () => {
                     <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-md border border-green-50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-default">
                         <div className="flex flex-col items-center text-center">
                             <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-md shadow-emerald-500/20 mb-2 group-hover:scale-110 transition-transform duration-300">
-                                <CheckCircle className="w-5 h-5 text-white" />
+                                <AlertCircle className="w-5 h-5 text-white" />
                             </div>
                             <div className="text-xs font-semibold text-green-700 mb-1">Đã Giải Quyết</div>
                             <div className="text-2xl font-bold text-green-800">{stats.resolved}</div>
@@ -191,10 +149,10 @@ const AssignedFlagsList: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Filters Section */}
+                {/* Status Filter */}
                 <div className="bg-white/90 backdrop-blur-sm rounded-xl p-5 shadow-md border border-gray-100 mb-6">
                     <div className="flex items-center gap-3">
-                        <span className="text-sm font-semibold text-gray-700">Lọc theo trạng thái:</span>
+                        <span className="text-sm font-semibold text-gray-700">Trạng thái:</span>
                         <div className="flex gap-2">
                             {(['processing', 'resolved'] as FilterStatus[]).map((status) => (
                                 <button
@@ -216,36 +174,6 @@ const AssignedFlagsList: React.FC = () => {
                             ))}
                         </div>
                     </div>
-
-                    {/* Type Filter */}
-                    <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-200">
-                        <span className="text-sm font-semibold text-gray-700">Lọc theo loại:</span>
-                        <div className="flex gap-2">
-                            {(['all', 'message', 'quiz'] as FilterType[]).map((type) => (
-                                <button
-                                    key={type}
-                                    onClick={() => setFilterType(type)}
-                                    className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 text-sm ${filterType === type
-                                            ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white scale-105'
-                                            : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200'
-                                        }`}
-                                >
-                                    {type === 'all' && <Flag className="w-4 h-4" />}
-                                    {type === 'message' && <MessageSquare className="w-4 h-4" />}
-                                    {type === 'quiz' && <AlertCircle className="w-4 h-4" />}
-                                    <span>
-                                        {type === 'all' ? 'Tất cả' : type === 'message' ? 'Tin nhắn' : 'Quiz'}
-                                    </span>
-                                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${filterType === type
-                                            ? 'bg-white/30 text-white'
-                                            : 'bg-gray-100 text-gray-600'
-                                        }`}>
-                                        {getTypeCount(type)}
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
                 </div>
 
                 {/* Items List */}
@@ -253,13 +181,13 @@ const AssignedFlagsList: React.FC = () => {
                     {filteredFlags.length === 0 ? (
                         <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-12 shadow-md border border-gray-100 text-center">
                             <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Flag className="w-8 h-8 text-gray-400" />
+                                <AlertCircle className="w-8 h-8 text-gray-400" />
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Không có báo cáo nào</h3>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">Không có quiz nào</h3>
                             <p className="text-gray-600 text-sm">
                                 {filterStatus === 'processing'
-                                    ? 'Không có báo cáo nào đang xử lý'
-                                    : 'Không có báo cáo nào đã giải quyết'}
+                                    ? 'Không có quiz nào đang xử lý'
+                                    : 'Không có quiz nào đã giải quyết'}
                             </p>
                         </div>
                     ) : (
@@ -272,15 +200,12 @@ const AssignedFlagsList: React.FC = () => {
                                 {/* Card Header */}
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-start gap-3 flex-1">
-                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-110 ${item.type === 'message'
-                                            ? 'bg-gradient-to-br from-purple-500 to-pink-600 shadow-purple-500/20'
-                                            : 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/20'
-                                            }`}>
-                                            {getTypeIcon(item.type)}
+                                        <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-110 bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/20">
+                                            <AlertCircle className="w-5 h-5 text-white" />
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-2">
-                                                <h3 className="text-base font-bold text-gray-900">{getTypeLabel(item.type)}</h3>
+                                                <h3 className="text-base font-bold text-gray-900">Quiz</h3>
                                                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getStatusClass(item.status) === 'resolved'
                                                     ? 'bg-green-100 text-green-700 border-green-200'
                                                     : 'bg-blue-100 text-blue-700 border-blue-200'
@@ -310,7 +235,7 @@ const AssignedFlagsList: React.FC = () => {
                                 {/* Card Content */}
                                 <div className="mb-3">
                                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">Lý do báo cáo:</label>
-                                    <div className="bg-gradient-to-br from-gray-50 to-purple-50/30 rounded-lg p-3 border border-gray-200">
+                                    <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-lg p-3 border border-gray-200">
                                         <p className="text-gray-800 leading-relaxed text-sm">
                                             {item.reason.length > 200 ? `${item.reason.substring(0, 200)}...` : item.reason}
                                         </p>
@@ -324,7 +249,7 @@ const AssignedFlagsList: React.FC = () => {
                                             e.stopPropagation();
                                             navigate(`/faculty/assigned-flags/${item.id}`);
                                         }}
-                                        className="px-5 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-lg transition-all duration-300 font-semibold flex items-center gap-2 shadow-md hover:shadow-lg text-sm"
+                                        className="px-5 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg transition-all duration-300 font-semibold flex items-center gap-2 shadow-md hover:shadow-lg text-sm"
                                     >
                                         <Eye className="w-4 h-4" />
                                         Xem Chi Tiết
@@ -339,4 +264,4 @@ const AssignedFlagsList: React.FC = () => {
     );
 };
 
-export default AssignedFlagsList;
+export default AssignedQuizzes;

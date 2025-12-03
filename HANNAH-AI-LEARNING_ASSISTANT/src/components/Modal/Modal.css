@@ -61,30 +61,31 @@
 
 .modal-close-button-absolute {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
+  top: 16px;
+  right: 16px;
+  background: rgba(20, 184, 166, 0.1);
   border: none;
-  font-size: 1.5rem;
+  font-size: 20px;
   cursor: pointer;
   color: #6b7280;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s ease;
-  z-index: 1;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  line-height: 1;
+  padding: 0;
+  z-index: 10;
 }
 
 .modal-close-button-absolute:hover {
-  background-color: #f3f4f6;
+  background: rgba(20, 184, 166, 0.2);
+  color: #14b8a6;
+  transform: rotate(90deg);
 }
 
-.modal-body {
-  padding: 2rem 0;
-}
 
 /* Animations */
 @keyframes fadeIn {
@@ -117,8 +118,5 @@
   .modal-header {
     padding: 1rem 1.5rem 0.75rem 1.5rem;
   }
-  
-  .modal-body {
-    padding: 1.5rem;
-  }
+
 }

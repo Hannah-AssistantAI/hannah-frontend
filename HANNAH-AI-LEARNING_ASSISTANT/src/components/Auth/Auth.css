@@ -9,8 +9,9 @@
   display: flex;
   border-bottom: 1px solid #d1d5db;
   position: relative;
-  background-color: #fafafa;
-  border-radius: 8px 8px 0 0;
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%);
+  border-radius: 16px 16px 0 0;
+  padding: 0 2.5rem;
 }
 
 .auth-tabs::after {
@@ -19,10 +20,11 @@
   bottom: -1px;
   left: 0;
   width: 50%;
-  height: 2px;
-  background-color: #2563eb;
+  height: 3px;
+  background: linear-gradient(90deg, #14b8a6 0%, #1abed5 100%);
   transition: transform 0.3s ease;
   transform-origin: left;
+  box-shadow: 0 2px 8px rgba(20, 184, 166, 0.3);
 }
 
 .auth-tabs.register-active::after {
@@ -44,14 +46,17 @@
 }
 
 .auth-tab.active {
-  color: #2563eb;
+  background: linear-gradient(135deg, #14b8a6 0%, #1abed5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   background-color: #ffffff;
   font-weight: 600;
 }
 
 .auth-tab:hover:not(:disabled) {
-  background-color: #f3f4f6;
-  color: #2563eb;
+  background-color: rgba(20, 184, 166, 0.05);
+  color: #14b8a6;
 }
 
 .auth-tab:disabled {
@@ -66,7 +71,7 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  padding: 1rem 1.5rem 2rem;
+  padding: 1.5rem 2.5rem 2rem 2.5rem;
 }
 
 .auth-form-container {
@@ -104,24 +109,26 @@
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
 }
 
 .form-label {
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.925rem;
+  font-weight: 600;
   color: #374151;
+  letter-spacing: -0.01em;
 }
 
 .form-input {
   width: 100%!important;
-  padding: 0.7rem 0.9rem;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 1.5rem;
   background-color: #fafafa;
   transition: all 0.25s ease;
   box-sizing: border-box;
@@ -129,13 +136,14 @@
 
 .form-input:focus {
   outline: none;
-  background-color: #fff;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  background-color: #ffffff;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
 }
 
 .form-input:hover:not(:focus) {
-  border-color: #9ca3af;
+  border-color: #cbd5e1;
+  background-color: #fafafa;
 }
 
 /* Error state */
@@ -157,24 +165,25 @@
 
 /* Button */
 .auth-button {
-  margin-top: 1rem;
-  padding: 0.75rem;
-  background-color: #2563eb;
+  margin-top: 0.75rem;
+  padding: 0.85rem;
+  background: linear-gradient(135deg, #14b8a6 0%, #1abed5 100%);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.3s ease;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  box-shadow: 0 4px 16px rgba(20, 184, 166, 0.3);
 }
 
 .auth-button:hover {
-  background-color: #1e40af;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(20, 184, 166, 0.4);
 }
 
 .auth-button:active {
@@ -230,14 +239,18 @@
 
 .forgot-password {
   text-align: center;
-  margin-top: 1rem;
+  margin-top: 0.625rem;
 }
 
 .forgot-password a {
-  color: #2563eb;
+  background: linear-gradient(135deg, #14b8a6 0%, #1abed5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   text-decoration: none;
   font-size: 0.875rem;
-  transition: text-decoration 0.2s;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
 .forgot-password a:hover {
@@ -249,20 +262,22 @@
   position: absolute;
   top: 0.8rem;
   right: 0.8rem;
-  background: none;
+  background: rgba(20, 184, 166, 0.1);
   border: none;
   font-size: 1.4rem;
   cursor: pointer;
   color: #6b7280;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s ease;
+  border-radius: 12px;
+  transition: all 0.3s ease;
 }
 
 .close-button:hover {
-  background-color: #f3f4f6;
+  background: rgba(20, 184, 166, 0.2);
+  color: #14b8a6;
+  transform: rotate(90deg);
 }

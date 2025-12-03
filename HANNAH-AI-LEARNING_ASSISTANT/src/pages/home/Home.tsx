@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Auth from '../../components/Auth/Auth';
 import ProfileIcon from '../../components/ProfileIcon';
+import LoginRequiredModal from '../../components/LoginRequiredModal';
 import { useNavigate } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -22,6 +23,7 @@ export default function Home() {
     // UI states
     const [showAuthModal, setShowAuthModal] = useState(false)
     const [authModalType, setAuthModalType] = useState<'login' | 'register'>('login')
+    const [showLoginRequiredModal, setShowLoginRequiredModal] = useState(false)
 
 
 
@@ -33,13 +35,28 @@ export default function Home() {
     const webSectionRef = useRef<HTMLDivElement>(null)
     const finalCtaRef = useRef<HTMLDivElement>(null)
 
-    // Array of sample questions to rotate through
+    // Array of sample questions with corresponding backgrounds
     const sampleQuestions = [
-        "React Hook hoạt động như thế nào?",
-        "Sự khác biệt giữa SQL và NoSQL?",
-        "Cách tối ưu hiệu suất web application?",
-        "Design Pattern nào phổ biến nhất?",
-        "Microservices vs Monolithic là gì?"
+        {
+            text: "React Hook hoạt động như thế nào?",
+            background: "url('/images/topics/topic_react_hooks_1764723105490.png')"
+        },
+        {
+            text: "Sự khác biệt giữa SQL và NoSQL?",
+            background: "url('/images/topics/topic_database_1764723120798.png')"
+        },
+        {
+            text: "Cách tối ưu hiệu suất web application?",
+            background: "url('/images/topics/topic_performance_1764723137954.png')"
+        },
+        {
+            text: "Design Pattern nào phổ biến nhất?",
+            background: "linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%)"
+        },
+        {
+            text: "Microservices vs Monolithic là gì?",
+            background: "linear-gradient(135deg, rgba(20, 184, 166, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%)"
+        }
     ]
 
     const [currentIndex, setCurrentIndex] = useState(0)
@@ -105,7 +122,7 @@ export default function Home() {
     }, [])
 
     useEffect(() => {
-        const fullText = sampleQuestions[currentIndex]
+        const fullText = sampleQuestions[currentIndex].text
 
         if (isTyping && !isDeleting && displayText.length < fullText.length) {
             // Typing forward
@@ -137,17 +154,35 @@ export default function Home() {
 
             return () => clearTimeout(waitTimeout)
         }
-    }, [isTyping, isDeleting, displayText, currentIndex, sampleQuestions])
+    }, [isTyping, isDeleting, displayText, currentIndex])
+
+    // Dynamic background effect based on current question
+    const getCurrentBackground = () => {
+        const currentBg = sampleQuestions[currentIndex].background
+        // If it's an image URL, create layered background with gradient overlay
+        if (currentBg.startsWith('url')) {
+            return `linear-gradient(rgba(34, 190, 238, 0.7), rgba(45, 212, 192, 0.7), rgba(6, 182, 212, 0.7)), ${currentBg}`
+        }
+        // If it's a gradient, layer it with ocean gradient
+        return `linear-gradient(20deg, rgb(34, 190, 238), rgb(45, 212, 192), rgb(6, 182, 212), rgb(34, 211, 238)), ${currentBg}`
+    }
 
 
 
     // Hàm kiểm tra yêu cầu đăng nhập
     const requireLogin = (callback: () => void) => {
         if (!isAuthenticated) {
-            alert('Vui lòng đăng nhập để sử dụng tính năng này!')
+            setShowLoginRequiredModal(true)
             return
         }
         callback()
+    }
+
+    // Handle login from modal
+    const handleLoginFromModal = () => {
+        setShowLoginRequiredModal(false)
+        setAuthModalType('login')
+        setShowAuthModal(true)
     }
 
     return (
@@ -256,12 +291,17 @@ export default function Home() {
             )} */}
 
             {/* Ocean Water Background with underwater light patterns */}
-            <div className="ocean-background">
+            <div className="ocean-background" style={{
+                backgroundImage: getCurrentBackground(),
+                backgroundSize: '400% 400%, cover',
+                backgroundPosition: '0% 50%, center',
+                backgroundBlendMode: 'overlay'
+            }}>
                 {/* Subtle water texture */}
-                <div className="water-texture"></div>
+                <div className="water-texture" style={{ display: 'none' }}></div>
 
                 {/* Underwater light caustics - animated moving light patterns */}
-                <div className="caustics-container">
+                <div className="caustics-container" style={{ display: 'none' }}>
                     <div className="caustic-light-1"></div>
                     <div className="caustic-light-2"></div>
                     <div className="caustic-light-3"></div>
@@ -276,7 +316,7 @@ export default function Home() {
             <header className={`relative header-fade-in ${isVisible ? 'visible' : 'hidden'}`}>
                 {/* Left side - Logo */}
                 <div className="header-logo">
-                    <img src="https://daihoc.fpt.edu.vn/wp-content/uploads/2023/04/cropped-cropped-2021-FPTU-Long.png" alt="Hannah Logo" className="header-logo-image" />
+                    <img src="/images/header/2021-FPTU-Logo.png" alt="FPT University Logo" className="header-logo-image" />
                     <h1 className="header-logo-text">Hannah</h1>
                     <span className="header-logo-tag">AI Assistant</span>
                 </div>
@@ -314,7 +354,7 @@ export default function Home() {
                         <div className={`search-input-wrapper ${isVisible ? 'visible' : ''}`} onClick={() => requireLogin(() => navigate('/learn'))} style={{ cursor: 'pointer' }}>
                             <div className="search-input-container">
                                 <span className="search-input-text">{displayText}</span>
-                                {displayText.length < sampleQuestions[currentIndex].length && isTyping && (
+                                {displayText.length < sampleQuestions[currentIndex].text.length && isTyping && (
                                     <span className="cursor-blink typing">|</span>
                                 )}
                             </div>
@@ -600,6 +640,13 @@ export default function Home() {
                     </div>
                 </div>
             </footer>
+
+            {/* Login Required Modal */}
+            <LoginRequiredModal
+                isOpen={showLoginRequiredModal}
+                onClose={() => setShowLoginRequiredModal(false)}
+                onLogin={handleLoginFromModal}
+            />
 
             {/* Auth Modal */}
             <Auth
