@@ -101,12 +101,50 @@ class ConversationService {
     }
 
     /**
-     * Delete a conversation (soft delete)
+     * Share conversation and get share link
      */
-    async deleteConversation(conversationId: number, userId: number): Promise<void> {
-        await pythonApiClient.delete(
-            `/api/v1/conversations/${conversationId}?user_id=${userId}`
+    async shareConversation(conversationId: number, userId: number, enable: boolean = true): Promise<{
+        conversationId: number;
+        shareToken: string;
+        shareUrl: string;
+        isShared: boolean;
+        sharedAt: string | null;
+    }> {
+        const response = await pythonApiClient.post<BaseResponse<{
+            conversationId: number;
+            shareToken: string;
+            shareUrl: string;
+            isShared: boolean;
+            sharedAt: string | null;
+        }>>(
+            `/api/v1/conversations/${conversationId}/share`,
+            { userId, enable }
         );
+        return response.data.data;
+    }
+
+    /**
+     * Get shared conversation (public, no auth)
+     */
+    async getSharedConversation(shareToken: string): Promise<{
+        conversationId: number;
+        title: string;
+        messageCount: number;
+        createdAt: string;
+        messages: Message[];
+    }> {
+        const response = await pythonApiClient.get<BaseResponse<{
+            conversationId: number;
+            title: string;
+            messageCount: number;
+            createdAt: string;
+            messages: Message[];
+        }>>(
+            `/api/v1/conversations/shared/${shareToken}`,
+            undefined,
+            false // No auth required for shared conversations
+        );
+        return response.data.data;
     }
 }
 

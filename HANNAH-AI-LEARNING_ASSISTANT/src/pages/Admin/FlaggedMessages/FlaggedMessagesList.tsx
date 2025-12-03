@@ -10,29 +10,24 @@ type FilterStatus = 'Pending' | 'Assigned' | 'Resolved';
 const FlaggedMessagesList: React.FC = () => {
     const navigate = useNavigate();
     const [allItems, setAllItems] = useState<FlaggedItem[]>([]);
-    const [flaggedItems, setFlaggedItems] = useState<FlaggedItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('Pending');
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Load all items only once on mount
     useEffect(() => {
         loadFlaggedItems();
-    }, [filterStatus]);
+    }, []);
 
     const loadFlaggedItems = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            // Load all items for counting
+            // Load all items once
             const allItemsData = await flaggingService.getFlaggedMessages();
             setAllItems(allItemsData);
-
-            // Filter items by selected status
-            const items = await flaggingService.getFlaggedMessages(filterStatus);
-
-            setFlaggedItems(items);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load flagged items');
             console.error('Error loading flagged items:', err);
@@ -52,7 +47,20 @@ const FlaggedMessagesList: React.FC = () => {
         return 0;
     };
 
-    const filteredItems = flaggedItems.filter(item =>
+    // Filter by status client-side
+    const statusFilteredItems = allItems.filter(item => {
+        if (filterStatus === 'Pending') {
+            return isPending(item.status || '');
+        } else if (filterStatus === 'Assigned') {
+            return isProcessing(item.status || '');
+        } else if (filterStatus === 'Resolved') {
+            return isResolved(item.status || '');
+        }
+        return false;
+    });
+
+    // Then filter by search query
+    const filteredItems = statusFilteredItems.filter(item =>
         item.reason.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.flaggedByName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.assignedToName?.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -81,11 +89,11 @@ const FlaggedMessagesList: React.FC = () => {
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
-            message: 'Tin nhắn',
+            message: 'Message',
             quiz: 'Quiz',
             flashcard: 'Flashcard',
-            report: 'Báo cáo',
-            mindmap: 'Sơ đồ tư duy'
+            report: 'Report',
+            mindmap: 'Mindmap'
         };
         return labels[type] || type;
     };
@@ -123,12 +131,12 @@ const FlaggedMessagesList: React.FC = () => {
         resolved: getStatusCount('Resolved')
     };
 
-    if (loading && flaggedItems.length === 0) {
+    if (loading && allItems.length === 0) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/30 flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-gray-600 font-medium">Đang tải dữ liệu...</p>
+                    <p className="text-gray-600 font-medium">Loading data...</p>
                 </div>
             </div>
         );
@@ -138,13 +146,10 @@ const FlaggedMessagesList: React.FC = () => {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/30">
             <div className="max-w-[1800px] mx-auto p-6">
                 {/* Page Header */}
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
-                        Quản Lý Nội Dung Được Báo Cáo
+                <div className="mb-6 pb-3 border-b-2 border-gray-200">
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                        Flagged Messages
                     </h1>
-                    <p className="text-gray-600 text-base font-medium">
-                        Xem và quản lý các tin nhắn, quiz, flashcard và nội dung khác được báo cáo bởi học sinh
-                    </p>
                 </div>
 
                 {/* Error Banner */}
@@ -158,19 +163,19 @@ const FlaggedMessagesList: React.FC = () => {
                             onClick={loadFlaggedItems}
                             className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all font-semibold text-sm shadow-md hover:shadow-lg"
                         >
-                            Thử lại
+                            Retry
                         </button>
                     </div>
                 )}
 
-                {/* Stats Grid */}
+                {/* Stats Grid - Display Only */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-default">
                         <div className="flex flex-col items-center text-center">
                             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md shadow-blue-500/20 mb-2 group-hover:scale-110 transition-transform duration-300">
                                 <Flag className="w-5 h-5 text-white" />
                             </div>
-                            <div className="text-xs font-semibold text-gray-600 mb-1">Tổng Báo Cáo</div>
+                            <div className="text-xs font-semibold text-gray-600 mb-1">Total Reports</div>
                             <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
                         </div>
                     </div>
@@ -180,7 +185,7 @@ const FlaggedMessagesList: React.FC = () => {
                             <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center shadow-md shadow-yellow-500/20 mb-2 group-hover:scale-110 transition-transform duration-300">
                                 <Clock className="w-5 h-5 text-white" />
                             </div>
-                            <div className="text-xs font-semibold text-yellow-700 mb-1">Chờ Xử Lý</div>
+                            <div className="text-xs font-semibold text-yellow-700 mb-1">Pending</div>
                             <div className="text-2xl font-bold text-yellow-800">{stats.pending}</div>
                         </div>
                     </div>
@@ -190,7 +195,7 @@ const FlaggedMessagesList: React.FC = () => {
                             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center shadow-md shadow-blue-500/20 mb-2 group-hover:scale-110 transition-transform duration-300">
                                 <User className="w-5 h-5 text-white" />
                             </div>
-                            <div className="text-xs font-semibold text-blue-700 mb-1">Đã Giao</div>
+                            <div className="text-xs font-semibold text-blue-700 mb-1">Assigned</div>
                             <div className="text-2xl font-bold text-blue-800">{stats.assigned}</div>
                         </div>
                     </div>
@@ -200,7 +205,7 @@ const FlaggedMessagesList: React.FC = () => {
                             <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-md shadow-emerald-500/20 mb-2 group-hover:scale-110 transition-transform duration-300">
                                 <CheckCircle className="w-5 h-5 text-white" />
                             </div>
-                            <div className="text-xs font-semibold text-green-700 mb-1">Đã Giải Quyết</div>
+                            <div className="text-xs font-semibold text-green-700 mb-1">Resolved</div>
                             <div className="text-2xl font-bold text-green-800">{stats.resolved}</div>
                         </div>
                     </div>
@@ -215,7 +220,7 @@ const FlaggedMessagesList: React.FC = () => {
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <input
                                     type="text"
-                                    placeholder="Tìm kiếm theo lý do, người báo cáo..."
+                                    placeholder="Search by reason, reporter..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="w-full pl-11 pr-4 py-2.5 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all text-gray-900 placeholder-gray-400 text-sm"
@@ -229,15 +234,15 @@ const FlaggedMessagesList: React.FC = () => {
                                 <button
                                     key={status}
                                     onClick={() => setFilterStatus(status)}
-                                    className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 text-sm ${filterStatus === status
-                                        ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white scale-105'
-                                        : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200'
+                                    className={`min-w-[130px] px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-sm ${filterStatus === status
+                                        ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg'
+                                        : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300'
                                         }`}
                                 >
                                     <span>{status}</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${filterStatus === status
-                                        ? 'bg-white/30 text-white'
-                                        : 'bg-gray-100 text-gray-600'
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold transition-colors duration-200 ${filterStatus === status
+                                        ? 'bg-white/25 text-white'
+                                        : 'bg-gray-100 text-gray-700'
                                         }`}>
                                         {getStatusCount(status)}
                                     </span>
@@ -254,8 +259,8 @@ const FlaggedMessagesList: React.FC = () => {
                             <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Flag className="w-8 h-8 text-gray-400" />
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Không có báo cáo nào</h3>
-                            <p className="text-gray-600 text-sm">Không có báo cáo nào ở trạng thái "{filterStatus}"</p>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">No Reports</h3>
+                            <p className="text-gray-600 text-sm">No reports with status "{filterStatus}"</p>
                         </div>
                     ) : (
                         filteredItems.map((item) => (
@@ -288,7 +293,7 @@ const FlaggedMessagesList: React.FC = () => {
                                             <div className="flex items-center gap-3 text-xs text-gray-600">
                                                 <div className="flex items-center gap-1">
                                                     <User className="w-3.5 h-3.5" />
-                                                    <span className="font-medium">Báo cáo bởi: {item.flaggedByName}</span>
+                                                    <span className="font-medium">Reported by: {item.flaggedByName}</span>
                                                 </div>
                                                 <div className="flex items-center gap-1">
                                                     <Calendar className="w-3.5 h-3.5" />
@@ -301,7 +306,7 @@ const FlaggedMessagesList: React.FC = () => {
 
                                 {/* Card Content */}
                                 <div className="mb-3">
-                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">Lý do báo cáo:</label>
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">Report Reason:</label>
                                     <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-lg p-3 border border-gray-200">
                                         <p className="text-gray-800 leading-relaxed text-sm">
                                             {item.reason.length > 200 ? `${item.reason.substring(0, 200)}...` : item.reason}
@@ -314,7 +319,7 @@ const FlaggedMessagesList: React.FC = () => {
                                     <div className="mb-3 bg-blue-50 border border-blue-200 rounded-lg p-2.5 flex items-center gap-2">
                                         <User className="w-3.5 h-3.5 text-blue-600" />
                                         <span className="text-xs font-semibold text-blue-900">
-                                            Được giao cho: {item.assignedToName}
+                                            Assigned to: {item.assignedToName}
                                         </span>
                                     </div>
                                 )}
@@ -329,7 +334,7 @@ const FlaggedMessagesList: React.FC = () => {
                                         className="px-5 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg transition-all duration-300 font-semibold flex items-center gap-2 shadow-md hover:shadow-lg text-sm"
                                     >
                                         <Eye className="w-4 h-4" />
-                                        Xem Chi Tiết
+                                        View Details
                                     </button>
                                 </div>
                             </div>

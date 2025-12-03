@@ -54,7 +54,7 @@ const FlaggedMessageDetail: React.FC = () => {
                 const foundItem = items.find(i => i.id === Number(id));
 
                 if (!foundItem) {
-                    setError('Không tìm thấy flagged item');
+                    setError('Flagged item not found');
                     return;
                 }
 
@@ -108,7 +108,7 @@ const FlaggedMessageDetail: React.FC = () => {
 
     const handleConfirmAssign = async () => {
         if (!selectedFacultyId || !item) {
-            setAssignError('Vui lòng chọn giảng viên');
+            setAssignError('Please select a faculty member');
             return;
         }
 
@@ -146,11 +146,11 @@ const FlaggedMessageDetail: React.FC = () => {
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
-            message: 'Tin nhắn',
+            message: 'Message',
             quiz: 'Quiz',
             flashcard: 'Flashcard',
-            report: 'Báo cáo',
-            mindmap: 'Sơ đồ tư duy'
+            report: 'Report',
+            mindmap: 'Mindmap'
         };
         return labels[type] || type;
     };
@@ -183,11 +183,11 @@ const FlaggedMessageDetail: React.FC = () => {
 
     const getRoleLabel = (role: string, senderName?: string) => {
         if (role === 'user' || role === 'student') {
-            return senderName || item?.flaggedByName || 'Học sinh';
+            return senderName || item?.flaggedByName || 'Student';
         }
         const labels: Record<string, string> = {
             assistant: 'AI Assistant',
-            faculty: 'Giảng viên'
+            faculty: 'Faculty'
         };
         return labels[role] || role;
     };
@@ -202,7 +202,7 @@ const FlaggedMessageDetail: React.FC = () => {
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/30 flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-gray-600 font-medium">Đang tải...</p>
+                    <p className="text-gray-600 font-medium">Loading...</p>
                 </div>
             </div>
         );
@@ -212,8 +212,8 @@ const FlaggedMessageDetail: React.FC = () => {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/30 p-6 flex items-center justify-center">
                 <div className="text-center bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-xl">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Không tìm thấy</h2>
-                    <p className="text-gray-600 mb-6">{error || 'Không tìm thấy flagged item'}</p>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Not Found</h2>
+                    <p className="text-gray-600 mb-6">{error || 'Flagged item not found'}</p>
                     <button
                         onClick={handleBack}
                         className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold transition-all shadow-md hover:shadow-lg"
@@ -239,7 +239,7 @@ const FlaggedMessageDetail: React.FC = () => {
                             className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-all px-4 py-2.5 hover:bg-blue-50/80 rounded-xl group font-medium"
                         >
                             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                            <span>Quay lại Flagged Messages</span>
+                            <span>Back to Flagged Messages</span>
                         </button>
 
                         {item.status?.toLowerCase() === 'pending' && !showAssignSection && !isFacultyMode && (
@@ -248,7 +248,7 @@ const FlaggedMessageDetail: React.FC = () => {
                                 className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl transition-all duration-200 font-semibold flex items-center gap-2 shadow-md hover:shadow-lg hover:scale-105"
                             >
                                 <UserCheck size={18} />
-                                Giao Cho Giảng Viên
+                                Assign to Faculty
                             </button>
                         )}
 
@@ -259,7 +259,7 @@ const FlaggedMessageDetail: React.FC = () => {
                                 className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl transition-all duration-200 font-semibold flex items-center gap-2 shadow-md hover:shadow-lg hover:scale-105"
                             >
                                 <Check size={18} />
-                                Giải Quyết
+                                Resolve
                             </button>
                         )}
                     </div>
@@ -268,7 +268,7 @@ const FlaggedMessageDetail: React.FC = () => {
                         <div>
                             <div className="flex items-center gap-4">
                                 <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                                    Chi Tiết Báo Cáo - {getTypeLabel(item.type)}
+                                    Report Details - {getTypeLabel(item.type)}
                                 </h1>
                                 <span className={`px-4 py-1.5 rounded-full text-xs font-bold ${statusBadge.bg} ${statusBadge.text} border-2 ${statusBadge.border} shadow-sm`}>
                                     {statusBadge.icon} {item.status}
@@ -281,7 +281,7 @@ const FlaggedMessageDetail: React.FC = () => {
                             </div>
                             <p className="text-sm text-gray-600 mt-2 flex items-center gap-2 font-medium">
                                 <Calendar className="w-4 h-4 text-blue-500" />
-                                Báo cáo: {formatDate(item.flaggedAt)}
+                                Reported: {formatDate(item.flaggedAt)}
                             </p>
                         </div>
                     </div>
@@ -301,7 +301,7 @@ const FlaggedMessageDetail: React.FC = () => {
                                         <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
                                             <UserCheck className="w-6 h-6 text-white" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-gray-900">Giao cho giảng viên</h3>
+                                        <h3 className="text-xl font-bold text-gray-900">Assign to Faculty</h3>
                                     </div>
 
                                     {assignError && (
@@ -313,19 +313,19 @@ const FlaggedMessageDetail: React.FC = () => {
 
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-2">Tìm kiếm giảng viên:</label>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">Search Faculty:</label>
                                             <input
                                                 type="text"
                                                 value={facultySearch}
                                                 onChange={(e) => setFacultySearch(e.target.value)}
-                                                placeholder="Nhập tên hoặc email..."
+                                                placeholder="Enter name or email..."
                                                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all"
                                                 disabled={assignLoading}
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-2">Chọn giảng viên:</label>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">Select Faculty:</label>
                                             <select
                                                 value={selectedFacultyId || ''}
                                                 onChange={(e) => setSelectedFacultyId(Number(e.target.value))}
@@ -333,7 +333,7 @@ const FlaggedMessageDetail: React.FC = () => {
                                                 disabled={assignLoading}
                                                 size={5}
                                             >
-                                                <option value="">-- Chọn giảng viên --</option>
+                                                <option value="">-- Select Faculty --</option>
                                                 {filteredFacultyList.map((faculty) => (
                                                     <option key={faculty.userId} value={faculty.userId}>
                                                         {faculty.fullName} ({faculty.email})
@@ -341,7 +341,7 @@ const FlaggedMessageDetail: React.FC = () => {
                                                 ))}
                                             </select>
                                             {filteredFacultyList.length === 0 && facultySearch && (
-                                                <small className="text-gray-500 mt-2 block">Không tìm thấy giảng viên</small>
+                                                <small className="text-gray-500 mt-2 block">No faculty found</small>
                                             )}
                                         </div>
 
@@ -352,7 +352,7 @@ const FlaggedMessageDetail: React.FC = () => {
                                                 className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl transition-all font-semibold flex items-center justify-center gap-2 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <Check size={18} />
-                                                {assignLoading ? 'Đang giao...' : 'Xác nhận'}
+                                                {assignLoading ? 'Assigning...' : 'Confirm'}
                                             </button>
                                             <button
                                                 onClick={handleCancelAssign}
@@ -377,7 +377,7 @@ const FlaggedMessageDetail: React.FC = () => {
                                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-75"></div>
                                     </div>
                                     <h3 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                                        Lý Do Báo Cáo
+                                        Report Reason
                                     </h3>
                                 </div>
                                 <div className="bg-gradient-to-br from-red-50 via-rose-50/50 to-red-50 border-2 border-red-200/60 rounded-2xl p-7 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-red-300 backdrop-blur-sm">
@@ -396,7 +396,7 @@ const FlaggedMessageDetail: React.FC = () => {
                                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-purple-500 rounded-full animate-ping opacity-75"></div>
                                         </div>
                                         <h3 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                                            Nội Dung Hội Thoại
+                                            Conversation Content
                                         </h3>
                                     </div>
 
@@ -421,7 +421,7 @@ const FlaggedMessageDetail: React.FC = () => {
                                                                     <span className="font-bold text-sm text-gray-900">{getRoleLabel(msg.role, item.flaggedByName)}</span>
                                                                     <span className={`px-3 py-1 text-white text-xs font-bold rounded-full shadow-md ${isStudent ? 'bg-gradient-to-r from-blue-500 to-indigo-600' : 'bg-gradient-to-r from-slate-500 to-slate-600'
                                                                         }`}>
-                                                                        {isStudent ? 'Học sinh' : 'AI'}
+                                                                        {isStudent ? 'Student' : 'AI'}
                                                                     </span>
                                                                 </div>
                                                                 <div className={`rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 ${isFlagged
@@ -434,7 +434,7 @@ const FlaggedMessageDetail: React.FC = () => {
                                                                     {isFlagged && (
                                                                         <div className="mt-4 pt-4 border-t-2 border-red-200 flex items-center gap-2 text-red-700 font-bold">
                                                                             <Flag className="w-5 h-5" />
-                                                                            Tin nhắn được báo cáo
+                                                                            Flagged message
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -454,10 +454,10 @@ const FlaggedMessageDetail: React.FC = () => {
                                                                     <div className="flex items-center gap-3 mb-2">
                                                                         <span className="font-bold text-sm text-gray-900">{item.resolvedByName || 'Faculty'}</span>
                                                                         <span className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-bold rounded-full shadow-md">
-                                                                            Giảng viên
+                                                                            Faculty
                                                                         </span>
                                                                         <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold rounded-full shadow-md">
-                                                                            ĐÃ XỬ LÝ
+                                                                            RESOLVED
                                                                         </span>
                                                                     </div>
                                                                     <div className="bg-gradient-to-br from-emerald-50 via-teal-50/50 to-emerald-50 border-2 border-emerald-300/60 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-emerald-400 backdrop-blur-sm">
@@ -486,7 +486,7 @@ const FlaggedMessageDetail: React.FC = () => {
                                         <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
                                             <MessageSquare className="w-7 h-7 text-white" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-gray-900">Thông Tin Nội Dung</h3>
+                                        <h3 className="text-xl font-bold text-gray-900">Content Information</h3>
                                     </div>
                                     <div className="bg-gradient-to-br from-slate-50 to-purple-50/40 rounded-2xl p-6 border-2 border-gray-200 space-y-3">
                                         <div className="flex items-center justify-between">
@@ -519,7 +519,7 @@ const FlaggedMessageDetail: React.FC = () => {
                             >
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
                             </svg>
-                            {!isSidebarCollapsed && <span className="ml-2 font-bold text-blue-900">Thu gọn</span>}
+                            {!isSidebarCollapsed && <span className="ml-2 font-bold text-blue-900">Collapse</span>}
                         </button>
 
                         {!isSidebarCollapsed && (
@@ -530,15 +530,15 @@ const FlaggedMessageDetail: React.FC = () => {
                                         <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
                                             <User className="w-5 h-5 text-white" />
                                         </div>
-                                        Người Báo Cáo
+                                        Reporter
                                     </h4>
                                     <div className="space-y-3">
                                         <div className="bg-gradient-to-br from-slate-50 to-blue-50/40 rounded-xl p-4 border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg group">
-                                            <p className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Tên</p>
+                                            <p className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Name</p>
                                             <p className="font-bold text-gray-900 text-base group-hover:text-blue-700 transition-colors">{item.flaggedByName}</p>
                                         </div>
                                         <div className="bg-gradient-to-br from-slate-50 to-blue-50/40 rounded-xl p-4 border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg group">
-                                            <p className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Thời gian</p>
+                                            <p className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Time</p>
                                             <p className="font-semibold text-gray-900 text-sm group-hover:text-blue-700 transition-colors">{formatDate(item.flaggedAt)}</p>
                                         </div>
                                     </div>
@@ -551,10 +551,10 @@ const FlaggedMessageDetail: React.FC = () => {
                                             <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
                                                 <UserCheck className="w-5 h-5 text-white" />
                                             </div>
-                                            Được Giao Cho
+                                            Assigned To
                                         </h4>
                                         <div className="bg-gradient-to-br from-slate-50 to-purple-50/40 rounded-xl p-4 border-2 border-gray-200 hover:border-purple-300 transition-all duration-300 hover:shadow-lg group">
-                                            <p className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Giảng viên</p>
+                                            <p className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Faculty</p>
                                             <p className="font-bold text-gray-900 text-base group-hover:text-purple-700 transition-colors">{item.assignedToName}</p>
                                         </div>
                                     </div>
@@ -567,16 +567,16 @@ const FlaggedMessageDetail: React.FC = () => {
                                             <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
                                                 <Check className="w-5 h-5 text-white" />
                                             </div>
-                                            Đã Giải Quyết
+                                            Resolved
                                         </h4>
                                         <div className="space-y-3">
                                             <div className="bg-gradient-to-br from-emerald-50 to-teal-50/40 rounded-xl p-4 border-2 border-green-200 hover:border-green-300 transition-all duration-300 hover:shadow-lg group">
-                                                <p className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Giải quyết bởi</p>
+                                                <p className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Resolved by</p>
                                                 <p className="font-bold text-gray-900 text-base group-hover:text-green-700 transition-colors">{item.resolvedByName}</p>
                                             </div>
                                             {item.resolvedAt && (
                                                 <div className="bg-gradient-to-br from-emerald-50 to-teal-50/40 rounded-xl p-4 border-2 border-green-200 hover:border-green-300 transition-all duration-300 hover:shadow-lg group">
-                                                    <p className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Thời gian</p>
+                                                    <p className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Time</p>
                                                     <p className="font-semibold text-gray-900 text-sm group-hover:text-green-700 transition-colors">{formatDate(item.resolvedAt)}</p>
                                                 </div>
                                             )}
