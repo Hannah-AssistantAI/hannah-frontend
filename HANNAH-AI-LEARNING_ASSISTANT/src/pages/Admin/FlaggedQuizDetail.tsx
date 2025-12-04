@@ -168,26 +168,100 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
                     currentFlag.metadata.attemptId
                   );
                   console.log('✅ Fetched attempt data:', attemptData);
+                  console.log('📋 Attempt questions:', attemptData.questions);
 
                   // Map attempt data to quiz questions
-                  metadata.questions = metadata.questions?.map((q) => {
-                    const attemptQuestion = attemptData.questions.find(
+                  metadata.questions = metadata.questions?.map((q, index) => {
+                    // Try to match by questionId first
+                    let attemptQuestion = attemptData.questions.find(
                       (aq: any) => String(aq.questionId) === String(q.questionId)
                     );
+
+                    // Fallback: match by index if questionId doesn't match
+                    if (!attemptQuestion && attemptData.questions[index]) {
+                      console.log(`⚠️ Fallback to index ${index} for question: ${q.questionId}`);
+                      attemptQuestion = attemptData.questions[index];
+                    }
+
                     if (attemptQuestion) {
+                      console.log(`✅ Q${index + 1}: matched, studentAnswer = ${attemptQuestion.selectedOptionIndex}`);
                       return {
                         ...q,
                         studentAnswer: attemptQuestion.selectedOptionIndex
                       };
                     }
+                    console.log(`❌ Q${index + 1}: no match found`);
                     return q;
                   });
-                  console.log('📊 Merged student answers into questions');
+                  console.log('📊 Final merged questions:', metadata.questions);
                 } catch (attemptErr) {
                   console.error('❌ Error fetching attempt data:', attemptErr);
                 }
               } else {
-                console.log('⚠️ No attemptId found in flag metadata');
+                // No attemptId in metadata - try to find student's latest attempt
+                console.log('⚠️ No attemptId in metadata. Trying to find student attempt...');
+                console.log('📊 Flag details:', {
+                  flaggedById: currentFlag.metadata?.flaggedById,
+                  flaggedByUserId: (currentFlag as any).flaggedByUserId || (currentFlag as any).flaggedById,
+                  flaggedByName: currentFlag.flaggedByName
+                });
+
+                try {
+                  const quizApiService = (await import('../../service/quizApi')).default;
+                  // Get all attempts for this quiz
+                  const attempts = await quizApiService.getQuizAttempts(quizId);
+                  console.log('📋 All quiz attempts:', attempts);
+
+                  if (attempts && attempts.length > 0) {
+                    // Try to find attempt by the student who flagged (if we have userId)
+                    const flaggedByUserId = currentFlag.metadata?.flaggedById
+                      || (currentFlag as any).flaggedByUserId
+                      || (currentFlag as any).flaggedById;
+
+                    let studentAttempt = flaggedByUserId
+                      ? attempts.find((a: any) => a.userId === flaggedByUserId)
+                      : null;
+
+                    // If not found by userId, use the latest attempt
+                    if (!studentAttempt) {
+                      studentAttempt = attempts[0]; // Already sorted by latest first
+                      console.log('⚠️ Using latest attempt as fallback');
+                    }
+
+                    if (studentAttempt) {
+                      console.log('🎯 Found student attempt:', studentAttempt);
+
+                      // Fetch full attempt detail
+                      const attemptData = await quizApiService.getQuizAttemptDetail(
+                        quizId,
+                        studentAttempt.attemptId
+                      );
+                      console.log('✅ Fetched attempt detail:', attemptData);
+
+                      // Map attempt data to quiz questions
+                      metadata.questions = metadata.questions?.map((q, index) => {
+                        let attemptQuestion = attemptData.questions.find(
+                          (aq: any) => String(aq.questionId) === String(q.questionId)
+                        );
+
+                        if (!attemptQuestion && attemptData.questions[index]) {
+                          attemptQuestion = attemptData.questions[index];
+                        }
+
+                        if (attemptQuestion) {
+                          return {
+                            ...q,
+                            studentAnswer: attemptQuestion.selectedOptionIndex
+                          };
+                        }
+                        return q;
+                      });
+                      console.log('📊 Final merged questions:', metadata.questions);
+                    }
+                  }
+                } catch (attemptErr) {
+                  console.error('❌ Error finding student attempt:', attemptErr);
+                }
               }
 
               setQuizMetadata(metadata);
@@ -298,66 +372,107 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
               </div>
             </div>
 
-            {quizMetadata?.questions && quizMetadata.questions.length > 0 && (
-              <div className="border rounded-lg p-5 bg-white shadow-sm">
-                <h2 className="text-lg font-semibold mb-4">Quiz Questions ({quizMetadata.questions.length})</h2>
-                <div className="space-y-4">
-                  {quizMetadata.questions.map((q: QuizQuestion, qi: number) => {
-                    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-                    return (
-                      <div key={qi} className="rounded-lg border border-slate-200 bg-slate-50 overflow-hidden">
-                        <div className="px-4 py-3 flex items-start justify-between border-b text-sm bg-slate-100 border-slate-200">
-                          <div className="font-medium pr-4">Q{qi + 1}. {q.question}</div>
-                        </div>
-                        <ul className="p-4 space-y-2 text-sm">
-                          {q.options.map((opt: string, oi: number) => {
-                            const isCorrect = oi === q.correctAnswer;
-                            const isStudentAnswer = q.studentAnswer !== undefined && oi === q.studentAnswer;
-                            const isStudentCorrect = isStudentAnswer && isCorrect;
-                            const isStudentWrong = isStudentAnswer && !isCorrect;
+            {quizMetadata?.questions && quizMetadata.questions.length > 0 && (() => {
+              const questions = quizMetadata.questions!;
+              // Calculate student score if attempt data is available
+              const hasStudentAnswers = questions.some(q => q.studentAnswer !== undefined && q.studentAnswer !== null);
+              const correctCount = questions.filter(q =>
+                q.studentAnswer !== undefined && q.studentAnswer !== null && q.studentAnswer === q.correctAnswer
+              ).length;
 
-                            // Determine background color
-                            let bgClass = 'border-slate-200 bg-slate-50';
-                            if (isCorrect && !isStudentAnswer) {
-                              bgClass = 'border-green-300 bg-green-50';
-                            } else if (isStudentCorrect) {
-                              bgClass = 'border-blue-300 bg-blue-50';
-                            } else if (isStudentWrong) {
-                              bgClass = 'border-blue-300 bg-blue-50';
-                            }
-
-                            return (
-                              <li
-                                key={oi}
-                                className={`rounded-md border px-3 py-2 flex items-center gap-3 ${bgClass}`}
-                              >
-                                <span className="font-mono text-xs w-5 text-center text-slate-500">{letters[oi]}</span>
-                                <span className="flex-1">{opt}</span>
-                                <div className="flex gap-2">
-                                  {isStudentAnswer && (
-                                    <span className="text-blue-700 text-xs font-semibold">Selected</span>
-                                  )}
-                                  {isCorrect && (
-                                    <span className="text-green-700 text-xs font-semibold">Correct answer</span>
-                                  )}
-                                </div>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                        {q.explanation && (
-                          <div className="px-4 pb-4">
-                            <div className="text-xs text-slate-600">
-                              <span className="font-medium">Explanation:</span> {q.explanation}
-                            </div>
-                          </div>
-                        )}
+              return (
+                <div className="border rounded-lg p-5 bg-white shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold">Quiz Questions ({questions.length})</h2>
+                    {hasStudentAnswers && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">Student Score:</span>
+                        <span className={`px-2 py-1 rounded text-sm font-semibold ${correctCount === questions.length
+                          ? 'bg-green-100 text-green-700'
+                          : correctCount >= questions.length / 2
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-red-100 text-red-700'
+                          }`}>
+                          {correctCount} / {questions.length}
+                        </span>
                       </div>
-                    );
-                  })}
+                    )}
+                    {!hasStudentAnswers && flagData?.metadata?.attemptId && (
+                      <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
+                        Loading student answers...
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-4">
+                    {questions.map((q: QuizQuestion, qi: number) => {
+                      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+                      return (
+                        <div key={qi} className="rounded-lg border border-slate-200 bg-slate-50 overflow-hidden">
+                          <div className="px-4 py-3 flex items-start justify-between border-b text-sm bg-slate-100 border-slate-200">
+                            <div className="font-medium pr-4">Q{qi + 1}. {q.question}</div>
+                          </div>
+                          <ul className="p-4 space-y-2 text-sm">
+                            {q.options.map((opt: string, oi: number) => {
+                              const isCorrect = oi === q.correctAnswer;
+                              const isStudentAnswer = q.studentAnswer !== undefined && q.studentAnswer !== null && oi === q.studentAnswer;
+                              const isStudentCorrect = isStudentAnswer && isCorrect;
+                              const isStudentWrong = isStudentAnswer && !isCorrect;
+
+                              // Determine background color
+                              let bgClass = 'border-slate-200 bg-white';
+                              if (isStudentCorrect) {
+                                // Student selected correct answer - blue with green accent
+                                bgClass = 'border-green-400 bg-green-50';
+                              } else if (isStudentWrong) {
+                                // Student selected wrong answer - red background
+                                bgClass = 'border-red-400 bg-red-50';
+                              } else if (isCorrect) {
+                                // Correct answer (not selected by student) - green background
+                                bgClass = 'border-green-300 bg-green-50';
+                              }
+
+                              return (
+                                <li
+                                  key={oi}
+                                  className={`rounded-md border px-3 py-2 flex items-center gap-3 ${bgClass}`}
+                                >
+                                  <span className="font-mono text-xs w-5 text-center text-slate-500">{letters[oi]}</span>
+                                  <span className="flex-1">{opt}</span>
+                                  <div className="flex gap-2 items-center">
+                                    {isStudentWrong && (
+                                      <span className="text-red-600 text-xs font-semibold flex items-center gap-1">
+                                        <span>✗</span> Student's answer
+                                      </span>
+                                    )}
+                                    {isStudentCorrect && (
+                                      <span className="text-green-600 text-xs font-semibold flex items-center gap-1">
+                                        <span>✓</span> Student's answer (Correct)
+                                      </span>
+                                    )}
+                                    {isCorrect && !isStudentAnswer && (
+                                      <span className="text-green-700 text-xs font-semibold flex items-center gap-1">
+                                        <span>✓</span> Correct answer
+                                      </span>
+                                    )}
+                                  </div>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                          {q.explanation && (
+                            <div className="px-4 pb-4">
+                              <div className="text-xs text-slate-600">
+                                <span className="font-medium">Explanation:</span> {q.explanation}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {(!quizMetadata?.questions || quizMetadata.questions.length === 0) && (
               <div className="border rounded-lg p-5 bg-white shadow-sm text-center text-slate-500">
