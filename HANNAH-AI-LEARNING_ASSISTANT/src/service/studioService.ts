@@ -44,11 +44,21 @@ export interface GenerateFlashcardRequest {
     sourceDocumentIds?: number[];
 }
 
+export interface GenerateRoadmapRequest {
+    conversationId: number;
+    title: string;
+    topic?: string;
+    sourceType?: 'conversation' | 'documents' | 'hybrid';
+    sourceSubjectIds?: number[];
+    sourceDocumentIds?: number[];
+}
+
 export interface StudioGenerationResponse {
     quizId?: number;
     mindmapId?: number;
     reportId?: number;
     flashcardSetId?: number;
+    roadmapId?: string;
     content?: string;
     [key: string]: any;
 }
@@ -81,6 +91,12 @@ export interface FlashcardContent {
     cards: Array<{ front: string; back: string }>;
 }
 
+export interface RoadmapContent {
+    roadmapId: string;
+    title: string;
+    content: string;
+}
+
 // --- Service ---
 
 class StudioService {
@@ -105,6 +121,10 @@ class StudioService {
         return pythonApiClient.post<StudioGenerationResponse>('/api/v1/studio/flashcard/generate', data);
     }
 
+    async generateRoadmap(data: GenerateRoadmapRequest) {
+        return pythonApiClient.post<StudioGenerationResponse>('/api/v1/studio/roadmap/generate', data);
+    }
+
     // --- Content Retrieval ---
     // Python Backend endpoints: GET /api/v1/studio/{type}/{id}/content
 
@@ -123,6 +143,10 @@ class StudioService {
 
     async getFlashcardContent(id: string) {
         return pythonApiClient.get<StudioGenerationResponse>(`/api/v1/studio/flashcard/${id}/content`);
+    }
+
+    async getRoadmapContent(id: string) {
+        return pythonApiClient.get<StudioGenerationResponse>(`/api/v1/studio/roadmap/${id}/content`);
     }
 
     async submitQuiz(quizId: string, answers: Array<{ questionId: number, selectedAnswer: string, timeSpentSeconds?: number }>) {
@@ -157,6 +181,11 @@ class StudioService {
         return pythonApiClient.get<any>('/api/v1/studio/reports', params);
     }
 
+    async listRoadmaps(conversationId?: number) {
+        const params = conversationId ? { conversation_id: conversationId } : {};
+        return pythonApiClient.get<any>('/api/v1/studio/roadmaps', params);
+    }
+
     // --- Delete Methods ---
     // Unified delete endpoint: DELETE /api/v1/studio/{item_type}/{item_id}
 
@@ -174,6 +203,10 @@ class StudioService {
 
     async deleteReport(reportId: string) {
         return pythonApiClient.delete(`/api/v1/studio/report/${reportId}`);
+    }
+
+    async deleteRoadmap(roadmapId: string) {
+        return pythonApiClient.delete(`/api/v1/studio/roadmap/${roadmapId}`);
     }
 
     // Generic delete method (if you prefer)

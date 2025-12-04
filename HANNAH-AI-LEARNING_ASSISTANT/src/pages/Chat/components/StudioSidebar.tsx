@@ -1,5 +1,5 @@
 import React from 'react'
-import { Wand2, PanelRight, PanelRightClose, Pencil, Loader2, MoreVertical, Trash2, GitBranch, FileText, StickyNote, ClipboardCheck, Flag } from 'lucide-react'
+import { Wand2, PanelRight, PanelRightClose, Pencil, Loader2, MoreVertical, Trash2, GitBranch, FileText, StickyNote, ClipboardCheck, Flag, Map } from 'lucide-react'
 import type { StudioItem, StudioFeature } from '../types'
 
 interface StudioSidebarProps {
@@ -7,8 +7,8 @@ interface StudioSidebarProps {
     onToggle: () => void
     items: StudioItem[]
     features: StudioFeature[]
-    onFeatureClick: (type: 'mindmap' | 'report' | 'notecard' | 'quiz', title: string) => void
-    onEditFeature: (type: 'mindmap' | 'notecard' | 'quiz') => void
+    onFeatureClick: (type: 'mindmap' | 'report' | 'notecard' | 'quiz' | 'roadmap', title: string) => void
+    onEditFeature: (type: 'mindmap' | 'notecard' | 'quiz' | 'roadmap') => void
     onItemClick: (item: StudioItem) => void
     onDeleteItem: (itemId: string) => void
     onFlagItem: (itemId: string) => void
@@ -35,6 +35,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
             case 'report': return FileText
             case 'notecard': return StickyNote
             case 'quiz': return ClipboardCheck
+            case 'roadmap': return Map
             default: return FileText
         }
     }
@@ -65,7 +66,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                                     onClick={() => onFeatureClick(feature.type, feature.title)}
                                     title={feature.note}
                                 >
-                                    {feature.type !== 'report' && (
+                                    {feature.type !== 'report' && feature.type !== 'roadmap' && (
                                         <div
                                             className="studio-feature-edit-btn"
                                             onClick={(e) => {
@@ -78,7 +79,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                                                 if (e.key === 'Enter' || e.key === ' ') {
                                                     e.preventDefault()
                                                     e.stopPropagation()
-                                                    onEditFeature(feature.type as 'mindmap' | 'notecard' | 'quiz')
+                                                    onEditFeature(feature.type as 'mindmap' | 'notecard' | 'quiz' | 'roadmap')
                                                 }
                                             }}
                                             aria-label="Edit feature"
