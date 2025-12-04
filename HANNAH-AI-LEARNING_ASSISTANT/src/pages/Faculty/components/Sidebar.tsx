@@ -52,13 +52,6 @@ const FacultySidebarContent: React.FC<FacultySidebarContentProps> = ({
       icon: MessageSquare,
     },
     {
-      path: "/faculty/my-assignments",
-      label: "My Assignments",
-      badge: null,
-      description: "Flagged items assigned to you",
-      icon: ClipboardList,
-    },
-    {
       path: "/faculty/materials",
       label: "Learning Materials",
       badge: null,
