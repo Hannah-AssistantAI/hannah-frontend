@@ -5,7 +5,7 @@ import type { Subject } from '../../../../service/subjectService'
 interface CustomizeFeatureModalProps {
     isOpen: boolean
     onClose: () => void
-    featureType: 'mindmap' | 'notecard' | 'quiz' | null
+    featureType: 'mindmap' | 'notecard' | 'quiz' | 'roadmap' | null
     onSubmit: (data: any) => void
     subjects: Subject[]
 }
@@ -36,6 +36,8 @@ export const CustomizeFeatureModal: React.FC<CustomizeFeatureModalProps> = ({
                 return 'Thẻ ghi nhớ'
             case 'quiz':
                 return 'Bài kiểm tra'
+            case 'roadmap':
+                return 'Tư vấn lộ trình'
             default:
                 return 'Tính năng'
         }

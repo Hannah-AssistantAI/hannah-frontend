@@ -110,7 +110,8 @@ export default function Chat() {
             const featureTitles = {
                 'mindmap': 'Bản đồ tư duy',
                 'notecard': 'Thẻ ghi nhớ',
-                'quiz': 'Bài kiểm tra'
+                'quiz': 'Bài kiểm tra',
+                'roadmap': 'Tư vấn lộ trình'
             }
 
             const options = {
@@ -342,7 +343,7 @@ export default function Chat() {
                     items={studio.studioItems}
                     features={studioFeatures}
                     onFeatureClick={studio.handleStudioFeatureClick}
-                    onEditFeature={(type: 'mindmap' | 'notecard' | 'quiz') => {
+                    onEditFeature={(type: 'mindmap' | 'notecard' | 'quiz' | 'roadmap') => {
                         studio.setSelectedFeatureType(type)
                         studio.setShowCustomizeModal(true)
                     }}

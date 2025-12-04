@@ -95,6 +95,7 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
 
       if (currentFlag) {
         console.log('🐛 DEBUG: currentFlag.metadata =', currentFlag.metadata);
+        console.log('🐛 DEBUG: Full metadata JSON:', JSON.stringify(currentFlag.metadata, null, 2));
 
         // Fetch quiz data from Python API
         const quizId = currentFlag.metadata?.quizId || currentFlag.contentId;
@@ -171,7 +172,7 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
                   // Map attempt data to quiz questions
                   metadata.questions = metadata.questions?.map((q) => {
                     const attemptQuestion = attemptData.questions.find(
-                      (aq: any) => aq.questionId === q.questionId
+                      (aq: any) => String(aq.questionId) === String(q.questionId)
                     );
                     if (attemptQuestion) {
                       return {
@@ -252,8 +253,8 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
           <button onClick={() => navigate(-1)} className="text-sm text-blue-600 hover:underline">← Back</button>
           {flagData && (
             <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${flagData.status?.toLowerCase() === 'pending' ? 'bg-amber-100 text-amber-800' :
-                flagData.status?.toLowerCase() === 'assigned' ? 'bg-blue-100 text-blue-800' :
-                  'bg-green-100 text-green-700'
+              flagData.status?.toLowerCase() === 'assigned' ? 'bg-blue-100 text-blue-800' :
+                'bg-green-100 text-green-700'
               }`}>
               {flagData.status?.toLowerCase() === 'pending' ? 'Pending Review' :
                 flagData.status?.toLowerCase() === 'assigned' ? 'Processing' :
