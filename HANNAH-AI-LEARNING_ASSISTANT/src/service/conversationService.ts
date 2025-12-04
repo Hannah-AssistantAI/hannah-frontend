@@ -101,6 +101,15 @@ class ConversationService {
     }
 
     /**
+     * Delete a conversation
+     */
+    async deleteConversation(conversationId: number, userId: number): Promise<void> {
+        await pythonApiClient.delete(
+            `/api/v1/conversations/${conversationId}?user_id=${userId}`
+        );
+    }
+
+    /**
      * Share conversation and get share link
      */
     async shareConversation(conversationId: number, userId: number, enable: boolean = true): Promise<{

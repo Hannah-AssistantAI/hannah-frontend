@@ -57,26 +57,18 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
         onClose();
     };
 
-    const handleNewChat = async () => {
-        if (!user?.userId) {
-            console.error('User not logged in');
-            return;
-        }
-
-        try {
-            // Create empty conversation
-            const newConversation = await conversationService.createConversation({
-                userId: user.userId,
-                title: "Cuộc trò chuyện mới",
-                subjectId: undefined
-            });
-
-            // Navigate to chat with the new conversation ID (no query, just empty chat)
-            navigate("/chat", { state: { conversationId: newConversation.conversationId } });
-            onClose();
-        } catch (error) {
-            console.error('Failed to create new conversation:', error);
-        }
+    const handleNewChat = () => {
+        // Navigate to empty chat state - conversation will be created lazily when user sends first message
+        // This saves database resources by not creating empty conversations
+        navigate("/chat", {
+            replace: true,
+            state: {
+                conversationId: null,
+                query: null,
+                timestamp: Date.now() // Force re-render
+            }
+        });
+        onClose();
     };
 
     const handleDeleteConversation = async (conversationId: number, e: React.MouseEvent) => {
@@ -103,16 +95,10 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
                 (c.conversationId && c.conversationId !== conversationId)
             ));
 
-            // If deleting the currently active conversation, navigate to empty chat
+            // If deleting the currently active conversation, trigger "New Chat" logic
+            // This ensures no new conversation is created until user sends a message
             if (conversationId === currentConversationId) {
-                // Navigate with preventAutoSend flag to block auto-send
-                navigate('/chat', {
-                    replace: true,  // Don't keep in history
-                    state: {
-                        preventAutoSend: true,  // Block auto-send
-                        timestamp: Date.now()    // Force re-render
-                    }
-                });
+                handleNewChat();
             }
         } catch (error) {
             console.error('Failed to delete conversation:', error);

@@ -20,8 +20,7 @@ import FacultyLayout from './pages/Faculty/FacultyLayout'
 import FAQManagement from './pages/Faculty/FAQ/FAQManagement'
 import QuestionAnalytics from './pages/Faculty/QuestionAnalytics/QuestionAnalytics'
 import QuestionStatistics from './pages/Faculty/QuestionStatistics/QuestionStatistics'
-import ConversationMonitoring from './pages/Faculty/ConversationMonitoring/ConversationMonitoring'
-import ConversationDetail from './pages/Faculty/ConversationMonitoring/ConversationDetail'
+
 import MaterialsLayout from './pages/Faculty/MaterialsManagement/MaterialsLayout'
 import OutcomesManagement from './pages/Faculty/MaterialsManagement/OutcomesManagement'
 import ChallengesManagement from './pages/Faculty/MaterialsManagement/ChallengesManagement'
@@ -109,8 +108,7 @@ function App() {
           <Route path="/faculty" element={<FacultyLayout />}>
             <Route index element={<FAQManagement />} />
             <Route path="faq" element={<FAQManagement />} />
-            <Route path="conversations" element={<ConversationMonitoring />} />
-            <Route path="conversations/:id" element={<ConversationDetail />} />
+
             <Route path="materials" element={<MaterialsLayout />}>
               <Route index element={<DocumentsManagement />} />
               <Route path="documents" element={<DocumentsManagement />} />

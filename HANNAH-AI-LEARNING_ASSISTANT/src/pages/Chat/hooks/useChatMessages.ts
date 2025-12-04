@@ -207,10 +207,21 @@ export const useChatMessages = ({
 
     // Update conversationId when location state changes
     useEffect(() => {
+        // Check if we have a timestamp (indicates intentional navigation, e.g., from New Chat or delete)
+        const isIntentionalNavigation = locationState?.timestamp !== undefined;
+
         if (locationState?.conversationId) {
             setConversationId(locationState.conversationId);
+        } else if (isIntentionalNavigation && locationState?.conversationId === null) {
+            // ✅ Reset state when navigating to New Chat (conversationId explicitly set to null)
+            console.log('🧹 Resetting chat state for New Chat');
+            setConversationId(null);
+            setMessages([]);
+            setBigPictureData([]);
+            setSubjectId(null);
+            hasAutoSentRef.current = false; // Allow auto-send for next conversation
         } else if (locationState?.preventAutoSend) {
-            // ✅ Reset state when navigating with preventAutoSend flag (e.g. after delete)
+            // Legacy support: Reset state when navigating with preventAutoSend flag
             console.log('🧹 Resetting chat state due to preventAutoSend flag');
             setConversationId(null);
             setMessages([]);
