@@ -149,12 +149,15 @@
     resize: vertical;
     transition: all 0.2s;
     margin-bottom: 16px;
+    color: #111827;  /* Ensure text is dark/visible */
+    background: white;
 }
 
 .flag-custom-reason:focus {
     outline: none;
     border-color: #dc2626;
     background: #fef2f2;
+    color: #111827;  /* Keep text dark when focused */
 }
 
 .flag-custom-reason:disabled {
