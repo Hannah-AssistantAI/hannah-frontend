@@ -69,6 +69,10 @@ const FacultySidebarContent: React.FC<FacultySidebarContentProps> = ({
       badge: null,
       description: "Review flagged content assigned to you",
       icon: Flag,
+      subItems: [
+        { path: "/faculty/assigned-flags/messages", label: "Flagged Messages" },
+        { path: "/faculty/assigned-flags/quizzes", label: "Flagged Quizzes" }
+      ]
     },
     // {
     //   path: "/faculty/questions",

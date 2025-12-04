@@ -58,9 +58,13 @@ export const Header: React.FC<HeaderProps> = ({
                     <span className="app-logo-text">Hannah Assistant</span>
                 </div>
                 <img
-                    src="https://daihoc.fpt.edu.vn/wp-content/uploads/2023/04/cropped-cropped-2021-FPTU-Long.png"
-                    alt="Hannah Logo"
+                    src="/images/header/2021-FPTU-Logo.png"
+                    alt="FPT University Logo"
                     className="header-logo-image"
+                    onError={(e) => {
+                        console.error('Logo failed to load:', e);
+                        e.currentTarget.style.display = 'none';
+                    }}
                 />
             </div>
             <div className="app-header-right">

@@ -1,7 +1,7 @@
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuth } from './contexts/AuthContext';
-import { Toaster } from 'react-hot-toast'
+import CustomToast from './components/CustomToast';
 
 import ThemedPage from './components/ThemedPage'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -36,8 +36,8 @@ import QuizDetail from './pages/Faculty/QuestionAnalytics/QuizDetail'
 import FlaggedQuizzes from './pages/Admin/FlaggedQuizzes'
 import FlaggedQuizDetail from './pages/Admin/FlaggedQuizDetail'
 import { FlaggedMessagesList, FlaggedMessageDetail } from './pages/Admin/FlaggedMessages'
-import { AssignedFlagsList } from './pages/Faculty/AssignedFlags'
-import FacultyFlaggedQuizDetail from './pages/Faculty/AssignedFlags/FlaggedQuizDetail'
+import { AssignedFlagsList, AssignedMessages, AssignedQuizzes } from './pages/Faculty/AssignedFlags'
+import AssignedFlagDetailRouter from './pages/Faculty/AssignedFlags/AssignedFlagDetailRouter'
 
 const AuthRedirectHandler = () => {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -68,45 +68,7 @@ function App() {
   return (
     <>
       <AuthRedirectHandler />
-      <Toaster
-        position="top-right"
-        reverseOrder={false}
-        gutter={8}
-        toastOptions={{
-          // Default options
-          duration: 3000,
-          style: {
-            padding: '16px',
-            borderRadius: '10px',
-            fontSize: '15px',
-            fontWeight: '500',
-          },
-          // Success - Màu xanh lá
-          success: {
-            duration: 3000,
-            style: {
-              background: '#10b981',
-              color: '#fff',
-            },
-            iconTheme: {
-              primary: '#fff',
-              secondary: '#10b981',
-            },
-          },
-          // Error - Màu đỏ
-          error: {
-            duration: 4000,
-            style: {
-              background: '#ef4444',
-              color: '#fff',
-            },
-            iconTheme: {
-              primary: '#fff',
-              secondary: '#ef4444',
-            },
-          },
-        }}
-      />
+      <CustomToast />
       <Routes>
         <Route path="/" element={<Home />} />
 
@@ -162,8 +124,9 @@ function App() {
             <Route path="analytics/quiz/:quizId/attempt/:id" element={<QuizAttemptDetail />} />
             <Route path="questions" element={<QuestionStatistics />} />
             <Route path="assigned-flags" element={<AssignedFlagsList />} />
-
-            <Route path="assigned-flags/:id" element={<FacultyFlaggedQuizDetail />} />
+            <Route path="assigned-flags/messages" element={<AssignedMessages />} />
+            <Route path="assigned-flags/quizzes" element={<AssignedQuizzes />} />
+            <Route path="assigned-flags/:id" element={<AssignedFlagDetailRouter />} />
 
             <Route path="profile" element={<Profile embedded={true} />} />
           </Route>
