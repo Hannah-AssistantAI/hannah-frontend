@@ -139,19 +139,3 @@ export interface Semester {
   name: string;
 }
 
-export interface CustomMessage {
-  id: string;
-  conversationId: string;
-  facultyId: number;
-  facultyName: string;
-  facultyEmail: string;
-  originalMessage: string;
-  customizedMessage: string;
-  studentQuestion: string;
-  context: string;
-  status: 'pending' | 'approved' | 'rejected';
-  submittedAt: string;
-  reviewedAt?: string;
-  reviewedBy?: string;
-  rejectionReason?: string;
-}

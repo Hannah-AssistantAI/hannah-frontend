@@ -15,8 +15,7 @@ import UserManagement from './pages/Admin/UserManagement/UserManagement'
 import APIKeys from './pages/Admin/SystemMonitoring/APIKeys/APIKeys'
 import CourseManagement from './pages/Admin/CourseManagement/CourseManagement'
 import CourseDetail from './pages/Admin/CourseManagement/CourseDetail'
-import CustomMessages from './pages/Admin/CustomMessages/CustomMessages'
-import CustomMessageDetail from './pages/Admin/CustomMessages/CustomMessageDetail'
+
 import FacultyLayout from './pages/Faculty/FacultyLayout'
 import FAQManagement from './pages/Faculty/FAQ/FAQManagement'
 import QuestionAnalytics from './pages/Faculty/QuestionAnalytics/QuestionAnalytics'
@@ -88,8 +87,7 @@ function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<UserManagement />} />
             <Route path="user-management" element={<UserManagement />} />
-            <Route path="custom-messages" element={<CustomMessages />} />
-            <Route path="custom-messages/:id" element={<CustomMessageDetail />} />
+
             <Route path="system-monitoring/usage" element={<SystemMonitoring />} />
             <Route path="system-monitoring/api-keys" element={<APIKeys />} />
             <Route path="system-settings" element={<SystemMonitoring />} />

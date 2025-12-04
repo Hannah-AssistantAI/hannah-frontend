@@ -49,14 +49,6 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ isCollapsed =
         {!isCollapsed && <span className="sidebar-label">User Management</span>}
       </NavLink>
       <NavLink
-        to="/admin/custom-messages"
-        className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
-        title={isCollapsed ? "Custom Messages" : ""}
-      >
-        <MessageSquare size={20} />
-        {!isCollapsed && <span className="sidebar-label">Custom Messages</span>}
-      </NavLink>
-      <NavLink
         to="/admin/flagged-quizzes"
         className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
         title={isCollapsed ? "Flagged Quizzes" : ""}
