@@ -45,6 +45,13 @@ const FacultySidebarContent: React.FC<FacultySidebarContentProps> = ({
       icon: HelpCircle
     },
     {
+      path: "/faculty/conversations",
+      label: "Monitor Conversations",
+      badge: flaggedConversationsCount > 0 ? flaggedConversationsCount : null,
+      description: "Conversations requiring review",
+      icon: MessageSquare,
+    },
+    {
       path: "/faculty/materials",
       label: "Learning Materials",
       badge: null,

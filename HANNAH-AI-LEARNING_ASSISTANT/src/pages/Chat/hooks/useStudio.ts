@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { studioService } from '../../../service/studioService'
 import type { StudioItem } from '../types'
+import { mockRoadmapContent } from '../../../data/mockData'
 
 export const useStudio = (conversationId: number | null) => {
     const [isStudioOpen, setIsStudioOpen] = useState(true)
     const [studioItems, setStudioItems] = useState<StudioItem[]>([])
     const [isLoadingContent, setIsLoadingContent] = useState(false)
-    const [selectedFeatureType, setSelectedFeatureType] = useState<'mindmap' | 'notecard' | 'quiz' | null>(null)
+    const [selectedFeatureType, setSelectedFeatureType] = useState<'mindmap' | 'notecard' | 'quiz' | 'roadmap' | null>(null)
 
     // Modal States
     const [showReportModal, setShowReportModal] = useState(false)
@@ -17,6 +18,7 @@ export const useStudio = (conversationId: number | null) => {
     const [showQuizSideModal, setShowQuizSideModal] = useState(false)
     const [showCustomizeModal, setShowCustomizeModal] = useState(false)
     const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
+    const [showRoadmapModal, setShowRoadmapModal] = useState(false)
     const [itemToDelete, setItemToDelete] = useState<string | null>(null)
 
     // Content States
@@ -24,11 +26,13 @@ export const useStudio = (conversationId: number | null) => {
     const [selectedNotecardId, setSelectedNotecardId] = useState<string | null>(null)
     const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null)
     const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
+    const [selectedRoadmapId, setSelectedRoadmapId] = useState<string | null>(null)
 
     const [mindmapContent, setMindmapContent] = useState<any>(null)
     const [reportContent, setReportContent] = useState<any>(null)
     const [quizContent, setQuizContent] = useState<any>(null)
     const [flashcardContent, setFlashcardContent] = useState<any>(null)
+    const [roadmapContent, setRoadmapContent] = useState<any>(null)
 
     // Fetch studio items when conversationId changes
     useEffect(() => {
@@ -49,7 +53,10 @@ export const useStudio = (conversationId: number | null) => {
                     studioService.listQuizzes(conversationId).catch(() => ({ data: { data: [] } })),
                     studioService.listFlashcards(conversationId).catch(() => ({ data: { data: [] } })),
                     studioService.listReports(conversationId).catch(() => ({ data: { data: [] } })),
+                    // ROADMAP API DISABLED - UI only
+                    // studioService.listRoadmaps(conversationId).catch(() => ({ data: { data: [] } })),
                 ]);
+                const roadmapsRes = { data: { data: [] } }; // Mock empty roadmap list
 
                 // Transform backend data to StudioItem format
                 const items: StudioItem[] = [];
@@ -119,6 +126,19 @@ export const useStudio = (conversationId: number | null) => {
                     })));
                 }
 
+                // Add roadmaps
+                if (roadmapsRes.data && roadmapsRes.data.data) {
+                    items.push(...roadmapsRes.data.data.map((rm: any) => ({
+                        id: `roadmap-${rm.roadmapId}`,
+                        type: 'roadmap' as const,
+                        title: rm.title,
+                        subtitle: 'Lộ trình học tập',
+                        status: 'completed' as const,
+                        timestamp: rm.generatedAt,
+                        content: null
+                    })));
+                }
+
                 // Sort by timestamp (newest first) and set state
                 items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
                 setStudioItems(items);
@@ -133,7 +153,7 @@ export const useStudio = (conversationId: number | null) => {
     }, [conversationId]); // Re-fetch when conversationId changes
 
     const createStudioItem = async (
-        type: 'mindmap' | 'report' | 'notecard' | 'quiz',
+        type: 'mindmap' | 'report' | 'notecard' | 'quiz' | 'roadmap',
         title: string,
         options?: {
             quantity?: number;
@@ -249,6 +269,27 @@ export const useStudio = (conversationId: number | null) => {
                         sourceDocumentIds: sourceDocumentIds
                     });
                     break;
+                case 'roadmap':
+                    // ROADMAP API DISABLED - UI only with mock data
+                    // response = await studioService.generateRoadmap({
+                    //     conversationId,
+                    //     title: effectiveTitle,
+                    //     topic: generationContext || effectiveTitle,
+                    //     sourceType,
+                    //     sourceSubjectIds: options?.sourceSubjectIds,
+                    //     sourceDocumentIds: sourceDocumentIds
+                    // });
+                    // Simulate API response with mock data
+                    response = {
+                        data: {
+                            data: {
+                                roadmapId: `mock-${Date.now()}`,
+                                title: effectiveTitle,
+                                content: mockRoadmapContent.content
+                            }
+                        }
+                    };
+                    break;
             }
 
             console.log('=== STUDIO API RESPONSE ===');
@@ -266,6 +307,7 @@ export const useStudio = (conversationId: number | null) => {
                     responseData.reportId ||
                     responseData.quizId ||
                     responseData.flashcardSetId ||
+                    responseData.roadmapId ||
                     tempId;
 
                 // Add type prefix to ID to ensure uniqueness across different item types
@@ -378,6 +420,21 @@ export const useStudio = (conversationId: number | null) => {
                 const response = await studioService.getReportContent(numericId);
                 if (response.data) setReportContent(response.data.data);
                 setShowReportModal(true);
+            } else if (item.type === 'roadmap') {
+                setSelectedRoadmapId(item.id);
+                
+                // Use cached content if available
+                if (item.content) {
+                    console.log('Using cached roadmap content:', item.content);
+                    setRoadmapContent(item.content);
+                } else {
+                    // ROADMAP API DISABLED - UI only with mock data
+                    console.log('Loading mock roadmap content');
+                    // const response = await studioService.getRoadmapContent(numericId);
+                    // if (response.data) setRoadmapContent(response.data.data || response.data);
+                    setRoadmapContent(mockRoadmapContent);
+                }
+                setShowRoadmapModal(true);
             }
         } catch (error) {
             console.error("Failed to load content:", error);
@@ -399,7 +456,7 @@ export const useStudio = (conversationId: number | null) => {
         setShowReportFormatModal(false)
     }
 
-    const handleStudioFeatureClick = (type: 'mindmap' | 'report' | 'notecard' | 'quiz', title: string) => {
+    const handleStudioFeatureClick = (type: 'mindmap' | 'report' | 'notecard' | 'quiz' | 'roadmap', title: string) => {
         if (type === 'report') {
             setShowReportFormatModal(true)
         } else {
@@ -434,6 +491,9 @@ export const useStudio = (conversationId: number | null) => {
                     break;
                 case 'report':
                     await studioService.deleteReport(actualId); // Report uses string ID
+                    break;
+                case 'roadmap':
+                    await studioService.deleteRoadmap(actualId); // Roadmap uses string ID
                     break;
                 default:
                     console.error(`Unknown item type: ${itemType}`);
@@ -504,6 +564,10 @@ export const useStudio = (conversationId: number | null) => {
         showDeleteConfirmModal,
         setShowDeleteConfirmModal,
         itemToDelete,
-        confirmDeleteItem
+        confirmDeleteItem,
+        showRoadmapModal,
+        setShowRoadmapModal,
+        selectedRoadmapId,
+        roadmapContent
     }
 }

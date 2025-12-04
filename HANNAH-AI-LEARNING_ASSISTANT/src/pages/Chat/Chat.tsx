@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Send, Upload, GitBranch, FileText, ClipboardCheck, StickyNote } from 'lucide-react'
+import { Send, Upload, GitBranch, FileText, ClipboardCheck, StickyNote, Map } from 'lucide-react'
 import subjectService, { type Subject } from '../../service/subjectService'
 import flaggingService from '../../service/flaggingService'
 import { useStudio } from './hooks/useStudio'
@@ -15,6 +15,7 @@ import { CustomizeFeatureModal } from './components/modals/CustomizeFeatureModal
 import { ShareModal } from './components/modals/ShareModal'
 import { FlagMessageModal } from './components/modals/FlagMessageModal'
 import { FlagQuizModal } from './components/modals/FlagQuizModal'
+import { RoadmapModal } from './components/modals/RoadmapModal'
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal'
 import { BigPictureSidebar } from './components/BigPictureSidebar'
 import { StudioSidebar } from './components/StudioSidebar'
@@ -83,7 +84,8 @@ export default function Chat() {
         { icon: GitBranch, title: 'Bản đồ tư duy', description: 'Mind map', type: 'mindmap' as const, note: 'Tạo bản đồ tư duy dựa vào nội dung cuộc trò chuyện' },
         { icon: FileText, title: 'Báo cáo', description: 'Report', type: 'report' as const, note: 'Tạo báo cáo dựa vào nội dung cuộc trò chuyện' },
         { icon: StickyNote, title: 'Thẻ ghi nhớ', description: 'Note cards', type: 'notecard' as const, note: 'Tạo thẻ ghi nhớ dựa vào nội dung cuộc trò chuyện' },
-        { icon: ClipboardCheck, title: 'Bài kiểm tra', description: 'Quiz', type: 'quiz' as const, note: 'Tạo bài kiểm tra dựa vào nội dung cuộc trò chuyện' }
+        { icon: ClipboardCheck, title: 'Bài kiểm tra', description: 'Quiz', type: 'quiz' as const, note: 'Tạo bài kiểm tra dựa vào nội dung cuộc trò chuyện' },
+        { icon: Map, title: 'Tư vấn lộ trình', description: 'Roadmap', type: 'roadmap' as const, note: 'Tạo lộ trình học tập dựa vào nội dung cuộc trò chuyện' }
     ]
 
     // Fetch subjects on component mount
@@ -513,6 +515,13 @@ export default function Chat() {
                 }}
                 isSubmitting={isFlaggingQuiz}
                 quizTitle={studio.studioItems.find(item => item.id === flaggingQuizId)?.title}
+            />
+
+            {/* Roadmap Modal */}
+            <RoadmapModal
+                isOpen={studio.showRoadmapModal}
+                onClose={() => studio.setShowRoadmapModal(false)}
+                content={studio.roadmapContent}
             />
 
             {/* Delete Confirm Modal */}

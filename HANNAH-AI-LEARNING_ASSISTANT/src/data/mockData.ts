@@ -872,3 +872,57 @@ export const mockCourses = [
   "Kiến trúc phần mềm",
   "Công cụ phát triển phần mềm"
 ];
+
+// Mock Roadmap Content for UI Testing
+export const mockRoadmapContent = {
+  roadmapId: "roadmap-demo-001",
+  title: "Lộ trình học Lập trình hướng đối tượng",
+  content: `## Lộ trình học Lập trình hướng đối tượng
+
+### Giai đoạn 1: Nền tảng cơ bản (2-3 tuần)
+
+#### Tuần 1-2: Làm quen với OOP
+- **Khái niệm cơ bản**: Class, Object, Properties, Methods
+- **Encapsulation**: Access modifiers (public, private, protected)
+- **Constructor và Destructor**: Khởi tạo và hủy đối tượng
+- **Thực hành**: Tạo các class đơn giản, quản lý đối tượng
+
+#### Tuần 3: Inheritance và Polymorphism
+- **Inheritance**: Kế thừa đơn và đa cấp, super keyword
+- **Polymorphism**: Method Overloading và Overriding
+- **Abstract Class**: Khi nào sử dụng abstract class
+- **Thực hành**: Xây dựng hệ thống phân cấp class
+
+### Giai đoạn 2: Nâng cao (3-4 tuần)
+
+#### Tuần 4-5: Interface và Design Patterns
+- **Interface**: Khác biệt với Abstract Class, Multiple Inheritance
+- **SOLID Principles**: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
+- **Design Patterns cơ bản**: Singleton, Factory, Observer
+- **Thực hành**: Refactor code áp dụng SOLID và Design Patterns
+
+#### Tuần 6-7: Advanced Topics
+- **Exception Handling**: Try-catch-finally, custom exceptions
+- **Collections và Generics**: List, Set, Map, Generic Types
+- **Lambda Expressions**: Functional programming trong OOP
+- **Thực hành**: Xây dựng ứng dụng quản lý hoàn chỉnh
+
+### Giai đoạn 3: Thực hành dự án (2-3 tuần)
+
+#### Tuần 8-10: Mini Project
+- **Phân tích yêu cầu**: Use case, User stories
+- **Thiết kế**: Class diagram, Sequence diagram
+- **Implementation**: Code theo design patterns
+- **Testing**: Unit test, Integration test
+- **Presentation**: Demo và báo cáo kết quả
+
+### Tài liệu tham khảo
+- **Head First Design Patterns** - Eric Freeman
+- **Clean Code** - Robert C. Martin
+- **Effective Java** - Joshua Bloch
+
+### Lưu ý quan trọng
+> Thực hành đều đặn mỗi ngày ít nhất 2 giờ
+> Tham gia coding challenges trên LeetCode, HackerRank
+> Đọc code của người khác để học cách viết code tốt`
+};
