@@ -312,7 +312,7 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
       };
       await flaggingService.resolveFlag(flagData.id, resolution);
       // Navigate back to faculty assigned flags list
-      navigate('/faculty/assigned-flags');
+      navigate('/faculty/assigned-flags/quizzes');
     } catch (err) {
       console.error('Failed to resolve flag:', err);
       setError('Failed to resolve flag. Please try again.');

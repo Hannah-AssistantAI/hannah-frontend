@@ -194,7 +194,7 @@ const FlaggedMessageDetail: React.FC = () => {
 
     const handleBack = () => {
         const isFaculty = window.location.pathname.includes('/faculty/');
-        navigate(isFaculty ? '/faculty/assigned-flags' : '/admin/flagged-messages');
+        navigate(isFaculty ? '/faculty/assigned-flags/messages' : '/admin/flagged-messages');
     };
 
     if (loading) {

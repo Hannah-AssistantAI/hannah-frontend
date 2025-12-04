@@ -48,7 +48,7 @@ const FlaggedQuizDetail: React.FC = () => {
                 <div className="text-center">
                     <p className="text-gray-600 mb-4">Không tìm thấy báo cáo</p>
                     <button
-                        onClick={() => navigate('/faculty/assigned-flags')}
+                        onClick={() => navigate('/faculty/assigned-flags/quizzes')}
                         className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
                     >
                         Quay lại
@@ -63,7 +63,7 @@ const FlaggedQuizDetail: React.FC = () => {
         return (
             <MessageDetailModal
                 item={flagItem}
-                onClose={() => navigate('/faculty/assigned-flags')}
+                onClose={() => navigate('/faculty/assigned-flags/quizzes')}
                 onUpdate={loadFlag}
             />
         );

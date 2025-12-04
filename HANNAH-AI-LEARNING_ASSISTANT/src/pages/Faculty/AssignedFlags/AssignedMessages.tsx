@@ -4,7 +4,6 @@ import { Eye, MessageSquare, User, Calendar } from 'lucide-react';
 import type { FlaggedItem } from '../../../service/flaggingService';
 import flaggingService from '../../../service/flaggingService';
 import { getStatusDisplay, getStatusClass, isResolved } from '../../../utils/statusHelpers';
-import './AssignedFlagsList.css';
 
 type FilterStatus = 'processing' | 'resolved';
 
@@ -195,7 +194,7 @@ const AssignedMessages: React.FC = () => {
                             <div
                                 key={item.id}
                                 className="bg-white/90 backdrop-blur-sm rounded-xl p-5 shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 group cursor-pointer"
-                                onClick={() => navigate(`/faculty/assigned-flags/${item.id}`)}
+                                onClick={() => navigate(`/faculty/assigned-flags/messages/${item.id}`)}
                             >
                                 {/* Card Header */}
                                 <div className="flex items-start justify-between mb-4">
@@ -247,7 +246,7 @@ const AssignedMessages: React.FC = () => {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            navigate(`/faculty/assigned-flags/${item.id}`);
+                                            navigate(`/faculty/assigned-flags/messages/${item.id}`);
                                         }}
                                         className="px-5 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-lg transition-all duration-300 font-semibold flex items-center gap-2 shadow-md hover:shadow-lg text-sm"
                                     >

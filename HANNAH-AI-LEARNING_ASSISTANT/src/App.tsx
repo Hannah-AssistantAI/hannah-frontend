@@ -21,7 +21,6 @@ import FAQManagement from './pages/Faculty/FAQ/FAQManagement'
 import QuestionAnalytics from './pages/Faculty/QuestionAnalytics/QuestionAnalytics'
 import QuestionStatistics from './pages/Faculty/QuestionStatistics/QuestionStatistics'
 
-import MaterialsLayout from './pages/Faculty/MaterialsManagement/MaterialsLayout'
 import OutcomesManagement from './pages/Faculty/MaterialsManagement/OutcomesManagement'
 import ChallengesManagement from './pages/Faculty/MaterialsManagement/ChallengesManagement'
 import DocumentsManagement from './pages/Faculty/MaterialsManagement/DocumentsManagement'
@@ -34,7 +33,7 @@ import QuizDetail from './pages/Faculty/QuestionAnalytics/QuizDetail'
 import FlaggedQuizzes from './pages/Admin/FlaggedQuizzes'
 import FlaggedQuizDetail from './pages/Admin/FlaggedQuizDetail'
 import { FlaggedMessagesList, FlaggedMessageDetail } from './pages/Admin/FlaggedMessages'
-import { AssignedFlagsList, AssignedMessages, AssignedQuizzes } from './pages/Faculty/AssignedFlags'
+import { AssignedMessages, AssignedQuizzes } from './pages/Faculty/AssignedFlags'
 import AssignedFlagDetailRouter from './pages/Faculty/AssignedFlags/AssignedFlagDetailRouter'
 
 const AuthRedirectHandler = () => {
@@ -109,19 +108,17 @@ function App() {
             <Route index element={<FAQManagement />} />
             <Route path="faq" element={<FAQManagement />} />
 
-            <Route path="materials" element={<MaterialsLayout />}>
-              <Route index element={<DocumentsManagement />} />
-              <Route path="documents" element={<DocumentsManagement />} />
-              <Route path="outcomes" element={<OutcomesManagement />} />
-              <Route path="challenges" element={<ChallengesManagement />} />
-            </Route>
+            <Route path="materials/documents" element={<DocumentsManagement />} />
+            <Route path="materials/outcomes" element={<OutcomesManagement />} />
+            <Route path="materials/challenges" element={<ChallengesManagement />} />
             <Route path="analytics" element={<QuestionAnalytics />} />
             <Route path="analytics/quiz/:id" element={<QuizDetail />} />
             <Route path="analytics/quiz/:quizId/attempt/:id" element={<QuizAttemptDetail />} />
             <Route path="questions" element={<QuestionStatistics />} />
-            <Route path="assigned-flags" element={<AssignedFlagsList />} />
             <Route path="assigned-flags/messages" element={<AssignedMessages />} />
+            <Route path="assigned-flags/messages/:id" element={<FlaggedMessageDetail />} />
             <Route path="assigned-flags/quizzes" element={<AssignedQuizzes />} />
+            <Route path="assigned-flags/quizzes/:id" element={<FlaggedQuizDetail />} />
             <Route path="assigned-flags/:id" element={<AssignedFlagDetailRouter />} />
 
             <Route path="profile" element={<Profile embedded={true} />} />
