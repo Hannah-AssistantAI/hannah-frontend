@@ -19,6 +19,7 @@ const OutcomesManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [learningOutcomes, setLearningOutcomes] = useState<Suggestion[]>([]);
+  const [subjectOutcomes, setSubjectOutcomes] = useState<string[]>([]);
   const [outcomesLoading, setOutcomesLoading] = useState(false);
 
   const semesters = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8', 'Semester 9'];
@@ -91,10 +92,25 @@ const OutcomesManagement: React.FC = () => {
     }
   };
 
+  const fetchSubjectOutcomes = async (subjectId: number) => {
+    try {
+      const subject = await subjectService.getSubjectById(subjectId);
+      setSubjectOutcomes(subject.learningOutcomes || []);
+    } catch (err) {
+      console.error('Failed to load subject outcomes:', err);
+      // Don't show error toast, this is supplementary data
+    }
+  };
+
   const handleCourseSelect = async (course: Course) => {
     setSelectedCourse(course);
     setView('outcomes');
-    await fetchLearningOutcomes(course.id);
+    setOutcomesLoading(true);
+    await Promise.all([
+      fetchLearningOutcomes(course.id),
+      fetchSubjectOutcomes(course.id)
+    ]);
+    setOutcomesLoading(false);
   };
 
   const handleSemesterChange = (semester: string) => {
@@ -411,48 +427,87 @@ const OutcomesManagement: React.FC = () => {
               )}
 
               {/* Outcomes List */}
-              <div className="mt-8">
-                <h3 className="text-xl font-bold text-slate-800 mb-4">Current Learning Outcomes</h3>
+              <div className="mt-8 space-y-8">
                 {outcomesLoading ? (
                   <div className="flex justify-center items-center py-8">
                     <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
                     <span className="ml-2 text-slate-600">Loading outcomes...</span>
                   </div>
-                ) : learningOutcomes.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border-2 border-dashed">
-                    <p>No learning outcomes found for this course.</p>
-                  </div>
                 ) : (
-                  <div className="space-y-3">
-                    {learningOutcomes.map((outcome) => (
-                      <div key={outcome.id} className={`p-4 rounded-lg border ${outcome.status === SuggestionStatus.Approved ? 'bg-green-50 border-green-200' :
-                          outcome.status === SuggestionStatus.Pending ? 'bg-yellow-50 border-yellow-200' :
-                            'bg-red-50 border-red-200'
-                        }`}>
-                        <div className="flex items-start gap-4">
-                          <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${outcome.status === SuggestionStatus.Approved ? 'bg-green-500' :
-                              outcome.status === SuggestionStatus.Pending ? 'bg-yellow-500' :
-                                'bg-red-500'
-                            }`}></span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-slate-800 mb-2">{outcome.content}</p>
-                            {outcome.status === SuggestionStatus.Rejected && outcome.rejectionReason && (
-                              <div className="bg-white border border-red-300 rounded px-3 py-2 mt-2">
-                                <p className="text-xs font-semibold text-red-800 mb-1">Rejection Reason:</p>
-                                <p className="text-sm text-red-700">{outcome.rejectionReason}</p>
-                              </div>
-                            )}
-                          </div>
-                          <span className={`px-3 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${outcome.status === SuggestionStatus.Approved ? 'bg-green-100 text-green-800' :
-                              outcome.status === SuggestionStatus.Pending ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-red-100 text-red-800'
-                            }`}>
-                            {outcome.status === SuggestionStatus.Approved ? 'Approved' : outcome.status === SuggestionStatus.Pending ? 'Pending' : 'Rejected'}
-                          </span>
-                        </div>
+                  <>
+                    {/* Section 1: From Course Setup (Admin) */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <h3 className="text-xl font-bold text-slate-800">From Course Setup</h3>
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-semibold">Admin</span>
                       </div>
-                    ))}
-                  </div>
+                      {subjectOutcomes.length === 0 ? (
+                        <div className="text-center py-8 text-slate-500 bg-slate-50 rounded-xl border-2 border-dashed">
+                          <p>No outcomes defined in course setup.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {subjectOutcomes.map((outcome, index) => (
+                            <div key={index} className="p-4 rounded-lg border bg-blue-50 border-blue-200">
+                              <div className="flex items-start gap-4">
+                                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 bg-blue-500"></span>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-slate-800">{outcome}</p>
+                                </div>
+                                <span className="px-3 py-1 text-xs font-semibold rounded-full flex-shrink-0 bg-blue-100 text-blue-800">
+                                  Official
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Section 2: Faculty Suggestions */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <h3 className="text-xl font-bold text-slate-800">Faculty Suggestions</h3>
+                        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full font-semibold">Proposed</span>
+                      </div>
+                      {learningOutcomes.length === 0 ? (
+                        <div className="text-center py-8 text-slate-500 bg-slate-50 rounded-xl border-2 border-dashed">
+                          <p>No faculty suggestions yet.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {learningOutcomes.map((outcome) => (
+                            <div key={outcome.id} className={`p-4 rounded-lg border ${outcome.status === SuggestionStatus.Approved ? 'bg-green-50 border-green-200' :
+                              outcome.status === SuggestionStatus.Pending ? 'bg-yellow-50 border-yellow-200' :
+                                'bg-red-50 border-red-200'
+                              }`}>
+                              <div className="flex items-start gap-4">
+                                <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${outcome.status === SuggestionStatus.Approved ? 'bg-green-500' :
+                                  outcome.status === SuggestionStatus.Pending ? 'bg-yellow-500' :
+                                    'bg-red-500'
+                                  }`}></span>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-slate-800 mb-2">{outcome.content}</p>
+                                  {outcome.status === SuggestionStatus.Rejected && outcome.rejectionReason && (
+                                    <div className="bg-white border border-red-300 rounded px-3 py-2 mt-2">
+                                      <p className="text-xs font-semibold text-red-800 mb-1">Rejection Reason:</p>
+                                      <p className="text-sm text-red-700">{outcome.rejectionReason}</p>
+                                    </div>
+                                  )}
+                                </div>
+                                <span className={`px-3 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${outcome.status === SuggestionStatus.Approved ? 'bg-green-100 text-green-800' :
+                                  outcome.status === SuggestionStatus.Pending ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-red-100 text-red-800'
+                                  }`}>
+                                  {outcome.status === SuggestionStatus.Approved ? 'Approved' : outcome.status === SuggestionStatus.Pending ? 'Pending' : 'Rejected'}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             </div>

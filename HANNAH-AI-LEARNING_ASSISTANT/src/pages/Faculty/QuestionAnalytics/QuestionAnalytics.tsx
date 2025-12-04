@@ -352,7 +352,7 @@ const QuestionAnalytics = () => {
       isFlagged,
       flagReason
     };
-  });
+  }).sort((a, b) => b.totalAttempts - a.totalAttempts);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
@@ -529,14 +529,6 @@ const QuestionAnalytics = () => {
                       <div>
                         <div className="font-semibold text-slate-800 flex items-center gap-2">
                           {group.title}
-                          {group.isFlagged && (
-                            <span
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs"
-                              title={group.flagReason || 'Flagged'}
-                            >
-                              🚩 Flagged
-                            </span>
-                          )}
                         </div>
                         <div className="text-sm text-slate-500">
                           Last Updated: {new Date(group.createdAt).toLocaleDateString()}

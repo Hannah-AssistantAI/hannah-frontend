@@ -117,7 +117,6 @@ const QuizDetail = () => {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Score</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Submitted At</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200">
@@ -147,16 +146,11 @@ const QuizDetail = () => {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                                             {attempt.submittedAt ? new Date(attempt.submittedAt).toLocaleString() : new Date(attempt.startedAt).toLocaleString()}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button className="text-blue-600 hover:text-blue-900 bg-blue-50 px-3 py-1 rounded hover:bg-blue-100 transition-colors">
-                                                View Details
-                                            </button>
-                                        </td>
                                     </tr>
                                 ))}
                                 {attempts.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                                        <td colSpan={4} className="px-6 py-12 text-center text-slate-500">
                                             <div className="flex flex-col items-center justify-center">
                                                 <Users size={48} className="text-slate-200 mb-2" />
                                                 <p>No attempts recorded yet for this quiz.</p>

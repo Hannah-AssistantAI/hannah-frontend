@@ -16,6 +16,7 @@ interface QuizSideModalProps {
     showResults?: boolean
     results?: any
     onRetry?: () => void
+    onFlag?: () => void
 }
 
 export const QuizSideModal: React.FC<QuizSideModalProps> = ({
@@ -31,7 +32,8 @@ export const QuizSideModal: React.FC<QuizSideModalProps> = ({
     isSubmitting = false,
     showResults = false,
     results,
-    onRetry
+    onRetry,
+    onFlag
 }) => {
     if (!isOpen) return null
 
@@ -68,7 +70,7 @@ export const QuizSideModal: React.FC<QuizSideModalProps> = ({
 
                 <div className="quiz-side-container">
                     {showResults && results ? (
-                        <QuizResults results={results} onRetry={onRetry!} />
+                        <QuizResults results={results} onRetry={onRetry!} onFlag={onFlag} />
                     ) : (
                         <>
                             <div className="quiz-side-question">

@@ -51,6 +51,7 @@ export default function Chat() {
     const [isFlaggingMessage, setIsFlaggingMessage] = useState(false)
     const [showFlagQuizModal, setShowFlagQuizModal] = useState(false)
     const [flaggingQuizId, setFlaggingQuizId] = useState<string | null>(null)
+    const [flaggingAttemptId, setFlaggingAttemptId] = useState<number | null>(null)
     const [isFlaggingQuiz, setIsFlaggingQuiz] = useState(false)
     const [bigPictureData, setBigPictureData] = useState<BigPictureTopic[]>([])
 
@@ -109,7 +110,8 @@ export default function Chat() {
             const featureTitles = {
                 'mindmap': 'Bản đồ tư duy',
                 'notecard': 'Thẻ ghi nhớ',
-                'quiz': 'Bài kiểm tra'
+                'quiz': 'Bài kiểm tra',
+                'roadmap': 'Tư vấn lộ trình'
             }
 
             const options = {
@@ -133,6 +135,7 @@ export default function Chat() {
 
     const handleFlagQuiz = (itemId: string) => {
         setFlaggingQuizId(itemId)
+        setFlaggingAttemptId(null) // Sidebar flagging doesn't have attemptId
         setShowFlagQuizModal(true)
         setOpenMenuId(null)
     }
@@ -340,7 +343,7 @@ export default function Chat() {
                     items={studio.studioItems}
                     features={studioFeatures}
                     onFeatureClick={studio.handleStudioFeatureClick}
-                    onEditFeature={(type: 'mindmap' | 'notecard' | 'quiz') => {
+                    onEditFeature={(type: 'mindmap' | 'notecard' | 'quiz' | 'roadmap') => {
                         studio.setSelectedFeatureType(type)
                         studio.setShowCustomizeModal(true)
                     }}
@@ -414,6 +417,13 @@ export default function Chat() {
                     studio.setShowQuizModal(false)
                     studio.setShowQuizSideModal(true)
                 }}
+                onFlag={() => {
+                    if (quiz.quizResults?.attemptId && quiz.selectedQuizId) {
+                        setFlaggingQuizId(`quiz-${quiz.selectedQuizId}`);
+                        setFlaggingAttemptId(quiz.quizResults.attemptId);
+                        setShowFlagQuizModal(true);
+                    }
+                }}
             />
 
             {/* Quiz Side Modal */}
@@ -433,6 +443,13 @@ export default function Chat() {
                 onExpand={() => {
                     studio.setShowQuizSideModal(false)
                     studio.setShowQuizModal(true)
+                }}
+                onFlag={() => {
+                    if (quiz.quizResults?.attemptId && quiz.selectedQuizId) {
+                        setFlaggingQuizId(`quiz-${quiz.selectedQuizId}`);
+                        setFlaggingAttemptId(quiz.quizResults.attemptId);
+                        setShowFlagQuizModal(true);
+                    }
                 }}
             />
 
@@ -473,6 +490,7 @@ export default function Chat() {
                 onClose={() => {
                     setShowFlagQuizModal(false);
                     setFlaggingQuizId(null);
+                    setFlaggingAttemptId(null);
                 }}
                 onSubmit={async (reason) => {
                     if (!flaggingQuizId) return;
@@ -483,11 +501,12 @@ export default function Chat() {
                         const numericId = parseInt(flaggingQuizId.replace('quiz-', ''));
 
                         // Use flaggingService instead of direct fetch
-                        await flaggingService.flagQuiz(numericId, reason);
+                        await flaggingService.flagQuiz(numericId, reason, flaggingAttemptId || undefined);
 
                         alert('Báo cáo đã được gửi thành công!');
                         setShowFlagQuizModal(false);
                         setFlaggingQuizId(null);
+                        setFlaggingAttemptId(null);
                     } catch (error: any) {
                         console.error('Error flagging quiz:', error);
                         alert(error.message || 'Không thể gửi báo cáo. Vui lòng thử lại.');
