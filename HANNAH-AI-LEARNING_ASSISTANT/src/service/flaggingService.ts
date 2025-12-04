@@ -11,6 +11,7 @@ export interface FlaggedItem {
   reason: string;
   status: string;
   priority?: string;
+  flaggedByUserId?: number;
   flaggedByName: string;
   flaggedAt: string;
   assignedToName?: string;
