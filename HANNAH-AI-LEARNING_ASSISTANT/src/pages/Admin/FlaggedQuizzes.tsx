@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, Search, Flag, AlertCircle, CheckCircle, Clock, User, Calendar } from 'lucide-react';
 import flaggingService, { type FlaggedItem } from '../../service/flaggingService';
-import { isPending, isProcessing, isResolved } from '../../utils/statusHelpers';
+import { isPending, isAssigned, isResolved } from '../../utils/statusHelpers';
 import { AssignFacultyModal } from './components/AssignFacultyModal';
 
 type FilterStatus = 'Pending' | 'Assigned' | 'Resolved';
@@ -45,7 +45,7 @@ const FlaggedQuizzes: React.FC = () => {
     if (status === 'Pending') {
       return allItems.filter(item => isPending(item.status || '')).length;
     } else if (status === 'Assigned') {
-      return allItems.filter(item => isProcessing(item.status || '')).length;
+      return allItems.filter(item => isAssigned(item.status || '')).length;
     } else if (status === 'Resolved') {
       return allItems.filter(item => isResolved(item.status || '')).length;
     }
@@ -57,7 +57,7 @@ const FlaggedQuizzes: React.FC = () => {
     if (filterStatus === 'Pending') {
       return isPending(item.status || '');
     } else if (filterStatus === 'Assigned') {
-      return isProcessing(item.status || '');
+      return isAssigned(item.status || '');
     } else if (filterStatus === 'Resolved') {
       return isResolved(item.status || '');
     }

@@ -211,8 +211,9 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
                   // Get all attempts for this quiz
                   const attempts = await quizApiService.getQuizAttempts(quizId);
                   console.log('📋 All quiz attempts:', attempts);
+                  console.log('📋 Attempts type:', typeof attempts, 'isArray:', Array.isArray(attempts), 'length:', attempts?.length);
 
-                  if (attempts && attempts.length > 0) {
+                  if (attempts && Array.isArray(attempts) && attempts.length > 0) {
                     // Try to find attempt by the student who flagged (if we have userId)
                     const flaggedByUserId = currentFlag.metadata?.flaggedById
                       || (currentFlag as any).flaggedByUserId
@@ -311,7 +312,7 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
       };
       await flaggingService.resolveFlag(flagData.id, resolution);
       // Navigate back to faculty assigned flags list
-      navigate('/faculty/assigned-flags');
+      navigate('/faculty/assigned-flags/quizzes');
     } catch (err) {
       console.error('Failed to resolve flag:', err);
       setError('Failed to resolve flag. Please try again.');
@@ -331,7 +332,7 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
                 'bg-green-100 text-green-700'
               }`}>
               {flagData.status?.toLowerCase() === 'pending' ? 'Pending Review' :
-                flagData.status?.toLowerCase() === 'assigned' ? 'Processing' :
+                flagData.status?.toLowerCase() === 'assigned' ? 'Assigned' :
                   'Resolved'}
             </span>
           )}
@@ -397,9 +398,9 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
                         </span>
                       </div>
                     )}
-                    {!hasStudentAnswers && flagData?.metadata?.attemptId && (
-                      <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
-                        Loading student answers...
+                    {!hasStudentAnswers && (
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        No student answer data available
                       </span>
                     )}
                   </div>

@@ -14,7 +14,7 @@ export const BackendStatus = {
 // Frontend display status
 export const DisplayStatus = {
   PENDING: 'Pending',
-  PROCESSING: 'Processing',
+  ASSIGNED: 'Assigned',
   RESOLVED: 'Resolved'
 } as const;
 
@@ -30,13 +30,13 @@ export const normalizeStatus = (status: string): string => {
  */
 export const getStatusDisplay = (status: string): string => {
   const normalized = normalizeStatus(status);
-  
+
   switch (normalized) {
     case 'pending':
       return DisplayStatus.PENDING;
     case 'in_progress':
     case 'assigned':
-      return DisplayStatus.PROCESSING;
+      return DisplayStatus.ASSIGNED;
     case 'resolved':
       return DisplayStatus.RESOLVED;
     default:
@@ -49,13 +49,13 @@ export const getStatusDisplay = (status: string): string => {
  */
 export const getStatusClass = (status: string): string => {
   const normalized = normalizeStatus(status);
-  
+
   switch (normalized) {
     case 'pending':
       return 'status-pending';
     case 'in_progress':
     case 'assigned':
-      return 'status-processing';
+      return 'status-assigned';
     case 'resolved':
       return 'status-resolved';
     default:
@@ -88,9 +88,9 @@ export const isPending = (status: string): boolean => {
 };
 
 /**
- * Check if flag is in progress (assigned to faculty)
+ * Check if flag is assigned (assigned to faculty, waiting for resolution)
  */
-export const isProcessing = (status: string): boolean => {
+export const isAssigned = (status: string): boolean => {
   const normalized = normalizeStatus(status);
   return normalized === 'in_progress' || normalized === 'assigned';
 };
@@ -100,13 +100,13 @@ export const isProcessing = (status: string): boolean => {
  */
 export const getStatusDisplayVi = (status: string): string => {
   const normalized = normalizeStatus(status);
-  
+
   switch (normalized) {
     case 'pending':
       return 'Chờ xử lý';
     case 'in_progress':
     case 'assigned':
-      return 'Đang xử lý';
+      return 'Đã giao việc';
     case 'resolved':
       return 'Đã giải quyết';
     default:
