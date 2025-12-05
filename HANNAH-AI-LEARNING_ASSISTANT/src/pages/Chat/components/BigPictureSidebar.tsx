@@ -1,6 +1,7 @@
 import React from 'react'
 import { Book, PanelLeft, PanelLeftClose } from 'lucide-react'
 import type { BigPictureTopic } from '../types'
+import { getLabels, type SupportedLanguage } from '../../../utils/translations'
 
 interface BigPictureSidebarProps {
     isOpen: boolean
@@ -8,6 +9,7 @@ interface BigPictureSidebarProps {
     topics: BigPictureTopic[]
     hideFloatingButton?: boolean
     onTopicClick?: (topicText: string) => void
+    language?: SupportedLanguage | string | null
 }
 
 export const BigPictureSidebar: React.FC<BigPictureSidebarProps> = ({
@@ -15,8 +17,12 @@ export const BigPictureSidebar: React.FC<BigPictureSidebarProps> = ({
     onToggle,
     topics,
     hideFloatingButton = false,
-    onTopicClick
+    onTopicClick,
+    language = 'vi'
 }) => {
+    // Get labels based on detected language
+    const t = getLabels(language)
+
     return (
         <aside className={`big-picture-sidebar ${isOpen ? 'open' : 'closed'}`} style={{ order: 1, width: isOpen ? '356px' : '56px', padding: '0 24px 0 0', flexShrink: 0 }}>
             {/* Floating Toggle Button - Only show when sidebar is closed and history sidebar is not open */}
@@ -24,7 +30,7 @@ export const BigPictureSidebar: React.FC<BigPictureSidebarProps> = ({
                 <button
                     className="big-picture-toggle-floating"
                     onClick={onToggle}
-                    aria-label="Hiện bức tranh toàn cảnh"
+                    aria-label={t.bigPicture}
                     style={{
                         position: 'absolute',
                         top: '12px',
@@ -60,12 +66,12 @@ export const BigPictureSidebar: React.FC<BigPictureSidebarProps> = ({
             <div className="big-picture-content">
                 <div className="big-picture-header">
                     <Book size={20} color="#5f6368" />
-                    <h3 className="big-picture-title">Bức tranh toàn cảnh</h3>
+                    <h3 className="big-picture-title">{t.bigPicture}</h3>
                     {/* Big Picture Toggle Button */}
                     <button
                         className="big-picture-toggle-btn"
                         onClick={onToggle}
-                        aria-label={isOpen ? 'Ẩn bức tranh toàn cảnh' : 'Hiện bức tranh toàn cảnh'}
+                        aria-label={t.bigPicture}
                     >
                         {isOpen ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
                     </button>

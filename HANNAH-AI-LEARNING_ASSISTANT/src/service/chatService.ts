@@ -62,9 +62,15 @@ export interface AssistantMessage {
 
 export interface ChatInteractionResponse {
     conversationId: number;
+    conversation_id?: number;  // Backend snake_case fallback
     assistantMessage: AssistantMessage;
+    assistant_message?: AssistantMessage;  // Backend snake_case fallback
     processingTime: number;
-    detectedSubjectId?: number | null;  // Auto-detected subject from backend
+    processing_time?: number;  // Backend snake_case fallback
+    detectedSubjectId?: number | null;
+    detected_subject_id?: number | null;  // Backend snake_case fallback
+    detectedLanguage?: 'vi' | 'en';
+    detected_language?: 'vi' | 'en';  // Backend snake_case fallback
 }
 
 export interface BaseResponse<T> {
@@ -110,9 +116,9 @@ class ChatService {
         nodeLabel: string,
         mindmapTopic: string,
         message: string,
-        chatHistory: Array<{role: string, content: string}> = []
-    ): Promise<{response: string}> {
-        const response = await pythonApiClient.post<BaseResponse<{response: string}>>(
+        chatHistory: Array<{ role: string, content: string }> = []
+    ): Promise<{ response: string }> {
+        const response = await pythonApiClient.post<BaseResponse<{ response: string }>>(
             '/api/v1/studio/mindmap/chat',
             {
                 conversation_id: conversationId,
@@ -133,7 +139,7 @@ class ChatService {
         nodeLabel: string,
         mindmapTopic: string,
         message: string,
-        chatHistory: Array<{role: string, content: string}> = [],
+        chatHistory: Array<{ role: string, content: string }> = [],
         onChunk: (chunk: string) => void
     ): Promise<string> {
         const response = await fetch('http://localhost:8001/api/v1/studio/mindmap/chat/stream', {
@@ -161,7 +167,7 @@ class ChatService {
 
         if (reader) {
             while (true) {
-                const {done, value} = await reader.read();
+                const { done, value } = await reader.read();
                 if (done) break;
 
                 const chunk = decoder.decode(value);

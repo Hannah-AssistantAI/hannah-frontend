@@ -133,6 +133,13 @@ export const useChatMessages = ({
                     setSubjectId(response.detectedSubjectId);
                 }
 
+                // 🌐 DEBUG: Log detected language
+                console.log('🌐 Language Detection Debug:', {
+                    detectedLanguage: response.detectedLanguage,
+                    detected_language: response.detected_language,
+                    fullResponse: response
+                });
+
                 const parsedResponse = parseAssistantResponse(
                     response.assistantMessage.content.data,
                     response.assistantMessage.interactiveElements
@@ -174,8 +181,8 @@ export const useChatMessages = ({
                         interactiveList: parsedResponse.interactiveList,
                         outline: parsedResponse.outline,
                         youtubeResources: parsedResponse.youtubeResources,
-
-                        images: response.assistantMessage.images || response.assistantMessage.metadata?.images || []
+                        images: response.assistantMessage.images || response.assistantMessage.metadata?.images || [],
+                        detectedLanguage: (response.detectedLanguage || response.detected_language) as 'vi' | 'en' | undefined
                     };
 
                     // 🔍 DEBUG: Verify images are set correctly
@@ -397,8 +404,8 @@ export const useChatMessages = ({
                     interactiveList: parsedResponse.interactiveList,
                     outline: parsedResponse.outline,
                     youtubeResources: parsedResponse.youtubeResources,
-                    images: response.assistantMessage.images || response.assistantMessage.metadata?.images || []
-
+                    images: response.assistantMessage.images || response.assistantMessage.metadata?.images || [],
+                    detectedLanguage: (response.detectedLanguage || response.detected_language) as 'vi' | 'en' | undefined
                 };
                 return newMessages;
             });
@@ -478,8 +485,8 @@ export const useChatMessages = ({
                     interactiveList: parsedResponse.interactiveList,
                     outline: parsedResponse.outline,
                     youtubeResources: parsedResponse.youtubeResources,
-                    images: response.assistantMessage.images || response.assistantMessage.metadata?.images || []
-
+                    images: response.assistantMessage.images || response.assistantMessage.metadata?.images || [],
+                    detectedLanguage: (response.detectedLanguage || response.detected_language) as 'vi' | 'en' | undefined
                 };
                 return newMessages;
             });

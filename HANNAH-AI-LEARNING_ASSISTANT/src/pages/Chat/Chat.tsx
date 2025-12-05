@@ -263,6 +263,7 @@ export default function Chat() {
                     topics={bigPictureData}
                     hideFloatingButton={showHistorySidebar}
                     onTopicClick={handleInteractiveItemClick}
+                    language={messages.filter(m => m.type === 'assistant').pop()?.detectedLanguage}
                 />
 
                 <div className="chat-content" style={{ order: 2, flex: 1, padding: '0', minWidth: 0 }}>
@@ -299,6 +300,7 @@ export default function Chat() {
                                     setFlaggingMessageId(messageId);
                                     setShowFlagModal(true);
                                 }}
+                                language={message.detectedLanguage}
                             />
                         ))}
                     </div>
@@ -350,6 +352,7 @@ export default function Chat() {
                     onFlagItem={handleFlagQuiz}
                     openMenuId={openMenuId}
                     onToggleMenu={toggleMenu}
+                    language={messages.filter(m => m.type === 'assistant').pop()?.detectedLanguage}
                 />
             </main >
 
@@ -372,6 +375,7 @@ export default function Chat() {
                 isOpen={studio.showMindmapModal}
                 onClose={() => studio.setShowMindmapModal(false)}
                 content={studio.mindmapContent}
+                language={messages.filter(m => m.type === 'assistant').pop()?.detectedLanguage}
             />
 
 

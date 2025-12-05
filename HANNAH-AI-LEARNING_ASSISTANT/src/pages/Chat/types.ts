@@ -66,6 +66,7 @@ export interface Message {
     outline?: OutlineItem[]
     images?: ImageMetadata[]    // RAG images from document chunks
     youtubeResources?: YoutubeResource[]  // YouTube videos from API
+    detectedLanguage?: 'vi' | 'en'  // Detected language for UI labels
 }
 
 export interface BigPictureTopic {
