@@ -19,9 +19,10 @@ interface QuizResultsProps {
         answers: QuizAnswer[];
     };
     onRetry: () => void;
+    onFlag?: () => void;
 }
 
-export function QuizResults({ results, onRetry }: QuizResultsProps) {
+export function QuizResults({ results, onRetry, onFlag }: QuizResultsProps) {
     if (!results) return null;
 
     const getOptionLabel = (index: number) => String.fromCharCode(65 + index); // A, B, C, D...

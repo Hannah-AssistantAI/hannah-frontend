@@ -1,16 +1,16 @@
-/* YouTube Resources Section */
+/* YouTube Resources Section - Dark Theme */
 .youtube-resources-section {
     margin-top: 24px;
     padding: 20px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+    background: linear-gradient(135deg, #1a1d21 0%, #0d0f11 100%);
     border-radius: 12px;
-    border: 1px solid #e1e8ed;
+    border: 1px solid #2d3339;
 }
 
 .youtube-resources-title {
     font-size: 18px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: #e4e6ea;
     margin: 0 0 16px 0;
     display: flex;
     align-items: center;
@@ -24,19 +24,21 @@
 }
 
 .youtube-card {
-    background: white;
+    background: #21262d;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     display: flex;
     flex-direction: column;
+    border: 1px solid #30363d;
 }
 
 .youtube-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    border-color: #4285f4;
 }
 
 .youtube-thumbnail {
@@ -100,12 +102,13 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+    background: #21262d;
 }
 
 .youtube-video-title {
     font-size: 14px;
     font-weight: 500;
-    color: #1a1a1a;
+    color: #e4e6ea;
     margin: 0;
     line-height: 1.4;
     display: -webkit-box;
@@ -117,7 +120,7 @@
 
 .youtube-channel {
     font-size: 13px;
-    color: #606060;
+    color: #8b949e;
     margin: 0;
     overflow: hidden;
     text-overflow: ellipsis;

@@ -303,10 +303,7 @@ export default function Chat() {
                         ))}
                     </div>
 
-                    {/* Notice */}
-                    <div className="chat-notice">
-                        Hannah hiện chỉ khả dụng bằng tiếng Việt.
-                    </div>
+
 
                     {/* Input Area */}
                     <div className="chat-input-container">
