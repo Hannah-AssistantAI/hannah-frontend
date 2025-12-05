@@ -8,15 +8,13 @@ import { AppProvider } from './contexts/AppContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <AppProvider>
-          <ThemeProvider>
-            <App />
-          </ThemeProvider>
-        </AppProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  </StrictMode>
+  <BrowserRouter>
+    <AuthProvider>
+      <AppProvider>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </AppProvider>
+    </AuthProvider>
+  </BrowserRouter>
 )

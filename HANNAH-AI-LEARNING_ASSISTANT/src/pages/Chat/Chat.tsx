@@ -267,7 +267,7 @@ export default function Chat() {
                 />
 
                 <div className="chat-content" style={{ order: 2, flex: 1, padding: '0', minWidth: 0 }}>
-                    {/* Welcome Banner */}
+                    {/* Welcome Banner
                     <div className="welcome-banner">
                         <div className="welcome-banner-icon">
                             <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" alt="Học về" />
@@ -280,7 +280,7 @@ export default function Chat() {
                             <button className="topic-badge">OOP</button>
                         </div>
                         <button className="close-banner-btn" aria-label="Đóng">×</button>
-                    </div>
+                    </div> */}
 
                     {/* Messages */}
                     <div className="messages-container">
