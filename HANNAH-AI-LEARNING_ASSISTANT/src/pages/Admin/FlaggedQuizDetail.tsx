@@ -40,6 +40,7 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
 
   // Resolve form state (for faculty)
   const [resolutionNote, setResolutionNote] = useState('');
+  const [studentNotification, setStudentNotification] = useState('Your flag quiz has been resolved.');
   const [resolving, setResolving] = useState(false);
 
   // Get user role
@@ -308,7 +309,7 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
     try {
       const resolution: any = {
         knowledgeGapFix: resolutionNote.trim(),
-        studentNotification: "Your flag has been resolved." // Default notification
+        studentNotification: studentNotification.trim() || 'Your flag quiz has been resolved.'
       };
       await flaggingService.resolveFlag(flagData.id, resolution);
       // Navigate back to faculty assigned flags list
@@ -515,6 +516,17 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
                           placeholder="Describe how you resolved this issue..."
                           className="w-full border rounded-md p-2 text-sm min-h-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Student Notification</label>
+                        <input
+                          type="text"
+                          value={studentNotification}
+                          onChange={e => setStudentNotification(e.target.value)}
+                          placeholder="Message to send to the student..."
+                          className="w-full border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">This message will be sent to the student who flagged the quiz.</p>
                       </div>
                       <button
                         onClick={handleResolve}

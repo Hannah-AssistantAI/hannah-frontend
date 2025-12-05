@@ -17,6 +17,65 @@ export function useQuiz() {
             const quizData = response.data.data || response.data;
             setQuizContent(quizData);
             setSelectedQuizId(quizId);
+            
+            // Check if user has already completed this quiz
+            try {
+                const { default: quizApiService } = await import('../../../service/quizApi');
+                const attempts = await quizApiService.getQuizAttempts(Number(quizId));
+                console.log('📋 All quiz attempts:', attempts);
+                
+                // Get current user ID from localStorage (stored as 'user_data')
+                const userData = localStorage.getItem('user_data');
+                const currentUserId = userData ? JSON.parse(userData).userId : null;
+                console.log('👤 Current user ID:', currentUserId);
+                
+                // Find user's completed attempt
+                const userCompletedAttempt = attempts.find(
+                    a => a.userId === currentUserId && a.isCompleted
+                );
+                console.log('🎯 User completed attempt:', userCompletedAttempt);
+                
+                if (userCompletedAttempt) {
+                    // Load the completed attempt details and show results
+                    console.log('✅ Found existing completed attempt:', userCompletedAttempt.attemptId);
+                    const attemptDetail = await quizApiService.getQuizAttemptDetail(
+                        Number(quizId),
+                        userCompletedAttempt.attemptId
+                    );
+                    
+                    // Convert attempt detail to quiz results format
+                    // Use percentage from API or calculate from score/maxScore
+                    const percentage = attemptDetail.percentage ?? 
+                        (attemptDetail.maxScore > 0 ? (attemptDetail.score / attemptDetail.maxScore) * 100 : 0);
+                    
+                    const results = {
+                        score: percentage,  // QuizResults expects score as percentage
+                        correctAnswers: attemptDetail.questions?.filter(q => q.isCorrect).length || 0,
+                        totalQuestions: attemptDetail.totalQuestions,
+                        answers: attemptDetail.questions?.map(q => ({
+                            questionId: q.questionId,
+                            questionText: q.content,  // Match QuizResults expected field
+                            options: q.options,
+                            selectedAnswer: String.fromCharCode(65 + q.selectedOptionIndex),
+                            correctAnswer: String.fromCharCode(65 + q.correctOptionIndex),
+                            isCorrect: q.isCorrect,
+                            explanation: q.explanation || ''
+                        })) || [],
+                        timeTaken: attemptDetail.timeTaken,
+                        attemptId: attemptDetail.attemptId
+                    };
+                    
+                    setQuizResults(results);
+                    setShowQuizResults(true);
+                    setCurrentQuestionIndex(0);
+                    setSelectedAnswers({});
+                    return;
+                }
+            } catch (attemptError) {
+                console.log('No existing attempt found or error checking:', attemptError);
+            }
+            
+            // No completed attempt found - start fresh quiz
             setCurrentQuestionIndex(0);
             setSelectedAnswers({});
             setShowQuizResults(false);

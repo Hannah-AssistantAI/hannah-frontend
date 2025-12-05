@@ -1,4 +1,4 @@
-import { Toaster, type Toast } from 'react-hot-toast';
+import toast, { Toaster, type Toast } from 'react-hot-toast';
 import './CustomToast.css';
 
 const CustomToast = () => {
@@ -37,11 +37,49 @@ const CustomToast = () => {
                 const animationDuration = baseDuration + 1000; // +1s buffer for perfect sync
 
                 return (
-                    <div className="custom-toast">
+                    <div
+                        className="custom-toast"
+                        style={{ cursor: 'pointer' }}
+                    >
                         {/* Toast content */}
                         <div className="custom-toast-content">
                             <div className="custom-toast-icon">{t.icon}</div>
                             <div className="custom-toast-message">{t.message?.toString()}</div>
+                            {/* Close button */}
+                            <button
+                                className="custom-toast-close"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    toast.remove(t.id);  // Use remove() for instant dismiss without animation
+                                }}
+                                title="Đóng"
+                                style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    padding: '4px',
+                                    marginLeft: '8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: '4px',
+                                    color: '#6b7280',
+                                    transition: 'all 0.2s',
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = '#f3f4f6';
+                                    e.currentTarget.style.color = '#111827';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = 'transparent';
+                                    e.currentTarget.style.color = '#6b7280';
+                                }}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
                         </div>
 
                         {/* Progress bar container */}
@@ -61,7 +99,7 @@ const CustomToast = () => {
               .custom-toast {
                 background: #ffffff;
                 color: ${textColor};
-                border: 1px solid ${borderColor};
+                box-shadow: inset 0 0 0 1px ${borderColor}, 0 4px 12px rgba(0, 0, 0, 0.1);
               }
             `}</style>
                     </div>
@@ -72,3 +110,4 @@ const CustomToast = () => {
 };
 
 export default CustomToast;
+

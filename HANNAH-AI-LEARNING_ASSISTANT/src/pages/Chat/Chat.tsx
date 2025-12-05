@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import toast from 'react-hot-toast'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Send, Upload, GitBranch, FileText, ClipboardCheck, StickyNote, Map } from 'lucide-react'
 import subjectService, { type Subject } from '../../service/subjectService'
@@ -503,13 +504,13 @@ export default function Chat() {
                         // Use flaggingService instead of direct fetch
                         await flaggingService.flagQuiz(numericId, reason, flaggingAttemptId || undefined);
 
-                        alert('Báo cáo đã được gửi thành công!');
+                        toast.success('Báo cáo quiz đã được gửi thành công!');
                         setShowFlagQuizModal(false);
                         setFlaggingQuizId(null);
                         setFlaggingAttemptId(null);
                     } catch (error: any) {
                         console.error('Error flagging quiz:', error);
-                        alert(error.message || 'Không thể gửi báo cáo. Vui lòng thử lại.');
+                        toast.error(error.message || 'Không thể gửi báo cáo. Vui lòng thử lại.');
                     } finally {
                         setIsFlaggingQuiz(false);
                     }

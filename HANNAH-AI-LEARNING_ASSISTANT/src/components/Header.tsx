@@ -23,26 +23,6 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
     const navigate = useNavigate();
 
-    // Check if current user is student - read from user_data object
-    const getUserRole = (): string => {
-        try {
-            const userData = localStorage.getItem('user_data');
-            if (userData) {
-                const parsed = JSON.parse(userData);
-                return parsed.role || '';
-            }
-        } catch (error) {
-            console.error('Error parsing user_data:', error);
-        }
-        return '';
-    };
-
-    const userRole = getUserRole();
-    const isStudent = userRole.toLowerCase() === 'student';
-
-    // Debug: Log role check
-    console.log('Header - User Role:', userRole, 'Is Student:', isStudent);
-
     return (
         <header className={`app-header ${className}`}>
             <div className="app-header-left">
@@ -76,7 +56,6 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
                 {showNotifications && <NotificationBell />}
                 <ThemeToggle />
-                {isStudent && <NotificationBell />}
                 <ProfileIcon />
             </div>
         </header>

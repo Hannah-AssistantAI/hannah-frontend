@@ -3,7 +3,9 @@ import apiClient from './apiClient';
 export interface FlagNotification {
   id: number;
   flagId: number;
-  message: string;
+  message: string;  // Generic message for dropdown
+  resolutionNotes?: string;  // Actual faculty resolution content from flagging_history
+  isQuiz: boolean;  // To distinguish quiz vs message notifications
   resolvedByName: string;
   resolvedAt: string;
   isRead: boolean;

@@ -2,21 +2,21 @@
 
 .custom-toast {
   position: relative;
-  padding: 14px 16px 4px 16px; /* Bottom padding = progress bar height */
+  padding: 14px 16px 12px 16px;
   border-radius: 10px;
   font-size: 15px;
   font-weight: 500;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   min-width: 250px;
   max-width: 400px;
-  overflow: hidden;
+  overflow: visible;  /* Changed from hidden to visible */
 }
 
 .custom-toast-content {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 8px; /* Space between content and progress bar */
+  margin-bottom: 8px;
 }
 
 .custom-toast-icon {
@@ -32,12 +32,12 @@
 .custom-toast-progress-track {
   position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
+  left: 2px;   /* Inset to stay within rounded corners */
+  right: 2px;
   height: 4px;
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  border-radius: 0 0 9px 9px;
+  border-radius: 0 0 6px 6px;
 }
 
 /* Progress bar fill */
@@ -59,3 +59,21 @@
     transform: scaleX(0);
   }
 }
+
+/* Close button */
+.custom-toast-close {
+  flex-shrink: 0;
+  pointer-events: auto !important;
+  z-index: 9999 !important;
+  position: relative;
+}
+
+/* Make entire toast clickable */
+.custom-toast {
+  pointer-events: auto !important;
+}
+
+.custom-toast * {
+  pointer-events: auto !important;
+}
+
