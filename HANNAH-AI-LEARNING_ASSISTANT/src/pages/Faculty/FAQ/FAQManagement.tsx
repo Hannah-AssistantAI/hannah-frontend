@@ -150,10 +150,11 @@ const FAQManagement = () => {
             </div>
           </div>
 
-          {/* Usage Statistics Chart */}
+          {/* Usage Statistics Chart - TEMPORARILY HIDDEN
           <div className="mb-6">
             <FAQUsageChart />
           </div>
+          */}
 
           {/* Create FAQ Button */}
           <div className="mb-6">

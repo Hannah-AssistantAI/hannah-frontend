@@ -17,28 +17,28 @@ const QuestionStatistics: React.FC = () => {
     <div className="question-statistics-container">
       <div className="statistics-header">
         <div className="header-content">
-          <h1 className="statistics-title">Thống kê câu hỏi</h1>
+          <h1 className="statistics-title">Question Statistics</h1>
           <p className="statistics-subtitle">
-            Phân tích xu hướng và thống kê các câu hỏi từ sinh viên
+            Analyze trends and statistics of student questions
           </p>
         </div>
         <div className="header-filters">
-          <select 
-            value={selectedPeriod} 
+          <select
+            value={selectedPeriod}
             onChange={(e) => setSelectedPeriod(e.target.value)}
             className="filter-select"
           >
-            <option value="day">Hôm nay</option>
-            <option value="week">Tuần này</option>
-            <option value="month">Tháng này</option>
-            <option value="semester">Học kỳ</option>
+            <option value="day">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="semester">Semester</option>
           </select>
-          <select 
-            value={selectedCourse} 
+          <select
+            value={selectedCourse}
             onChange={(e) => setSelectedCourse(e.target.value)}
             className="filter-select"
           >
-            <option value="all">Tất cả môn học</option>
+            <option value="all">All Subjects</option>
             {analyticsData.courseStats.map((course) => (
               <option key={course.course} value={course.course}>
                 {course.course}
@@ -55,7 +55,7 @@ const QuestionStatistics: React.FC = () => {
             <BarChart3 size={24} style={{ color: '#1890ff' }} />
           </div>
           <div className="stat-content">
-            <p className="stat-label">Tổng câu hỏi</p>
+            <p className="stat-label">Total Questions</p>
             <h3 className="stat-value">{analyticsData.overview.totalQuestions}</h3>
           </div>
         </div>
@@ -65,7 +65,7 @@ const QuestionStatistics: React.FC = () => {
             <BookOpen size={24} style={{ color: '#597ef7' }} />
           </div>
           <div className="stat-content">
-            <p className="stat-label">Môn học phổ biến nhất</p>
+            <p className="stat-label">Most Popular Subject</p>
             <h3 className="stat-value-text">{analyticsData.overview.topCourse}</h3>
           </div>
         </div>
@@ -75,7 +75,7 @@ const QuestionStatistics: React.FC = () => {
             <TrendingUp size={24} style={{ color: '#ff4d4f' }} />
           </div>
           <div className="stat-content">
-            <p className="stat-label">Chủ đề phổ biến nhất</p>
+            <p className="stat-label">Most Popular Topic</p>
             <h3 className="stat-value-text">{analyticsData.overview.topTopic}</h3>
           </div>
         </div>
@@ -85,7 +85,7 @@ const QuestionStatistics: React.FC = () => {
             <Users size={24} style={{ color: '#52c41a' }} />
           </div>
           <div className="stat-content">
-            <p className="stat-label">Trung bình câu hỏi/ngày</p>
+            <p className="stat-label">Avg Questions/Day</p>
             <h3 className="stat-value">
               {Math.round(analyticsData.trendData.reduce((sum, d) => sum + d.count, 0) / analyticsData.trendData.length)}
             </h3>
@@ -95,25 +95,25 @@ const QuestionStatistics: React.FC = () => {
 
       {/* Course Statistics */}
       <div className="statistics-section">
-        <h2 className="section-title">Thống kê theo môn học</h2>
+        <h2 className="section-title">Statistics by Subject</h2>
         <div className="course-stats-grid">
           {analyticsData.courseStats.map((course) => (
             <div key={course.course} className="course-stat-card">
               <div className="course-stat-header">
                 <h4 className="course-name">{course.course}</h4>
-                <span className="course-count">{course.count} câu hỏi</span>
+                <span className="course-count">{course.count} questions</span>
               </div>
               <div className="course-stat-bar">
-                <div 
-                  className="course-stat-fill" 
-                  style={{ 
+                <div
+                  className="course-stat-fill"
+                  style={{
                     width: `${(course.count / analyticsData.overview.totalQuestions) * 100}%`,
                     backgroundColor: '#1890ff'
                   }}
                 ></div>
               </div>
               <p className="course-stat-percentage">
-                {((course.count / analyticsData.overview.totalQuestions) * 100).toFixed(1)}% tổng số câu hỏi
+                {((course.count / analyticsData.overview.totalQuestions) * 100).toFixed(1)}% of total questions
               </p>
             </div>
           ))}
@@ -122,18 +122,18 @@ const QuestionStatistics: React.FC = () => {
 
       {/* Trend Chart */}
       <div className="statistics-section">
-        <h2 className="section-title">Xu hướng câu hỏi theo thời gian</h2>
+        <h2 className="section-title">Question Trends Over Time</h2>
         <div className="trend-chart">
           {analyticsData.trendData.map((data, index) => (
             <div key={index} className="trend-day">
               <div className="trend-bar-container">
-                <div 
-                  className="trend-bar" 
-                  style={{ 
+                <div
+                  className="trend-bar"
+                  style={{
                     height: `${(data.count / 65) * 100}%`,
                     backgroundColor: '#1890ff'
                   }}
-                  title={`${data.count} câu hỏi`}
+                  title={`${data.count} questions`}
                 ></div>
               </div>
               <span className="trend-label">{new Date(data.date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}</span>
@@ -146,8 +146,8 @@ const QuestionStatistics: React.FC = () => {
       {/* Recent Questions */}
       <div className="statistics-section">
         <div className="section-header">
-          <h2 className="section-title">Câu hỏi gần đây</h2>
-          <span className="section-badge">{analyticsData.recentQuestions.length} câu hỏi</span>
+          <h2 className="section-title">Recent Questions</h2>
+          <span className="section-badge">{analyticsData.recentQuestions.length} questions</span>
         </div>
         <div className="recent-questions-list">
           {analyticsData.recentQuestions.map((question) => (

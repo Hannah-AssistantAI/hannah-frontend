@@ -27,7 +27,7 @@ const AssignedMessages: React.FC = () => {
             const messageFlags = flags.filter(f => f.type === 'message');
             setAssignedFlags(messageFlags);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Không thể tải danh sách tin nhắn');
+            setError(err instanceof Error ? err.message : 'Unable to load message list');
             console.error('Error loading assigned message flags:', err);
         } finally {
             setLoading(false);
@@ -80,7 +80,7 @@ const AssignedMessages: React.FC = () => {
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/40 to-indigo-50/30 flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-gray-600 font-medium">Đang tải dữ liệu...</p>
+                    <p className="text-gray-600 font-medium">Loading data...</p>
                 </div>
             </div>
         );
@@ -92,10 +92,10 @@ const AssignedMessages: React.FC = () => {
                 {/* Page Header */}
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-900 to-indigo-700 bg-clip-text text-transparent mb-2">
-                        💬 Tin Nhắn Được Giao
+                        💬 Assigned Messages
                     </h1>
                     <p className="text-gray-600 text-base font-medium">
-                        Quản lý và xử lý các tin nhắn bị flag được giao cho bạn
+                        Manage and process flagged messages assigned to you
                     </p>
                 </div>
 
@@ -110,7 +110,7 @@ const AssignedMessages: React.FC = () => {
                             onClick={loadAssignedFlags}
                             className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all font-semibold text-sm shadow-md hover:shadow-lg"
                         >
-                            Thử lại
+                            Retry
                         </button>
                     </div>
                 )}
@@ -122,7 +122,7 @@ const AssignedMessages: React.FC = () => {
                             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md shadow-purple-500/20 mb-2 group-hover:scale-110 transition-transform duration-300">
                                 <MessageSquare className="w-5 h-5 text-white" />
                             </div>
-                            <div className="text-xs font-semibold text-gray-600 mb-1">Tổng Tin Nhắn</div>
+                            <div className="text-xs font-semibold text-gray-600 mb-1">Total Messages</div>
                             <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
                         </div>
                     </div>
@@ -132,7 +132,7 @@ const AssignedMessages: React.FC = () => {
                             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center shadow-md shadow-blue-500/20 mb-2 group-hover:scale-110 transition-transform duration-300">
                                 <MessageSquare className="w-5 h-5 text-white" />
                             </div>
-                            <div className="text-xs font-semibold text-blue-700 mb-1">Đang Xử Lý</div>
+                            <div className="text-xs font-semibold text-blue-700 mb-1">Processing</div>
                             <div className="text-2xl font-bold text-blue-800">{stats.processing}</div>
                         </div>
                     </div>
@@ -142,7 +142,7 @@ const AssignedMessages: React.FC = () => {
                             <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-md shadow-emerald-500/20 mb-2 group-hover:scale-110 transition-transform duration-300">
                                 <MessageSquare className="w-5 h-5 text-white" />
                             </div>
-                            <div className="text-xs font-semibold text-green-700 mb-1">Đã Giải Quyết</div>
+                            <div className="text-xs font-semibold text-green-700 mb-1">Resolved</div>
                             <div className="text-2xl font-bold text-green-800">{stats.resolved}</div>
                         </div>
                     </div>
@@ -151,7 +151,7 @@ const AssignedMessages: React.FC = () => {
                 {/* Status Filter */}
                 <div className="bg-white/90 backdrop-blur-sm rounded-xl p-5 shadow-md border border-gray-100 mb-6">
                     <div className="flex items-center gap-3">
-                        <span className="text-sm font-semibold text-gray-700">Trạng thái:</span>
+                        <span className="text-sm font-semibold text-gray-700">Status:</span>
                         <div className="flex gap-2">
                             {(['processing', 'resolved'] as FilterStatus[]).map((status) => (
                                 <button
@@ -162,7 +162,7 @@ const AssignedMessages: React.FC = () => {
                                         : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200'
                                         }`}
                                 >
-                                    <span>{status === 'processing' ? 'Đang xử lý' : 'Đã giải quyết'}</span>
+                                    <span>{status === 'processing' ? 'Processing' : 'Resolved'}</span>
                                     <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${filterStatus === status
                                         ? 'bg-white/30 text-white'
                                         : 'bg-gray-100 text-gray-600'
@@ -182,11 +182,11 @@ const AssignedMessages: React.FC = () => {
                             <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <MessageSquare className="w-8 h-8 text-gray-400" />
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Không có tin nhắn nào</h3>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">No messages found</h3>
                             <p className="text-gray-600 text-sm">
                                 {filterStatus === 'processing'
-                                    ? 'Không có tin nhắn nào đang xử lý'
-                                    : 'Không có tin nhắn nào đã giải quyết'}
+                                    ? 'No messages being processed'
+                                    : 'No resolved messages'}
                             </p>
                         </div>
                     ) : (
@@ -204,7 +204,7 @@ const AssignedMessages: React.FC = () => {
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-2">
-                                                <h3 className="text-base font-bold text-gray-900">Tin nhắn</h3>
+                                                <h3 className="text-base font-bold text-gray-900">Message</h3>
                                                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getStatusClass(item.status) === 'resolved'
                                                     ? 'bg-green-100 text-green-700 border-green-200'
                                                     : 'bg-blue-100 text-blue-700 border-blue-200'
@@ -220,7 +220,7 @@ const AssignedMessages: React.FC = () => {
                                             <div className="flex items-center gap-3 text-xs text-gray-600">
                                                 <div className="flex items-center gap-1">
                                                     <User className="w-3.5 h-3.5" />
-                                                    <span className="font-medium">Báo cáo bởi: {item.flaggedByName}</span>
+                                                    <span className="font-medium">Reported by: {item.flaggedByName}</span>
                                                 </div>
                                                 <div className="flex items-center gap-1">
                                                     <Calendar className="w-3.5 h-3.5" />
@@ -233,7 +233,7 @@ const AssignedMessages: React.FC = () => {
 
                                 {/* Card Content */}
                                 <div className="mb-3">
-                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">Lý do báo cáo:</label>
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">Report reason:</label>
                                     <div className="bg-gradient-to-br from-gray-50 to-purple-50/30 rounded-lg p-3 border border-gray-200">
                                         <p className="text-gray-800 leading-relaxed text-sm">
                                             {item.reason.length > 200 ? `${item.reason.substring(0, 200)}...` : item.reason}
@@ -251,7 +251,7 @@ const AssignedMessages: React.FC = () => {
                                         className="px-5 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-lg transition-all duration-300 font-semibold flex items-center gap-2 shadow-md hover:shadow-lg text-sm"
                                     >
                                         <Eye className="w-4 h-4" />
-                                        Xem Chi Tiết
+                                        View Details
                                     </button>
                                 </div>
                             </div>

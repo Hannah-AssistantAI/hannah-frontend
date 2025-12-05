@@ -218,7 +218,7 @@ const FlaggedMessageDetail: React.FC = () => {
                         onClick={handleBack}
                         className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold transition-all shadow-md hover:shadow-lg"
                     >
-                        Quay lại
+                        Go Back
                     </button>
                 </div>
             </div>
@@ -360,7 +360,7 @@ const FlaggedMessageDetail: React.FC = () => {
                                                 className="px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 rounded-xl transition-all font-semibold flex items-center gap-2 disabled:opacity-50"
                                             >
                                                 <X size={18} />
-                                                Hủy
+                                                Cancel
                                             </button>
                                         </div>
                                     </div>

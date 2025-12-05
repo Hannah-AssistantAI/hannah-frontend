@@ -4,9 +4,9 @@ import { Upload, File, Trash2, Edit2, FileText, BookOpen, ChevronDown, Target, A
 
 export default function KnowledgeManagement() {
   const [courses, setCourses] = useState([
-    { 
-      id: 1, 
-      name: 'Software Engineering', 
+    {
+      id: 1,
+      name: 'Software Engineering',
       code: 'SWE201',
       semester: 'Fall 2024',
       materials: [
@@ -22,9 +22,9 @@ export default function KnowledgeManagement() {
         { id: 2, text: 'Time management with assignments' }
       ]
     },
-    { 
-      id: 2, 
-      name: 'Database Systems', 
+    {
+      id: 2,
+      name: 'Database Systems',
       code: 'DBI202',
       semester: 'Fall 2024',
       materials: [],
@@ -62,7 +62,7 @@ export default function KnowledgeManagement() {
           if (editingItem) {
             return {
               ...course,
-              outcomes: course.outcomes.map(o => o.id === editingItem.id 
+              outcomes: course.outcomes.map(o => o.id === editingItem.id
                 ? { ...o, text: formData.text }
                 : o
               )
@@ -107,7 +107,7 @@ export default function KnowledgeManagement() {
           if (editingItem) {
             return {
               ...course,
-              challenges: course.challenges.map(c => c.id === editingItem.id 
+              challenges: course.challenges.map(c => c.id === editingItem.id
                 ? { ...c, text: formData.text }
                 : c
               )
@@ -161,8 +161,8 @@ export default function KnowledgeManagement() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-800 mb-2">Quản lý tài liệu</h1>
-          <p className="text-slate-600">Quản lý tài liệu và nội dung theo môn học</p>
+          <h1 className="text-4xl font-bold text-slate-800 mb-2">Document Management</h1>
+          <p className="text-slate-600">Manage documents and content by course</p>
         </div>
 
 
@@ -182,7 +182,7 @@ export default function KnowledgeManagement() {
                   </div>
                   <ChevronDown className="w-5 h-5 text-slate-600" />
                 </button>
-                
+
                 {showCourseDropdown && (
                   <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-xl border-2 border-slate-200 z-10 max-h-64 overflow-y-auto">
                     {courses.map(course => (
@@ -192,9 +192,8 @@ export default function KnowledgeManagement() {
                           setSelectedCourse(course);
                           setShowCourseDropdown(false);
                         }}
-                        className={`w-full text-left px-4 py-3 hover:bg-blue-50 transition ${
-                          course.id === selectedCourse.id ? 'bg-blue-100' : ''
-                        }`}
+                        className={`w-full text-left px-4 py-3 hover:bg-blue-50 transition ${course.id === selectedCourse.id ? 'bg-blue-100' : ''
+                          }`}
                       >
                         <p className="font-semibold text-slate-800">{course.name}</p>
                         <p className="text-sm text-slate-600">{course.code} - {course.semester}</p>
@@ -212,36 +211,33 @@ export default function KnowledgeManagement() {
           <div className="flex border-b border-slate-200">
             <button
               onClick={() => setActiveTab('materials')}
-              className={`flex items-center gap-2 px-6 py-4 font-semibold transition ${
-                activeTab === 'materials' 
-                  ? 'text-blue-600 border-b-2 border-blue-600' 
+              className={`flex items-center gap-2 px-6 py-4 font-semibold transition ${activeTab === 'materials'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-slate-600 hover:text-slate-800'
-              }`}
+                }`}
             >
               <FileText className="w-5 h-5" />
-              Tài liệu
+              Documents
             </button>
             <button
               onClick={() => setActiveTab('outcomes')}
-              className={`flex items-center gap-2 px-6 py-4 font-semibold transition ${
-                activeTab === 'outcomes' 
-                  ? 'text-purple-600 border-b-2 border-purple-600' 
+              className={`flex items-center gap-2 px-6 py-4 font-semibold transition ${activeTab === 'outcomes'
+                  ? 'text-purple-600 border-b-2 border-purple-600'
                   : 'text-slate-600 hover:text-slate-800'
-              }`}
+                }`}
             >
               <Target className="w-5 h-5" />
-              Kết quả Học tập
+              Learning Outcomes
             </button>
             <button
               onClick={() => setActiveTab('challenges')}
-              className={`flex items-center gap-2 px-6 py-4 font-semibold transition ${
-                activeTab === 'challenges' 
-                  ? 'text-orange-600 border-b-2 border-orange-600' 
+              className={`flex items-center gap-2 px-6 py-4 font-semibold transition ${activeTab === 'challenges'
+                  ? 'text-orange-600 border-b-2 border-orange-600'
                   : 'text-slate-600 hover:text-slate-800'
-              }`}
+                }`}
             >
               <AlertCircle className="w-5 h-5" />
-              Thách thức Thường gặp
+              Common Challenges
             </button>
           </div>
 
@@ -250,18 +246,18 @@ export default function KnowledgeManagement() {
             {activeTab === 'materials' && (
               <>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-slate-800">Tài liệu - {selectedCourse.name}</h2>
+                  <h2 className="text-2xl font-bold text-slate-800">Documents - {selectedCourse.name}</h2>
                   <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition">
                     <Upload className="w-5 h-5" />
-                    Tải lên File
+                    Upload File
                     <input type="file" className="hidden" multiple />
                   </label>
                 </div>
 
                 <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center mb-6 hover:border-blue-400 transition">
                   <Upload className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-                  <p className="text-slate-600 mb-2">Kéo thả file vào đây hoặc click để chọn</p>
-                  <p className="text-sm text-slate-500">Hỗ trợ: PDF, DOCX, PPTX, TXT (Max: 50MB)</p>
+                  <p className="text-slate-600 mb-2">Drag and drop files here or click to select</p>
+                  <p className="text-sm text-slate-500">Supported: PDF, DOCX, PPTX, TXT (Max: 50MB)</p>
                 </div>
 
                 {selectedCourse.materials.length > 0 ? (
@@ -279,7 +275,7 @@ export default function KnowledgeManagement() {
                           <button className="p-2 text-slate-600 hover:bg-slate-200 rounded-lg transition">
                             <Edit2 className="w-4 h-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDeleteMaterial(mat.id)}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                           >
@@ -292,7 +288,7 @@ export default function KnowledgeManagement() {
                 ) : (
                   <div className="text-center py-8 text-slate-500">
                     <FileText className="w-12 h-12 mx-auto mb-2 text-slate-300" />
-                    <p>Chưa có tài liệu nào cho môn học này</p>
+                    <p>No documents for this course yet</p>
                   </div>
                 )}
               </>
@@ -302,41 +298,41 @@ export default function KnowledgeManagement() {
             {activeTab === 'outcomes' && (
               <>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-slate-800">Kết quả Học tập - {selectedCourse.name}</h2>
-                  <button 
+                  <h2 className="text-2xl font-bold text-slate-800">Learning Outcomes - {selectedCourse.name}</h2>
+                  <button
                     onClick={() => setShowForm(true)}
                     className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
                   >
                     <Plus className="w-5 h-5" />
-                    Thêm Kết quả
+                    Add Outcome
                   </button>
                 </div>
 
                 {showForm && (
                   <div className="mb-6 p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
                     <h3 className="font-semibold text-slate-800 mb-3">
-                      {editingItem ? 'Chỉnh sửa Kết quả Học tập' : 'Thêm Kết quả Học tập mới'}
+                      {editingItem ? 'Edit Learning Outcome' : 'Add New Learning Outcome'}
                     </h3>
                     <textarea
-                      placeholder="Kết quả học tập mong đợi"
+                      placeholder="Expected learning outcome"
                       value={formData.text}
                       onChange={(e) => setFormData({ text: e.target.value })}
                       className="w-full px-4 py-2 border border-slate-300 rounded-lg mb-3 h-20 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                     <div className="flex gap-2">
-                      <button 
+                      <button
                         onClick={handleAddOutcome}
                         className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
                       >
                         <Check className="w-4 h-4" />
-                        {editingItem ? 'Cập nhật' : 'Lưu'}
+                        {editingItem ? 'Update' : 'Save'}
                       </button>
-                      <button 
+                      <button
                         onClick={cancelForm}
                         className="flex items-center gap-2 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition"
                       >
                         <X className="w-4 h-4" />
-                        Hủy
+                        Cancel
                       </button>
                     </div>
                   </div>
@@ -351,13 +347,13 @@ export default function KnowledgeManagement() {
                         </span>
                         <p className="flex-1 text-slate-700">{outcome.text}</p>
                         <div className="flex gap-1">
-                          <button 
+                          <button
                             onClick={() => handleEdit(outcome)}
                             className="p-1 text-slate-600 hover:bg-slate-200 rounded transition"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDeleteOutcome(outcome.id)}
                             className="p-1 text-red-600 hover:bg-red-50 rounded transition"
                           >
@@ -370,7 +366,7 @@ export default function KnowledgeManagement() {
                 ) : (
                   <div className="text-center py-8 text-slate-500">
                     <Target className="w-12 h-12 mx-auto mb-2 text-slate-300" />
-                    <p>Chưa có Kết quả Học tập cho môn này</p>
+                    <p>No Learning Outcomes for this course yet</p>
                   </div>
                 )}
               </>
@@ -380,41 +376,41 @@ export default function KnowledgeManagement() {
             {activeTab === 'challenges' && (
               <>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-slate-800">Thách thức Thường gặp - {selectedCourse.name}</h2>
-                  <button 
+                  <h2 className="text-2xl font-bold text-slate-800">Common Challenges - {selectedCourse.name}</h2>
+                  <button
                     onClick={() => setShowForm(true)}
                     className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
                   >
                     <Plus className="w-5 h-5" />
-                    Thêm Thách thức
+                    Add Challenge
                   </button>
                 </div>
 
                 {showForm && (
                   <div className="mb-6 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
                     <h3 className="font-semibold text-slate-800 mb-3">
-                      {editingItem ? 'Chỉnh sửa Thách thức' : 'Thêm Thách thức mới'}
+                      {editingItem ? 'Edit Challenge' : 'Add New Challenge'}
                     </h3>
                     <textarea
-                      placeholder="Thách thức phổ biến của sinh viên"
+                      placeholder="Common student challenge"
                       value={formData.text}
                       onChange={(e) => setFormData({ text: e.target.value })}
                       className="w-full px-4 py-2 border border-slate-300 rounded-lg mb-3 h-20 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     />
                     <div className="flex gap-2">
-                      <button 
+                      <button
                         onClick={handleAddChallenge}
                         className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
                       >
                         <Check className="w-4 h-4" />
-                        {editingItem ? 'Cập nhật' : 'Lưu'}
+                        {editingItem ? 'Update' : 'Save'}
                       </button>
-                      <button 
+                      <button
                         onClick={cancelForm}
                         className="flex items-center gap-2 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition"
                       >
                         <X className="w-4 h-4" />
-                        Hủy
+                        Cancel
                       </button>
                     </div>
                   </div>
@@ -427,13 +423,13 @@ export default function KnowledgeManagement() {
                         <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
                         <p className="flex-1 text-slate-700">{challenge.text}</p>
                         <div className="flex gap-1">
-                          <button 
+                          <button
                             onClick={() => handleEdit(challenge)}
                             className="p-1 text-slate-600 hover:bg-slate-200 rounded transition"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDeleteChallenge(challenge.id)}
                             className="p-1 text-red-600 hover:bg-red-50 rounded transition"
                           >
@@ -446,7 +442,7 @@ export default function KnowledgeManagement() {
                 ) : (
                   <div className="text-center py-8 text-slate-500">
                     <AlertCircle className="w-12 h-12 mx-auto mb-2 text-slate-300" />
-                    <p>Chưa có Thách thức Thường gặp cho môn này</p>
+                    <p>No Common Challenges for this course yet</p>
                   </div>
                 )}
               </>

@@ -89,7 +89,7 @@ const FAQItem: React.FC<FAQItemProps> = ({ faq, onEdit, onDelete }) => {
                     setExpanded(true);
                   }}
                 >
-                  Đọc thêm →
+                  Read more →
                 </button>
               )}
             </div>
@@ -180,14 +180,14 @@ const FAQItem: React.FC<FAQItemProps> = ({ faq, onEdit, onDelete }) => {
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">Xác nhận xóa</h3>
-                  <p className="text-sm text-gray-500 mt-1">Hành động này không thể hoàn tác</p>
+                  <h3 className="text-lg font-semibold text-gray-900">Confirm Delete</h3>
+                  <p className="text-sm text-gray-500 mt-1">This action cannot be undone</p>
                 </div>
               </div>
 
               <div className="mb-6">
                 <p className="text-sm text-gray-600">
-                  Bạn có chắc chắn muốn xóa câu hỏi này?
+                  Are you sure you want to delete this question?
                 </p>
                 <p className="text-sm font-medium text-gray-900 mt-2 p-3 bg-gray-50 rounded border border-gray-200">
                   "{faq.question}"
@@ -199,13 +199,13 @@ const FAQItem: React.FC<FAQItemProps> = ({ faq, onEdit, onDelete }) => {
                   onClick={handleCancelDelete}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   onClick={handleConfirmDelete}
                   className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
                 >
-                  Xóa
+                  Delete
                 </button>
               </div>
             </div>

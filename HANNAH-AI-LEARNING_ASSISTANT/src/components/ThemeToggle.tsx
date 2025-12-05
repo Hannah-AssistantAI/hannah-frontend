@@ -7,8 +7,8 @@ const ThemeToggle: React.FC = () => {
 
   return (
     <button
-      aria-label="Chuyển đổi chế độ sáng/tối"
-      title={theme === 'dark' ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
+      aria-label="Toggle light/dark mode"
+      title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
       onClick={toggleTheme}
       className="theme-toggle-btn"
     >

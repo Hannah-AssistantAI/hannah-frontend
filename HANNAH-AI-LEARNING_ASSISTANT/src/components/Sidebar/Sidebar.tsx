@@ -18,11 +18,11 @@ const Sidebar: React.FC<SidebarProps> = ({ children, title, subtitle }) => {
   const getRoleInVietnamese = (role: string) => {
     switch (role.toLowerCase()) {
       case 'student':
-        return 'Sinh viên';
+        return 'Student';
       case 'faculty':
-        return 'Giảng viên';
+        return 'Faculty';
       case 'admin':
-        return 'Quản trị viên';
+        return 'Administrator';
       default:
         return role;
     }
@@ -61,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, title, subtitle }) => {
             type="button"
             className="sidebar-toggle-btn"
             onClick={toggleSidebar}
-            title="Mở rộng sidebar"
+            title="Expand sidebar"
             data-testid="sidebar-toggle-collapsed"
           >
             <Menu size={20} />
@@ -79,7 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, title, subtitle }) => {
               type="button"
               className="sidebar-toggle-btn"
               onClick={toggleSidebar}
-              title="Thu gọn sidebar"
+              title="Collapse sidebar"
               data-testid="sidebar-toggle-expanded"
             >
               <Menu size={20} />
@@ -97,7 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, title, subtitle }) => {
           <NavLink
             to={`/${user.role}/profile`}
             className={({ isActive }) => `sidebar-user${isActive ? ' active' : ''}`}
-            title="Xem hồ sơ"
+            title="View profile"
           >
             <div className="user-avatar">
               <User size={20} />
@@ -113,7 +113,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, title, subtitle }) => {
         <button
           className="logout-btn"
           onClick={handleLogout}
-          title="Đăng xuất"
+          title="Logout"
         >
           <LogOut size={18} />
         </button>

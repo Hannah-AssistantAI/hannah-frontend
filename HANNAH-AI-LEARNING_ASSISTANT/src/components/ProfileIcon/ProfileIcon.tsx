@@ -10,8 +10,8 @@ interface ProfileIconProps {
 
 const ProfileIcon: React.FC<ProfileIconProps> = React.memo(({ className = '' }) => {
   const { user, logout } = useAuth();
-    const navigate = useNavigate();
-  
+  const navigate = useNavigate();
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -48,7 +48,7 @@ const ProfileIcon: React.FC<ProfileIconProps> = React.memo(({ className = '' }) 
     return null;
   }
 
-  // Lấy chữ cái đầu của tên để làm avatar
+  // Get first letters of name for avatar
   const getInitials = (name: string | undefined) => {
     if (!name || typeof name !== 'string') {
       return 'U'; // Default fallback
@@ -85,29 +85,29 @@ const ProfileIcon: React.FC<ProfileIconProps> = React.memo(({ className = '' }) 
           pointerEvents: isDropdownOpen ? 'auto' : 'none'
         }}
       >
-          
+
+        <div className="dropdown-divider"></div>
+
+        <div className="dropdown-menu">
+          <button
+            className="dropdown-item"
+            onClick={handleProfileView}
+          >
+            <User size={16} />
+            <span>Profile</span>
+          </button>
+
           <div className="dropdown-divider"></div>
-          
-          <div className="dropdown-menu">
-            <button 
-              className="dropdown-item"
-              onClick={handleProfileView}
-            >
-              <User size={16} />
-              <span>Hồ sơ</span>
-            </button>
-            
-            <div className="dropdown-divider"></div>
-            
-            <button 
-              className="dropdown-item logout-item"
-              onClick={handleLogout}
-            >
-              <LogOut size={16} />
-              <span>Đăng xuất</span>
-            </button>
-          </div>
+
+          <button
+            className="dropdown-item logout-item"
+            onClick={handleLogout}
+          >
+            <LogOut size={16} />
+            <span>Logout</span>
+          </button>
         </div>
+      </div>
     </div>
   );
 });

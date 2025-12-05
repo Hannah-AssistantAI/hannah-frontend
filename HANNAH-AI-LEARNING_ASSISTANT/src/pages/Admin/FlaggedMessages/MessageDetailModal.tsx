@@ -43,7 +43,7 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
             setMessageContext(context);
         } catch (err) {
             if (err instanceof Error && err.message.includes('Not Found')) {
-                setError('⚠️ Không tìm thấy nội dung hội thoại. Message có thể đã bị xóa hoặc chưa được đồng bộ.');
+                setError('⚠️ Conversation content not found. Message may have been deleted or not synchronized.');
             } else {
                 setError(err instanceof Error ? err.message : 'Failed to load message context');
             }
@@ -78,7 +78,7 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
 
     const handleConfirmAssign = async () => {
         if (!selectedFacultyId) {
-            setAssignError('Vui lòng chọn giảng viên');
+            setAssignError('Please select a faculty member');
             return;
         }
 
@@ -117,11 +117,11 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
-            message: 'Tin nhắn',
+            message: 'Message',
             quiz: 'Quiz',
             flashcard: 'Flashcard',
-            report: 'Báo cáo',
-            mindmap: 'Sơ đồ tư duy'
+            report: 'Report',
+            mindmap: 'Mindmap'
         };
         return labels[type] || type;
     };
@@ -129,11 +129,11 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
     const getRoleLabel = (role: string, senderName?: string) => {
         if (role === 'user' || role === 'student') {
             // Use student name from message context or fallback to flaggedByName
-            return senderName || item.flaggedByName || 'Học sinh';
+            return senderName || item.flaggedByName || 'Student';
         }
         const labels: Record<string, string> = {
             assistant: 'AI Assistant',
-            faculty: 'Giảng viên'
+            faculty: 'Faculty'
         };
         return labels[role] || role;
     };
@@ -142,41 +142,41 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h2>Chi Tiết Báo Cáo</h2>
+                    <h2>Report Details</h2>
                     <button className="close-button" onClick={onClose}>✕</button>
                 </div>
 
                 <div className="modal-body">
                     <div className="info-section">
-                        <h3 className="section-title">Thông Tin Báo Cáo</h3>
+                        <h3 className="section-title">Report Information</h3>
                         <div className="info-grid">
                             <div className="info-item">
-                                <span className="info-label">Loại:</span>
+                                <span className="info-label">Type:</span>
                                 <span className="info-value">{getTypeLabel(item.type)}</span>
                             </div>
                             <div className="info-item">
-                                <span className="info-label">Trạng thái:</span>
+                                <span className="info-label">Status:</span>
                                 <span className={`status-badge status-${item.status.toLowerCase()}`}>
                                     {item.status}
                                 </span>
                             </div>
                             <div className="info-item">
-                                <span className="info-label">Ưu tiên:</span>
+                                <span className="info-label">Priority:</span>
                                 <span className={`priority-badge priority-${item.priority?.toLowerCase() || 'medium'}`}>
                                     {item.priority || 'Medium'}
                                 </span>
                             </div>
                             <div className="info-item">
-                                <span className="info-label">Người báo cáo:</span>
+                                <span className="info-label">Reported by:</span>
                                 <span className="info-value">{item.flaggedByName}</span>
                             </div>
                             <div className="info-item">
-                                <span className="info-label">Thời gian:</span>
+                                <span className="info-label">Time:</span>
                                 <span className="info-value">{formatDate(item.flaggedAt)}</span>
                             </div>
                             {item.assignedToName && (
                                 <div className="info-item">
-                                    <span className="info-label">Được giao cho:</span>
+                                    <span className="info-label">Assigned to:</span>
                                     <span className="info-value">{item.assignedToName}</span>
                                 </div>
                             )}
@@ -184,24 +184,24 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
                     </div>
 
                     <div className="info-section">
-                        <h3 className="section-title">Lý Do Báo Cáo</h3>
+                        <h3 className="section-title">Report Reason</h3>
                         <div className="reason-box">{item.reason}</div>
                     </div>
 
                     {item.type === 'message' && (
                         <div className="info-section">
-                            <h3 className="section-title">Nội Dung Hội Thoại</h3>
+                            <h3 className="section-title">Conversation Content</h3>
                             {loading && (
                                 <div className="loading-indicator">
                                     <div className="spinner-small"></div>
-                                    <span>Đang tải...</span>
+                                    <span>Loading...</span>
                                 </div>
                             )}
                             {error && (
                                 <div className="error-message">
                                     <span>⚠️ {error}</span>
                                     <button onClick={loadMessageContext} className="retry-btn-small">
-                                        Thử lại
+                                        Retry
                                     </button>
                                 </div>
                             )}
@@ -220,14 +220,14 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
                                                     <div className="message-header">
                                                         <div className="message-sender-info">
                                                             <span className="message-role">{getRoleLabel(msg.role, item.flaggedByName)}</span>
-                                                            <span className="role-label">{isStudent ? '(Học sinh)' : '(AI Assistant)'}</span>
+                                                            <span className="role-label">{isStudent ? '(Student)' : '(AI Assistant)'}</span>
                                                         </div>
                                                         <span className="message-time">{formatDate(msg.timestamp)}</span>
                                                     </div>
                                                     <div className="message-content">{msg.content}</div>
                                                     {isFlagged && (
                                                         <div className="flagged-indicator">
-                                                            🚩 Tin nhắn được báo cáo
+                                                            🚩 Flagged message
                                                         </div>
                                                     )}
                                                 </div>
@@ -238,8 +238,8 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
                                                         <div className="message-header">
                                                             <div className="resolution-header-left">
                                                                 <span className="message-role">{item.resolvedByName || 'Faculty'}</span>
-                                                                <span className="role-label">(Giảng viên)</span>
-                                                                <span className="resolution-badge-inline">đã xử lý</span>
+                                                                <span className="role-label">(Faculty)</span>
+                                                                <span className="resolution-badge-inline">resolved</span>
                                                             </div>
                                                             {item.resolvedAt && (
                                                                 <span className="message-time">{formatDate(item.resolvedAt)}</span>
@@ -260,7 +260,7 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
 
                     {item.type !== 'message' && (
                         <div className="info-section">
-                            <h3 className="section-title">Thông Tin Nội Dung</h3>
+                            <h3 className="section-title">Content Information</h3>
                             <div className="info-grid">
                                 <div className="info-item">
                                     <span className="info-label">{getTypeLabel(item.type)} ID:</span>
@@ -288,15 +288,15 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
                         <>
                             {item.status?.toLowerCase() === 'pending' && (
                                 <button className="btn-assign" onClick={handleAssignClick}>
-                                    📋 Giao Cho Giảng Viên
+                                    📋 Assign to Faculty
                                 </button>
                             )}
-                            <button className="btn-close" onClick={onClose}>Đóng</button>
+                            <button className="btn-close" onClick={onClose}>Close</button>
                         </>
                     ) : (
                         <div className="assign-section">
                             <div className="assign-header">
-                                <h4>Giao cho giảng viên</h4>
+                                <h4>Assign to faculty</h4>
                             </div>
 
                             {assignError && (
@@ -306,19 +306,19 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
                             )}
 
                             <div className="form-group">
-                                <label>Tìm kiếm giảng viên:</label>
+                                <label>Search faculty:</label>
                                 <input
                                     type="text"
                                     value={facultySearch}
                                     onChange={(e) => setFacultySearch(e.target.value)}
-                                    placeholder="Nhập tên hoặc email..."
+                                    placeholder="Enter name or email..."
                                     className="faculty-search"
                                     disabled={assignLoading}
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label>Chọn giảng viên:</label>
+                                <label>Select faculty:</label>
                                 <select
                                     value={selectedFacultyId || ''}
                                     onChange={(e) => setSelectedFacultyId(Number(e.target.value))}
@@ -326,7 +326,7 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
                                     disabled={assignLoading}
                                     size={5}
                                 >
-                                    <option value="">-- Chọn giảng viên --</option>
+                                    <option value="">-- Select faculty --</option>
                                     {filteredFacultyList.map((faculty) => (
                                         <option key={faculty.userId} value={faculty.userId}>
                                             {faculty.fullName} ({faculty.email})
@@ -334,7 +334,7 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
                                     ))}
                                 </select>
                                 {filteredFacultyList.length === 0 && facultySearch && (
-                                    <small className="text-muted">Không tìm thấy giảng viên</small>
+                                    <small className="text-muted">No faculty found</small>
                                 )}
                             </div>
 
@@ -344,14 +344,14 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
                                     onClick={handleConfirmAssign}
                                     disabled={assignLoading || !selectedFacultyId}
                                 >
-                                    {assignLoading ? 'Đang giao...' : 'Xác nhận'}
+                                    {assignLoading ? 'Assigning...' : 'Confirm'}
                                 </button>
                                 <button
                                     className="btn-cancel"
                                     onClick={handleCancelAssign}
                                     disabled={assignLoading}
                                 >
-                                    Hủy
+                                    Cancel
                                 </button>
                             </div>
                         </div>
