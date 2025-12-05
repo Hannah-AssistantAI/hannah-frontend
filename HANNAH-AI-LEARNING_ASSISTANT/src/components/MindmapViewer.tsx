@@ -174,6 +174,8 @@ const MindMapNodeComponent: React.FC<{
 // --- Main Component ---
 export interface MindmapViewerHandle {
     getSvgElement: () => SVGSVGElement | null;
+    zoomIn: () => void;
+    zoomOut: () => void;
 }
 
 const MindmapViewer = forwardRef<MindmapViewerHandle, MindmapViewerProps>(({ data, onNodeClick }, ref) => {
@@ -189,10 +191,29 @@ const MindmapViewer = forwardRef<MindmapViewerHandle, MindmapViewerProps>(({ dat
     const [expandedNodes, setExpandedNodes] = useState<{ [key: string]: boolean }>({});
     const [isPanning, setIsPanning] = useState(false);
 
-    // Expose getSvgElement to parent
+    const updateTransformImmediate = useCallback(() => {
+        if (transformRef.current) {
+            transformRef.current.setAttribute(
+                'transform',
+                `translate(${panRef.current.x}, ${panRef.current.y}) scale(${zoomRef.current})`
+            );
+        }
+    }, []);
+
+    // Expose methods to parent
     useImperativeHandle(ref, () => ({
-        getSvgElement: () => svgRef.current
-    }));
+        getSvgElement: () => svgRef.current,
+        zoomIn: () => {
+            // Same as scroll up: deltaY < 0 → factor 1.1
+            zoomRef.current = Math.min(zoomRef.current * 1.1, 3);
+            updateTransformImmediate();
+        },
+        zoomOut: () => {
+            // Same as scroll down: deltaY > 0 → factor 0.9
+            zoomRef.current = Math.max(zoomRef.current * 0.9, 0.2);
+            updateTransformImmediate();
+        }
+    }), [updateTransformImmediate]);
 
     const treeData = useMemo(() => {
         if (!data?.nodes?.length || !data?.edges?.length) return null;
@@ -291,7 +312,8 @@ const MindmapViewer = forwardRef<MindmapViewerHandle, MindmapViewerProps>(({ dat
 
         const onMouseDown = (e: MouseEvent) => {
             const target = e.target as Element;
-            if (target.closest('.toggle-btn')) return;
+            // Ignore clicks on toggle buttons and zoom controls
+            if (target.closest('.toggle-btn') || target.closest('.mindmap-zoom-btn') || target.closest('.mindmap-zoom-controls')) return;
 
             isPanningRef.current = true;
             setIsPanning(true);

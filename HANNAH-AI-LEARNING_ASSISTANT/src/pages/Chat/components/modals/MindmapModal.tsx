@@ -195,10 +195,18 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
                             <button className="mindmap-zoom-btn" title="Expand/Collapse All">
                                 <ChevronsUpDown size={18} />
                             </button>
-                            <button className="mindmap-zoom-btn" title="Zoom In">
+                            <button
+                                className="mindmap-zoom-btn"
+                                onClick={() => viewerRef.current?.zoomIn()}
+                                title="Zoom In"
+                            >
                                 <Plus size={18} />
                             </button>
-                            <button className="mindmap-zoom-btn" title="Zoom Out">
+                            <button
+                                className="mindmap-zoom-btn"
+                                onClick={() => viewerRef.current?.zoomOut()}
+                                title="Zoom Out"
+                            >
                                 <Minus size={18} />
                             </button>
                         </div>
