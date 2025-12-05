@@ -9,7 +9,7 @@ import './CourseManagement.css';
 
 const initialFormState: Partial<Subject> = {
   code: '', name: '', semester: 1, credits: 3, description: '',
-  minAvgMarkToPass: 5.0, degreeLevel: 'Undergraduate', scoringScale: 'Thang điểm 10',
+  minAvgMarkToPass: 5.0, degreeLevel: 'Undergraduate', scoringScale: '10-point Scale',
   estimatedHours: 45, prerequisites: [], learningOutcomes: [], commonChallenges: [],
   timeAllocation: '', tools: '', decisionNo: '',
 };
