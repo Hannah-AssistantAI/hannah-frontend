@@ -10,6 +10,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/vs2015.css';
 import toast from 'react-hot-toast';
+import { getLabels, type SupportedLanguage } from '../../../../utils/translations';
 
 interface MessageDisplayProps {
     message: Message;
@@ -20,6 +21,7 @@ interface MessageDisplayProps {
     onInteractiveItemClick: (term: string) => void;
     onFlagMessage: (messageId: number) => void;
     isReadOnly?: boolean;
+    language?: SupportedLanguage | string | null;
 }
 
 export const MessageDisplay: React.FC<MessageDisplayProps> = ({
@@ -30,11 +32,15 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
     onToggleSource,
     onInteractiveItemClick,
     onFlagMessage,
-    isReadOnly = false
+    isReadOnly = false,
+    language = 'vi'
 }) => {
     const [showYouTubeModal, setShowYouTubeModal] = useState(false);
     const [selectedVideo, setSelectedVideo] = useState<YoutubeResource | null>(null);
     const [isInteractiveListExpanded, setIsInteractiveListExpanded] = useState(true);
+
+    // Get labels based on detected language
+    const t = getLabels(language);
 
     // Helper function to strip instruction prefixes from a question
     const stripInstructionPrefix = (text: string): string => {
@@ -77,7 +83,7 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
                     style={{ cursor: 'pointer' }}
                 >
                     <List size={20} className="interactive-list-icon" />
-                    <span className="interactive-list-title">Interactive List</span>
+                    <span className="interactive-list-title">{t.interactiveList}</span>
                     <div className="interactive-list-toggle" style={{ marginLeft: 'auto' }}>
                         {isInteractiveListExpanded ? (
                             <ChevronUp size={20} />
@@ -187,11 +193,11 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
                     </div>
                     {renderInteractiveList(message.interactiveList)}
                     {message.images && message.images.length > 0 && (
-                        <MessageImages images={message.images} />
+                        <MessageImages images={message.images} language={language} />
                     )}
                     {message.youtubeResources && message.youtubeResources.length > 0 && (
                         <div className="youtube-resources-section">
-                            <h3 className="youtube-resources-title">📺 Video liên quan</h3>
+                            <h3 className="youtube-resources-title">📺 {t.relatedVideos}</h3>
                             <div className="youtube-resources-grid">
                                 {message.youtubeResources.map((video, index) => (
                                     <div
@@ -287,12 +293,12 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
                 })}
 
                 {message.images && message.images.length > 0 && (
-                    <MessageImages images={message.images} />
+                    <MessageImages images={message.images} language={language} />
                 )}
 
                 {message.youtubeResources && message.youtubeResources.length > 0 && (
                     <div className="youtube-resources-section">
-                        <h3 className="youtube-resources-title">📺 Video liên quan</h3>
+                        <h3 className="youtube-resources-title">📺 {t.relatedVideos}</h3>
                         <div className="youtube-resources-grid">
                             {message.youtubeResources.map((video, index) => (
                                 <div
@@ -350,7 +356,7 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
                                     }}
                                 >
                                     <span className="suggestion-icon">≡</span>
-                                    <span>Đơn giản hóa</span>
+                                    <span>{t.simplify}</span>
                                 </button>
                                 <button
                                     className="suggestion-btn"
@@ -364,7 +370,7 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
                                     }}
                                 >
                                     <span className="suggestion-icon">≡</span>
-                                    <span>Tìm hiểu sâu hơn</span>
+                                    <span>{t.deepDive}</span>
                                 </button>
                             </div>
                             <div className="message-actions">

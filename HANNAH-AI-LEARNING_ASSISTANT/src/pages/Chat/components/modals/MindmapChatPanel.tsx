@@ -1,22 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import chatService from '../../../../service/chatService';
+import { getLabels, type SupportedLanguage } from '../../../../utils/translations';
 
 interface MindmapChatPanelProps {
     selectedNode: string;
     conversationId: number;
     mindmapTopic: string;
+    language?: SupportedLanguage | string | null;
 }
 
 export const MindmapChatPanel: React.FC<MindmapChatPanelProps> = ({
     selectedNode,
     conversationId,
-    mindmapTopic
+    mindmapTopic,
+    language = 'vi'
 }) => {
     const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
     const [chatInput, setChatInput] = useState('');
     const [isSendingMessage, setIsSendingMessage] = useState(false);
     const chatContainerRef = useRef<HTMLDivElement>(null);
+
+    // Get labels based on detected language
+    const t = getLabels(language);
 
     // Auto-scroll to bottom when messages change
     useEffect(() => {
@@ -79,7 +85,10 @@ export const MindmapChatPanel: React.FC<MindmapChatPanelProps> = ({
             // Replace empty assistant message with error
             setChatMessages(prev => {
                 const updated = [...prev];
-                updated[updated.length - 1] = { role: 'assistant' as const, content: 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.' };
+                updated[updated.length - 1] = {
+                    role: 'assistant' as const,
+                    content: language === 'en' ? 'Sorry, an error occurred. Please try again.' : 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.'
+                };
                 return updated;
             });
         } finally {
@@ -126,10 +135,14 @@ export const MindmapChatPanel: React.FC<MindmapChatPanelProps> = ({
             >
                 {chatMessages.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '20px', color: '#202124' }}>
-                        <p style={{ fontSize: '0.9rem', marginBottom: '16px' }}>Hỏi AI về "{selectedNode}"</p>
+                        <p style={{ fontSize: '0.9rem', marginBottom: '16px' }}>{t.askAiAbout(selectedNode)}</p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <button
-                                onClick={() => setChatInput('Giải thích chi tiết hơn về khái niệm này')}
+                                onClick={() => setChatInput(
+                                    language === 'en'
+                                        ? 'Explain this concept in more detail'
+                                        : 'Giải thích chi tiết hơn về khái niệm này'
+                                )}
                                 style={{
                                     padding: '8px 12px',
                                     border: '1px solid #dadce0',
@@ -140,10 +153,14 @@ export const MindmapChatPanel: React.FC<MindmapChatPanelProps> = ({
                                     color: '#202124',
                                 }}
                             >
-                                Giải thích chi tiết hơn
+                                {t.explainMore}
                             </button>
                             <button
-                                onClick={() => setChatInput('Cho tôi ví dụ thực tế về khái niệm này')}
+                                onClick={() => setChatInput(
+                                    language === 'en'
+                                        ? 'Give me a real-world example of this concept'
+                                        : 'Cho tôi ví dụ thực tế về khái niệm này'
+                                )}
                                 style={{
                                     padding: '8px 12px',
                                     border: '1px solid #dadce0',
@@ -154,7 +171,7 @@ export const MindmapChatPanel: React.FC<MindmapChatPanelProps> = ({
                                     color: '#202124',
                                 }}
                             >
-                                Cho ví dụ thực tế
+                                {t.giveExample}
                             </button>
                         </div>
                     </div>
@@ -199,7 +216,7 @@ export const MindmapChatPanel: React.FC<MindmapChatPanelProps> = ({
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder={`Hỏi về ${selectedNode}...`}
+                    placeholder={t.askAboutTopic(selectedNode)}
                     disabled={isSendingMessage}
                     style={{
                         flex: 1,

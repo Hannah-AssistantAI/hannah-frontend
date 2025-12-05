@@ -1,6 +1,7 @@
 import React from 'react'
 import { Wand2, PanelRight, PanelRightClose, Pencil, Loader2, MoreVertical, Trash2, GitBranch, FileText, StickyNote, ClipboardCheck, Flag, Map } from 'lucide-react'
 import type { StudioItem, StudioFeature } from '../types'
+import { getLabels, type SupportedLanguage } from '../../../utils/translations'
 
 interface StudioSidebarProps {
     isOpen: boolean
@@ -14,6 +15,7 @@ interface StudioSidebarProps {
     onFlagItem: (itemId: string) => void
     openMenuId: string | null
     onToggleMenu: (itemId: string) => void
+    language?: SupportedLanguage | string | null
 }
 
 export const StudioSidebar: React.FC<StudioSidebarProps> = ({
@@ -27,8 +29,12 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
     onDeleteItem,
     onFlagItem,
     openMenuId,
-    onToggleMenu
+    onToggleMenu,
+    language = 'vi'
 }) => {
+    // Get labels based on detected language
+    const t = getLabels(language)
+
     const getIconForType = (type: string) => {
         switch (type) {
             case 'mindmap': return GitBranch
@@ -40,17 +46,29 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
         }
     }
 
+    // Map feature type to translated title
+    const getFeatureTitle = (type: string) => {
+        switch (type) {
+            case 'mindmap': return t.mindMap
+            case 'report': return t.report
+            case 'notecard': return t.noteCards
+            case 'quiz': return t.test
+            case 'roadmap': return t.roadmap
+            default: return type
+        }
+    }
+
     return (
         <aside className={`studio-sidebar ${isOpen ? 'open' : 'closed'}`} style={{ order: 1, width: isOpen ? '356px' : '64px', padding: '0 0 0 24px', flexShrink: 0 }}>
             <div className="studio-content">
                 <div className="studio-header">
                     <Wand2 size={20} color="#5f6368" />
-                    <h3 className="studio-title">Studio</h3>
+                    <h3 className="studio-title">{t.studio}</h3>
                     {/* Studio Toggle Button */}
                     <button
                         className="studio-toggle-btn"
                         onClick={onToggle}
-                        aria-label={isOpen ? 'Ẩn studio' : 'Hiện studio'}
+                        aria-label={t.studio}
                     >
                         {isOpen ? <PanelRightClose size={18} /> : <PanelRight size={18} />}
                     </button>
@@ -63,7 +81,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                             <div key={index} className="studio-feature-card-wrapper">
                                 <button
                                     className="studio-feature-card"
-                                    onClick={() => onFeatureClick(feature.type, feature.title)}
+                                    onClick={() => onFeatureClick(feature.type, getFeatureTitle(feature.type))}
                                     title={feature.note}
                                 >
                                     {feature.type !== 'report' && feature.type !== 'roadmap' && (
@@ -88,7 +106,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                                         </div>
                                     )}
                                     <IconComponent size={24} color="#5f6368" />
-                                    <span className="feature-title">{feature.title}</span>
+                                    <span className="feature-title">{getFeatureTitle(feature.type)}</span>
                                 </button>
                             </div>
                         )
@@ -124,7 +142,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                                     <div className="studio-item-menu-container">
                                         <button
                                             className="studio-item-menu"
-                                            aria-label="Thêm tùy chọn"
+                                            aria-label="More options"
                                             onClick={() => onToggleMenu(item.id)}
                                         >
                                             <MoreVertical size={20} color="#5f6368" />
@@ -137,7 +155,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                                                         onClick={() => onFlagItem(item.id)}
                                                     >
                                                         <Flag size={16} />
-                                                        <span>Báo cáo</span>
+                                                        <span>{t.report}</span>
                                                     </button>
                                                 )}
                                                 <button
@@ -145,7 +163,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                                                     onClick={() => onDeleteItem(item.id)}
                                                 >
                                                     <Trash2 size={16} />
-                                                    <span>Xóa</span>
+                                                    <span>{language === 'en' ? 'Delete' : 'Xóa'}</span>
                                                 </button>
                                             </div>
                                         )}
@@ -157,9 +175,9 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                 ) : (
                     <div className="studio-description">
                         <Wand2 size={40} color="#9aa0a6" className="studio-icon" />
-                        <p className="studio-subtitle">Đầu ra của Studio sẽ được lưu ở đây.</p>
+                        <p className="studio-subtitle">{t.studioEmpty}</p>
                         <p className="studio-text">
-                            Sau khi thêm nguồn, hãy nhập để thêm Tổng quan bảng âm thanh, Hướng dẫn học tập, Bản đồ tư duy và nhiều thông tin khác!
+                            {t.studioEmptyHint}
                         </p>
                     </div>
                 )}

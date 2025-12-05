@@ -3,17 +3,25 @@ import { GitBranch, Maximize2, Download, Share2 } from 'lucide-react'
 import MindmapViewer from '../../../../components/MindmapViewer'
 import studioService, { type GetMindMapNodeDetailsResponse } from '../../../../service/studioService'
 import { MindmapChatPanel } from './MindmapChatPanel'
+import { getLabels, type SupportedLanguage } from '../../../../utils/translations'
 import './MindmapModal.css'
+
 interface MindmapModalProps {
     isOpen: boolean
     onClose: () => void
     content: any
+    language?: SupportedLanguage | string | null
 }
-export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, content }) => {
+
+export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, content, language = 'vi' }) => {
     const [selectedNode, setSelectedNode] = useState<string | null>(null);
     const [nodeDetails, setNodeDetails] = useState<GetMindMapNodeDetailsResponse | null>(null);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
     const [activeTab, setActiveTab] = useState<'resources' | 'ai-tutor'>('resources');
+
+    // Get labels based on detected language
+    const t = getLabels(language)
+
     const mindmapData = useMemo(() => {
         if (!content?.content?.nodes) return { nodes: [], edges: [] };
         return {
@@ -21,6 +29,7 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
             edges: content.content.edges || []
         };
     }, [content]);
+
     const handleNodeClick = async (nodeData: any) => {
         const nodeLabel = nodeData.label;
         if (selectedNode === nodeLabel) return;
@@ -59,26 +68,28 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
             setIsLoadingDetails(false);
         }
     };
+
     if (!isOpen) return null
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="mindmap-modal-content" onClick={(e) => e.stopPropagation()}>
                 <div className="mindmap-modal-header">
                     <div className="mindmap-modal-title-wrapper">
                         <GitBranch size={20} color="#5f6368" />
-                        <h3 className="mindmap-modal-title">{content?.title || 'Bản đồ tư duy'}</h3>
+                        <h3 className="mindmap-modal-title">{content?.title || t.mindMap}</h3>
                     </div>
                     <div className="mindmap-modal-actions">
-                        <button className="mindmap-action-btn" title="Mở rộng">
+                        <button className="mindmap-action-btn" title={language === 'en' ? 'Expand' : 'Mở rộng'}>
                             <Maximize2 size={18} />
                         </button>
-                        <button className="mindmap-action-btn" title="Tải xuống">
+                        <button className="mindmap-action-btn" title={language === 'en' ? 'Download' : 'Tải xuống'}>
                             <Download size={18} />
                         </button>
-                        <button className="mindmap-action-btn" title="Chia sẻ">
+                        <button className="mindmap-action-btn" title={language === 'en' ? 'Share' : 'Chia sẻ'}>
                             <Share2 size={18} />
                         </button>
-                        <button className="mindmap-modal-close" onClick={onClose} aria-label="Đóng">
+                        <button className="mindmap-modal-close" onClick={onClose} aria-label={language === 'en' ? 'Close' : 'Đóng'}>
                             ×
                         </button>
                     </div>
@@ -89,7 +100,7 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
                             <MindmapViewer data={mindmapData} onNodeClick={handleNodeClick} />
                         ) : (
                             <div className="mindmap-loading">
-                                <p>Đang tải bản đồ tư duy...</p>
+                                <p>{t.loading}</p>
                             </div>
                         )}
                     </div>
@@ -105,13 +116,13 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
                                         onClick={() => setActiveTab('resources')}
                                         className={`mindmap-tab-btn ${activeTab === 'resources' ? 'active-resources' : 'inactive'}`}
                                     >
-                                        📚 Resources
+                                        📚 {t.resources}
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('ai-tutor')}
                                         className={`mindmap-tab-btn ${activeTab === 'ai-tutor' ? 'active-ai' : 'inactive'}`}
                                     >
-                                        🤖 AI Tutor
+                                        🤖 {t.aiTutor}
                                     </button>
                                 </div>
                             </div>
@@ -133,7 +144,7 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
                                                     <div>
                                                         <h4 className="mindmap-resources-title">
                                                             <span className="mindmap-title-accent"></span>
-                                                            Tài liệu tham khảo
+                                                            {language === 'en' ? 'References' : 'Tài liệu tham khảo'}
                                                         </h4>
                                                         <div className="mindmap-resources-list">
                                                             {nodeDetails.resources.map((resource, index) => (
@@ -165,7 +176,9 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
                                         ) : (
                                             <div className="mindmap-empty-state">
                                                 <div className="mindmap-empty-icon">📭</div>
-                                                <p className="mindmap-empty-text">Không có thông tin chi tiết.</p>
+                                                <p className="mindmap-empty-text">
+                                                    {language === 'en' ? 'No details available.' : 'Không có thông tin chi tiết.'}
+                                                </p>
                                             </div>
                                         )}
                                     </div>
@@ -174,6 +187,7 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
                                         selectedNode={selectedNode}
                                         conversationId={content?.conversationId || 0}
                                         mindmapTopic={content?.topic || ''}
+                                        language={language}
                                     />
                                 )}
                             </div>

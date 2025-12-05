@@ -1,11 +1,11 @@
-/* Message Images Component Styles */
+/* Message Images Component Styles - Dark Theme */
 
 .message-images {
     margin-top: 16px;
     padding: 16px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    background: linear-gradient(135deg, #1a1d21 0%, #0d0f11 100%);
     border-radius: 12px;
-    border: 1px solid #dee2e6;
+    border: 1px solid #2d3339;
 }
 
 .message-images-header {
@@ -13,7 +13,7 @@
     align-items: center;
     gap: 8px;
     margin-bottom: 12px;
-    color: #495057;
+    color: #e4e6ea;
 }
 
 .message-images-label {
@@ -23,7 +23,7 @@
 
 .message-images-count {
     font-size: 13px;
-    color: #6c757d;
+    color: #8b949e;
 }
 
 /* Image Modal for Expanded View */
@@ -107,7 +107,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 16px;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
 }
 
 .full-slide-item {
@@ -122,15 +122,16 @@
     border-radius: 8px;
     overflow: hidden;
     cursor: pointer;
-    background: #fff;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    background: #1a1d21;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
-    border: 1px solid #e9ecef;
+    border: 1px solid #2d3339;
 }
 
 .full-slide-wrapper:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    border-color: #4285f4;
 }
 
 .full-slide-image {
@@ -181,10 +182,38 @@
 
 .message-image-source {
     font-size: 12px;
-    color: #6c757d;
+    color: #8b949e;
     text-align: center;
     margin: 0;
     font-style: italic;
+}
+
+/* Expand/Collapse Button */
+.slides-expand-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 16px;
+    margin-top: 12px;
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    color: #58a6ff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.slides-expand-button:hover {
+    background: #30363d;
+    border-color: #58a6ff;
+}
+
+.slides-expand-button:active {
+    transform: scale(0.98);
 }
 
 /* Responsive - Mobile */
