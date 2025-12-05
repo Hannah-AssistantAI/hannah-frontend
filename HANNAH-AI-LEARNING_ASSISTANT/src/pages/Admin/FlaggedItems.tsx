@@ -121,7 +121,7 @@ export default function FlaggedItems() {
                     <div className="flex items-start justify-between flex-wrap gap-4">
                         <div>
                             <h2 className="text-xl font-semibold text-slate-800">Flagged Content Management</h2>
-                            <p className="text-sm text-slate-500">Quản lý tất cả nội dung bị gắn cờ từ sinh viên</p>
+                            <p className="text-sm text-slate-500">Manage all flagged content from students</p>
                         </div>
                         <div className="flex gap-2">
                             <button
@@ -162,7 +162,7 @@ export default function FlaggedItems() {
                     {/* Filters */}
                     <div className="flex flex-wrap gap-3 items-end">
                         <div className="flex flex-col">
-                            <label className="text-xs font-medium text-slate-600 mb-1">Tìm kiếm</label>
+                            <label className="text-xs font-medium text-slate-600 mb-1">Search</label>
                             <input
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
@@ -198,7 +198,7 @@ export default function FlaggedItems() {
                                 <option value="message">Message</option>
                             </select>
                         </div>
-                        {loading && <div className="text-sm text-slate-500">Đang tải dữ liệu...</div>}
+                        {loading && <div className="text-sm text-slate-500">Loading data...</div>}
                     </div>
                 </div>
 
@@ -255,12 +255,12 @@ export default function FlaggedItems() {
                                 <tr>
                                     <td colSpan={9} className="px-6 py-10 text-center">
                                         <div className="flex flex-col items-center gap-2 text-slate-500">
-                                            <div className="text-sm">Không có kết quả phù hợp.</div>
+                                            <div className="text-sm">No matching results.</div>
                                             <button
                                                 onClick={() => { setSearch(''); setStatusFilter('all'); setTypeFilter('all'); }}
                                                 className="text-xs text-blue-600 hover:underline"
                                             >
-                                                Xóa bộ lọc
+                                                Clear filters
                                             </button>
                                         </div>
                                     </td>

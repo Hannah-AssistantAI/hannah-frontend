@@ -165,7 +165,7 @@ const UserManagement: React.FC = () => {
 
   const confirmDeactivateUser = async () => {
     if (deactivationReason.trim() === '') {
-      addToast({ type: 'error', message: 'Vui lòng nhập lý do để vô hiệu hóa.' });
+      addToast({ type: 'error', message: 'Please enter a reason to disable.' });
       return;
     }
 

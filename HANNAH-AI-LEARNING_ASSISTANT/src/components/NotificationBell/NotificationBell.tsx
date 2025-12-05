@@ -55,9 +55,9 @@ const NotificationBell: React.FC = () => {
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const days = Math.floor(hours / 24);
 
-        if (days > 0) return `${days} ngày trước`;
-        if (hours > 0) return `${hours} giờ trước`;
-        return 'Vừa xong';
+        if (days > 0) return `${days} days ago`;
+        if (hours > 0) return `${hours} hours ago`;
+        return 'Just now';
     };
 
     return (
@@ -74,14 +74,14 @@ const NotificationBell: React.FC = () => {
                     <div className="notification-overlay" onClick={() => setShowDropdown(false)} />
                     <div className="notification-dropdown">
                         <div className="notification-header">
-                            <h3>Thông báo</h3>
+                            <h3>Notifications</h3>
                             {loading && <span className="loading-spinner">⟳</span>}
                         </div>
 
                         <div className="notification-list">
                             {notifications.length === 0 ? (
                                 <div className="empty-notifications">
-                                    <p>Không có thông báo mới</p>
+                                    <p>No new notifications</p>
                                 </div>
                             ) : (
                                 notifications.map((notification) => (

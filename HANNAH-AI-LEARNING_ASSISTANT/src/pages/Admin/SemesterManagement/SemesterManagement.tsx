@@ -34,7 +34,7 @@ const SemesterManagement: React.FC = () => {
   };
 
   const handleDelete = (id: number) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa học kỳ này?')) {
+    if (window.confirm('Are you sure you want to delete this semester?')) {
       setSemesters(semesters.filter(s => s.id !== id));
     }
   };
@@ -47,9 +47,9 @@ const SemesterManagement: React.FC = () => {
       setSemesters(semesters.map(s =>
         s.id === editingSemester.id
           ? {
-              ...s,
-              ...formData
-            }
+            ...s,
+            ...formData
+          }
           : s
       ));
     } else {
@@ -65,14 +65,14 @@ const SemesterManagement: React.FC = () => {
   };
 
   return (
-    <AdminPageWrapper title="Quản lý Học kỳ">
+    <AdminPageWrapper title="Semester Management">
       <div className="semester-header">
         <p className="semester-description">
-          Quản lý danh sách các học kỳ để tạo lộ trình môn học
+          Manage semesters to create course roadmaps
         </p>
         <button className="btn-add-semester" onClick={handleCreate}>
           <Plus size={16} />
-          Thêm Học kỳ
+          Add Semester
         </button>
       </div>
 
@@ -87,14 +87,14 @@ const SemesterManagement: React.FC = () => {
               <button
                 className="action-btn edit-btn"
                 onClick={() => handleEdit(semester)}
-                title="Chỉnh sửa"
+                title="Edit"
               >
                 <Edit2 size={16} />
               </button>
               <button
                 className="action-btn delete-btn"
                 onClick={() => handleDelete(semester.id)}
-                title="Xóa"
+                title="Delete"
               >
                 <Trash2 size={16} />
               </button>
@@ -104,7 +104,7 @@ const SemesterManagement: React.FC = () => {
 
         {semesters.length === 0 && (
           <div className="empty-state">
-            <p>Chưa có học kỳ nào. Hãy thêm học kỳ đầu tiên!</p>
+            <p>No semesters yet. Add your first semester!</p>
           </div>
         )}
       </div>
@@ -114,7 +114,7 @@ const SemesterManagement: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h2>{editingSemester ? 'Chỉnh sửa Học kỳ' : 'Thêm Học kỳ mới'}</h2>
+              <h2>{editingSemester ? 'Edit Semester' : 'Add New Semester'}</h2>
               <button
                 className="modal-close"
                 onClick={() => setIsModalOpen(false)}
@@ -125,22 +125,22 @@ const SemesterManagement: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-group">
-                <label>Tên Học kỳ</label>
+                <label>Semester Name</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ name: e.target.value })}
-                  placeholder="Ví dụ: Học kỳ 1"
+                  placeholder="e.g. Semester 1"
                   required
                 />
               </div>
 
               <div className="modal-actions">
                 <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>
-                  Hủy
+                  Cancel
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  {editingSemester ? 'Cập nhật' : 'Thêm mới'}
+                  {editingSemester ? 'Update' : 'Add'}
                 </button>
               </div>
             </form>

@@ -57,7 +57,7 @@ const AssignFacultyModal: React.FC<AssignFacultyModalProps> = ({ flagId, onClose
 
     const handleAssign = async () => {
         if (!selectedFacultyId) {
-            alert('Vui lòng chọn giảng viên');
+            alert('Please select a faculty member');
             return;
         }
 
@@ -93,7 +93,7 @@ const AssignFacultyModal: React.FC<AssignFacultyModalProps> = ({ flagId, onClose
         <div className="modal-overlay" onClick={onClose}>
             <div className="assign-modal-content" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h2>Giao Cho Giảng Viên</h2>
+                    <h2>Assign to Faculty</h2>
                     <button className="close-button" onClick={onClose}>✕</button>
                 </div>
 
@@ -105,14 +105,14 @@ const AssignFacultyModal: React.FC<AssignFacultyModalProps> = ({ flagId, onClose
                     )}
 
                     <div className="form-group">
-                        <label>Chọn giảng viên:</label>
+                        <label>Select faculty:</label>
                         <select
                             value={selectedFacultyId || ''}
                             onChange={(e) => setSelectedFacultyId(Number(e.target.value))}
                             className="faculty-select"
                             disabled={loading}
                         >
-                            <option value="">-- Chọn giảng viên --</option>
+                            <option value="">-- Select faculty --</option>
                             {facultyList.map((faculty) => (
                                 <option key={faculty.userId} value={faculty.userId}>
                                     {faculty.fullName} ({faculty.email})
@@ -122,7 +122,7 @@ const AssignFacultyModal: React.FC<AssignFacultyModalProps> = ({ flagId, onClose
                     </div>
 
                     {facultyList.length === 0 && !error && (
-                        <p className="no-faculty-message">Đang tải danh sách giảng viên...</p>
+                        <p className="no-faculty-message">Loading faculty list...</p>
                     )}
                 </div>
 
@@ -132,10 +132,10 @@ const AssignFacultyModal: React.FC<AssignFacultyModalProps> = ({ flagId, onClose
                         onClick={handleAssign}
                         disabled={loading || !selectedFacultyId}
                     >
-                        {loading ? 'Đang giao...' : 'Giao'}
+                        {loading ? 'Assigning...' : 'Assign'}
                     </button>
                     <button className="btn-cancel" onClick={onClose} disabled={loading}>
-                        Hủy
+                        Cancel
                     </button>
                 </div>
             </div>

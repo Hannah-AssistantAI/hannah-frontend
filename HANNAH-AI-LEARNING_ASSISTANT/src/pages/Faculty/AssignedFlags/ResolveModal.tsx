@@ -15,7 +15,7 @@ const ResolveModal: React.FC<ResolveModalProps> = ({ flagId, onClose, onSuccess 
 
     const handleSubmit = async () => {
         if (!resolutionMessage.trim()) {
-            setError('Vui lòng nhập giải pháp và thông báo cho học sinh');
+            setError('Please enter a solution and notification for the student');
             return;
         }
 
@@ -30,7 +30,7 @@ const ResolveModal: React.FC<ResolveModalProps> = ({ flagId, onClose, onSuccess 
 
             onSuccess();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Không thể giải quyết báo cáo');
+            setError(err instanceof Error ? err.message : 'Unable to resolve the report');
             console.error('Error resolving flag:', err);
         } finally {
             setLoading(false);
@@ -54,8 +54,8 @@ const ResolveModal: React.FC<ResolveModalProps> = ({ flagId, onClose, onSuccess 
                                 <Check className="w-7 h-7 text-white" />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-bold text-white">Giải Quyết Báo Cáo</h2>
-                                <p className="text-emerald-50 text-sm mt-1">Cung cấp giải pháp và thông báo cho học sinh</p>
+                                <h2 className="text-2xl font-bold text-white">Resolve Report</h2>
+                                <p className="text-emerald-50 text-sm mt-1">Provide a solution and notify the student</p>
                             </div>
                         </div>
                         <button
@@ -81,7 +81,7 @@ const ResolveModal: React.FC<ResolveModalProps> = ({ flagId, onClose, onSuccess 
                         <div className="flex items-center gap-2 mb-3">
                             <MessageSquare className="w-5 h-5 text-emerald-600" />
                             <label className="text-base font-bold text-gray-900">
-                                Giải pháp & Thông báo cho học sinh
+                                Solution & Notification for Student
                                 <span className="text-red-500 ml-1">*</span>
                             </label>
                         </div>
@@ -90,7 +90,7 @@ const ResolveModal: React.FC<ResolveModalProps> = ({ flagId, onClose, onSuccess 
                             value={resolutionMessage}
                             onChange={(e) => setResolutionMessage(e.target.value)}
                             className="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all resize-none text-gray-900 placeholder-gray-400 font-medium"
-                            placeholder="Cảm ơn bạn đã báo cáo! Tôi đã bổ sung thêm tài liệu về chủ đề này. Bạn có thể tham khảo trong phần Resources..."
+                            placeholder="Thank you for your report! I have added more materials on this topic. You can refer to the Resources section..."
                             rows={6}
                             disabled={loading}
                         />
@@ -101,18 +101,18 @@ const ResolveModal: React.FC<ResolveModalProps> = ({ flagId, onClose, onSuccess 
                                     <span className="text-white text-xs font-bold">ℹ</span>
                                 </div>
                                 <p className="text-blue-900 text-sm">
-                                    Message này sẽ được lưu lại làm <strong>ghi chú nội bộ</strong> VÀ <strong>gửi trực tiếp</strong> cho học sinh qua notification
+                                    This message will be saved as an <strong>internal note</strong> AND <strong>sent directly</strong> to the student via notification
                                 </p>
                             </div>
 
                             <div className="flex items-center justify-between px-2">
-                                <span className="text-xs text-gray-500 font-medium">Tối thiểu 10 ký tự</span>
+                                <span className="text-xs text-gray-500 font-medium">Minimum 10 characters</span>
                                 <span
                                     className={`text-xs font-bold ${resolutionMessage.length > 500
-                                            ? 'text-orange-600'
-                                            : resolutionMessage.length > 800
-                                                ? 'text-red-600'
-                                                : 'text-gray-500'
+                                        ? 'text-orange-600'
+                                        : resolutionMessage.length > 800
+                                            ? 'text-red-600'
+                                            : 'text-gray-500'
                                         }`}
                                 >
                                     {resolutionMessage.length} / 1000
@@ -129,7 +129,7 @@ const ResolveModal: React.FC<ResolveModalProps> = ({ flagId, onClose, onSuccess 
                         disabled={loading}
                         className="px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Hủy
+                        Cancel
                     </button>
                     <button
                         onClick={handleSubmit}
@@ -139,12 +139,12 @@ const ResolveModal: React.FC<ResolveModalProps> = ({ flagId, onClose, onSuccess 
                         {loading ? (
                             <>
                                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                Đang xử lý...
+                                Processing...
                             </>
                         ) : (
                             <>
                                 <Check className="w-5 h-5" />
-                                Giải Quyết & Gửi Thông Báo
+                                Resolve & Send Notification
                             </>
                         )}
                     </button>

@@ -36,7 +36,7 @@ const FlaggedQuizDetail: React.FC = () => {
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-gray-600">Đang tải...</p>
+                    <p className="text-gray-600">Loading...</p>
                 </div>
             </div>
         );
@@ -46,12 +46,12 @@ const FlaggedQuizDetail: React.FC = () => {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
-                    <p className="text-gray-600 mb-4">Không tìm thấy báo cáo</p>
+                    <p className="text-gray-600 mb-4">Report not found</p>
                     <button
                         onClick={() => navigate('/faculty/assigned-flags/quizzes')}
                         className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
                     >
-                        Quay lại
+                        Go Back
                     </button>
                 </div>
             </div>
