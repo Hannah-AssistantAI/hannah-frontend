@@ -6,63 +6,21 @@ import { Card } from '../../../components/Admin/Card';
 import { MetricRow } from '../../../components/Admin/MetricRow';
 import { Badge } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
+import {
+  useSystemMetrics,
+  useDatabaseMetrics,
+  useApplicationMetrics,
+  useGeminiMetrics,
+  useResponseSourceDistribution,
+} from '../../../hooks/useMetrics';
 
 export const SystemMonitoring: React.FC = () => {
-  // MOCK DATA IMPLEMENTATION
-  const systemMetrics = {
-    cpu: 45,
-    memory: { percent: 60, used: 8589934592, total: 17179869184 },
-    disk: { percent: 75, used: 322122547200, total: 536870912000 },
-    uptime: '5d 12h 30m'
-  };
-  const systemLoading = false;
-
-  const dbMetrics = {
-    sqlserver: {
-      activeConnections: 25,
-      maxConnections: 100,
-      avgQueryTime: 12,
-      size: '2.5 GB'
-    },
-    mongodb: {
-      activeConnections: 15,
-      maxConnections: 50,
-      totalConversations: 1250,
-      size: '1.2 GB'
-    },
-    elasticsearch: {
-      indexedDocuments: 5000,
-      avgSearchTime: 45,
-      indexSize: '850 MB'
-    }
-  };
-  const dbLoading = false;
-
-  const appMetrics = {
-    activeWebSocketConnections: 120,
-    requestsPerMinute: 350,
-    requestsToday: 15400,
-    cacheHitRate: 85,
-    avgBackendProcessingTime: 0.25
-  };
-  const appLoading = false;
-
-  const geminiMetrics = {
-    apiCallsToday: 2500,
-    totalTokensUsed: 1500000,
-    avgResponseTime: 1.5,
-    errorRate: 0.5,
-    slowestResponse: 4.2,
-    fastestResponse: 0.3
-  };
-  const geminiLoading = false;
-
-  const distribution = {
-    personalKB: { percentage: 40, count: 1000 },
-    globalKB: { percentage: 35, count: 875 },
-    geminiAPI: { percentage: 25, count: 625 }
-  };
-  const distLoading = false;
+  // Use live data from API hooks
+  const { metrics: systemMetrics, loading: systemLoading } = useSystemMetrics();
+  const { metrics: dbMetrics, loading: dbLoading } = useDatabaseMetrics();
+  const { metrics: appMetrics, loading: appLoading } = useApplicationMetrics();
+  const { metrics: geminiMetrics, loading: geminiLoading } = useGeminiMetrics();
+  const { distribution, loading: distLoading } = useResponseSourceDistribution();
 
   return (
     <AdminPageWrapper title="System Monitoring">
@@ -119,15 +77,15 @@ export const SystemMonitoring: React.FC = () => {
           </h4>
           <MetricRow
             label="Active Connections"
-            value={`${dbMetrics.sqlserver.activeConnections} / ${dbMetrics.sqlserver.maxConnections}`}
+            value={`${dbMetrics.sqlserver?.activeConnections || 0} / ${dbMetrics.sqlserver?.maxConnections || 100}`}
           />
           <MetricRow
             label="Average Query Time"
-            value={`${dbMetrics.sqlserver.avgQueryTime}ms`}
+            value={`${dbMetrics.sqlserver?.avgQueryTime || 0}ms`}
           />
           <MetricRow
             label="Database Size"
-            value={dbMetrics.sqlserver.size}
+            value={dbMetrics.sqlserver?.size || 'N/A'}
           />
 
           <h4 style={{ fontSize: '16px', fontWeight: 600, margin: '24px 0 16px', color: 'var(--success-color)' }}>
@@ -135,15 +93,15 @@ export const SystemMonitoring: React.FC = () => {
           </h4>
           <MetricRow
             label="Active Connections"
-            value={`${dbMetrics.mongodb.activeConnections} / ${dbMetrics.mongodb.maxConnections}`}
+            value={`${dbMetrics.mongodb?.activeConnections || 0} / ${dbMetrics.mongodb?.maxConnections || 50}`}
           />
           <MetricRow
             label="Total Conversations"
-            value={dbMetrics.mongodb.totalConversations.toLocaleString()}
+            value={(dbMetrics.mongodb?.totalConversations || 0).toLocaleString()}
           />
           <MetricRow
             label="Collection Size"
-            value={dbMetrics.mongodb.size}
+            value={dbMetrics.mongodb?.size || 'N/A'}
           />
 
           <h4 style={{ fontSize: '16px', fontWeight: 600, margin: '24px 0 16px', color: 'var(--info-color)' }}>
@@ -151,15 +109,15 @@ export const SystemMonitoring: React.FC = () => {
           </h4>
           <MetricRow
             label="Indexed Documents"
-            value={dbMetrics.elasticsearch.indexedDocuments.toLocaleString()}
+            value={(dbMetrics.elasticsearch?.indexedDocuments || 0).toLocaleString()}
           />
           <MetricRow
             label="Average Search Time"
-            value={`${dbMetrics.elasticsearch.avgSearchTime}ms`}
+            value={`${dbMetrics.elasticsearch?.avgSearchTime || 0}ms`}
           />
           <MetricRow
             label="Index Size"
-            value={dbMetrics.elasticsearch.indexSize}
+            value={dbMetrics.elasticsearch?.indexSize || 'N/A'}
           />
         </Card>
       )}
