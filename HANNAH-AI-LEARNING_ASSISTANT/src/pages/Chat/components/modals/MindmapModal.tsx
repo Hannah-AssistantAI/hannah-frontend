@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef } from 'react'
-import { Maximize2, Download, ThumbsUp, ThumbsDown, Plus, Minus, ChevronsUpDown } from 'lucide-react'
+import { Maximize2, Minimize2, Download, Plus, Minus, ChevronsUpDown } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import MindmapViewer, { type MindmapViewerHandle } from '../../../../components/MindmapViewer'
 import studioService, { type GetMindMapNodeDetailsResponse } from '../../../../service/studioService'
@@ -20,6 +20,7 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
     const [activeTab, setActiveTab] = useState<'resources' | 'ai-tutor'>('resources');
     const viewerRef = useRef<MindmapViewerHandle>(null);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const t = getLabels(language)
 
@@ -160,15 +161,19 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
     if (!isOpen) return null
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="mindmap-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className={`modal-overlay ${isExpanded ? 'fullscreen-overlay' : ''}`} onClick={onClose}>
+            <div className={`mindmap-modal-content ${isExpanded ? 'fullscreen' : ''}`} onClick={(e) => e.stopPropagation()}>
                 <div className="mindmap-modal-header">
                     <div className="mindmap-modal-title-section">
                         <h3 className="mindmap-modal-title">{content?.title || t.mindMap}</h3>
                     </div>
                     <div className="mindmap-modal-actions">
-                        <button className="mindmap-action-btn" title={language === 'en' ? 'Expand' : 'Mở rộng'}>
-                            <Maximize2 size={18} />
+                        <button
+                            className="mindmap-action-btn"
+                            onClick={() => setIsExpanded(!isExpanded)}
+                            title={isExpanded ? (language === 'en' ? 'Minimize' : 'Thu nhỏ') : (language === 'en' ? 'Expand' : 'Mở rộng')}
+                        >
+                            {isExpanded ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
                         </button>
                         <button className="mindmap-action-btn" onClick={handleDownload} title={language === 'en' ? 'Download PNG' : 'Tải PNG'}>
                             <Download size={18} />
