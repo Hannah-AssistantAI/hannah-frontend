@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef } from 'react'
-import { Maximize2, Minimize2, Download, Plus, Minus, ChevronsUpDown } from 'lucide-react'
+import { Maximize2, Minimize2, Download, Plus, Minus, ChevronsUpDown, ChevronsDownUp } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import MindmapViewer, { type MindmapViewerHandle } from '../../../../components/MindmapViewer'
 import studioService, { type GetMindMapNodeDetailsResponse } from '../../../../service/studioService'
@@ -21,6 +21,7 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
     const [activeTab, setActiveTab] = useState<'resources' | 'ai-tutor'>('resources');
     const viewerRef = useRef<MindmapViewerHandle>(null);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isAllNodesExpanded, setIsAllNodesExpanded] = useState(true); // Initially all nodes are expanded
 
     const t = getLabels(language)
 
@@ -192,8 +193,17 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
                         )}
 
                         <div className="mindmap-zoom-controls">
-                            <button className="mindmap-zoom-btn" title="Expand/Collapse All">
-                                <ChevronsUpDown size={18} />
+                            <button
+                                className="mindmap-zoom-btn"
+                                onClick={() => {
+                                    const newState = viewerRef.current?.toggleExpandAll();
+                                    if (newState !== undefined) {
+                                        setIsAllNodesExpanded(newState);
+                                    }
+                                }}
+                                title={isAllNodesExpanded ? (language === 'en' ? 'Collapse All' : 'Đóng tất cả') : (language === 'en' ? 'Expand All' : 'Mở tất cả')}
+                            >
+                                {isAllNodesExpanded ? <ChevronsDownUp size={18} /> : <ChevronsUpDown size={18} />}
                             </button>
                             <button
                                 className="mindmap-zoom-btn"

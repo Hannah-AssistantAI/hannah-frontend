@@ -176,6 +176,7 @@ export interface MindmapViewerHandle {
     getSvgElement: () => SVGSVGElement | null;
     zoomIn: () => void;
     zoomOut: () => void;
+    toggleExpandAll: () => boolean; // Returns new state: true = all expanded, false = all collapsed
 }
 
 const MindmapViewer = forwardRef<MindmapViewerHandle, MindmapViewerProps>(({ data, onNodeClick }, ref) => {
@@ -187,6 +188,7 @@ const MindmapViewer = forwardRef<MindmapViewerHandle, MindmapViewerProps>(({ dat
     const zoomRef = useRef(1);
     const isPanningRef = useRef(false);
     const startRef = useRef({ x: 0, y: 0 });
+    const isAllExpandedRef = useRef(true); // Track if all nodes are expanded
 
     const [expandedNodes, setExpandedNodes] = useState<{ [key: string]: boolean }>({});
     const [isPanning, setIsPanning] = useState(false);
@@ -198,6 +200,25 @@ const MindmapViewer = forwardRef<MindmapViewerHandle, MindmapViewerProps>(({ dat
                 `translate(${panRef.current.x}, ${panRef.current.y}) scale(${zoomRef.current})`
             );
         }
+    }, []);
+
+    const treeData = useMemo(() => {
+        if (!data?.nodes?.length || !data?.edges?.length) return null;
+        return buildTreeFromFlat(data.nodes, data.edges);
+    }, [data]);
+
+    // Helper function to get all node IDs with children
+    const getAllExpandableNodeIds = useCallback((node: MindMapNode | null): string[] => {
+        if (!node) return [];
+        const ids: string[] = [];
+        const traverse = (n: MindMapNode) => {
+            if (n.children && n.children.length > 0) {
+                ids.push(n.id);
+                n.children.forEach(traverse);
+            }
+        };
+        traverse(node);
+        return ids;
     }, []);
 
     // Expose methods to parent
@@ -212,13 +233,27 @@ const MindmapViewer = forwardRef<MindmapViewerHandle, MindmapViewerProps>(({ dat
             // Same as scroll down: deltaY > 0 → factor 0.9
             zoomRef.current = Math.max(zoomRef.current * 0.9, 0.2);
             updateTransformImmediate();
+        },
+        toggleExpandAll: () => {
+            if (isAllExpandedRef.current) {
+                // Collapse all
+                const newExpanded: { [key: string]: boolean } = {};
+                setExpandedNodes(newExpanded);
+                isAllExpandedRef.current = false;
+                return false;
+            } else {
+                // Expand ALL nodes - this button is exception, shows entire tree
+                const nodeIds = getAllExpandableNodeIds(treeData);
+                const newExpanded: { [key: string]: boolean } = {};
+                nodeIds.forEach(id => {
+                    newExpanded[id] = true;
+                });
+                setExpandedNodes(newExpanded);
+                isAllExpandedRef.current = true;
+                return true;
+            }
         }
-    }), [updateTransformImmediate]);
-
-    const treeData = useMemo(() => {
-        if (!data?.nodes?.length || !data?.edges?.length) return null;
-        return buildTreeFromFlat(data.nodes, data.edges);
-    }, [data]);
+    }), [updateTransformImmediate, treeData, getAllExpandableNodeIds]);
 
     useEffect(() => {
         if (!treeData) return;
@@ -231,14 +266,54 @@ const MindmapViewer = forwardRef<MindmapViewerHandle, MindmapViewerProps>(({ dat
         };
         traverseAndExpand(treeData);
         setExpandedNodes(initialExpanded);
+        isAllExpandedRef.current = true;
     }, [treeData]);
 
-    const handleToggleNode = useCallback((nodeId: string) => {
-        setExpandedNodes(prev => ({
-            ...prev,
-            [nodeId]: !prev[nodeId]
-        }));
+    // Helper to get all descendant IDs of a node
+    const getDescendantIds = useCallback((nodeId: string, node: MindMapNode | null): string[] => {
+        if (!node) return [];
+        const ids: string[] = [];
+        const findNode = (n: MindMapNode): MindMapNode | undefined => {
+            if (n.id === nodeId) return n;
+            for (const child of n.children || []) {
+                const found = findNode(child);
+                if (found) return found;
+            }
+            return undefined;
+        };
+        const targetNode = findNode(node);
+        if (!targetNode) return [];
+
+        const collectDescendants = (n: MindMapNode) => {
+            for (const child of n.children || []) {
+                ids.push(child.id);
+                collectDescendants(child);
+            }
+        };
+        collectDescendants(targetNode);
+        return ids;
     }, []);
+
+    const handleToggleNode = useCallback((nodeId: string) => {
+        setExpandedNodes(prev => {
+            const isCurrentlyExpanded = prev[nodeId];
+            if (isCurrentlyExpanded) {
+                // Collapsing - just toggle this node
+                return {
+                    ...prev,
+                    [nodeId]: false
+                };
+            } else {
+                // Expanding - collapse all descendants first, then expand this node
+                const descendantIds = getDescendantIds(nodeId, treeData);
+                const newState = { ...prev, [nodeId]: true };
+                descendantIds.forEach(id => {
+                    newState[id] = false;
+                });
+                return newState;
+            }
+        });
+    }, [treeData, getDescendantIds]);
 
     const { nodes, links } = useMemo(() => {
         if (!treeData) return { nodes: [], links: [] };
