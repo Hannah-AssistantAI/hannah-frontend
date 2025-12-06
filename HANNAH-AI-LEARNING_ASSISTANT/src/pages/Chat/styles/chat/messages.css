@@ -4,7 +4,9 @@
     flex-direction: column;
     gap: 24px;
     flex: 1;
-    margin-bottom: 16px;
+    margin-bottom: 0;
+    padding: 18px 18px 40px 18px;
+    background: #ffffff;
 }
 
 .message {
@@ -18,11 +20,12 @@
 }
 
 .user-message .message-content {
-    background-color: #3b82f6;
+    background: linear-gradient(135deg, #3b82f6 0%, #0ea5e9 100%);
     border-radius: 18px;
     padding: 12px 16px;
     max-width: 70%;
     color: #ffffff;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
 }
 
 .assistant-message {
@@ -30,18 +33,22 @@
 }
 
 .message-avatar {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background-color: #e2e8f0;
+    background: linear-gradient(135deg, #3b82f6 0%, #0ea5e9 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
 }
 
 .assistant-message .message-content {
     flex: 1;
     width: 94%;
     max-width: 94%;
+    background: #ffffff;
+    padding: 0 0 16px 0;
 }
+

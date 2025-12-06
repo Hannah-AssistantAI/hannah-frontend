@@ -1,0 +1,36 @@
+.resize-divider {
+    position: relative;
+    width: 8px;
+    cursor: col-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 10;
+    transition: background-color 0.15s ease;
+}
+
+.resize-divider:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+.resize-divider:active {
+    background-color: rgba(59, 130, 246, 0.2);
+}
+
+.resize-divider-handle {
+    width: 4px;
+    height: 40px;
+    background: #cbd5e1;
+    border-radius: 2px;
+    transition: all 0.15s ease;
+}
+
+.resize-divider:hover .resize-divider-handle {
+    background: #3b82f6;
+    height: 60px;
+}
+
+.resize-divider:active .resize-divider-handle {
+    background: #2563eb;
+}

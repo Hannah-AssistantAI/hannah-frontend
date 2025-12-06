@@ -1,11 +1,12 @@
-/* Message Images Component Styles - Dark Theme */
+/* Message Images Component Styles - Match Code Block Theme */
 
 .message-images {
     margin-top: 16px;
     padding: 16px;
-    background: linear-gradient(135deg, #1a1d21 0%, #0d0f11 100%);
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border-radius: 12px;
-    border: 1px solid #2d3339;
+    border: 1px solid #334155;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .message-images-header {
@@ -122,16 +123,16 @@
     border-radius: 8px;
     overflow: hidden;
     cursor: pointer;
-    background: #1a1d21;
+    background: rgba(0, 0, 0, 0.2);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
-    border: 1px solid #2d3339;
+    border: 1px solid #334155;
 }
 
 .full-slide-wrapper:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-    border-color: #4285f4;
+    border-color: #3b82f6;
 }
 
 .full-slide-image {
@@ -197,10 +198,10 @@
     width: 100%;
     padding: 12px 16px;
     margin-top: 12px;
-    background: #21262d;
-    border: 1px solid #30363d;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid #334155;
     border-radius: 8px;
-    color: #58a6ff;
+    color: #60a5fa;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -208,8 +209,8 @@
 }
 
 .slides-expand-button:hover {
-    background: #30363d;
-    border-color: #58a6ff;
+    background: rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
 }
 
 .slides-expand-button:active {
