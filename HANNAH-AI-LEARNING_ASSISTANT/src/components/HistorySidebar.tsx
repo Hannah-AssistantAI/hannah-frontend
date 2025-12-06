@@ -97,10 +97,10 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
                 (c.conversationId && c.conversationId !== conversationId)
             ));
 
-            // If deleting the currently active conversation, trigger "New Chat" logic
-            // This ensures no new conversation is created until user sends a message
+            // If deleting the currently active conversation, force page reload to clear all state
+            // This ensures no stale data from the deleted conversation remains
             if (conversationId === currentConversationId) {
-                handleNewChat();
+                window.location.href = '/chat';
             }
         } catch (error) {
             console.error('Failed to delete conversation:', error);
