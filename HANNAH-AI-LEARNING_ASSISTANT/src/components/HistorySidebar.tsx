@@ -10,9 +10,10 @@ interface HistorySidebarProps {
     onClose: () => void;
     onItemClick?: (topic: string) => void; // Optional now as we handle navigation internally
     currentConversationId?: number | null; // Pass current conversation ID to handle delete
+    onNewChat?: () => void; // Callback to trigger new chat state reset
 }
 
-export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose, currentConversationId }) => {
+export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose, currentConversationId, onNewChat }) => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [conversations, setConversations] = useState<any[]>([]);
@@ -97,10 +98,13 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
                 (c.conversationId && c.conversationId !== conversationId)
             ));
 
-            // If deleting the currently active conversation, force page reload to clear all state
-            // This ensures no stale data from the deleted conversation remains
+            // If deleting the currently active conversation, trigger new chat state
             if (conversationId === currentConversationId) {
-                window.location.href = '/chat';
+                if (onNewChat) {
+                    onNewChat();
+                } else {
+                    handleNewChat();
+                }
             }
         } catch (error) {
             console.error('Failed to delete conversation:', error);

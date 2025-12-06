@@ -45,11 +45,17 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
     // Helper function to strip instruction prefixes from a question
     const stripInstructionPrefix = (text: string): string => {
         const prefixes = [
+            // Vietnamese prefixes
             'Hãy giải thích đơn giản hơn: ',
             'Hãy giải thích chi tiết và sâu hơn: ',
             'Đơn giản hóa: ',
             'Tìm hiểu sâu hơn: ',
-            'Giải thích thêm: '
+            'Giải thích thêm: ',
+            // English prefixes
+            'Simplify: ',
+            'Deep Dive: ',
+            'Explain more: ',
+            'Learn more: '
         ];
 
         let result = text;
@@ -352,7 +358,7 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
                                             .reverse()
                                             .find(m => m.type === 'user');
                                         const userQuestion = stripInstructionPrefix(previousUserMessage?.content || '');
-                                        onInteractiveItemClick(`Hãy giải thích đơn giản hơn: ${userQuestion}`);
+                                        onInteractiveItemClick(`Simplify: ${userQuestion}`);
                                     }}
                                 >
                                     <span className="suggestion-icon">≡</span>
@@ -366,7 +372,7 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
                                             .reverse()
                                             .find(m => m.type === 'user');
                                         const userQuestion = stripInstructionPrefix(previousUserMessage?.content || '');
-                                        onInteractiveItemClick(`Hãy giải thích chi tiết và sâu hơn: ${userQuestion}`);
+                                        onInteractiveItemClick(`Deep Dive: ${userQuestion}`);
                                     }}
                                 >
                                     <span className="suggestion-icon">≡</span>
