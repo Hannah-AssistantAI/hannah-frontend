@@ -1,4 +1,4 @@
-/* Message Actions and Suggestions Container */
+/* Message Actions and Suggestions Container - Modern Blue Light Theme */
 .message-actions-container {
     display: flex;
     align-items: center;
@@ -24,24 +24,25 @@
 .action-btn {
     background: none;
     border: none;
-    color: #bdc1c6;
+    color: #94a3b8;
     cursor: pointer;
     padding: 8px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
     flex-shrink: 0;
 }
 
 .action-btn:hover {
-    background-color: #333333;
+    background-color: #f1f5f9;
+    color: #64748b;
 }
 
 /* Flag button specific styles */
 .action-btn .lucide-flag {
-    color: #bdc1c6;
+    color: #94a3b8;
     transition: color 0.2s;
 }
 
@@ -70,55 +71,75 @@
 .suggestion-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background-color: #2d2d2d;
-    border: 1px solid #3c4043;
-    border-radius: 20px;
+    gap: 8px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 2px solid #93c5fd;
+    border-radius: 24px;
     font-size: 14px;
-    color: #e8eaed;
+    color: #1e40af;
     cursor: pointer;
     transition: all 0.2s;
-    font-weight: 400;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
 }
 
 .suggestion-btn:hover {
-    background-color: #333333;
-    border-color: #5f6368;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border-color: #3b82f6;
+    color: #1e3a8a;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+    transform: translateY(-1px);
 }
 
 .suggestion-icon {
-    font-size: 16px;
+    font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #3b82f6;
 }
 
 /* Follow-up Questions */
 .follow-up-questions {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-top: 16px;
+    gap: 10px;
+    margin-top: 20px;
 }
 
 .follow-up-btn {
     text-align: left;
-    padding: 12px 16px;
-    background-color: #262626;
-    border: 1px solid #3c4043;
+    padding: 14px 18px;
+    background-color: #ffffff;
+    border: 2px solid #e2e8f0;
     border-radius: 12px;
     font-size: 14px;
-    color: #e8eaed;
+    color: #334155;
     cursor: pointer;
     transition: all 0.2s;
-    font-weight: 400;
+    font-weight: 500;
     line-height: 1.5;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    position: relative;
+    padding-left: 40px;
+    width: fit-content;
+    max-width: 100%;
+}
+
+.follow-up-btn::before {
+    content: '💡';
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
 }
 
 .follow-up-btn:hover {
-    background-color: #333333;
-    border-color: #8ab4f8;
-    box-shadow: 0 1px 3px rgba(138, 180, 248, 0.2);
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-color: #3b82f6;
+    color: #1e40af;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    transform: translateX(4px);
 }

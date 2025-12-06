@@ -7,16 +7,17 @@
     padding: 8px 0;
 }
 
-/* Input Area in Chat Content */
+/* Input Area - Chat Footer */
 .chat-input-container {
-    position: sticky;
-    bottom: 0;
-    z-index: 10;
-    padding-top: 16px;
+    padding: 12px 16px;
     background-color: #ffffff;
-    padding-bottom: 16px;
     border-top: 1px solid #e2e8f0;
+    border-radius: 0 0 14px 14px;
+    flex-shrink: 0;
+    order: 2;
 }
+
+
 
 .chat-input-wrapper {
     display: flex;
@@ -26,6 +27,7 @@
     border: 1px solid #cbd5e1;
     border-radius: 24px;
     padding: 4px 8px;
+    margin-top: 8px;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 

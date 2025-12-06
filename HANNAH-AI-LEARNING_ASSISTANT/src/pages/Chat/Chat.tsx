@@ -257,7 +257,7 @@ export default function Chat() {
 
             <main className="chat-main" style={{ display: 'flex', gap: '0', padding: '24px', alignItems: 'stretch' }}>
                 {/* Big Picture Sidebar - Left */}
-                < BigPictureSidebar
+                <BigPictureSidebar
                     isOpen={isBigPictureOpen}
                     onToggle={() => setIsBigPictureOpen(!isBigPictureOpen)}
                     topics={bigPictureData}
@@ -266,48 +266,48 @@ export default function Chat() {
                     language={messages.filter(m => m.type === 'assistant').pop()?.detectedLanguage}
                 />
 
-                <div className="chat-content" style={{ order: 2, flex: 1, padding: '0', minWidth: 0 }}>
-                    {/* Welcome Banner
-                    <div className="welcome-banner">
-                        <div className="welcome-banner-icon">
-                            <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" alt="Học về" />
-                        </div>
-                        <div className="welcome-banner-content">
-                            <h2 className="welcome-banner-title">Chào mừng đến với Hannah Assistant</h2>
-                            <p className="welcome-banner-description">
-                                Nắm bắt các chủ đề mới và hiểu sâu hơn với công cụ học tập đàm thoại
-                            </p>
-                            <button className="topic-badge">OOP</button>
-                        </div>
-                        <button className="close-banner-btn" aria-label="Đóng">×</button>
-                    </div> */}
+                <div className="chat-area-wrapper" style={{ order: 2, flex: 1, minWidth: 0 }}>
+                    <div className="chat-content">
+                        {/* Welcome Banner
+                        <div className="welcome-banner">
+                            <div className="welcome-banner-icon">
+                                <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" alt="Học về" />
+                            </div>
+                            <div className="welcome-banner-content">
+                                <h2 className="welcome-banner-title">Chào mừng đến với Hannah Assistant</h2>
+                                <p className="welcome-banner-description">
+                                    Nắm bắt các chủ đề mới và hiểu sâu hơn với công cụ học tập đàm thoại
+                                </p>
+                                <button className="topic-badge">OOP</button>
+                            </div>
+                            <button className="close-banner-btn" aria-label="Đóng">×</button>
+                        </div> */}
 
-                    {/* Messages */}
-                    <div className="messages-container">
-                        {messages.map((message, index) => (
-                            <MessageDisplay
-                                key={index}
-                                message={message}
-                                messageIndex={index}
-                                messages={messages}
-                                expandedSources={expandedSources}
-                                onToggleSource={(key) => setExpandedSources(prev => ({
-                                    ...prev,
-                                    [key]: !prev[key]
-                                }))}
-                                onInteractiveItemClick={handleInteractiveItemClick}
-                                onFlagMessage={(messageId) => {
-                                    setFlaggingMessageId(messageId);
-                                    setShowFlagModal(true);
-                                }}
-                                language={message.detectedLanguage}
-                            />
-                        ))}
+                        {/* Messages */}
+                        <div className="messages-container">
+                            {messages.map((message, index) => (
+                                <MessageDisplay
+                                    key={index}
+                                    message={message}
+                                    messageIndex={index}
+                                    messages={messages}
+                                    expandedSources={expandedSources}
+                                    onToggleSource={(key) => setExpandedSources(prev => ({
+                                        ...prev,
+                                        [key]: !prev[key]
+                                    }))}
+                                    onInteractiveItemClick={handleInteractiveItemClick}
+                                    onFlagMessage={(messageId) => {
+                                        setFlaggingMessageId(messageId);
+                                        setShowFlagModal(true);
+                                    }}
+                                    language={message.detectedLanguage}
+                                />
+                            ))}
+                        </div>
                     </div>
 
-
-
-                    {/* Input Area */}
+                    {/* Input Area - Fixed Footer */}
                     <div className="chat-input-container">
                         <div className="chat-input-wrapper">
                             <input
