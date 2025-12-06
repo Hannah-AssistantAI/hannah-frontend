@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { studioService } from '../../../service/studioService'
+import studentService, { formatRoadmapAsMarkdown } from '../../../service/studentService'
 import type { StudioItem } from '../types'
 import { mockRoadmapContent } from '../../../data/mockData'
 
@@ -270,25 +271,32 @@ export const useStudio = (conversationId: number | null) => {
                     });
                     break;
                 case 'roadmap':
-                    // ROADMAP API DISABLED - UI only with mock data
-                    // response = await studioService.generateRoadmap({
-                    //     conversationId,
-                    //     title: effectiveTitle,
-                    //     topic: generationContext || effectiveTitle,
-                    //     sourceType,
-                    //     sourceSubjectIds: options?.sourceSubjectIds,
-                    //     sourceDocumentIds: sourceDocumentIds
-                    // });
-                    // Simulate API response with mock data
-                    response = {
-                        data: {
+                    // Call real API for full roadmap overview
+                    try {
+                        const roadmapData = await studentService.getFullRoadmapOverview();
+                        const formattedContent = formatRoadmapAsMarkdown(roadmapData);
+                        response = {
                             data: {
-                                roadmapId: `mock-${Date.now()}`,
-                                title: effectiveTitle,
-                                content: mockRoadmapContent.content
+                                data: {
+                                    roadmapId: `roadmap-${Date.now()}`,
+                                    title: roadmapData.current_semester ? `Lộ trình học tập - ${roadmapData.current_semester}` : 'Lộ trình học tập',
+                                    content: formattedContent
+                                }
                             }
-                        }
-                    };
+                        };
+                    } catch (error) {
+                        console.error('Failed to fetch roadmap from API, using mock data:', error);
+                        // Fallback to mock data if API fails
+                        response = {
+                            data: {
+                                data: {
+                                    roadmapId: `mock-${Date.now()}`,
+                                    title: effectiveTitle,
+                                    content: mockRoadmapContent.content
+                                }
+                            }
+                        };
+                    }
                     break;
             }
 
@@ -422,7 +430,7 @@ export const useStudio = (conversationId: number | null) => {
                 setShowReportModal(true);
             } else if (item.type === 'roadmap') {
                 setSelectedRoadmapId(item.id);
-                
+
                 // Use cached content if available
                 if (item.content) {
                     console.log('Using cached roadmap content:', item.content);
