@@ -1,4 +1,4 @@
-/* Messages */
+/* Messages - Modern Blue Light Theme */
 .messages-container {
     display: flex;
     flex-direction: column;
@@ -18,11 +18,11 @@
 }
 
 .user-message .message-content {
-    background-color: #2d2d2d;
+    background-color: #3b82f6;
     border-radius: 18px;
     padding: 12px 16px;
     max-width: 70%;
-    color: #e8eaed;
+    color: #ffffff;
 }
 
 .assistant-message {
@@ -33,7 +33,7 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background-color: #333333;
+    background-color: #e2e8f0;
     display: flex;
     align-items: center;
     justify-content: center;

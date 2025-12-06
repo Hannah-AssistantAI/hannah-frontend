@@ -1,8 +1,8 @@
-/* Learn Page Styles */
+/* Learn Page Styles - Modern Blue Light Theme */
 
 .learn-container {
     min-height: 100vh;
-    background: linear-gradient(to bottom, #0f0f0f 0%, #1a1a1a 100%);
+    background: linear-gradient(to bottom, #ffffff 0%, #f0f4f8 100%);
     display: flex;
     flex-direction: column;
 }
@@ -12,8 +12,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #1a1a1a;
-    border-bottom: 1px solid #3c4043;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -34,12 +34,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #bdc1c6;
+    color: #64748b;
     transition: background 0.2s ease;
 }
 
 .menu-icon-btn:hover {
-    background: #333333;
+    background: #f1f5f9;
 }
 
 .header-logo-image {
@@ -67,35 +67,35 @@
 }
 
 .learn-logo:hover {
-    background: rgba(138, 180, 248, 0.08);
+    background: rgba(59, 130, 246, 0.08);
     transform: translateY(-1px);
 }
 
 .learn-logo:active {
     transform: translateY(0);
-    background: rgba(138, 180, 248, 0.12);
+    background: rgba(59, 130, 246, 0.12);
 }
 
 .learn-logo .lucide {
-    color: #8ab4f8;
+    color: #3b82f6;
     transition: all 0.2s ease;
 }
 
 .learn-logo:hover .lucide {
-    color: #aecbfa;
+    color: #2563eb;
     transform: rotate(5deg) scale(1.05);
 }
 
 .learn-logo-text {
     font-size: 1.375rem;
     font-weight: 500;
-    color: #e8eaed;
+    color: #0f172a;
     letter-spacing: -0.01em;
     transition: color 0.2s ease;
 }
 
 .learn-logo:hover .learn-logo-text {
-    color: #aecbfa;
+    color: #3b82f6;
 }
 
 .learn-header-right {
@@ -106,7 +106,7 @@
 }
 
 .avatar-menu-container {
-    position: relative; /* Added for dropdown positioning */
+    position: relative;
     height: 48px;
     vertical-align: middle;
     white-space: nowrap;
@@ -119,7 +119,7 @@
     -webkit-user-select: none;
     user-select: none;
     gap: 0.75rem;
-    z-index: 1000; /* Ensure dropdown appears above other elements */
+    z-index: 1000;
 }
 
 .avatar-btn {
@@ -148,8 +148,6 @@
     border-radius: 9999px;
     object-fit: cover;
 }
-
-
 
 .avatar-dropdown {
     position: absolute;
@@ -188,7 +186,7 @@
     padding: 0.5rem 0;
     display: flex;
     flex-direction: column;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
     transform-origin: top right;
     transition: opacity 0.2s ease-out, transform 0.2s ease-out;
     opacity: 0;
@@ -201,7 +199,7 @@
     transform: scale(1) translateY(0);
     pointer-events: auto;
 }
-/* Close dropdown when clicking outside */
+
 .profile-dropdown::before {
     content: '';
     position: fixed;
@@ -212,7 +210,6 @@
     z-index: -1;
 }
 
-/* Close dropdown when clicking outside */
 .avatar-dropdown::before {
     content: '';
     position: fixed;
@@ -232,18 +229,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #bdc1c6;
+    color: #64748b;
     transition: all 0.2s ease;
 }
 
 .history-toggle-btn:hover {
-    background: #333333;
-    color: #e8eaed;
+    background: #f1f5f9;
+    color: #0f172a;
 }
-
-/* Sidebar styles moved to HistorySidebar.css */
-
-/* Sidebar styles moved to HistorySidebar.css */
 
 /* Main Content */
 .learn-main {
@@ -263,7 +256,7 @@
 .learn-title {
     font-size: 3rem;
     font-weight: 400;
-    color: #e8eaed;
+    color: #0f172a;
     text-align: center;
     margin-bottom: 2rem;
     letter-spacing: -0.02em;
@@ -276,14 +269,14 @@
 }
 
 .learn-search-box {
-    background: #202124;
-    border: 1px solid #3c4043;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
     border-radius: 28px;
     padding: 0.75rem 1.25rem;
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     margin-bottom: 0;
     cursor: text;
@@ -292,14 +285,14 @@
 }
 
 .learn-search-box:hover {
-    background: #262626;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    background: #f8fafc;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .learn-search-box:focus-within {
-    background: #2d2d2d;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-    border-color: #8ab4f8;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+    border-color: #3b82f6;
 }
 
 .learn-search-input {
@@ -307,12 +300,12 @@
     border: none;
     outline: none;
     font-size: 1rem;
-    color: #e8eaed;
+    color: #0f172a;
     background: transparent;
 }
 
 .learn-search-input::placeholder {
-    color: #9aa0a6;
+    color: #94a3b8;
     font-weight: 400;
 }
 
@@ -325,27 +318,27 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #bdc1c6;
+    color: #64748b;
     transition: all 0.2s ease;
 }
 
 .upload-btn:hover {
-    background: rgba(189, 193, 198, 0.1);
+    background: #f1f5f9;
 }
 
 .upload-btn.has-content {
-    color: #8ab4f8;
-    background: rgba(138, 180, 248, 0.08);
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.08);
 }
 
 .upload-btn.has-content:hover {
-    background: rgba(138, 180, 248, 0.12);
+    background: rgba(59, 130, 246, 0.12);
     transform: scale(1.05);
 }
 
 /* Dashed Border Wrapper */
 .dashed-border-wrapper {
-    border: 2px dashed #3c4043;
+    border: 2px dashed #cbd5e1;
     border-radius: 20px;
     padding: 0;
     margin-top: -14px;
@@ -362,8 +355,8 @@
 }
 
 .dashed-border-wrapper:hover {
-    border-color: #5f6368;
-    background: #262626;
+    border-color: #94a3b8;
+    background: #f8fafc;
 }
 
 /* PDF Companion Card */
@@ -401,19 +394,19 @@
 .pdf-companion-title {
     font-size: 1.125rem;
     font-weight: 500;
-    color: #e8eaed;
+    color: #0f172a;
     margin-bottom: 0.5rem;
 }
 
 .pdf-companion-description {
     font-size: 0.875rem;
-    color: #bdc1c6;
+    color: #64748b;
     line-height: 1.5;
 }
 
 /* Footer Section */
 .learn-footer {
-    background: linear-gradient(180deg, #262626 0%, #1a1a1a 100%);
+    background: linear-gradient(180deg, #f0f4f8 0%, #e2e8f0 100%);
     padding: 3rem 1.5rem 4rem;
     margin-top: 2rem;
 }
@@ -426,7 +419,7 @@
 .reading-nook-title {
     font-size: 2.5rem;
     font-weight: 400;
-    color: #e8eaed;
+    color: #0f172a;
     text-align: center;
     margin-bottom: 0.5rem;
     letter-spacing: -0.01em;
@@ -434,7 +427,7 @@
 
 .reading-nook-subtitle {
     font-size: 1rem;
-    color: #bdc1c6;
+    color: #64748b;
     text-align: center;
     margin-bottom: 3rem;
 }

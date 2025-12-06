@@ -1,4 +1,4 @@
-/* Big Picture Sidebar - Left */
+/* Big Picture Sidebar - Modern Blue Light Theme */
 .big-picture-sidebar {
     width: 356px !important;
     flex-shrink: 0 !important;
@@ -16,10 +16,10 @@
 }
 
 .big-picture-content {
-    background-color: #1a1a1a;
+    background-color: #f0f4f8;
     border-radius: 12px;
     padding: 20px;
-    border: 1px solid #3c4043;
+    border: 1px solid #e2e8f0;
     transition: all 0.3s ease;
     width: 332px;
     height: 100%;
@@ -43,7 +43,7 @@
 .big-picture-title {
     font-size: 14px;
     font-weight: 500;
-    color: #bdc1c6;
+    color: #64748b;
     margin: 0;
     flex: 1;
 }
@@ -57,13 +57,13 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: #bdc1c6;
+    color: #64748b;
     transition: all 0.2s;
     margin-left: auto;
 }
 
 .big-picture-toggle-btn:hover {
-    background-color: #333333;
+    background-color: #e2e8f0;
 }
 
 .big-picture-toggle-btn:active {
@@ -76,8 +76,8 @@
     left: 16px;
     top: 16px;
     z-index: 60;
-    background-color: #2d2d2d;
-    border: 1px solid #3c4043;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 50%;
     width: 32px;
     height: 32px;
@@ -85,13 +85,13 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease;
 }
 
 .big-picture-toggle-floating:hover {
-    background-color: #333333;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    background-color: #f1f5f9;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .big-picture-toggle-floating:active {
@@ -101,7 +101,7 @@
 .big-picture-main-title {
     font-size: 18px;
     font-weight: 500;
-    color: #e8eaed;
+    color: #0f172a;
     margin: 0 0 20px 0;
     line-height: 1.4;
 }
@@ -131,13 +131,13 @@
 }
 
 .big-picture-topic-button:hover {
-    background-color: #262626;
+    background-color: #e2e8f0;
 }
 
 .big-picture-topic-title {
     font-size: 14px;
     font-weight: 500;
-    color: #e8eaed;
+    color: #0f172a;
     line-height: 1.5;
 }
 
@@ -149,20 +149,20 @@
 }
 
 .big-picture-subtopic-button {
-    background-color: #333333;
+    background-color: #e2e8f0;
     border: none;
     border-radius: 16px;
     padding: 6px 14px;
     font-size: 13px;
-    color: #e8eaed;
+    color: #0f172a;
     cursor: pointer;
     transition: background-color 0.2s;
 }
 
 .big-picture-subtopic-button:hover {
-    background-color: #404040;
+    background-color: #cbd5e1;
 }
 
 .big-picture-subtopic-button:active {
-    background-color: #2a2a2a;
+    background-color: #f1f5f9;
 }

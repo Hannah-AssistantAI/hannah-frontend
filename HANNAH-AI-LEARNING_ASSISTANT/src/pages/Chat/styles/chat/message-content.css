@@ -1,5 +1,5 @@
 .message-text {
-    color: #e8eaed;
+    color: #0f172a;
     font-size: 15px;
     line-height: 1.6;
     width: 100%;
@@ -21,14 +21,14 @@
     font-size: 18px;
     font-weight: 500;
     margin: 16px 0 8px 0;
-    color: #e8eaed;
+    color: #0f172a;
 }
 
 .message-text h4 {
     font-size: 16px;
     font-weight: 500;
     margin: 12px 0 8px 0;
-    color: #e8eaed;
+    color: #0f172a;
 }
 
 .message-text li {
@@ -38,5 +38,5 @@
 
 .message-text strong {
     font-weight: 600;
-    color: #e8eaed;
+    color: #0f172a;
 }

@@ -132,8 +132,8 @@ const MindMapNodeComponent: React.FC<{
                 height={node.height}
                 rx={12}
                 ry={12}
-                fill="#374151"
-                stroke="#4B5563"
+                fill="#ffffff"
+                stroke="#cbd5e1"
                 className="cursor-pointer"
                 onClick={handleClick}
             />
@@ -142,7 +142,7 @@ const MindMapNodeComponent: React.FC<{
                 height={node.height}
                 className="pointer-events-none"
             >
-                <div className="flex items-center justify-center h-full p-2 text-center text-gray-200 text-sm leading-tight break-words select-none">
+                <div className="flex items-center justify-center h-full p-2 text-center text-slate-700 text-sm leading-tight break-words select-none">
                     {node.name}
                 </div>
             </foreignObject>
@@ -153,14 +153,14 @@ const MindMapNodeComponent: React.FC<{
                     transform={`translate(${node.width}, ${node.height / 2})`}
                     onClick={(e) => { e.stopPropagation(); onToggle(node.id); }}
                 >
-                    <circle r={TOGGLE_BUTTON_RADIUS} fill="#4B5563" />
+                    <circle r={TOGGLE_BUTTON_RADIUS} fill="#3b82f6" />
                     <motion.path
                         key={isExpanded ? 'minus' : 'plus'}
                         initial={{ scale: 0.5, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 0.2 }}
                         d={isExpanded ? "M-6 0 H6" : "M-6 0 H6 M0 -6 V6"}
-                        stroke="#E5E7EB"
+                        stroke="#ffffff"
                         strokeWidth="2"
                         strokeLinecap="round"
                         transform="translate(0.5, 0.5)"

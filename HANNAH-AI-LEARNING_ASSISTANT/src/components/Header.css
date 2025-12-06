@@ -2,11 +2,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #1a1a1a;
-    border-bottom: 1px solid #3c4043;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
     position: sticky;
     top: 0;
-    z-index: 1001; /* Ensure header is above sidebar overlay (999) and sidebar (1000) */
+    z-index: 1001;
     padding: 0 1.5rem;
     height: 64px;
 }
@@ -30,20 +30,20 @@
 }
 
 .app-logo:hover {
-    background: rgba(138, 180, 248, 0.08);
+    background: rgba(59, 130, 246, 0.08);
     transform: translateY(-1px);
 }
 
 .app-logo-text {
     font-size: 1.375rem;
     font-weight: 500;
-    color: #e8eaed;
+    color: #0f172a;
     letter-spacing: -0.01em;
     transition: color 0.2s ease;
 }
 
 .app-logo:hover .app-logo-text {
-    color: #aecbfa;
+    color: #3b82f6;
 }
 
 .header-logo-image {
@@ -70,32 +70,32 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #bdc1c6;
+    color: #64748b;
     transition: all 0.2s ease;
 }
 
 .history-toggle-btn:hover {
-    background: #333333;
-    color: #e8eaed;
+    background: #f1f5f9;
+    color: #0f172a;
 }
 
 .theme-toggle-btn {
     background: transparent;
-    border: 1px solid #3c4043;
+    border: 1px solid #e2e8f0;
     cursor: pointer;
     padding: 0.5rem;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #bdc1c6;
+    color: #64748b;
     transition: all 0.2s ease;
 }
 
 .theme-toggle-btn:hover {
-    background: #333333;
-    color: #e8eaed;
-    border-color: #5f6368;
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
 }
 
 .share-btn {
@@ -103,10 +103,10 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background: #333;
-    border: 1px solid #444;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
     border-radius: 20px;
-    color: #e8eaed;
+    color: #0f172a;
     font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
@@ -114,6 +114,6 @@
 }
 
 .share-btn:hover {
-    background: #444;
-    border-color: #555;
+    background: #e2e8f0;
+    border-color: #cbd5e1;
 }

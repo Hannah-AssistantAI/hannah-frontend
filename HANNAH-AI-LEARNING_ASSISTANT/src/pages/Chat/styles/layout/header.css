@@ -1,7 +1,7 @@
-/* Header */
+/* Header - Modern Blue Light Theme */
 .chat-header {
-    background-color: #1a1a1a;
-    border-bottom: 1px solid #3c4043;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
     padding: 12px 24px;
     display: flex;
     justify-content: space-between;
@@ -43,7 +43,7 @@
 .chat-logo-text {
     font-size: 20px;
     font-weight: 500;
-    color: #e8eaed;
+    color: #0f172a;
 }
 
 .chat-header-right {
@@ -59,26 +59,26 @@
     gap: 8px;
     padding: 8px 16px;
     background: none;
-    border: 1px solid #3c4043;
+    border: 1px solid #cbd5e1;
     border-radius: 20px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
-    color: #bdc1c6;
+    color: #64748b;
     transition: all 0.2s ease;
 }
 
 .share-btn:hover {
-    background-color: #262626;
-    border-color: #5f6368;
+    background-color: #f1f5f9;
+    border-color: #94a3b8;
 }
 
 .share-btn svg {
-    color: #bdc1c6;
+    color: #64748b;
 }
 
 .share-btn span {
-    color: #bdc1c6;
+    color: #64748b;
 }
 
 .avatar-menu-container {
@@ -110,9 +110,10 @@
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    background: #2d2d2d;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     min-width: 180px;
     overflow: hidden;
     z-index: 1000;
@@ -129,21 +130,21 @@
     border: none;
     cursor: pointer;
     font-size: 0.875rem;
-    color: #e8eaed;
+    color: #0f172a;
     text-align: left;
     transition: background 0.2s ease;
 }
 
 .avatar-dropdown-item:hover {
-    background: #333333;
+    background: #f1f5f9;
 }
 
 .avatar-dropdown-item:first-child {
-    border-bottom: 1px solid #3c4043;
+    border-bottom: 1px solid #e2e8f0;
 }
 
 .avatar-dropdown-item svg {
-    color: #bdc1c6;
+    color: #64748b;
 }
 
 /* Main Content */

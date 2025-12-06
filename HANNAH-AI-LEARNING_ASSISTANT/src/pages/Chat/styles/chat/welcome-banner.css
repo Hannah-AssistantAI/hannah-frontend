@@ -26,7 +26,7 @@
 
 /* Welcome Banner */
 .welcome-banner {
-    background: linear-gradient(135deg, #2d2d2d 0%, #262626 100%);
+    background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
     border-radius: 12px;
     padding: 20px 24px;
     display: flex;
@@ -34,6 +34,7 @@
     gap: 16px;
     margin-bottom: 32px;
     position: relative;
+    border: 1px solid #e2e8f0;
 }
 
 .welcome-banner-icon img {
@@ -48,19 +49,19 @@
 .welcome-banner-title {
     font-size: 20px;
     font-weight: 500;
-    color: #e8eaed;
+    color: #0f172a;
     margin: 0 0 8px 0;
 }
 
 .welcome-banner-description {
     font-size: 14px;
-    color: #bdc1c6;
+    color: #64748b;
     margin: 0 0 12px 0;
 }
 
 .topic-badge {
-    background-color: #8ab4f8;
-    color: #0f0f0f;
+    background-color: #3b82f6;
+    color: #ffffff;
     border: none;
     border-radius: 16px;
     padding: 6px 16px;
@@ -71,7 +72,7 @@
 }
 
 .topic-badge:hover {
-    background-color: #aecbfa;
+    background-color: #2563eb;
 }
 
 .close-banner-btn {
@@ -81,7 +82,7 @@
     background: none;
     border: none;
     font-size: 24px;
-    color: #bdc1c6;
+    color: #64748b;
     cursor: pointer;
     width: 32px;
     height: 32px;
@@ -93,5 +94,5 @@
 }
 
 .close-banner-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #e2e8f0;
 }

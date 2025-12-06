@@ -1,7 +1,7 @@
 /* Chat Notice */
 .chat-notice {
     text-align: center;
-    color: #5f6368;
+    color: #64748b;
     font-size: 13px;
     margin: 0;
     padding: 8px 0;
@@ -13,25 +13,25 @@
     bottom: 0;
     z-index: 10;
     padding-top: 16px;
-    background-color: #0f0f0f;
+    background-color: #ffffff;
     padding-bottom: 16px;
-    border-top: 1px solid #3c4043;
+    border-top: 1px solid #e2e8f0;
 }
 
 .chat-input-wrapper {
     display: flex;
     align-items: center;
     gap: 8px;
-    background-color: #202124;
-    border: 1px solid #3c4043;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
     border-radius: 24px;
     padding: 4px 8px;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .chat-input-wrapper:focus-within {
-    border-color: #8ab4f8;
-    box-shadow: 0 1px 6px rgba(138, 180, 248, 0.2);
+    border-color: #3b82f6;
+    box-shadow: 0 1px 6px rgba(59, 130, 246, 0.2);
 }
 
 .chat-input {
@@ -41,17 +41,17 @@
     padding: 10px 12px;
     font-size: 15px;
     outline: none;
-    color: #e8eaed;
+    color: #0f172a;
 }
 
 .chat-input::placeholder {
-    color: #9aa0a6;
+    color: #94a3b8;
 }
 
 .upload-file-btn {
     background: none;
     border: none;
-    color: #bdc1c6;
+    color: #64748b;
     cursor: pointer;
     padding: 8px;
     border-radius: 50%;
@@ -62,13 +62,13 @@
 }
 
 .upload-file-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #f1f5f9;
 }
 
 .send-btn {
     background: none;
     border: none;
-    color: #9aa0a6;
+    color: #94a3b8;
     cursor: pointer;
     padding: 8px;
     border-radius: 50%;
@@ -79,12 +79,12 @@
 }
 
 .send-btn.active {
-    background-color: #8ab4f8;
-    color: #0f0f0f;
+    background-color: #3b82f6;
+    color: #ffffff;
 }
 
 .send-btn.active:hover {
-    background-color: #aecbfa;
+    background-color: #2563eb;
 }
 
 .send-btn:disabled {
@@ -93,7 +93,7 @@
 
 .chat-disclaimer {
     text-align: center;
-    color: #9aa0a6;
+    color: #94a3b8;
     font-size: 12px;
     margin: 12px 0 0 0;
 }
