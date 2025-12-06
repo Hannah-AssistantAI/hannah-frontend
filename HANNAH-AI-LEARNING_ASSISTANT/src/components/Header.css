@@ -36,14 +36,17 @@
 
 .app-logo-text {
     font-size: 1.375rem;
-    font-weight: 500;
-    color: #0f172a;
+    font-weight: 600;
+    background: linear-gradient(135deg, #3b82f6 0%, #0ea5e9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     letter-spacing: -0.01em;
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .app-logo:hover .app-logo-text {
-    color: #3b82f6;
+    filter: brightness(1.1);
 }
 
 .header-logo-image {

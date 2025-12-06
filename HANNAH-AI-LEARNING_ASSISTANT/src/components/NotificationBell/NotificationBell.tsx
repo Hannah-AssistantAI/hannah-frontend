@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Bell } from 'lucide-react';
 import notificationService from '../../service/notificationService';
 import type { FlagNotification } from '../../service/notificationService';
@@ -11,6 +11,24 @@ const NotificationBell: React.FC = () => {
     const [showDropdown, setShowDropdown] = useState(false);
     const [loading, setLoading] = useState(false);
     const [selectedNotification, setSelectedNotification] = useState<FlagNotification | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Close dropdown when clicking outside (including profile icon)
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setShowDropdown(false);
+            }
+        };
+
+        if (showDropdown) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showDropdown]);
 
     useEffect(() => {
         loadNotifications();
@@ -61,7 +79,7 @@ const NotificationBell: React.FC = () => {
     };
 
     return (
-        <div className="notification-bell-container">
+        <div className="notification-bell-container" ref={containerRef}>
             <button className="notification-bell" onClick={toggleDropdown}>
                 <Bell size={20} />
                 {unreadCount > 0 && (

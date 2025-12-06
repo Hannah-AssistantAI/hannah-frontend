@@ -17,6 +17,8 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
     const { user } = useAuth();
     const [conversations, setConversations] = useState<any[]>([]);
     const [isLoadingConversations, setIsLoadingConversations] = useState(false);
+    const [showAll, setShowAll] = useState(false);
+    const INITIAL_DISPLAY_COUNT = 6;
 
     useEffect(() => {
         if (isOpen && user) {
@@ -142,7 +144,13 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
         return groups;
     };
 
-    const groupedConversations = groupConversationsByDate(conversations);
+    // Get conversations to display based on showAll state
+    const displayedConversations = showAll
+        ? conversations
+        : conversations.slice(0, INITIAL_DISPLAY_COUNT);
+
+    const groupedConversations = groupConversationsByDate(displayedConversations);
+    const hasMoreConversations = conversations.length > INITIAL_DISPLAY_COUNT;
 
     if (!isOpen) return null;
 
@@ -213,13 +221,26 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
                                     )
                                 ))}
 
-                                {/* View All Button */}
-                                <button className="view-all-button">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <polyline points="6 9 12 15 18 9"></polyline>
-                                    </svg>
-                                    <span>View all</span>
-                                </button>
+                                {/* View All / Show Less Button */}
+                                {hasMoreConversations && (
+                                    <button
+                                        className="view-all-button"
+                                        onClick={() => setShowAll(!showAll)}
+                                    >
+                                        <svg
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            style={{ transform: showAll ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+                                        >
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                        <span>{showAll ? `Thu gọn` : `Xem tất cả (${conversations.length})`}</span>
+                                    </button>
+                                )}
                             </>
                         )}
                     </div>

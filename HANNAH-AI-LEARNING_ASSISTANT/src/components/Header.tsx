@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Share2 } from 'lucide-react';
 import ProfileIcon from './ProfileIcon';
-import ThemeToggle from './ThemeToggle';
 import NotificationBell from './NotificationBell/NotificationBell';
 import './Header.css';
 
@@ -55,7 +54,6 @@ export const Header: React.FC<HeaderProps> = ({
                     </button>
                 )}
                 {showNotifications && <NotificationBell />}
-                <ThemeToggle />
                 <ProfileIcon />
             </div>
         </header>

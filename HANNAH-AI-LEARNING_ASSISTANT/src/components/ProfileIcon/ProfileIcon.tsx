@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { User, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import './ProfileIcon.css';
@@ -13,17 +13,30 @@ const ProfileIcon: React.FC<ProfileIconProps> = React.memo(({ className = '' }) 
   const navigate = useNavigate();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  console.log('ProfileIcon rendered, dropdown state:', isDropdownOpen);
+  // Close dropdown when clicking outside (including notification bell)
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   const handleProfileClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    console.log('Profile clicked, current state:', isDropdownOpen);
     setIsDropdownOpen(prev => !prev);
-  }, [isDropdownOpen]);
+  }, []);
 
   const handleLogout = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -62,7 +75,7 @@ const ProfileIcon: React.FC<ProfileIconProps> = React.memo(({ className = '' }) 
   };
 
   return (
-    <div className={`profile-icon-container ${className}`} ref={dropdownRef}>
+    <div className={`profile-icon-container ${className}`} ref={containerRef}>
       {/* Profile Avatar */}
       <div
         className="profile-avatar"
