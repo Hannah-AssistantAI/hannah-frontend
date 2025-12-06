@@ -21,11 +21,11 @@ interface QuestionAnalyticsFilterProps {
   onReset: () => void;
 }
 
-const QuestionAnalyticsFilter: React.FC<QuestionAnalyticsFilterProps> = ({ 
-  filters, 
+const QuestionAnalyticsFilter: React.FC<QuestionAnalyticsFilterProps> = ({
+  filters,
   courses,
-  onFilterChange, 
-  onReset 
+  onFilterChange,
+  onReset
 }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -94,7 +94,6 @@ const QuestionAnalyticsFilter: React.FC<QuestionAnalyticsFilterProps> = ({
               <option value="today">Today</option>
               <option value="week">This week</option>
               <option value="month">This month</option>
-              <option value="semester">This semester</option>
               <option value="year">This year</option>
             </select>
           </div>
@@ -180,7 +179,7 @@ const QuestionAnalyticsFilter: React.FC<QuestionAnalyticsFilterProps> = ({
         {(filters.scoreFilter !== 'all' || filters.search || filters.dateFrom || filters.dateTo || filters.course || filters.timePeriod !== 'all') && (
           <div className="mt-4 flex flex-wrap gap-2">
             <span className="text-sm text-gray-600">Active filters:</span>
-            
+
             {filters.scoreFilter !== 'all' && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                 Score: {scoreOptions.find(s => s.value === filters.scoreFilter)?.label}
@@ -194,7 +193,7 @@ const QuestionAnalyticsFilter: React.FC<QuestionAnalyticsFilterProps> = ({
                 </button>
               </span>
             )}
-            
+
             {filters.search && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                 Search: "{filters.search}"
@@ -213,10 +212,9 @@ const QuestionAnalyticsFilter: React.FC<QuestionAnalyticsFilterProps> = ({
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
                 Time: {
                   filters.timePeriod === 'today' ? 'Today' :
-                  filters.timePeriod === 'week' ? 'This week' :
-                  filters.timePeriod === 'month' ? 'This month' :
-                  filters.timePeriod === 'semester' ? 'This semester' :
-                  filters.timePeriod === 'year' ? 'This year' : filters.timePeriod
+                    filters.timePeriod === 'week' ? 'This week' :
+                      filters.timePeriod === 'month' ? 'This month' :
+                        filters.timePeriod === 'year' ? 'This year' : filters.timePeriod
                 }
                 <button
                   onClick={() => onFilterChange({ timePeriod: 'all' })}
@@ -228,7 +226,7 @@ const QuestionAnalyticsFilter: React.FC<QuestionAnalyticsFilterProps> = ({
                 </button>
               </span>
             )}
-            
+
             {(filters.dateFrom || filters.dateTo) && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
                 Date: {filters.dateFrom || '...'} → {filters.dateTo || '...'}
@@ -242,7 +240,7 @@ const QuestionAnalyticsFilter: React.FC<QuestionAnalyticsFilterProps> = ({
                 </button>
               </span>
             )}
-            
+
             {filters.course && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
                 Course: {filters.course}

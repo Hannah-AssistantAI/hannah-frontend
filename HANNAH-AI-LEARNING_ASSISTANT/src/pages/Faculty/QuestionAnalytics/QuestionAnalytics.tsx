@@ -44,6 +44,7 @@ interface FilterState {
   course: string;
   timePeriod: string;
   scoreFilter: string;
+  selectedMonth: string; // Format: 'YYYY-MM' or '' for all
 }
 
 // ==================== MAIN COMPONENT ====================
@@ -62,8 +63,22 @@ const QuestionAnalytics = () => {
     dateTo: '',
     course: '',
     timePeriod: 'all',
-    scoreFilter: 'all'
+    scoreFilter: 'all',
+    selectedMonth: ''
   });
+
+  // Generate last 12 months for dropdown
+  const getMonthOptions = () => {
+    const months = [];
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const label = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      months.push({ value, label });
+    }
+    return months;
+  };
 
   // Available courses
   const [availableCourses] = useState<string[]>([]);
@@ -182,7 +197,8 @@ const QuestionAnalytics = () => {
       dateTo: '',
       course: '',
       timePeriod: 'all',
-      scoreFilter: 'all'
+      scoreFilter: 'all',
+      selectedMonth: ''
     });
   };
 
@@ -246,6 +262,17 @@ const QuestionAnalytics = () => {
       const toDate = new Date(filters.dateTo);
       toDate.setHours(23, 59, 59, 999);
       filtered = filtered.filter(q => new Date(q.createdAt) <= toDate);
+    }
+
+    // Filter by specific month
+    if (filters.selectedMonth) {
+      const [year, month] = filters.selectedMonth.split('-').map(Number);
+      const monthStart = new Date(year, month - 1, 1);
+      const monthEnd = new Date(year, month, 0, 23, 59, 59, 999);
+      filtered = filtered.filter(q => {
+        const quizDate = new Date(q.createdAt);
+        return quizDate >= monthStart && quizDate <= monthEnd;
+      });
     }
 
     return filtered;
@@ -487,8 +514,21 @@ const QuestionAnalytics = () => {
                     <h2 className="text-2xl font-bold text-slate-800">🎯 Knowledge Gaps</h2>
                     <p className="text-sm text-slate-600 mt-1">Topics where students need more support (score &lt; 60%)</p>
                   </div>
-                  <div className="text-sm text-slate-500">
-                    Threshold: <span className="font-semibold">60%</span>
+                  <div className="flex items-center gap-4">
+                    {/* Month Filter */}
+                    <select
+                      className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      value={filters.selectedMonth}
+                      onChange={(e) => handleFilterChange({ selectedMonth: e.target.value, timePeriod: 'all' })}
+                    >
+                      <option value="">All Months</option>
+                      {getMonthOptions().map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                    <div className="text-sm text-slate-500">
+                      Threshold: <span className="font-semibold">60%</span>
+                    </div>
                   </div>
                 </div>
                 <KnowledgeGapHeatmap gaps={filteredKnowledgeGaps} threshold={60} />
