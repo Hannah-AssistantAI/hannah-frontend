@@ -1,10 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle, User, Flag, MessageSquare, UserCheck, FileText, CheckCheck, XCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, CheckCircle, User, Flag, MessageSquare, UserCheck, FileText, CheckCheck, XCircle, RefreshCw, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { FlagNotification } from '../../service/notificationService';
 import flaggingService, { type FlaggedItem, type MessageContext } from '../../service/flaggingService';
 import quizApiService, { type QuizAttemptDetailDto } from '../../service/quizApi';
 import './NotificationDetailModal.css';
+
+// Interface for parsed resolution data
+interface ResolutionData {
+    type: 'feedback' | 'corrected';
+    feedback: string;
+    correctedResponse?: string | null;
+    timestamp?: string;
+}
+
+// Helper to parse resolution JSON data (backward compatible)
+const parseResolutionData = (resolutionNotes: string | undefined): ResolutionData | null => {
+    if (!resolutionNotes) return null;
+    try {
+        const data = JSON.parse(resolutionNotes);
+        if (data.type && (data.feedback || data.correctedResponse)) {
+            return data as ResolutionData;
+        }
+    } catch {
+        // Not JSON, return as plain text feedback (backward compatible)
+    }
+    return { type: 'feedback', feedback: resolutionNotes };
+};
 
 interface NotificationDetailModalProps {
     notification: FlagNotification;
@@ -12,6 +35,7 @@ interface NotificationDetailModalProps {
 }
 
 const NotificationDetailModal: React.FC<NotificationDetailModalProps> = ({ notification, onClose }) => {
+    const navigate = useNavigate();
     const [flagDetail, setFlagDetail] = useState<FlaggedItem | null>(null);
     const [messageContext, setMessageContext] = useState<MessageContext | null>(null);
     const [quizAttempt, setQuizAttempt] = useState<QuizAttemptDetailDto | null>(null);
@@ -422,33 +446,81 @@ const NotificationDetailModal: React.FC<NotificationDetailModalProps> = ({ notif
                                                             </div>
                                                         </div>
 
-                                                        {/* Resolution message */}
-                                                        {isFlagged && flagDetail?.status?.toLowerCase() === 'resolved' && flagDetail.resolutionNotes && (
-                                                            <div className="group">
-                                                                <div className="flex items-start gap-4">
-                                                                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-lg ring-4 ring-emerald-100">
-                                                                        <UserCheck className="w-6 h-6 text-white" />
-                                                                    </div>
-                                                                    <div className="flex-1">
-                                                                        <div className="flex items-center gap-3 mb-2">
-                                                                            <span className="font-bold text-sm text-gray-900">{flagDetail.resolvedByName || notification.resolvedByName}</span>
-                                                                            <span className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-bold rounded-full shadow-md">
-                                                                                Faculty
-                                                                            </span>
-                                                                            <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold rounded-full shadow-md">
-                                                                                RESOLVED
-                                                                            </span>
+                                                        {/* Resolution message - Enhanced with Before/After comparison */}
+                                                        {isFlagged && flagDetail?.status?.toLowerCase() === 'resolved' && flagDetail.resolutionNotes && (() => {
+                                                            const resolutionData = parseResolutionData(flagDetail.resolutionNotes);
+                                                            const hasCorrectedResponse = resolutionData?.type === 'corrected' && resolutionData.correctedResponse;
+
+                                                            return (
+                                                                <>
+                                                                    {/* Before/After Comparison (if corrected response provided) */}
+                                                                    {hasCorrectedResponse && (
+                                                                        <div className="mb-6">
+                                                                            <div className="flex items-center gap-3 mb-4">
+                                                                                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg ring-4 ring-blue-100">
+                                                                                    <RefreshCw className="w-5 h-5 text-white" />
+                                                                                </div>
+                                                                                <h4 className="text-lg font-bold text-gray-900">What Was Corrected</h4>
+                                                                            </div>
+
+                                                                            <div className="grid md:grid-cols-2 gap-4">
+                                                                                {/* BEFORE: Original AI Response */}
+                                                                                <div className="bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl p-5">
+                                                                                    <div className="flex items-center gap-2 mb-3">
+                                                                                        <XCircle className="w-5 h-5 text-red-500" />
+                                                                                        <span className="font-bold text-red-700">Original AI Response</span>
+                                                                                        <span className="px-2 py-0.5 bg-red-100 text-red-600 text-xs font-bold rounded-full">FLAGGED</span>
+                                                                                    </div>
+                                                                                    <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">
+                                                                                        {msg.content}
+                                                                                    </p>
+                                                                                </div>
+
+                                                                                {/* AFTER: Faculty's Corrected Response */}
+                                                                                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-5">
+                                                                                    <div className="flex items-center gap-2 mb-3">
+                                                                                        <CheckCircle className="w-5 h-5 text-green-500" />
+                                                                                        <span className="font-bold text-green-700">Corrected Response</span>
+                                                                                        <span className="px-2 py-0.5 bg-green-100 text-green-600 text-xs font-bold rounded-full">BY FACULTY</span>
+                                                                                    </div>
+                                                                                    <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">
+                                                                                        {resolutionData?.correctedResponse}
+                                                                                    </p>
+                                                                                </div>
+                                                                            </div>
                                                                         </div>
-                                                                        <div className="bg-gradient-to-br from-emerald-50 via-teal-50/50 to-emerald-50 border-2 border-emerald-300/60 rounded-2xl p-6 shadow-lg">
-                                                                            <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-[15px] font-medium">{flagDetail.resolutionNotes}</p>
+                                                                    )}
+
+                                                                    {/* Faculty Feedback */}
+                                                                    <div className="group">
+                                                                        <div className="flex items-start gap-4">
+                                                                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-lg ring-4 ring-emerald-100">
+                                                                                <UserCheck className="w-6 h-6 text-white" />
+                                                                            </div>
+                                                                            <div className="flex-1">
+                                                                                <div className="flex items-center gap-3 mb-2">
+                                                                                    <span className="font-bold text-sm text-gray-900">{flagDetail.resolvedByName || notification.resolvedByName}</span>
+                                                                                    <span className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-bold rounded-full shadow-md">
+                                                                                        Faculty
+                                                                                    </span>
+                                                                                    <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold rounded-full shadow-md">
+                                                                                        RESOLVED
+                                                                                    </span>
+                                                                                </div>
+                                                                                <div className="bg-gradient-to-br from-emerald-50 via-teal-50/50 to-emerald-50 border-2 border-emerald-300/60 rounded-2xl p-6 shadow-lg">
+                                                                                    <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-[15px] font-medium">
+                                                                                        {resolutionData?.feedback || flagDetail.resolutionNotes}
+                                                                                    </p>
+                                                                                </div>
+                                                                                {flagDetail.resolvedAt && (
+                                                                                    <p className="text-xs text-gray-500 mt-2 font-medium">{formatDate(flagDetail.resolvedAt)}</p>
+                                                                                )}
+                                                                            </div>
                                                                         </div>
-                                                                        {flagDetail.resolvedAt && (
-                                                                            <p className="text-xs text-gray-500 mt-2 font-medium">{formatDate(flagDetail.resolvedAt)}</p>
-                                                                        )}
                                                                     </div>
-                                                                </div>
-                                                            </div>
-                                                        )}
+                                                                </>
+                                                            );
+                                                        })()}
                                                     </React.Fragment>
                                                 );
                                             })}
@@ -465,6 +537,19 @@ const NotificationDetailModal: React.FC<NotificationDetailModalProps> = ({ notif
 
                             {/* Actions */}
                             <div className="notification-modal-actions">
+                                {/* View Conversation Button - Only for message flags */}
+                                {!notification.isQuiz && flagDetail?.conversationId && (
+                                    <button
+                                        className="notification-btn flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg"
+                                        onClick={() => {
+                                            onClose();
+                                            navigate(`/chat?conversationId=${flagDetail.conversationId}`);
+                                        }}
+                                    >
+                                        <ExternalLink className="w-5 h-5" />
+                                        View Conversation
+                                    </button>
+                                )}
                                 <button className="notification-btn notification-btn-primary" onClick={onClose}>
                                     Close
                                 </button>

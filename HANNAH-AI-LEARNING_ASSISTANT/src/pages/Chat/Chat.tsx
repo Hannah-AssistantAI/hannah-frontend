@@ -251,6 +251,13 @@ export default function Chat() {
                 isOpen={showHistorySidebar}
                 onClose={() => setShowHistorySidebar(false)}
                 currentConversationId={conversationId}
+                onNewChat={() => {
+                    // Reset all chat state for new conversation
+                    setConversationId(null);
+                    setMessages([]);
+                    setBigPictureData([]);
+                    setShowHistorySidebar(false);
+                }}
             />
 
 

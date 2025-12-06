@@ -1,10 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Check, X, ArrowLeft, User, Calendar, Flag, MessageSquare, UserCheck } from 'lucide-react';
+import { Check, X, ArrowLeft, User, Calendar, Flag, MessageSquare, UserCheck, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import flaggingService, { type FlaggedItem, type MessageContext } from '../../../service/flaggingService';
 import userService, { type User as UserType } from '../../../service/userService';
 import ResolveModal from '../../Faculty/AssignedFlags/ResolveModal';
 import './FlaggedMessageDetail.css';
+
+// Interface for parsed resolution data
+interface ResolutionData {
+    type: 'feedback' | 'corrected';
+    feedback: string;
+    correctedResponse?: string | null;
+    timestamp?: string;
+}
+
+// Helper to parse resolution JSON data (backward compatible)
+const parseResolutionData = (resolutionNotes: string | undefined): ResolutionData | null => {
+    if (!resolutionNotes) return null;
+    try {
+        const data = JSON.parse(resolutionNotes);
+        if (data.type && (data.feedback || data.correctedResponse)) {
+            return data as ResolutionData;
+        }
+    } catch {
+        // Not JSON, return as plain text feedback (backward compatible)
+    }
+    return { type: 'feedback', feedback: resolutionNotes };
+};
 
 const FlaggedMessageDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -25,6 +47,11 @@ const FlaggedMessageDetail: React.FC = () => {
     const [assignError, setAssignError] = useState<string | null>(null);
     const [showResolveModal, setShowResolveModal] = useState(false);
     const isFacultyMode = window.location.pathname.includes('/faculty/');
+
+    // AI Correction states
+    const [aiCorrectionStatus, setAiCorrectionStatus] = useState<'pending' | 'approved' | 'rejected' | 'none'>('none');
+    const [aiCorrectionId, setAiCorrectionId] = useState<string | null>(null);
+    const [aiCorrectionLoading, setAiCorrectionLoading] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -80,6 +107,74 @@ const FlaggedMessageDetail: React.FC = () => {
             setMessageContext(context);
         } catch (err) {
             console.error('Error loading message context:', err);
+        }
+    };
+
+    // Load AI correction status for resolved flags
+    const loadAiCorrectionStatus = async () => {
+        if (!item?.id) return;
+        try {
+            const response = await fetch(`${import.meta.env.VITE_PYTHON_API_URL || 'http://localhost:8001'}/api/v1/ai-corrections/by-flag/${item.id}`);
+            const data = await response.json();
+            if (data.data) {
+                setAiCorrectionId(data.data.id);
+                setAiCorrectionStatus(data.data.status);
+            } else {
+                setAiCorrectionStatus('none');
+            }
+        } catch (err) {
+            console.error('Error loading AI correction status:', err);
+            setAiCorrectionStatus('none');
+        }
+    };
+
+    useEffect(() => {
+        if (item?.status?.toLowerCase() === 'resolved') {
+            loadAiCorrectionStatus();
+        }
+    }, [item?.id, item?.status]);
+
+    const handleApproveCorrection = async () => {
+        if (!aiCorrectionId) return;
+        try {
+            setAiCorrectionLoading(true);
+            const response = await fetch(
+                `${import.meta.env.VITE_PYTHON_API_URL || 'http://localhost:8001'}/api/v1/ai-corrections/${aiCorrectionId}/approve`,
+                {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ admin_id: 1 }) // TODO: Get actual admin ID
+                }
+            );
+            if (response.ok) {
+                setAiCorrectionStatus('approved');
+            }
+        } catch (err) {
+            console.error('Error approving correction:', err);
+        } finally {
+            setAiCorrectionLoading(false);
+        }
+    };
+
+    const handleRejectCorrection = async () => {
+        if (!aiCorrectionId) return;
+        try {
+            setAiCorrectionLoading(true);
+            const response = await fetch(
+                `${import.meta.env.VITE_PYTHON_API_URL || 'http://localhost:8001'}/api/v1/ai-corrections/${aiCorrectionId}/reject`,
+                {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ admin_id: 1 }) // TODO: Get actual admin ID
+                }
+            );
+            if (response.ok) {
+                setAiCorrectionStatus('rejected');
+            }
+        } catch (err) {
+            console.error('Error rejecting correction:', err);
+        } finally {
+            setAiCorrectionLoading(false);
         }
     };
 
@@ -443,35 +538,126 @@ const FlaggedMessageDetail: React.FC = () => {
                                                         </div>
                                                     </div>
 
-                                                    {/* Resolution message */}
-                                                    {isFlagged && item.status?.toLowerCase() === 'resolved' && (item.resolvedByName || item.resolutionNotes) && (
-                                                        <div className="group">
-                                                            <div className="flex items-start gap-4">
-                                                                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/30 ring-4 ring-emerald-100 group-hover:scale-110 transition-transform duration-300">
-                                                                    <UserCheck className="w-6 h-6 text-white" />
-                                                                </div>
-                                                                <div className="flex-1">
-                                                                    <div className="flex items-center gap-3 mb-2">
-                                                                        <span className="font-bold text-sm text-gray-900">{item.resolvedByName || 'Faculty'}</span>
-                                                                        <span className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-bold rounded-full shadow-md">
-                                                                            Faculty
-                                                                        </span>
-                                                                        <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold rounded-full shadow-md">
-                                                                            RESOLVED
-                                                                        </span>
-                                                                    </div>
-                                                                    <div className="bg-gradient-to-br from-emerald-50 via-teal-50/50 to-emerald-50 border-2 border-emerald-300/60 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-emerald-400 backdrop-blur-sm">
-                                                                        {item.resolutionNotes && (
-                                                                            <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-[15px] font-medium">{item.resolutionNotes}</p>
+                                                    {/* Resolution message - Enhanced with Before/After comparison */}
+                                                    {isFlagged && item.status?.toLowerCase() === 'resolved' && (item.resolvedByName || item.resolutionNotes) && (() => {
+                                                        const resolutionData = parseResolutionData(item.resolutionNotes);
+                                                        const hasCorrectedResponse = resolutionData?.type === 'corrected' && resolutionData.correctedResponse;
+
+                                                        return (
+                                                            <>
+                                                                {/* Before/After Comparison (if corrected response provided) */}
+                                                                {hasCorrectedResponse && (
+                                                                    <div className="mb-6">
+                                                                        <div className="flex items-center gap-3 mb-4">
+                                                                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg ring-4 ring-blue-100">
+                                                                                <RefreshCw className="w-5 h-5 text-white" />
+                                                                            </div>
+                                                                            <h4 className="text-lg font-bold text-gray-900">Correction Provided</h4>
+                                                                        </div>
+
+                                                                        <div className="grid md:grid-cols-2 gap-4">
+                                                                            {/* BEFORE: Original AI Response */}
+                                                                            <div className="bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl p-5">
+                                                                                <div className="flex items-center gap-2 mb-3">
+                                                                                    <XCircle className="w-5 h-5 text-red-500" />
+                                                                                    <span className="font-bold text-red-700">Original AI Response</span>
+                                                                                    <span className="px-2 py-0.5 bg-red-100 text-red-600 text-xs font-bold rounded-full">FLAGGED</span>
+                                                                                </div>
+                                                                                <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">
+                                                                                    {msg.content}
+                                                                                </p>
+                                                                            </div>
+
+                                                                            {/* AFTER: Faculty's Corrected Response */}
+                                                                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-5">
+                                                                                <div className="flex items-center gap-2 mb-3">
+                                                                                    <CheckCircle className="w-5 h-5 text-green-500" />
+                                                                                    <span className="font-bold text-green-700">Corrected Response</span>
+                                                                                    <span className="px-2 py-0.5 bg-green-100 text-green-600 text-xs font-bold rounded-full">BY FACULTY</span>
+                                                                                </div>
+                                                                                <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">
+                                                                                    {resolutionData?.correctedResponse}
+                                                                                </p>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {/* AI Knowledge Activation - Admin Approve/Reject */}
+                                                                        {!isFacultyMode && (
+                                                                            <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-xl">
+                                                                                <div className="flex items-center justify-between">
+                                                                                    <div>
+                                                                                        <h5 className="font-bold text-purple-800 text-sm">AI Knowledge Update</h5>
+                                                                                        <p className="text-xs text-purple-600 mt-0.5">
+                                                                                            {aiCorrectionStatus === 'pending' && 'This correction is awaiting approval to be used by AI'}
+                                                                                            {aiCorrectionStatus === 'approved' && '✅ AI will use this correction for similar questions'}
+                                                                                            {aiCorrectionStatus === 'rejected' && '❌ This correction was rejected'}
+                                                                                            {aiCorrectionStatus === 'none' && 'No AI correction created for this flag'}
+                                                                                        </p>
+                                                                                    </div>
+                                                                                    {aiCorrectionStatus === 'pending' && (
+                                                                                        <div className="flex gap-2">
+                                                                                            <button
+                                                                                                onClick={handleApproveCorrection}
+                                                                                                disabled={aiCorrectionLoading}
+                                                                                                className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-bold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50"
+                                                                                            >
+                                                                                                {aiCorrectionLoading ? '...' : '✅ Approve'}
+                                                                                            </button>
+                                                                                            <button
+                                                                                                onClick={handleRejectCorrection}
+                                                                                                disabled={aiCorrectionLoading}
+                                                                                                className="px-4 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white text-sm font-bold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50"
+                                                                                            >
+                                                                                                {aiCorrectionLoading ? '...' : '❌ Reject'}
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {aiCorrectionStatus === 'approved' && (
+                                                                                        <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                                                                                            ACTIVE
+                                                                                        </span>
+                                                                                    )}
+                                                                                    {aiCorrectionStatus === 'rejected' && (
+                                                                                        <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">
+                                                                                            REJECTED
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
                                                                         )}
                                                                     </div>
-                                                                    {item.resolvedAt && (
-                                                                        <p className="text-xs text-gray-500 mt-2 font-medium">{formatDate(item.resolvedAt)}</p>
-                                                                    )}
+                                                                )}
+
+                                                                {/* Faculty Feedback */}
+                                                                <div className="group">
+                                                                    <div className="flex items-start gap-4">
+                                                                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/30 ring-4 ring-emerald-100 group-hover:scale-110 transition-transform duration-300">
+                                                                            <UserCheck className="w-6 h-6 text-white" />
+                                                                        </div>
+                                                                        <div className="flex-1">
+                                                                            <div className="flex items-center gap-3 mb-2">
+                                                                                <span className="font-bold text-sm text-gray-900">{item.resolvedByName || 'Faculty'}</span>
+                                                                                <span className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-bold rounded-full shadow-md">
+                                                                                    Faculty
+                                                                                </span>
+                                                                                <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold rounded-full shadow-md">
+                                                                                    RESOLVED
+                                                                                </span>
+                                                                            </div>
+                                                                            <div className="bg-gradient-to-br from-emerald-50 via-teal-50/50 to-emerald-50 border-2 border-emerald-300/60 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-emerald-400 backdrop-blur-sm">
+                                                                                <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-[15px] font-medium">
+                                                                                    {resolutionData?.feedback || item.resolutionNotes}
+                                                                                </p>
+                                                                            </div>
+                                                                            {item.resolvedAt && (
+                                                                                <p className="text-xs text-gray-500 mt-2 font-medium">{formatDate(item.resolvedAt)}</p>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        </div>
-                                                    )}
+                                                            </>
+                                                        );
+                                                    })()}
                                                 </React.Fragment>
                                             );
                                         })}
