@@ -289,8 +289,19 @@ export const useChatMessages = ({
                             setBigPictureData(msg.outline);
                         }
                     });
-                } catch (error) {
+                } catch (error: any) {
                     console.error('❌ Failed to load conversation:', error);
+
+                    // Check if conversation was deleted (404 or similar)
+                    if (error?.response?.status === 404 || error?.message?.includes('not found') || error?.message?.includes('deleted')) {
+                        console.log('🧹 Conversation was deleted, resetting to empty state');
+                        setConversationId(null);
+                        setMessages([]);
+                        setBigPictureData([]);
+                        setSubjectId(null);
+                        return;
+                    }
+
                     setMessages([{
                         type: 'assistant',
                         content: 'Xin lỗi, không thể tải cuộc trò chuyện này. Vui lòng thử lại.',
