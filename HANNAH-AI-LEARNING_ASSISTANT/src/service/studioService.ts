@@ -160,6 +160,11 @@ class StudioService {
         });
     }
 
+    async getQuestionHint(quizId: string, questionId: number): Promise<{ questionId: number, hint: string }> {
+        const response = await pythonApiClient.get<any>(`/api/v1/studio/quiz/${quizId}/question/${questionId}/hint`);
+        return response.data.data || response.data;
+    }
+
     // --- List Methods ---
     async listMindMaps(conversationId?: number) {
         const params = conversationId ? { conversation_id: conversationId } : {};
