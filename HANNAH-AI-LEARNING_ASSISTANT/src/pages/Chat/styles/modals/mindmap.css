@@ -196,3 +196,74 @@
     flex-direction: column;
     flex-shrink: 0;
 }
+
+/* Dark mode support */
+[data-theme="dark"] .mindmap-modal-content {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .mindmap-modal-header {
+    background-color: #1e293b;
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .mindmap-modal-title {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .mindmap-modal-subtitle {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .mindmap-action-btn {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .mindmap-action-btn:hover {
+    color: #f1f5f9;
+    background-color: #334155;
+}
+
+[data-theme="dark"] .mindmap-modal-body {
+    background-color: #0f172a;
+}
+
+[data-theme="dark"] .mindmap-viewer-container {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .mindmap-feedback-btn {
+    background-color: #1e293b;
+    border-color: #475569;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .mindmap-feedback-btn:hover {
+    background-color: #334155;
+    border-color: #60a5fa;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .mindmap-zoom-btn {
+    background-color: #1e293b;
+    border-color: #475569;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .mindmap-zoom-btn:hover {
+    background-color: #334155;
+    border-color: #60a5fa;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .mindmap-loading {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .mindmap-details-modern {
+    background: #1e293b;
+    border-left-color: #334155;
+}
+

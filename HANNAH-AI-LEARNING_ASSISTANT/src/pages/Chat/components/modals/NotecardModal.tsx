@@ -90,19 +90,8 @@ export const NotecardModal: React.FC<NotecardModalProps> = ({
                     <span className="notecard-counter">{currentCardIndex + 1} / {content?.cards?.length || 0} thẻ</span>
                 </div>
 
-                <div className="notecard-modal-footer">
-                    <button className="notecard-action-btn">
-                        <ThumbsUp size={18} />
-                        Nội dung hữu ích
-                    </button>
-                    <button className="notecard-action-btn">
-                        <ThumbsDown size={18} />
-                        Nội dung không phù hợp
-                    </button>
-                </div>
-
                 <p className="notecard-modal-notice">
-                    Notebook.M có thể đưa ra thông tin không chính xác; hãy kiểm tra kỹ câu trả lời mà bạn nhận được
+                    Hannah-AI có thể đưa ra thông tin không chính xác; hãy kiểm tra kỹ câu trả lời mà bạn nhận được
                 </p>
             </div>
         </div>

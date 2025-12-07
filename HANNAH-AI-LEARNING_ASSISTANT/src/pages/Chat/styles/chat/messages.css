@@ -20,12 +20,18 @@
 }
 
 .user-message .message-content {
-    background: linear-gradient(135deg, var(--accent-blue) 0%, #0ea5e9 100%);
+    background:  #0284c7 !important;
     border-radius: 18px;
     padding: 12px 16px;
     max-width: 70%;
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+    color: #ffffff !important;
+    font-weight: 450;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.user-message .message-content,
+.user-message .message-content * {
+    color: #ffffff !important;
 }
 
 .assistant-message {

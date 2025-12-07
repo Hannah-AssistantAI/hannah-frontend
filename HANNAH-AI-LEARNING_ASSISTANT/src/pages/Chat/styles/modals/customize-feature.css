@@ -105,7 +105,7 @@
 .customize-section-title {
     font-size: 18px;
     font-weight: 600;
-    color: #e8eaed;
+    color: #202124;
     margin: 0 0 8px 0;
     padding: 8px 0;
     border-left: 3px solid #fbbc04;
@@ -265,3 +265,113 @@
     font-size: 13px;
     margin-top: 2px;
 }
+
+/* Dark mode support */
+[data-theme="dark"] .customize-modal-content {
+    background-color: #1e293b;
+}
+
+[data-theme="dark"] .customize-modal-header {
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .customize-modal-title {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .customize-modal-close {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .customize-modal-close:hover {
+    background-color: #334155;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .customize-tabs {
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .customize-tab {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .customize-tab:hover {
+    color: #f1f5f9;
+    background-color: #334155;
+}
+
+[data-theme="dark"] .customize-tab.active {
+    color: #60a5fa;
+    border-bottom-color: #60a5fa;
+}
+
+[data-theme="dark"] .customize-section-title {
+    color: #f1f5f9;
+    background: rgba(59, 130, 246, 0.15);
+    border-left-color: #3b82f6;
+}
+
+[data-theme="dark"] .customize-option-btn {
+    background-color: #0f172a;
+    border-color: #334155;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .customize-option-btn:hover {
+    background-color: #1e293b;
+    border-color: #475569;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .customize-option-btn.selected {
+    background-color: rgba(59, 130, 246, 0.2);
+    border-color: #3b82f6;
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .customize-textarea {
+    background-color: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .customize-textarea:focus {
+    border-color: #3b82f6;
+}
+
+[data-theme="dark"] .customize-textarea::placeholder {
+    color: #64748b;
+}
+
+[data-theme="dark"] .course-code-search {
+    background-color: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .course-code-search:focus {
+    border-color: #3b82f6;
+}
+
+[data-theme="dark"] .course-code-search::placeholder {
+    color: #64748b;
+}
+
+[data-theme="dark"] .course-code-options {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .course-code-option:hover {
+    background-color: #334155;
+}
+
+[data-theme="dark"] .course-code {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .course-name {
+    color: #94a3b8;
+}
+

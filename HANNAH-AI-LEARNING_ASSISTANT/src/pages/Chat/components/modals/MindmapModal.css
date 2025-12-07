@@ -31,9 +31,9 @@
 
 /* Gradient Header */
 .mindmap-header-gradient {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
     padding: 24px 24px 20px;
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25);
 }
 
 .mindmap-header-top {
@@ -112,7 +112,7 @@
 
 .mindmap-tab-btn.active-resources {
     background: rgba(255, 255, 255, 0.95);
-    color: #667eea;
+    color: #3b82f6;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     transform: translateY(-1px);
 }
@@ -184,7 +184,7 @@
 .mindmap-title-accent {
     width: 4px;
     height: 20px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     border-radius: 2px;
 }
 
@@ -302,8 +302,8 @@
 }
 
 [data-theme="dark"] .mindmap-resource-card:hover {
-    border-color: #667eea;
-    background: rgba(102, 126, 234, 0.15);
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.15);
 }
 
 [data-theme="dark"] .mindmap-resource-icon {
@@ -321,5 +321,5 @@
 
 [data-theme="dark"] .mindmap-spinner {
     border-color: #334155;
-    border-top-color: #667eea;
+    border-top-color: #3b82f6;
 }

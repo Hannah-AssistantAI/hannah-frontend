@@ -192,20 +192,73 @@
 
 [data-theme="dark"] .roadmap-content-text {
     background-color: #1e293b;
-    color: #e2e8f0;
+    color: #f1f5f9;
 }
 
+[data-theme="dark"] .roadmap-content-text h1,
 [data-theme="dark"] .roadmap-content-text h2,
 [data-theme="dark"] .roadmap-content-text h3,
-[data-theme="dark"] .roadmap-content-text h4 {
-    color: #f1f5f9;
+[data-theme="dark"] .roadmap-content-text h4,
+[data-theme="dark"] .roadmap-content-text h5,
+[data-theme="dark"] .roadmap-content-text h6 {
+    color: #ffffff !important;
 }
 
 [data-theme="dark"] .roadmap-content-text p {
-    color: #cbd5e1;
+    color: #e2e8f0;
 }
 
 [data-theme="dark"] .roadmap-content-text strong {
-    color: #f1f5f9;
+    color: #ffffff;
 }
+
+[data-theme="dark"] .roadmap-content-text ul,
+[data-theme="dark"] .roadmap-content-text ol {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .roadmap-content-text li {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .roadmap-content-text a {
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .roadmap-content-text code {
+    background-color: #334155;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .roadmap-content-text hr {
+    border-color: #475569;
+}
+
+/* Ensure ALL text is visible - override any inline styles */
+[data-theme="dark"] .roadmap-content-text,
+[data-theme="dark"] .roadmap-content-text * {
+    color: #e2e8f0 !important;
+}
+
+[data-theme="dark"] .roadmap-content-text h1,
+[data-theme="dark"] .roadmap-content-text h2,
+[data-theme="dark"] .roadmap-content-text h3,
+[data-theme="dark"] .roadmap-content-text h4,
+[data-theme="dark"] .roadmap-content-text h5,
+[data-theme="dark"] .roadmap-content-text h6,
+[data-theme="dark"] .roadmap-content-text strong,
+[data-theme="dark"] .roadmap-content-text b {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .roadmap-content-text a {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .roadmap-content-text code {
+    background-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+
+
 

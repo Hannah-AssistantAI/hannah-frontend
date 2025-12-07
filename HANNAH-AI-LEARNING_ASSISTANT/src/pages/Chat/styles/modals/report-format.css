@@ -249,3 +249,93 @@
         transform: scale(1);
     }
 }
+
+/* Dark mode support - Report Format Modal */
+[data-theme="dark"] .report-format-modal-content {
+    background-color: #1e293b;
+}
+
+[data-theme="dark"] .report-format-modal-header {
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .report-format-modal-title {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .report-format-modal-close {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .report-format-modal-close:hover {
+    background-color: #334155;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .report-format-option {
+    background-color: #0f172a;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .report-format-option:hover {
+    background-color: #1e293b;
+    border-color: #475569;
+}
+
+[data-theme="dark"] .report-format-name {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .report-format-desc {
+    color: #94a3b8;
+}
+
+/* Dark mode support - Report Display Modal */
+[data-theme="dark"] .report-modal-content {
+    background-color: #1e293b;
+}
+
+[data-theme="dark"] .report-modal-header {
+    background-color: #1e293b;
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .report-modal-title {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .report-action-btn {
+    background: #334155;
+    border-color: #475569;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .report-action-btn:hover {
+    background-color: #475569;
+    color: #f1f5f9;
+    border-color: #60a5fa;
+}
+
+[data-theme="dark"] .report-modal-close {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .report-modal-close:hover {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .report-modal-body {
+    background-color: #0f172a;
+}
+
+[data-theme="dark"] .report-content-text {
+    background-color: #1e293b;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .report-content-text h1,
+[data-theme="dark"] .report-content-text h2,
+[data-theme="dark"] .report-content-text h3 {
+    color: #f1f5f9;
+}
+
