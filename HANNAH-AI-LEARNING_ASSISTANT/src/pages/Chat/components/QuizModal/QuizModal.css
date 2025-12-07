@@ -87,3 +87,41 @@
 .quiz-modal-body::-webkit-scrollbar-thumb:hover {
     background: #bdc1c6;
 }
+
+/* Dark mode support */
+[data-theme="dark"] .quiz-modal-container {
+    background: #1e293b;
+}
+
+[data-theme="dark"] .quiz-modal-header {
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .quiz-modal-title {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .quiz-close-btn {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .quiz-close-btn:hover {
+    background: #334155;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .quiz-loading {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .quiz-modal-body::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+
+[data-theme="dark"] .quiz-modal-body::-webkit-scrollbar-thumb {
+    background: #334155;
+}
+
+[data-theme="dark"] .quiz-modal-body::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}

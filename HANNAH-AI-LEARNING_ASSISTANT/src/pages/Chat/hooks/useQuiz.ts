@@ -44,14 +44,32 @@ export function useQuiz() {
                     );
                     
                     // Convert attempt detail to quiz results format
-                    // Use percentage from API or calculate from score/maxScore
-                    const percentage = attemptDetail.percentage ?? 
-                        (attemptDetail.maxScore > 0 ? (attemptDetail.score / attemptDetail.maxScore) * 100 : 0);
+                    // Calculate correctAnswers from questions data
+                    const correctCount = attemptDetail.questions?.filter(q => q.isCorrect).length || 0;
+                    const totalCount = attemptDetail.totalQuestions || attemptDetail.questions?.length || 1;
+                    
+                    // Use percentage from API, or score if already percentage, or calculate from correctAnswers/totalQuestions
+                    let percentage = attemptDetail.percentage;
+                    if (percentage === undefined || percentage === null) {
+                        if (attemptDetail.score !== undefined && attemptDetail.score > 0) {
+                            // score from backend is already percentage (e.g., 13.33)
+                            percentage = attemptDetail.score;
+                        } else if (attemptDetail.maxScore > 0) {
+                            percentage = (attemptDetail.score / attemptDetail.maxScore) * 100;
+                        } else if (totalCount > 0) {
+                            // Ultimate fallback: calculate from correctCount/totalCount
+                            percentage = (correctCount / totalCount) * 100;
+                        } else {
+                            percentage = 0;
+                        }
+                    }
+                    
+                    console.log('📊 Quiz score calculation:', { correctCount, totalCount, percentage, attemptDetail });
                     
                     const results = {
                         score: percentage,  // QuizResults expects score as percentage
-                        correctAnswers: attemptDetail.questions?.filter(q => q.isCorrect).length || 0,
-                        totalQuestions: attemptDetail.totalQuestions,
+                        correctAnswers: correctCount,
+                        totalQuestions: totalCount,
                         answers: attemptDetail.questions?.map(q => ({
                             questionId: q.questionId,
                             questionText: q.content,  // Match QuizResults expected field
@@ -118,7 +136,29 @@ export function useQuiz() {
             const response = await studioService.submitQuiz(selectedQuizId, answersArray);
             console.log('Quiz submission response:', response);
 
-            const results = response.data.data || response.data;
+            const apiResults = response.data.data || response.data;
+            console.log('📊 API results:', apiResults);
+            
+            // Ensure score is properly set as percentage
+            // Backend returns score as percentage already
+            const correctCount = apiResults.correctAnswers || apiResults.answers?.filter((a: any) => a.isCorrect).length || 0;
+            const totalCount = apiResults.totalQuestions || apiResults.answers?.length || 1;
+            let scorePercentage = apiResults.score;
+            
+            // If score looks like it's not a percentage (e.g., 0 when there are correct answers), recalculate
+            if ((scorePercentage === 0 || scorePercentage === undefined) && correctCount > 0 && totalCount > 0) {
+                scorePercentage = (correctCount / totalCount) * 100;
+                console.log('📊 Recalculated score:', scorePercentage);
+            }
+            
+            const results = {
+                ...apiResults,
+                score: scorePercentage,
+                correctAnswers: correctCount,
+                totalQuestions: totalCount
+            };
+            
+            console.log('📊 Final quiz results:', results);
             setQuizResults(results);
             setShowQuizResults(true);
         } catch (error: any) {

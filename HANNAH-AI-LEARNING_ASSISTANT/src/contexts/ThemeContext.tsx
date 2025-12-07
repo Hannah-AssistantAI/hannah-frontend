@@ -26,8 +26,9 @@ function getInitialTheme(): ThemeMode {
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const [theme, setThemeState] = useState<ThemeMode>(getInitialTheme);
 
-  // Persist choice only; styling is applied by scoped wrappers
+  // Apply theme to document and persist
   useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch { /* ignore */ }

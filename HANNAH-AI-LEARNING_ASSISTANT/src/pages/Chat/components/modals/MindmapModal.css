@@ -276,3 +276,50 @@
     font-style: italic;
     margin: 0;
 }
+
+/* Dark mode support */
+[data-theme="dark"] .mindmap-details-modern {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+[data-theme="dark"] .mindmap-description-box {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-color: #334155;
+}
+
+[data-theme="dark"] .mindmap-description-text {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .mindmap-resources-title {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .mindmap-resource-card {
+    background: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .mindmap-resource-card:hover {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.15);
+}
+
+[data-theme="dark"] .mindmap-resource-icon {
+    background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .mindmap-resource-meta {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .mindmap-empty-state {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .mindmap-spinner {
+    border-color: #334155;
+    border-top-color: #667eea;
+}

@@ -380,15 +380,6 @@ export const MessageDisplay: React.FC<MessageDisplayProps> = ({
                                 </button>
                             </div>
                             <div className="message-actions">
-                                <button className="action-btn" aria-label="Phản hồi tốt">
-                                    <ThumbsUp size={16} />
-                                </button>
-                                <button className="action-btn" aria-label="Phản hồi không tốt">
-                                    <ThumbsDown size={16} />
-                                </button>
-                                <button className="action-btn" aria-label="Chia sẻ">
-                                    <Share2 size={16} />
-                                </button>
                                 <button
                                     className={`action-btn ${message.isFlagged ? 'flagged' : ''}`}
                                     aria-label="Báo cáo"

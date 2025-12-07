@@ -447,3 +447,191 @@
         opacity: 1;
     }
 }
+
+/* Dark mode support */
+[data-theme="dark"] .quiz-modal-content {
+    background-color: #1e293b;
+}
+
+[data-theme="dark"] .quiz-modal-header {
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .quiz-modal-title {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .quiz-modal-subtitle {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .quiz-modal-minimize {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .quiz-modal-minimize:hover {
+    background-color: #334155;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .quiz-progress-bar {
+    background-color: #334155;
+}
+
+[data-theme="dark"] .quiz-progress-indicator {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .quiz-question-text {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .quiz-answer-option {
+    background-color: #0f172a;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .quiz-answer-option:hover {
+    background-color: #1e293b;
+    border-color: #475569;
+}
+
+[data-theme="dark"] .quiz-answer-option.selected {
+    background-color: rgba(59, 130, 246, 0.2);
+    border-color: #60a5fa;
+}
+
+[data-theme="dark"] .quiz-answer-label {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .quiz-answer-option.selected .quiz-answer-label {
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .quiz-answer-text {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .quiz-navigation {
+    border-top-color: #334155;
+    background-color: #1e293b;
+}
+
+[data-theme="dark"] .quiz-hint-btn {
+    border-color: #475569;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .quiz-hint-btn:hover {
+    background-color: #334155;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .quiz-modal-footer {
+    background-color: #1e293b;
+}
+
+[data-theme="dark"] .quiz-feedback-btn {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .quiz-feedback-btn:hover {
+    background-color: #334155;
+    color: #f1f5f9;
+}
+
+/* Side modal dark mode */
+[data-theme="dark"] .quiz-side-modal-content {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .quiz-side-modal-header {
+    background-color: #0f172a;
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .quiz-side-modal-title {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .quiz-side-expand-btn,
+[data-theme="dark"] .quiz-side-modal-close {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .quiz-side-expand-btn:hover,
+[data-theme="dark"] .quiz-side-modal-close:hover {
+    background-color: #334155;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .quiz-side-progress-bar {
+    background-color: #1e293b;
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .quiz-side-progress-text {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .quiz-side-question-text {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .quiz-side-answer-option {
+    background-color: #0f172a;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .quiz-side-answer-option:hover {
+    background-color: #1e293b;
+    border-color: #475569;
+}
+
+[data-theme="dark"] .quiz-side-answer-option.selected {
+    background-color: rgba(59, 130, 246, 0.2);
+    border-color: #60a5fa;
+}
+
+[data-theme="dark"] .quiz-side-answer-label {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .quiz-side-answer-option.selected .quiz-side-answer-label {
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .quiz-side-answer-text {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .quiz-side-navigation {
+    border-top-color: #334155;
+    background-color: #1e293b;
+}
+
+[data-theme="dark"] .quiz-side-hint-btn {
+    border-color: #475569;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .quiz-side-hint-btn:hover {
+    background-color: #334155;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .quiz-side-modal-footer {
+    background-color: #1e293b;
+}
+
+[data-theme="dark"] .quiz-side-feedback-btn {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .quiz-side-feedback-btn:hover {
+    background-color: #334155;
+    color: #f1f5f9;
+}
+

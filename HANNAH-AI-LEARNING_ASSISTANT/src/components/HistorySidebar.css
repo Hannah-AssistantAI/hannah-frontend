@@ -49,7 +49,7 @@
 
 /* Sidebar Main Content Wrapper - The opaque part */
 .sidebar-main {
-    background: #ffffff;
+    background: var(--bg-surface);
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -57,7 +57,7 @@
     box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
     pointer-events: auto;
     margin-top: -1px;
-    border-right: 1px solid #e2e8f0;
+    border-right: 1px solid var(--border-secondary);
 }
 
 .menu-icon-button {
@@ -111,7 +111,7 @@
 .section-title {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #64748b;
+    color: var(--text-secondary);
     margin: 0 0 0.5rem 0;
     padding: 0 1rem;
     text-transform: uppercase;

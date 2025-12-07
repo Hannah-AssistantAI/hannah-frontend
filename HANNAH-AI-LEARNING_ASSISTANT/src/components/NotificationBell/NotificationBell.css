@@ -5,7 +5,7 @@
 
 .notification-bell {
   background: none;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #94a3b8;
   cursor: pointer;
   position: relative;
   padding: 0.5rem;
@@ -14,12 +14,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .notification-bell:hover {
-  background-color: #f1f5f9;
-  border-color: #94a3b8;
+  background: var(--bg-surface-secondary);
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
 }
 
 .notification-badge {

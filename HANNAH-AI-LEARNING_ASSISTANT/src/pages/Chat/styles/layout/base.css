@@ -3,7 +3,7 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 50%, #f0f9ff 100%);
+    background: var(--bg-gradient);
     overflow: hidden;
 }
 
@@ -19,10 +19,10 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: #ffffff;
-    border: 1.5px solid #cbd5e1;
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-primary);
     border-radius: 14px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--shadow-medium);
     overflow: hidden;
 }
 
@@ -32,7 +32,7 @@
     overflow-y: auto;
     padding: 0 16px;
     scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+    scrollbar-color: var(--text-tertiary) transparent;
 }
 
 /* Thin overlay scrollbar for Chrome, Safari */
@@ -46,12 +46,13 @@
 }
 
 .chat-content::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.15);
+    background: var(--text-tertiary);
     border-radius: 3px;
+    opacity: 0.5;
 }
 
 .chat-content::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--text-secondary);
 }
 
 /* Scroll only the messages list */
@@ -59,3 +60,4 @@
     overflow: visible;
     /* scroll with the page, not internally */
 }
+

@@ -36,8 +36,8 @@
 }
 
 .action-btn:hover {
-    background-color: #f1f5f9;
-    color: #64748b;
+  border-color: #3b82f6;
+    color: #3b82f6;
 }
 
 /* Flag button specific styles */
@@ -73,22 +73,22 @@
     align-items: center;
     gap: 8px;
     padding: 10px 20px;
-    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-    border: 2px solid #93c5fd;
+    background: var(--suggestion-btn-bg, linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%));
+    border: 2px solid var(--suggestion-btn-border, #93c5fd);
     border-radius: 24px;
     font-size: 14px;
-    color: #1e40af;
+    color: var(--suggestion-btn-color, #1e40af);
     cursor: pointer;
     transition: all 0.2s;
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+    box-shadow: var(--suggestion-btn-shadow, 0 2px 8px rgba(59, 130, 246, 0.15));
 }
 
 .suggestion-btn:hover {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    border-color: #3b82f6;
-    color: #1e3a8a;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+    background: var(--suggestion-btn-hover-bg, linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%));
+    border-color: var(--suggestion-btn-hover-border, #3b82f6);
+    color: var(--suggestion-btn-hover-color, #1e3a8a);
+    box-shadow: var(--suggestion-btn-hover-shadow, 0 4px 12px rgba(59, 130, 246, 0.25));
     transform: translateY(-1px);
 }
 
@@ -111,16 +111,16 @@
 .follow-up-btn {
     text-align: left;
     padding: 14px 18px;
-    background-color: #ffffff;
-    border: 2px solid #e2e8f0;
+    background-color: var(--follow-up-btn-bg, #ffffff);
+    border: 2px solid var(--follow-up-btn-border, #e2e8f0);
     border-radius: 12px;
     font-size: 14px;
-    color: #334155;
+    color: var(--follow-up-btn-color, #334155);
     cursor: pointer;
     transition: all 0.2s;
     font-weight: 500;
     line-height: 1.5;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-shadow: var(--follow-up-btn-shadow, 0 1px 3px rgba(0, 0, 0, 0.04));
     position: relative;
     padding-left: 40px;
     width: fit-content;
@@ -137,9 +137,10 @@
 }
 
 .follow-up-btn:hover {
-    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-    border-color: #3b82f6;
-    color: #1e40af;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    background: var(--follow-up-btn-hover-bg, linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%));
+    border-color: var(--follow-up-btn-hover-border, #3b82f6);
+    color: var(--follow-up-btn-hover-color, #1e40af);
+    box-shadow: var(--follow-up-btn-hover-shadow, 0 4px 12px rgba(59, 130, 246, 0.2));
     transform: translateX(4px);
 }
+

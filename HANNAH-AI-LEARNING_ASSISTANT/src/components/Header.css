@@ -2,8 +2,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-secondary);
     position: sticky;
     top: 0;
     z-index: 1001;
@@ -37,7 +37,7 @@
 .app-logo-text {
     font-size: 1.375rem;
     font-weight: 600;
-    background: linear-gradient(135deg, #3b82f6 0%, #0ea5e9 100%);
+    background: linear-gradient(135deg, var(--accent-blue) 0%, #0ea5e9 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -73,50 +73,52 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #64748b;
+    color: var(--text-secondary);
     transition: all 0.2s ease;
 }
 
 .history-toggle-btn:hover {
-    background: #f1f5f9;
-    color: #0f172a;
+    background: var(--bg-surface-secondary);
+    color: var(--text-primary);
 }
 
 .theme-toggle-btn {
     background: transparent;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #94a3b8;
     cursor: pointer;
     padding: 0.5rem;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #64748b;
+    color: var(--text-secondary);
     transition: all 0.2s ease;
 }
 
 .theme-toggle-btn:hover {
-    background: #f1f5f9;
-    color: #0f172a;
-    border-color: #cbd5e1;
+    background: var(--bg-surface-secondary);
+    color: var(--accent-blue);
+    border-color: var(--accent-blue);
 }
 
 .share-btn {
+    background: transparent;
+    border: 1px solid var(--border-secondary);
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    border-radius: 20px;
-    color: #0f172a;
+    color: var(--text-secondary);
     font-size: 0.875rem;
     font-weight: 500;
-    cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .share-btn:hover {
-    background: #e2e8f0;
-    border-color: #cbd5e1;
+    background: var(--bg-surface-secondary);
+    color: var(--accent-blue);
+    border-color: var(--accent-blue);
 }
+
