@@ -1,281 +1,369 @@
 // src/pages/SystemMonitoring.tsx
-import React from 'react';
-
-import { InfoBox } from '../../../components/Admin/InfoBox';
-import { Card } from '../../../components/Admin/Card';
-import { MetricRow } from '../../../components/Admin/MetricRow';
-import { Badge } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer
+} from 'recharts';
+import {
+  Activity,
+  Server,
+  Database,
+  Brain,
+  Cpu,
+  HardDrive,
+  Clock,
+  AlertCircle,
+  CheckCircle,
+  RefreshCw,
+  Zap,
+  Layers,
+  FileText
+} from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
+import monitoringService from '../../../service/monitoringService';
+import type {
+  SystemMetrics,
+  DatabaseMetrics,
+  ApplicationMetrics,
+  GeminiMetrics
+} from '../../../service/monitoringService';
+
+// History data point interface
+interface HistoryPoint {
+  time: string;
+  cpu: number;
+  memory: number;
+}
 
 export const SystemMonitoring: React.FC = () => {
-  // MOCK DATA IMPLEMENTATION
-  const systemMetrics = {
-    cpu: 45,
-    memory: { percent: 60, used: 8589934592, total: 17179869184 },
-    disk: { percent: 75, used: 322122547200, total: 536870912000 },
-    uptime: '5d 12h 30m'
-  };
-  const systemLoading = false;
+  // Real data states
+  const [systemMetrics, setSystemMetrics] = useState<SystemMetrics | null>(null);
+  const [dbMetrics, setDbMetrics] = useState<DatabaseMetrics | null>(null);
+  const [appMetrics, setAppMetrics] = useState<ApplicationMetrics | null>(null);
+  const [geminiMetrics, setGeminiMetrics] = useState<GeminiMetrics | null>(null);
 
-  const dbMetrics = {
-    sqlserver: {
-      activeConnections: 25,
-      maxConnections: 100,
-      avgQueryTime: 12,
-      size: '2.5 GB'
-    },
-    mongodb: {
-      activeConnections: 15,
-      maxConnections: 50,
-      totalConversations: 1250,
-      size: '1.2 GB'
-    },
-    elasticsearch: {
-      indexedDocuments: 5000,
-      avgSearchTime: 45,
-      indexSize: '850 MB'
+  // History state for chart
+  const [history, setHistory] = useState<HistoryPoint[]>([]);
+
+  // Loading & Error states
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Last updated timestamp
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Fetch all metrics
+  const fetchMetrics = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      // Parallel fetching for speed
+      const [sys, db, app, gemini] = await Promise.all([
+        monitoringService.getSystemMetrics(),
+        monitoringService.getDatabaseMetrics(),
+        monitoringService.getApplicationMetrics(),
+        monitoringService.getGeminiMetrics()
+      ]);
+
+      setSystemMetrics(sys);
+      setDbMetrics(db);
+      setAppMetrics(app);
+      setGeminiMetrics(gemini);
+      setLastUpdated(new Date());
+      setError(null);
+
+      // Update history
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      setHistory(prev => {
+        const newPoint = {
+          time: timeStr,
+          cpu: sys.cpu.percent,
+          memory: sys.memory.percent
+        };
+        // Keep last 20 points (approx 100 seconds at 5s interval)
+        const newHistory = [...prev, newPoint];
+        return newHistory.slice(-20);
+      });
+
+    } catch (err) {
+      console.error("Failed to fetch metrics:", err);
+      // Don't overwrite data with null on temporary failure, just show error toast or indicator
+      // But for initial load, we might need to show error
+      if (!systemMetrics) setError(err instanceof Error ? err.message : 'System unavailable');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
     }
-  };
-  const dbLoading = false;
+  }, [systemMetrics]);
 
-  const appMetrics = {
-    activeWebSocketConnections: 120,
-    requestsPerMinute: 350,
-    requestsToday: 15400,
-    cacheHitRate: 85,
-    avgBackendProcessingTime: 0.25
-  };
-  const appLoading = false;
+  // Initial load and auto-refresh
+  useEffect(() => {
+    fetchMetrics();
 
-  const geminiMetrics = {
-    apiCallsToday: 2500,
-    totalTokensUsed: 1500000,
-    avgResponseTime: 1.5,
-    errorRate: 0.5,
-    slowestResponse: 4.2,
-    fastestResponse: 0.3
-  };
-  const geminiLoading = false;
+    // Auto-refresh every 5 seconds for "Live" feel
+    const interval = setInterval(fetchMetrics, 5000);
 
-  const distribution = {
-    personalKB: { percentage: 40, count: 1000 },
-    globalKB: { percentage: 35, count: 875 },
-    geminiAPI: { percentage: 25, count: 625 }
-  };
-  const distLoading = false;
+    return () => clearInterval(interval);
+  }, [fetchMetrics]);
+
+  // Reusable Stat Card Component
+  const StatCard = ({ title, icon: Icon, color, children, className = '' }: any) => (
+    <div className={`bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col ${className}`}>
+      <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <h3 className="font-semibold text-slate-700 flex items-center gap-2">
+          <Icon size={18} className={color} />
+          {title}
+        </h3>
+      </div>
+      <div className="p-5 flex-1">
+        {children}
+      </div>
+    </div>
+  );
+
+  // Simple Row for metrics
+  const MetricDataset = ({ label, value, subtext, status }: any) => (
+    <div className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+      <div>
+        <div className="text-sm font-medium text-slate-500">{label}</div>
+        {subtext && <div className="text-xs text-slate-400">{subtext}</div>}
+      </div>
+      <div className="text-right">
+        <div className={`font-bold ${status === 'error' ? 'text-red-600' : 'text-slate-800'}`}>
+          {value}
+        </div>
+      </div>
+    </div>
+  );
+
+  const StatusBadge = ({ connected, error }: { connected: boolean; error?: string }) => (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${connected ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+      }`}>
+      {connected ? <CheckCircle size={12} /> : <AlertCircle size={12} />}
+      {connected ? 'Operational' : 'Error'}
+    </span>
+  );
+
+  if (isLoading && !systemMetrics) {
+    return (
+      <AdminPageWrapper title="System Monitoring">
+        <div className="flex flex-col items-center justify-center h-96 text-slate-400">
+          <RefreshCw size={32} className="animate-spin mb-4" />
+          <p>Connecting to system telemetry...</p>
+        </div>
+      </AdminPageWrapper>
+    );
+  }
 
   return (
     <AdminPageWrapper title="System Monitoring">
-      <InfoBox>
-        <strong>Data Sources:</strong> All data is monitored from the FastAPI backend using psutil,
-        database connections, and application logs.
-      </InfoBox>
+      {/* Header Actions */}
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <p className="text-slate-500">Real-time performance metrics and system health status.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {lastUpdated && (
+            <span className="text-xs text-slate-400 flex items-center gap-1">
+              <Clock size={12} />
+              Updated: {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+          <button
+            onClick={fetchMetrics}
+            disabled={isRefreshing}
+            className={`p-2 rounded-lg border border-slate-200 hover:bg-white hover:text-blue-600 transition-colors ${isRefreshing ? 'opacity-50' : ''}`}
+            title="Refresh now"
+          >
+            <RefreshCw size={18} className={isRefreshing ? 'animate-spin' : ''} />
+          </button>
+        </div>
+      </div>
 
-      {/* Backend System Performance */}
-      {systemLoading ? (
-        <Card title="🖥️ Backend System Performance (FastAPI Server)">
-          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Loading system metrics...</div>
-        </Card>
-      ) : systemMetrics && (
-        <Card
-          title="🖥️ Backend System Performance (FastAPI Server)"
-          action={<Badge type="success">✅ Full Access</Badge>}
-        >
-          <MetricRow
-            label="CPU Usage (psutil.cpu_percent)"
-            value={`${systemMetrics.cpu}%`}
-            progress={{ value: systemMetrics.cpu, max: 100, color: 'primary' }}
-          />
-          <MetricRow
-            label="Memory Usage (psutil.virtual_memory)"
-            value={`${systemMetrics.memory.percent}% (${(systemMetrics.memory.used / 1024 / 1024 / 1024).toFixed(1)} GB / ${(systemMetrics.memory.total / 1024 / 1024 / 1024).toFixed(1)} GB)`}
-            progress={{ value: systemMetrics.memory.percent, max: 100, color: 'warning' }}
-          />
-          <MetricRow
-            label="Disk Usage (psutil.disk_usage)"
-            value={`${systemMetrics.disk.percent}% (${(systemMetrics.disk.used / 1024 / 1024 / 1024).toFixed(0)} GB / ${(systemMetrics.disk.total / 1024 / 1024 / 1024).toFixed(0)} GB)`}
-            progress={{ value: systemMetrics.disk.percent, max: 100, color: 'success' }}
-          />
-          <MetricRow
-            label="Server Uptime"
-            value={systemMetrics.uptime}
-          />
-        </Card>
+      {/* ERROR DISPLAY */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700">
+          <AlertCircle size={20} />
+          <p>{error}</p>
+        </div>
       )}
 
-      {/* Database Performance */}
-      {dbLoading ? (
-        <Card title="🗄️ Database Performance" className="mt-24">
-          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Loading database metrics...</div>
-        </Card>
-      ) : dbMetrics && (
-        <Card
-          title="🗄️ Database Performance"
-          action={<Badge type="success">✅ Full Access</Badge>}
-          className="mt-24"
-        >
-          <h4 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: 'var(--primary-color)' }}>
-            SQL Server (Structured Data)
-          </h4>
-          <MetricRow
-            label="Active Connections"
-            value={`${dbMetrics.sqlserver.activeConnections} / ${dbMetrics.sqlserver.maxConnections}`}
-          />
-          <MetricRow
-            label="Average Query Time"
-            value={`${dbMetrics.sqlserver.avgQueryTime}ms`}
-          />
-          <MetricRow
-            label="Database Size"
-            value={dbMetrics.sqlserver.size}
-          />
+      {/* LIVE CHART SECTION */}
+      {systemMetrics && (
+        <div className="mb-6 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <Activity className="text-indigo-600" size={20} />
+                Live System Performance
+              </h2>
+              <p className="text-sm text-slate-500">Real-time monitoring of CPU and Memory resources</p>
+            </div>
+            <div className="flex gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                <span className="text-slate-600 font-medium">CPU: {systemMetrics.cpu.percent.toFixed(1)}%</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                <span className="text-slate-600 font-medium">RAM: {systemMetrics.memory.percent.toFixed(1)}%</span>
+              </div>
+            </div>
+          </div>
 
-          <h4 style={{ fontSize: '16px', fontWeight: 600, margin: '24px 0 16px', color: 'var(--success-color)' }}>
-            MongoDB (Conversation Logs)
-          </h4>
-          <MetricRow
-            label="Active Connections"
-            value={`${dbMetrics.mongodb.activeConnections} / ${dbMetrics.mongodb.maxConnections}`}
-          />
-          <MetricRow
-            label="Total Conversations"
-            value={dbMetrics.mongodb.totalConversations.toLocaleString()}
-          />
-          <MetricRow
-            label="Collection Size"
-            value={dbMetrics.mongodb.size}
-          />
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={history}>
+                <defs>
+                  <linearGradient id="colorCpu" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorMem" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis
+                  dataKey="time"
+                  tick={{ fontSize: 12, fill: '#94a3b8' }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  domain={[0, 100]}
+                  tick={{ fontSize: 12, fill: '#94a3b8' }}
+                  tickLine={false}
+                  axisLine={false}
+                  unit="%"
+                />
+                <RechartsTooltip
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="cpu"
+                  stroke="#6366f1"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#colorCpu)"
+                  name="CPU Usage"
+                  animationDuration={500}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="memory"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#colorMem)"
+                  name="Memory Usage"
+                  animationDuration={500}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
 
-          <h4 style={{ fontSize: '16px', fontWeight: 600, margin: '24px 0 16px', color: 'var(--info-color)' }}>
-            Elasticsearch (Knowledge Base)
-          </h4>
-          <MetricRow
-            label="Indexed Documents"
-            value={dbMetrics.elasticsearch.indexedDocuments.toLocaleString()}
-          />
-          <MetricRow
-            label="Average Search Time"
-            value={`${dbMetrics.elasticsearch.avgSearchTime}ms`}
-          />
-          <MetricRow
-            label="Index Size"
-            value={dbMetrics.elasticsearch.indexSize}
-          />
-        </Card>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100">
+            <div>
+              <p className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Uptime</p>
+              <p className="text-slate-800 font-medium mt-1">{systemMetrics.uptime}</p>
+            </div>
+            <div>
+              <p className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Disk Usage</p>
+              <p className="text-slate-800 font-medium mt-1">{systemMetrics.disk.percent}% ({systemMetrics.disk.usedFormatted})</p>
+            </div>
+            <div>
+              <p className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Cores</p>
+              <p className="text-slate-800 font-medium mt-1">{systemMetrics.cpu.cores} Physical</p>
+            </div>
+            <div>
+              <p className="text-slate-500 text-xs uppercase tracking-wider font-semibold">OS Platform</p>
+              <p className="text-slate-800 font-medium mt-1">Linux / Container</p>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Application Metrics */}
-      {appLoading ? (
-        <Card title="📊 Application Metrics (Backend Monitoring)" className="mt-24">
-          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Loading application metrics...</div>
-        </Card>
-      ) : appMetrics && (
-        <Card
-          title="📊 Application Metrics (Backend Monitoring)"
-          action={<Badge type="success">✅ Full Access</Badge>}
-          className="mt-24"
-        >
-          <MetricRow
-            label="Active WebSocket Connections"
-            value={appMetrics.activeWebSocketConnections}
-          />
-          <MetricRow
-            label="Requests/Minute (Current)"
-            value={appMetrics.requestsPerMinute}
-          />
-          <MetricRow
-            label="Requests Today"
-            value={appMetrics.requestsToday.toLocaleString()}
-          />
-          <MetricRow
-            label="Cache Hit Rate"
-            value={`${appMetrics.cacheHitRate}%`}
-          />
-          <MetricRow
-            label="Average Backend Processing Time"
-            value={`${appMetrics.avgBackendProcessingTime}s`}
-          />
-        </Card>
-      )}
+      {/* GRID SECTION */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-      {/* Gemini AI Metrics */}
-      {geminiLoading ? (
-        <Card title="🤖 Gemini AI API Usage (Today)" className="mt-24">
-          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Loading Gemini metrics...</div>
-        </Card>
-      ) : geminiMetrics && (
-        <Card
-          title="🤖 Gemini AI API Usage (Today)"
-          action={<Badge type="success">✅ Full Access</Badge>}
-          className="mt-24"
-        >
-          <MetricRow
-            label="API Calls Today"
-            value={geminiMetrics.apiCallsToday.toLocaleString()}
-          />
-          <MetricRow
-            label="Total Tokens Used"
-            value={geminiMetrics.totalTokensUsed.toLocaleString()}
-          />
-          <MetricRow
-            label="Average Response Time"
-            value={`${geminiMetrics.avgResponseTime}s`}
-          />
-          <MetricRow
-            label="Error Rate"
-            value={`${geminiMetrics.errorRate}%`}
-          />
-          <MetricRow
-            label="Slowest Response"
-            value={`${geminiMetrics.slowestResponse}s`}
-          />
-          <MetricRow
-            label="Fastest Response"
-            value={`${geminiMetrics.fastestResponse}s`}
-          />
-        </Card>
-      )}
+        {/* DATABASE METRICS */}
+        {dbMetrics && (
+          <StatCard title="Databases" icon={Database} color="text-blue-500">
+            {/* MongoDB */}
+            <div className="mb-4 pb-4 border-b border-slate-100">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-semibold text-slate-700 text-sm">MongoDB</h4>
+                <StatusBadge connected={dbMetrics.mongodb.connected} />
+              </div>
+              <MetricDataset label="Connections" value={`${dbMetrics.mongodb.activeConnections}/${dbMetrics.mongodb.availableConnections}`} />
+              <MetricDataset label="Conversations" value={dbMetrics.mongodb.totalConversations?.toLocaleString()} />
+              <MetricDataset label="Size" value={dbMetrics.mongodb.storageSizeFormatted} />
+            </div>
 
-      {/* Response Source Distribution */}
-      {distLoading ? (
-        <Card title="📈 Response Source Distribution (All Time)" className="mt-24">
-          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Loading response distribution...</div>
-        </Card>
-      ) : distribution && (
-        <Card
-          title="📈 Response Source Distribution (All Time)"
-          action={<Badge type="success">✅ Tracked In-App</Badge>}
-          className="mt-24"
-        >
-          <MetricRow
-            label="Personal Knowledge Base (Faculty)"
-            value={`${distribution.personalKB.percentage}% (${distribution.personalKB.count} responses)`}
-            progress={{
-              value: distribution.personalKB.percentage,
-              max: 100,
-              color: 'success',
-            }}
-          />
-          <MetricRow
-            label="Global Knowledge Base"
-            value={`${distribution.globalKB.percentage}% (${distribution.globalKB.count} responses)`}
-            progress={{
-              value: distribution.globalKB.percentage,
-              max: 100,
-              color: 'primary',
-            }}
-          />
-          <MetricRow
-            label="Gemini API (Generated)"
-            value={`${distribution.geminiAPI.percentage}% (${distribution.geminiAPI.count} responses)`}
-            progress={{
-              value: distribution.geminiAPI.percentage,
-              max: 100,
-              color: 'warning',
-            }}
-          />
-        </Card>
-      )}
+            {/* Elasticsearch */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-semibold text-slate-700 text-sm">Elasticsearch</h4>
+                <StatusBadge connected={dbMetrics.elasticsearch.connected} />
+              </div>
+              <MetricDataset label="Status" value={dbMetrics.elasticsearch.status} status={dbMetrics.elasticsearch.status === 'green' ? 'success' : 'warning'} />
+              <MetricDataset label="Documents" value={dbMetrics.elasticsearch.indexedDocuments?.toLocaleString()} />
+            </div>
+          </StatCard>
+        )}
+
+        {/* APPLICATION METRICS */}
+        {appMetrics && (
+          <StatCard title="Application Stats" icon={Server} color="text-amber-500">
+            <div className="space-y-1">
+              <MetricDataset label="Total Conversations" value={appMetrics.totalConversations.toLocaleString()} />
+              <MetricDataset label="Flashcards" value={appMetrics.totalFlashcards.toLocaleString()} />
+              <MetricDataset label="Quizzes" value={appMetrics.totalQuizzes.toLocaleString()} />
+              <MetricDataset
+                label="Learn Topics"
+                value={appMetrics.totalLearnTopics.toLocaleString()}
+                subtext={`+${appMetrics.topicsCreatedToday} today`}
+              />
+            </div>
+            <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100">
+              <p className="text-xs text-amber-800 italic">
+                "Stats reflect active engagement across all learning modules."
+              </p>
+            </div>
+          </StatCard>
+        )}
+
+        {/* GEMINI AI METRICS */}
+        {geminiMetrics && (
+          <StatCard title="Gemini AI Engine" icon={Brain} color="text-purple-500">
+            <div className="flex items-center justify-between mb-4 bg-purple-50 p-3 rounded-lg border border-purple-100">
+              <span className="text-sm text-purple-700 font-medium">Model</span>
+              <span className="text-xs font-bold bg-white px-2 py-1 rounded text-purple-600 border border-purple-200">
+                {geminiMetrics.model}
+              </span>
+            </div>
+            <MetricDataset label="Calls Today" value={geminiMetrics.apiCallsToday.toLocaleString()} />
+            <MetricDataset label="Tokens Today" value={geminiMetrics.tokensToday.toLocaleString()} />
+            <MetricDataset label="Total Lifetime Calls" value={geminiMetrics.totalApiCalls.toLocaleString()} />
+
+            <div className="mt-4 flex items-center gap-2 text-xs text-slate-400">
+              <Zap size={12} />
+              <span>{geminiMetrics.note}</span>
+            </div>
+          </StatCard>
+        )}
+
+      </div>
     </AdminPageWrapper>
   );
 };
