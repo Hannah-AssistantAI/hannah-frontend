@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-// Replaced lucide-react icons with Unicode characters for simplicity
+import { Search, Filter, Download, Upload, Pencil, Power, Trash2, UserPlus, Users, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import './UserManagement.css';
 import { parseUsersFromFile, type ParsedResult } from '../../../utils/userImport';
-import userService, { type User } from '../../../service/userService'; // Import user service and types
+import userService, { type User } from '../../../service/userService';
 import ImportPreviewModal from './modals/ImportPreviewModal';
 import EditUserModal from './modals/EditUserModal';
 import CreateFormModal from './modals/CreateFormModal';
@@ -13,11 +13,11 @@ import DeactivateConfirmationModal from './modals/DeactivateConfirmationModal';
 
 const UserManagement: React.FC = () => {
   const { user: currentUser } = useAuth();
-  const [allUsers, setAllUsers] = useState<User[]>([]); // To store the full list
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]); // To store the displayed list
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState<string>(''); // Default to empty string for 'All'
+  const [roleFilter, setRoleFilter] = useState<string>('');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editFormData, setEditFormData] = useState({
@@ -27,7 +27,7 @@ const UserManagement: React.FC = () => {
   });
   const [importResult, setImportResult] = useState<ParsedResult | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null); // State to hold the selected file
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [selectedFileName, setSelectedFileName] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -55,12 +55,10 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // Fetch all users on component mount
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  // Client-side filtering
   useEffect(() => {
     let usersToFilter = [...allUsers];
 
@@ -88,7 +86,7 @@ const UserManagement: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setSelectedFile(file); // Save the file to state
+    setSelectedFile(file);
     setSelectedFileName(file.name);
 
     try {
@@ -99,7 +97,6 @@ const UserManagement: React.FC = () => {
       alert('Cannot read the file. Please check the format (Excel/CSV) and try again.');
       console.error(err);
     } finally {
-      // Reset input value so selecting the same file again still triggers change
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -110,7 +107,7 @@ const UserManagement: React.FC = () => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'user_import_template.xlsx'; // Or get the name from headers if possible
+      a.download = 'user_import_template.xlsx';
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -123,7 +120,7 @@ const UserManagement: React.FC = () => {
   };
 
   const applyImport = async () => {
-    if (!selectedFile) { // Use the file from state
+    if (!selectedFile) {
       addToast({ type: 'error', message: 'No file selected for import.' });
       return;
     }
@@ -132,8 +129,8 @@ const UserManagement: React.FC = () => {
       const result = await userService.importFaculty(selectedFile);
       addToast({ type: 'success', message: `${result.importedCount} users imported successfully!` });
       setShowImportModal(false);
-      setSelectedFile(null); // Clear the file from state after import
-      fetchUsers(); // Refresh the user list
+      setSelectedFile(null);
+      fetchUsers();
     } catch (error) {
       console.error('Failed to import users:', error);
       addToast({ type: 'error', message: 'Failed to import users. Please check the file and try again.' });
@@ -154,7 +151,7 @@ const UserManagement: React.FC = () => {
       await userService.deleteUser(userToDelete.userId.toString());
       addToast({ type: 'success', message: `User ${userToDelete.fullName} deleted successfully.` });
       setUserToDelete(null);
-      fetchUsers(); // Refresh the user list
+      fetchUsers();
     } catch (error) {
       console.error("Failed to delete user:", error);
       addToast({ type: 'error', message: 'Failed to delete user.' });
@@ -175,7 +172,7 @@ const UserManagement: React.FC = () => {
       addToast({ type: 'success', message: `User ${userToDeactivate.fullName} has been deactivated.` });
       setUserToDeactivate(null);
       setDeactivationReason('');
-      fetchUsers(); // Refresh the user list
+      fetchUsers();
     } catch (error) {
       console.error('Failed to deactivate user:', error);
       addToast({ type: 'error', message: 'Failed to deactivate user.' });
@@ -189,14 +186,12 @@ const UserManagement: React.FC = () => {
 
   const handleToggleStatus = async (user: User) => {
     if (user.isActive) {
-      // If user is active, we want to deactivate them. Show the modal.
       setUserToDeactivate(user);
     } else {
-      // If user is inactive, activate them directly.
       try {
         await userService.activateUser(user.userId.toString());
         addToast({ type: 'success', message: `User ${user.fullName} has been activated.` });
-        fetchUsers(); // Refresh the user list
+        fetchUsers();
       } catch (error) {
         console.error('Failed to activate user:', error);
         addToast({ type: 'error', message: 'Failed to activate user.' });
@@ -204,7 +199,6 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // Handle opening edit modal
   const handleEditUser = (user: User) => {
     setEditingUser(user);
     setEditFormData({
@@ -214,16 +208,13 @@ const UserManagement: React.FC = () => {
     });
   };
 
-  // Handle edit form changes
   const handleEditFormChange = (field: string, value: string) => {
     setEditFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Handle saving edited user
   const handleSaveEditUser = async () => {
     if (!editingUser) return;
 
-    // Validation
     if (!editFormData.fullName.trim()) {
       addToast({ type: 'error', message: 'Full name is required.' });
       return;
@@ -246,70 +237,113 @@ const UserManagement: React.FC = () => {
       addToast({ type: 'success', message: `User ${editFormData.fullName} has been updated.` });
       setEditingUser(null);
       setEditFormData({ fullName: '', email: '', role: '' });
-      fetchUsers(); // Refresh the user list
+      fetchUsers();
     } catch (error) {
       console.error('Failed to update user:', error);
       addToast({ type: 'error', message: 'Failed to update user.' });
     }
   };
 
-  // Handle canceling edit
   const handleCancelEdit = () => {
     setEditingUser(null);
     setEditFormData({ fullName: '', email: '', role: '' });
   };
 
+  // Statistics
+  const totalUsers = allUsers.length;
+  const activeUsers = allUsers.filter(u => u.isActive).length;
+  const studentCount = allUsers.filter(u => u.role.toLowerCase() === 'student').length;
+  const facultyCount = allUsers.filter(u => u.role.toLowerCase() === 'faculty').length;
+
   return (
     <AdminPageWrapper title="User Management">
       {/* Toast notifications */}
-      <div className="toast-container">
+      <div className="um-toast-container">
         {toasts.map((t) => (
-          <div key={t.id} className={`toast ${t.type}`}>
-            <div className="toast-icon">
-              {t.type === 'success' ? '✅' : t.type === 'error' ? '❌' : 'ℹ️'}
+          <div key={t.id} className={`um-toast um-toast-${t.type}`}>
+            <div className="um-toast-icon">
+              {t.type === 'success' ? <CheckCircle size={18} /> : t.type === 'error' ? <XCircle size={18} /> : <AlertCircle size={18} />}
             </div>
-            <div className="toast-message">{t.message}</div>
+            <div className="um-toast-message">{t.message}</div>
           </div>
         ))}
       </div>
-      <div className="filters-section">
-        <div className="search-box">
-          <span className="char-icon" aria-hidden>🔍</span>
+
+      {/* Stats Cards */}
+      <div className="um-stats-grid">
+        <div className="um-stat-card um-stat-total">
+          <div className="um-stat-icon">
+            <Users size={24} />
+          </div>
+          <div className="um-stat-content">
+            <span className="um-stat-value">{totalUsers}</span>
+            <span className="um-stat-label">Total Users</span>
+          </div>
+        </div>
+        <div className="um-stat-card um-stat-active">
+          <div className="um-stat-icon">
+            <CheckCircle size={24} />
+          </div>
+          <div className="um-stat-content">
+            <span className="um-stat-value">{activeUsers}</span>
+            <span className="um-stat-label">Active</span>
+          </div>
+        </div>
+        <div className="um-stat-card um-stat-students">
+          <div className="um-stat-icon">
+            <UserPlus size={24} />
+          </div>
+          <div className="um-stat-content">
+            <span className="um-stat-value">{studentCount}</span>
+            <span className="um-stat-label">Students</span>
+          </div>
+        </div>
+        <div className="um-stat-card um-stat-faculty">
+          <div className="um-stat-icon">
+            <Users size={24} />
+          </div>
+          <div className="um-stat-content">
+            <span className="um-stat-value">{facultyCount}</span>
+            <span className="um-stat-label">Faculty</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters Section */}
+      <div className="um-filters">
+        <div className="um-search-wrapper">
+          <Search className="um-search-icon" size={18} />
           <input
             type="text"
-            placeholder="Search by name, email, student code..."
+            placeholder="Search by name, email, username..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="um-search-input"
           />
         </div>
-        <div className="filter-box">
-          <span className="char-icon" aria-hidden>⚙️</span>
+        <div className="um-filter-wrapper">
+          <Filter className="um-filter-icon" size={18} />
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
+            className="um-filter-select"
           >
-            <option value="">All roles</option>
+            <option value="">All Roles</option>
             <option value="Student">Student</option>
             <option value="Faculty">Faculty</option>
             <option value="Admin">Admin</option>
           </select>
         </div>
-        <button
-          className="btn btn-secondary add-user-btn"
-          onClick={handleDownloadTemplate}
-          title="Download CSV template"
-        >
-          <span className="char-icon" aria-hidden>⬇️</span>
-          Download CSV template
-        </button>
-        <button
-          className="btn btn-secondary add-user-btn"
-          onClick={openFilePicker}
-          title="Import from Excel/CSV"
-        >
-          <span className="char-icon" aria-hidden>⬆️</span>
-          Import
-        </button>
+        <div className="um-actions">
+          <button className="um-btn um-btn-outline" onClick={handleDownloadTemplate}>
+            <Download size={16} />
+            <span>Download Template</span>
+          </button>
+          <button className="um-btn um-btn-primary" onClick={openFilePicker}>
+            <Upload size={16} />
+            <span>Import Users</span>
+          </button>
+        </div>
         <input
           ref={fileInputRef}
           type="file"
@@ -319,72 +353,83 @@ const UserManagement: React.FC = () => {
         />
       </div>
 
-      <div className="users-table-container">
-        <table className="users-table">
+      {/* Users Table */}
+      <div className="um-table-container">
+        <table className="um-table">
           <thead>
             <tr>
-              <th>Name</th>
+              <th>User</th>
               <th>Email</th>
               <th>Role</th>
               <th>Username</th>
               <th>Status</th>
-              <th>Created at</th>
+              <th>Created</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={7} className="loading-cell">Loading...</td>
+                <td colSpan={7} className="um-loading-cell">
+                  <div className="um-loading-spinner"></div>
+                  <span>Loading users...</span>
+                </td>
+              </tr>
+            ) : filteredUsers.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="um-empty-cell">
+                  <Users size={48} className="um-empty-icon" />
+                  <p>No users found</p>
+                </td>
               </tr>
             ) : (
               filteredUsers.map(user => (
                 <tr key={user.userId}>
-                  <td>{user.fullName}</td>
-                  <td>{user.email}</td>
                   <td>
-                    <span className={`role-badge role-${user.role.toLowerCase()}`}>
+                    <div className="um-user-cell">
+                      <div className="um-user-avatar">
+                        {user.fullName.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="um-user-name">{user.fullName}</span>
+                    </div>
+                  </td>
+                  <td className="um-email-cell">{user.email}</td>
+                  <td>
+                    <span className={`um-role-badge um-role-${user.role.toLowerCase()}`}>
                       {user.role}
                     </span>
                   </td>
-                  <td>{user.username}</td>
+                  <td className="um-username-cell">{user.username}</td>
                   <td>
-                    <span className={`status-badge ${user.isActive ? 'status-active' : 'status-inactive'}`}>
+                    <span className={`um-status-badge ${user.isActive ? 'um-status-active' : 'um-status-inactive'}`}>
                       {user.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td>{new Date(user.createdAt).toLocaleDateString('vi-VN')}</td>
+                  <td className="um-date-cell">{new Date(user.createdAt).toLocaleDateString('vi-VN')}</td>
                   <td>
-                    <div className="action-buttons">
+                    <div className="um-action-buttons">
                       <button
-                        className="btn-icon btn-edit"
+                        className="um-action-btn um-action-edit"
                         onClick={() => handleEditUser(user)}
-                        title="Edit"
+                        title="Edit user"
                       >
-                        <span className="char-icon" aria-hidden>✏️</span>
+                        <Pencil size={15} />
                       </button>
-
-                      {/* Hide toggle and delete buttons for Admin role */}
                       {user.role !== 'admin' && (
                         <>
                           <button
-                            className="btn-icon btn-toggle"
+                            className={`um-action-btn ${user.isActive ? 'um-action-deactivate' : 'um-action-activate'}`}
                             onClick={() => handleToggleStatus(user)}
                             title={user.isActive ? 'Deactivate' : 'Activate'}
                           >
-                            <span
-                              className={`char-icon ${user.isActive ? 'icon-danger' : ''}`}
-                              aria-hidden
-                            >
-                              {user.isActive ? 'X' : '✔️'}
-                            </span>
+                            <Power size={15} />
                           </button>
                           <button
-                            className="btn-icon btn-delete"
+                            className="um-action-btn um-action-delete"
                             onClick={() => requestDeleteUser(user)}
-                            title="Delete"
+                            title="Delete user"
                           >
-                            <span className="char-icon" aria-hidden>🗑️</span>
+                            <Trash2 size={15} />
                           </button>
                         </>
                       )}
@@ -397,15 +442,7 @@ const UserManagement: React.FC = () => {
         </table>
       </div>
 
-      {!isLoading && filteredUsers.length === 0 && (
-        <div className="no-data">
-          <p>No users found matching your criteria.</p>
-        </div>
-      )}
-
-
-
-      {/* Import Preview Modal */}
+      {/* Modals */}
       <ImportPreviewModal
         showImportModal={showImportModal}
         importResult={importResult}
@@ -414,7 +451,6 @@ const UserManagement: React.FC = () => {
         onApplyImport={applyImport}
       />
 
-      {/* Edit User Modal */}
       <EditUserModal
         editingUser={editingUser}
         editFormData={editFormData}
@@ -423,21 +459,17 @@ const UserManagement: React.FC = () => {
         onCancel={handleCancelEdit}
       />
 
-      {/* Create Form Modal - Placeholder */}
       <CreateFormModal
         showCreateForm={showCreateForm}
         onClose={() => setShowCreateForm(false)}
       />
 
-
-      {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         userToDelete={userToDelete}
         onConfirm={confirmDeleteUser}
         onCancel={cancelDeleteUser}
       />
 
-      {/* Deactivate Confirmation Modal */}
       <DeactivateConfirmationModal
         userToDeactivate={userToDeactivate}
         deactivationReason={deactivationReason}
