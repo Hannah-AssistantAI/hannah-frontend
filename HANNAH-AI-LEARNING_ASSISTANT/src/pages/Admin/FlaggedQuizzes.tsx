@@ -247,8 +247,7 @@ const FlaggedQuizzes: React.FC = () => {
             filteredItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-white/90 backdrop-blur-sm rounded-xl p-5 shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 group cursor-pointer"
-                onClick={() => navigate(`/admin/flagged-quizzes/${item.id}`)}
+                className="bg-white/90 backdrop-blur-sm rounded-xl p-5 shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 group"
               >
                 {/* Card Header */}
                 <div className="flex items-start justify-between mb-4">
