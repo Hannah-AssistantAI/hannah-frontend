@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Check, X, UserCheck } from 'lucide-react';
 import AdminPageWrapper from './components/AdminPageWrapper';
 import flaggingService, { type FlaggedItem } from '../../service/flaggingService';
-import { AssignFacultyModal } from './components/AssignFacultyModal';
+import userService, { type User as UserType } from '../../service/userService';
 import { STORAGE_KEYS } from '../../config/apiConfig';
 import authService from '../../service/authService';
 
@@ -32,11 +33,16 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
   const [flagData, setFlagData] = useState<FlaggedItem | null>(initialFlagData || null);
   const [quizMetadata, setQuizMetadata] = useState<QuizMetadata | null>(null);
   const [loading, setLoading] = useState(!initialFlagData);
+
   const [error, setError] = useState<string | null>(null);
 
-  // Assignment modal state (for admin)
-  const [assignModalOpen, setAssignModalOpen] = useState(false);
-  const [selectedFlagId, setSelectedFlagId] = useState<number | null>(null);
+  // Inline assignment states (like FlaggedMessageDetail)
+  const [showAssignSection, setShowAssignSection] = useState(false);
+  const [facultyList, setFacultyList] = useState<UserType[]>([]);
+  const [facultySearch, setFacultySearch] = useState('');
+  const [selectedFacultyId, setSelectedFacultyId] = useState<number | null>(null);
+  const [assignLoading, setAssignLoading] = useState(false);
+  const [assignError, setAssignError] = useState<string | null>(null);
 
   // Resolve form state (for faculty)
   const [resolutionNote, setResolutionNote] = useState('');
@@ -48,6 +54,65 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
   const userRole = userData?.role;
   const isAdmin = userRole === 'admin';
   const isFaculty = userRole === 'faculty';
+
+  // Load faculty list
+  const loadFacultyList = async () => {
+    try {
+      const faculty = await userService.getFacultyList();
+      setFacultyList(faculty);
+    } catch (err) {
+      console.error('[ERROR] Failed to load faculty:', err);
+      setAssignError(err instanceof Error ? err.message : 'Failed to load faculty');
+    }
+  };
+
+  // Handle assign button click
+  const handleAssignClick = () => {
+    setShowAssignSection(true);
+    setFacultySearch('');
+    loadFacultyList();
+  };
+
+  // Cancel assign
+  const handleCancelAssign = () => {
+    setShowAssignSection(false);
+    setSelectedFacultyId(null);
+    setFacultySearch('');
+    setAssignError(null);
+  };
+
+  // Confirm assign
+  const handleConfirmAssign = async () => {
+    if (!selectedFacultyId || !flagData) {
+      setAssignError('Please select a faculty member');
+      return;
+    }
+
+    try {
+      setAssignLoading(true);
+      setAssignError(null);
+
+      await flaggingService.assignToFaculty(flagData.id, selectedFacultyId);
+
+      // Reload flag data
+      const allFlags = await flaggingService.getFlaggedQuizzes();
+      const updated = allFlags.find((f: FlaggedItem) => f.id === flagData.id);
+      if (updated) setFlagData(updated);
+
+      setShowAssignSection(false);
+    } catch (err) {
+      setAssignError(err instanceof Error ? err.message : 'Assignment failed');
+    } finally {
+      setAssignLoading(false);
+    }
+  };
+
+  // Filter faculty list
+  const filteredFacultyList = facultyList.filter(faculty =>
+    faculty.fullName.toLowerCase().includes(facultySearch.toLowerCase()) ||
+    faculty.email.toLowerCase().includes(facultySearch.toLowerCase())
+  );
+
 
   useEffect(() => {
     const load = async () => {
@@ -660,19 +725,87 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
 
                       {flagData.status?.toLowerCase() !== 'resolved' && (
                         <div className="space-y-4">
-                          {isAdmin && (
+                          {isAdmin && !showAssignSection && (
                             <button
-                              onClick={() => {
-                                setSelectedFlagId(flagData.id);
-                                setAssignModalOpen(true);
-                              }}
+                              onClick={handleAssignClick}
                               className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                              </svg>
-                              {flagData.assignedToName ? 'Re-assign' : 'Assign Faculty'}
+                              <UserCheck className="w-4 h-4" />
+                              {flagData.assignedToName ? 'Re-assign Faculty' : 'Assign Faculty'}
                             </button>
+                          )}
+
+                          {/* Inline Assignment Section */}
+                          {isAdmin && showAssignSection && (
+                            <div className="bg-gradient-to-br from-blue-50 via-indigo-50/50 to-blue-50 border-2 border-blue-300/60 rounded-xl p-4">
+                              <div className="flex items-center gap-2 mb-4">
+                                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
+                                  <UserCheck className="w-4 h-4 text-white" />
+                                </div>
+                                <h3 className="text-sm font-bold text-gray-900">Assign to Faculty</h3>
+                              </div>
+
+                              {assignError && (
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3 flex items-center gap-2 text-red-700 text-xs">
+                                  <X className="w-4 h-4" />
+                                  <span>{assignError}</span>
+                                </div>
+                              )}
+
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="block text-xs font-semibold text-gray-700 mb-1">Search:</label>
+                                  <input
+                                    type="text"
+                                    value={facultySearch}
+                                    onChange={(e) => setFacultySearch(e.target.value)}
+                                    placeholder="Enter name or email..."
+                                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-gray-400"
+                                    disabled={assignLoading}
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs font-semibold text-gray-700 mb-1">Select Faculty:</label>
+                                  <select
+                                    value={selectedFacultyId || ''}
+                                    onChange={(e) => setSelectedFacultyId(Number(e.target.value))}
+                                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                                    disabled={assignLoading}
+                                    size={4}
+                                  >
+                                    <option value="" className="text-gray-500">-- Select --</option>
+                                    {filteredFacultyList.map((faculty) => (
+                                      <option key={faculty.userId} value={faculty.userId} className="text-gray-900 py-1">
+                                        {faculty.fullName} ({faculty.email})
+                                      </option>
+                                    ))}
+                                  </select>
+                                  {filteredFacultyList.length === 0 && facultySearch && (
+                                    <small className="text-gray-600 mt-1 block text-xs">No faculty found</small>
+                                  )}
+                                </div>
+
+                                <div className="flex gap-2 pt-1">
+                                  <button
+                                    onClick={handleConfirmAssign}
+                                    disabled={assignLoading || !selectedFacultyId}
+                                    className="flex-1 px-3 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg transition-all font-semibold flex items-center justify-center gap-1 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                                  >
+                                    <Check className="w-3.5 h-3.5" />
+                                    {assignLoading ? 'Assigning...' : 'Confirm'}
+                                  </button>
+                                  <button
+                                    onClick={handleCancelAssign}
+                                    disabled={assignLoading}
+                                    className="px-3 py-2 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 rounded-lg transition-all font-semibold flex items-center gap-1 disabled:opacity-50 text-xs"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
                           )}
 
                           {isFaculty && (
@@ -728,25 +861,6 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
         </div>
       </div>
 
-      {/* Assignment Modal (Admin only) */}
-      {isAdmin && selectedFlagId && (
-        <AssignFacultyModal
-          isOpen={assignModalOpen}
-          onClose={() => setAssignModalOpen(false)}
-          onSuccess={() => {
-            setAssignModalOpen(false);
-            // Reload flag data after assignment
-            if (id) {
-              flaggingService.getFlaggedQuizzes().then(allFlags => {
-                const updated = allFlags.find((f: FlaggedItem) => f.id === parseInt(id));
-                if (updated) setFlagData(updated);
-              });
-            }
-          }}
-          flagId={selectedFlagId}
-          currentAssignee={flagData?.assignedToName}
-        />
-      )}
     </AdminPageWrapper>
   );
 }
