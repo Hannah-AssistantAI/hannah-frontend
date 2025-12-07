@@ -1,5 +1,5 @@
 import React from 'react'
-import { Maximize2, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { Maximize2, ThumbsUp, ThumbsDown, Lightbulb, Loader2 } from 'lucide-react'
 import { QuizResults } from '../QuizModal/QuizResults'
 
 interface QuizSideModalProps {
@@ -17,6 +17,10 @@ interface QuizSideModalProps {
     results?: any
     onRetry?: () => void
     onFlag?: () => void
+    onHint?: () => void
+    onClearHint?: () => void
+    currentHint?: string | null
+    isLoadingHint?: boolean
 }
 
 export const QuizSideModal: React.FC<QuizSideModalProps> = ({
@@ -33,7 +37,11 @@ export const QuizSideModal: React.FC<QuizSideModalProps> = ({
     showResults = false,
     results,
     onRetry,
-    onFlag
+    onFlag,
+    onHint,
+    onClearHint,
+    currentHint,
+    isLoadingHint
 }) => {
     if (!isOpen) return null
 
@@ -79,6 +87,13 @@ export const QuizSideModal: React.FC<QuizSideModalProps> = ({
                                 </p>
                             </div>
 
+                            {currentHint && (
+                                <div className="quiz-hint-display quiz-side-hint-display">
+                                    <Lightbulb size={16} className="quiz-hint-icon" />
+                                    <p className="quiz-hint-text">{currentHint}</p>
+                                </div>
+                            )}
+
                             <div className="quiz-side-answers">
                                 {content?.questions?.[currentQuestionIndex]?.options?.map((option: string, idx: number) => {
                                     const label = String.fromCharCode(65 + idx); // A, B, C, D...
@@ -101,8 +116,21 @@ export const QuizSideModal: React.FC<QuizSideModalProps> = ({
                 </div>
 
                 <div className="quiz-side-navigation">
-                    <button className="quiz-side-nav-btn quiz-side-hint-btn">
-                        Gợi ý
+                    <button
+                        className={`quiz-side-nav-btn quiz-side-hint-btn ${currentHint ? 'hint-active' : ''}`}
+                        onClick={currentHint ? onClearHint : onHint}
+                        disabled={isLoadingHint}
+                    >
+                        {isLoadingHint ? (
+                            <>
+                                <Loader2 size={14} className="animate-spin" />
+                                Đang tải...
+                            </>
+                        ) : currentHint ? (
+                            'Ẩn'
+                        ) : (
+                            'Gợi ý'
+                        )}
                     </button>
                     {onSubmit && isLastQuestion ? (
                         <button

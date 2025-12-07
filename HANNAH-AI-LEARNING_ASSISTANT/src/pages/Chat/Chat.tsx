@@ -433,6 +433,10 @@ export default function Chat() {
                         setShowFlagQuizModal(true);
                     }
                 }}
+                onHint={quiz.getHint}
+                onClearHint={quiz.clearHint}
+                currentHint={quiz.currentHint}
+                isLoadingHint={quiz.isLoadingHint}
             />
 
             {/* Quiz Side Modal */}
@@ -460,6 +464,10 @@ export default function Chat() {
                         setShowFlagQuizModal(true);
                     }
                 }}
+                onHint={quiz.getHint}
+                onClearHint={quiz.clearHint}
+                currentHint={quiz.currentHint}
+                isLoadingHint={quiz.isLoadingHint}
             />
 
             {/* Customize Feature Modal */}

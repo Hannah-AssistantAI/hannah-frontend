@@ -226,6 +226,80 @@
     color: #202124;
 }
 
+/* Hint Display Styles */
+.quiz-hint-display {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+    border: 1px solid #ffc107;
+    border-radius: 12px;
+    margin-bottom: 8px;
+}
+
+.quiz-hint-icon {
+    color: #f59e0b;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.quiz-hint-text {
+    font-size: 14px;
+    color: #7c5c00;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.quiz-side-hint-display {
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.quiz-side-hint-display .quiz-hint-text {
+    font-size: 13px;
+}
+
+.quiz-hint-btn:disabled,
+.quiz-side-hint-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.quiz-hint-btn:disabled:hover,
+.quiz-side-hint-btn:disabled:hover {
+    background: none;
+}
+
+/* Hint active state - when hint is visible */
+.quiz-hint-btn.hint-active,
+.quiz-side-hint-btn.hint-active {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+    color: #7c5c00;
+}
+
+.quiz-hint-btn.hint-active:hover,
+.quiz-side-hint-btn.hint-active:hover {
+    background-color: #ffe69c;
+    border-color: #f59e0b;
+}
+
+/* Spin animation for loading */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
 /* Quiz Side Modal (Minimized View) */
 .quiz-side-modal-overlay {
     position: fixed;
@@ -442,6 +516,7 @@
         transform: translateY(20px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
