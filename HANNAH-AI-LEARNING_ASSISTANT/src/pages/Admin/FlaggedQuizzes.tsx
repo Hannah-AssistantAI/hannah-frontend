@@ -151,7 +151,7 @@ const FlaggedQuizzes: React.FC = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-default">
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-pointer" onClick={() => setFilterStatus('Pending')}>
             <div className="flex flex-col items-center text-center">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md shadow-blue-500/20 mb-2 group-hover:scale-110 transition-transform duration-300">
                 <Flag className="w-5 h-5 text-white" />
@@ -161,7 +161,7 @@ const FlaggedQuizzes: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-md border border-yellow-50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-default">
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-md border border-yellow-50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-pointer" onClick={() => setFilterStatus('Pending')}>
             <div className="flex flex-col items-center text-center">
               <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center shadow-md shadow-yellow-500/20 mb-2 group-hover:scale-110 transition-transform duration-300">
                 <Clock className="w-5 h-5 text-white" />
@@ -171,7 +171,7 @@ const FlaggedQuizzes: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-md border border-blue-50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-default">
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-md border border-blue-50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-pointer" onClick={() => setFilterStatus('Assigned')}>
             <div className="flex flex-col items-center text-center">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center shadow-md shadow-blue-500/20 mb-2 group-hover:scale-110 transition-transform duration-300">
                 <User className="w-5 h-5 text-white" />
@@ -181,7 +181,7 @@ const FlaggedQuizzes: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-md border border-green-50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-default">
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-md border border-green-50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-pointer" onClick={() => setFilterStatus('Resolved')}>
             <div className="flex flex-col items-center text-center">
               <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-md shadow-emerald-500/20 mb-2 group-hover:scale-110 transition-transform duration-300">
                 <CheckCircle className="w-5 h-5 text-white" />

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Map, Plus, Search, Filter, Edit, Trash2, Eye, Clock, Loader, X, Save } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
@@ -15,6 +15,7 @@ const initialFormState: Partial<Subject> = {
 };
 
 export default function CourseManagement() {
+  const navigate = useNavigate();
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -341,11 +342,16 @@ export default function CourseManagement() {
         <>
           <div className="courses-grid">
             {filteredSubjects.map(subject => (
-              <div key={subject.subjectId} className="course-card">
+              <div
+                key={subject.subjectId}
+                className="course-card"
+                onClick={() => navigate(`/admin/course-management/${subject.subjectId}`)}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="course-card-content">
                   <div className="course-card-header">
                     <h3 className="course-card-title">{subject.name}</h3>
-                    <div className="course-card-actions">
+                    <div className="course-card-actions" onClick={(e) => e.stopPropagation()}>
                       <Link to={`/admin/course-management/${subject.subjectId}`} className="btn-view"><Eye size={20} /></Link>
                       <button onClick={() => handleEditClick(subject)} className="btn-edit"><Edit size={20} /></button>
                       <button onClick={() => handleDeleteClick(subject)} className="btn-delete"><Trash2 size={20} /></button>
