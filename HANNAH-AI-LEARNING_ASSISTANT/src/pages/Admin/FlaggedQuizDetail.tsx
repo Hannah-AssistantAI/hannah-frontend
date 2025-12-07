@@ -324,224 +324,408 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
 
   return (
     <AdminPageWrapper title="Flagged Quiz Detail">
-      <div className="p-6 max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <button onClick={() => navigate(-1)} className="text-sm text-blue-600 hover:underline">← Back</button>
-          {flagData && (
-            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${flagData.status?.toLowerCase() === 'pending' ? 'bg-amber-100 text-amber-800' :
-              flagData.status?.toLowerCase() === 'assigned' ? 'bg-blue-100 text-blue-800' :
-                'bg-green-100 text-green-700'
-              }`}>
-              {flagData.status?.toLowerCase() === 'pending' ? 'Pending Review' :
-                flagData.status?.toLowerCase() === 'assigned' ? 'Assigned' :
-                  'Resolved'}
-            </span>
-          )}
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/30">
+        <div className="max-w-6xl mx-auto p-6">
+          {/* Header Section */}
+          <div className="mb-6">
+            <button
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors mb-4"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to List
+            </button>
 
-        {loading && <div className="text-slate-500">Loading...</div>}
-        {!loading && error && (
-          <div className="text-red-600">{error}</div>
-        )}
-        {!loading && flagData && (
-          <div className="space-y-8">
-            <div className="grid lg:grid-cols-2 gap-6">
-              <div className="border rounded-lg p-5 bg-white shadow-sm">
-                <h2 className="text-lg font-semibold mb-2">Flag Overview</h2>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div><span className="font-medium">Flag ID:</span> {flagData.id}</div>
-                  <div><span className="font-medium">Quiz ID:</span> {quizMetadata?.quizId || flagData.contentId || '-'}</div>
-                  <div><span className="font-medium">Status:</span> {flagData.status}</div>
-                  <div><span className="font-medium">Priority:</span> {flagData.priority || '-'}</div>
-                  <div className="col-span-2"><span className="font-medium">Flagged At:</span> {new Date(flagData.flaggedAt).toLocaleString('vi-VN')}</div>
-                  <div className="col-span-2"><span className="font-medium">Flagged By:</span> {flagData.flaggedByName || '-'}</div>
-                  {flagData.assignedToName && (
-                    <div className="col-span-2"><span className="font-medium">Assigned To:</span> {flagData.assignedToName}</div>
-                  )}
-                </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  Flagged Quiz Detail
+                </h1>
+                {quizMetadata?.title && (
+                  <p className="text-gray-600 mt-1">{quizMetadata.title}</p>
+                )}
               </div>
-              <div className="border rounded-lg p-5 bg-white shadow-sm">
-                <h2 className="text-lg font-semibold mb-2">Flag Information</h2>
-                <div className="text-sm space-y-1">
-                  <div><span className="font-medium">Reason:</span> {flagData.reason || '-'}</div>
-                  {quizMetadata?.title && (
-                    <div><span className="font-medium">Quiz Title:</span> {quizMetadata.title}</div>
+              {flagData && (
+                <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold shadow-md transition-transform hover:scale-105 ${flagData.status?.toLowerCase() === 'pending'
+                  ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white'
+                  : flagData.status?.toLowerCase() === 'assigned'
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white'
+                    : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white'
+                  }`}>
+                  {flagData.status?.toLowerCase() === 'pending' && (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                   )}
-                  {quizMetadata?.topic && (
-                    <div><span className="font-medium">Topic:</span> {quizMetadata.topic}</div>
+                  {flagData.status?.toLowerCase() === 'assigned' && (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
                   )}
-                </div>
-              </div>
-            </div>
-
-            {quizMetadata?.questions && quizMetadata.questions.length > 0 && (() => {
-              const questions = quizMetadata.questions!;
-              // Calculate student score if attempt data is available
-              const hasStudentAnswers = questions.some(q => q.studentAnswer !== undefined && q.studentAnswer !== null);
-              const correctCount = questions.filter(q =>
-                q.studentAnswer !== undefined && q.studentAnswer !== null && q.studentAnswer === q.correctAnswer
-              ).length;
-
-              return (
-                <div className="border rounded-lg p-5 bg-white shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold">Quiz Questions ({questions.length})</h2>
-                    {hasStudentAnswers && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">Student Score:</span>
-                        <span className={`px-2 py-1 rounded text-sm font-semibold ${correctCount === questions.length
-                          ? 'bg-green-100 text-green-700'
-                          : correctCount >= questions.length / 2
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-red-100 text-red-700'
-                          }`}>
-                          {correctCount} / {questions.length}
-                        </span>
-                      </div>
-                    )}
-                    {!hasStudentAnswers && (
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        No student answer data available
-                      </span>
-                    )}
-                  </div>
-                  <div className="space-y-4">
-                    {questions.map((q: QuizQuestion, qi: number) => {
-                      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-                      return (
-                        <div key={qi} className="rounded-lg border border-slate-200 bg-slate-50 overflow-hidden">
-                          <div className="px-4 py-3 flex items-start justify-between border-b text-sm bg-slate-100 border-slate-200">
-                            <div className="font-medium pr-4">Q{qi + 1}. {q.question}</div>
-                          </div>
-                          <ul className="p-4 space-y-2 text-sm">
-                            {q.options.map((opt: string, oi: number) => {
-                              const isCorrect = oi === q.correctAnswer;
-                              const isStudentAnswer = q.studentAnswer !== undefined && q.studentAnswer !== null && oi === q.studentAnswer;
-                              const isStudentCorrect = isStudentAnswer && isCorrect;
-                              const isStudentWrong = isStudentAnswer && !isCorrect;
-
-                              // Determine background color
-                              let bgClass = 'border-slate-200 bg-white';
-                              if (isStudentCorrect) {
-                                // Student selected correct answer - blue with green accent
-                                bgClass = 'border-green-400 bg-green-50';
-                              } else if (isStudentWrong) {
-                                // Student selected wrong answer - red background
-                                bgClass = 'border-red-400 bg-red-50';
-                              } else if (isCorrect) {
-                                // Correct answer (not selected by student) - green background
-                                bgClass = 'border-green-300 bg-green-50';
-                              }
-
-                              return (
-                                <li
-                                  key={oi}
-                                  className={`rounded-md border px-3 py-2 flex items-center gap-3 ${bgClass}`}
-                                >
-                                  <span className="font-mono text-xs w-5 text-center text-slate-500">{letters[oi]}</span>
-                                  <span className="flex-1">{opt}</span>
-                                  <div className="flex gap-2 items-center">
-                                    {isStudentWrong && (
-                                      <span className="text-red-600 text-xs font-semibold flex items-center gap-1">
-                                        <span>✗</span> Student's answer
-                                      </span>
-                                    )}
-                                    {isStudentCorrect && (
-                                      <span className="text-green-600 text-xs font-semibold flex items-center gap-1">
-                                        <span>✓</span> Student's answer (Correct)
-                                      </span>
-                                    )}
-                                    {isCorrect && !isStudentAnswer && (
-                                      <span className="text-green-700 text-xs font-semibold flex items-center gap-1">
-                                        <span>✓</span> Correct answer
-                                      </span>
-                                    )}
-                                  </div>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                          {q.explanation && (
-                            <div className="px-4 pb-4">
-                              <div className="text-xs text-slate-600">
-                                <span className="font-medium">Explanation:</span> {q.explanation}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {(!quizMetadata?.questions || quizMetadata.questions.length === 0) && (
-              <div className="border rounded-lg p-5 bg-white shadow-sm text-center text-slate-500">
-                <p>No quiz question data available.</p>
-                <p className="text-sm mt-2">The quiz may have been deleted from MongoDB or the Python API encountered an error.</p>
-                <p className="text-sm">You can still process this flag based on the reporter's reason above.</p>
-              </div>
-            )}
-
-            <div className="border rounded-lg p-5 bg-white shadow-sm lg:sticky lg:top-4">
-              <h2 className="text-lg font-semibold mb-2">Actions</h2>
-              {flagData.status?.toLowerCase() === 'resolved' && (
-                <div className="text-sm mb-4 text-green-700">Already resolved.</div>
-              )}
-
-              {flagData.status?.toLowerCase() !== 'resolved' && (
-                <div className="space-y-4">
-                  {/* Admin: Show Assign/Re-assign button */}
-                  {isAdmin && (
-                    <button
-                      onClick={() => {
-                        setSelectedFlagId(flagData.id);
-                        setAssignModalOpen(true);
-                      }}
-                      className="px-5 py-2 text-sm rounded-md bg-purple-600 text-white hover:bg-purple-700 shadow-sm"
-                    >
-                      {flagData.assignedToName ? 'Re-assign to Faculty' : 'Assign to Faculty'}
-                    </button>
+                  {flagData.status?.toLowerCase() === 'resolved' && (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                   )}
-
-                  {/* Faculty: Show Resolve form for assigned/in_progress flags */}
-                  {isFaculty && (
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Resolution Note</label>
-                        <textarea
-                          value={resolutionNote}
-                          onChange={e => setResolutionNote(e.target.value)}
-                          placeholder="Describe how you resolved this issue..."
-                          className="w-full border rounded-md p-2 text-sm min-h-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Student Notification</label>
-                        <input
-                          type="text"
-                          value={studentNotification}
-                          onChange={e => setStudentNotification(e.target.value)}
-                          placeholder="Message to send to the student..."
-                          className="w-full border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">This message will be sent to the student who flagged the quiz.</p>
-                      </div>
-                      <button
-                        onClick={handleResolve}
-                        disabled={resolving || !resolutionNote.trim()}
-                        className="px-5 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                      >
-                        {resolving ? 'Resolving...' : 'Resolve Flag'}
-                      </button>
-                    </div>
-                  )}
-                </div>
+                  {flagData.status?.toLowerCase() === 'pending' ? 'Pending Review' :
+                    flagData.status?.toLowerCase() === 'assigned' ? 'Assigned' : 'Resolved'}
+                </span>
               )}
             </div>
           </div>
-        )}
+
+          {loading && (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-3"></div>
+                <p className="text-gray-500">Loading details...</p>
+              </div>
+            </div>
+          )}
+
+          {!loading && error && (
+            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-center gap-3 shadow-sm">
+              <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-red-700 font-medium">{error}</span>
+            </div>
+          )}
+
+          {!loading && flagData && (
+            <div className="space-y-6">
+              {/* Info Cards Grid */}
+              <div className="grid lg:grid-cols-2 gap-5">
+                {/* Flag Overview Card */}
+                <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300">
+                  <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-3">
+                    <h2 className="text-white font-bold flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      Flag Overview
+                    </h2>
+                  </div>
+                  <div className="p-5">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <span className="text-gray-500 text-xs font-medium uppercase tracking-wide">Flag ID</span>
+                        <p className="font-bold text-gray-900 mt-1">#{flagData.id}</p>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <span className="text-gray-500 text-xs font-medium uppercase tracking-wide">Quiz ID</span>
+                        <p className="font-bold text-gray-900 mt-1">#{quizMetadata?.quizId || flagData.contentId || '-'}</p>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <span className="text-gray-500 text-xs font-medium uppercase tracking-wide">Status</span>
+                        <p className="font-bold text-gray-900 mt-1 capitalize">{flagData.status}</p>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <span className="text-gray-500 text-xs font-medium uppercase tracking-wide">Priority</span>
+                        <p className={`font-bold mt-1 capitalize ${flagData.priority?.toLowerCase() === 'high' ? 'text-red-600' :
+                          flagData.priority?.toLowerCase() === 'medium' ? 'text-yellow-600' : 'text-gray-900'
+                          }`}>{flagData.priority || 'Normal'}</p>
+                      </div>
+                      <div className="col-span-2 bg-gray-50 rounded-lg p-3">
+                        <span className="text-gray-500 text-xs font-medium uppercase tracking-wide">Flagged At</span>
+                        <p className="font-medium text-gray-900 mt-1">{new Date(flagData.flaggedAt).toLocaleString('vi-VN')}</p>
+                      </div>
+                      <div className="col-span-2 bg-gray-50 rounded-lg p-3">
+                        <span className="text-gray-500 text-xs font-medium uppercase tracking-wide flex items-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          Flagged By
+                        </span>
+                        <p className="font-medium text-gray-900 mt-1">{flagData.flaggedByName || '-'}</p>
+                      </div>
+                      {flagData.assignedToName && (
+                        <div className="col-span-2 bg-blue-50 rounded-lg p-3 border border-blue-200">
+                          <span className="text-blue-600 text-xs font-medium uppercase tracking-wide flex items-center gap-1">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            Assigned To
+                          </span>
+                          <p className="font-bold text-blue-800 mt-1">{flagData.assignedToName}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Flag Information Card */}
+                <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300">
+                  <div className="bg-gradient-to-r from-purple-500 to-pink-600 px-5 py-3">
+                    <h2 className="text-white font-bold flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Flag Information
+                    </h2>
+                  </div>
+                  <div className="p-5 space-y-4">
+                    <div>
+                      <span className="text-gray-500 text-xs font-medium uppercase tracking-wide">Report Reason</span>
+                      <div className="mt-2 bg-gradient-to-br from-red-50 to-orange-50 rounded-lg p-4 border border-red-100">
+                        <p className="text-gray-800 leading-relaxed">{flagData.reason || 'No reason provided'}</p>
+                      </div>
+                    </div>
+                    {quizMetadata?.title && (
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <span className="text-gray-500 text-xs font-medium uppercase tracking-wide">Quiz Title</span>
+                        <p className="font-medium text-gray-900 mt-1">{quizMetadata.title}</p>
+                      </div>
+                    )}
+                    {quizMetadata?.topic && (
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <span className="text-gray-500 text-xs font-medium uppercase tracking-wide">Topic</span>
+                        <p className="font-medium text-gray-900 mt-1">{quizMetadata.topic}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Main Content: 2-column layout - Questions left, Actions right */}
+              <div className="grid lg:grid-cols-3 gap-6">
+                {/* Left Column - Quiz Questions (2/3 width) */}
+                <div className="lg:col-span-2 space-y-6">
+                  {quizMetadata?.questions && quizMetadata.questions.length > 0 && (() => {
+                    const questions = quizMetadata.questions!;
+                    const hasStudentAnswers = questions.some(q => q.studentAnswer !== undefined && q.studentAnswer !== null);
+                    const correctCount = questions.filter(q =>
+                      q.studentAnswer !== undefined && q.studentAnswer !== null && q.studentAnswer === q.correctAnswer
+                    ).length;
+                    const scorePercent = Math.round((correctCount / questions.length) * 100);
+
+                    return (
+                      <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-100 overflow-hidden">
+                        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-4 flex items-center justify-between">
+                          <h2 className="text-white font-bold flex items-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Quiz Questions ({questions.length})
+                          </h2>
+                          {hasStudentAnswers ? (
+                            <div className="flex items-center gap-3">
+                              <span className="text-white/80 text-sm font-medium">Score:</span>
+                              <div className={`px-4 py-1.5 rounded-full font-bold text-sm shadow-inner ${scorePercent >= 70 ? 'bg-white text-emerald-600' :
+                                scorePercent >= 50 ? 'bg-yellow-100 text-yellow-700' :
+                                  'bg-red-100 text-red-700'
+                                }`}>
+                                {correctCount}/{questions.length} ({scorePercent}%)
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-white/70 text-xs bg-white/20 px-3 py-1 rounded-full">
+                              No answer data
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="p-5 space-y-4">
+                          {questions.map((q: QuizQuestion, qi: number) => {
+                            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+                            const isStudentCorrect = q.studentAnswer !== undefined && q.studentAnswer !== null && q.studentAnswer === q.correctAnswer;
+                            const hasStudentAnswer = q.studentAnswer !== undefined && q.studentAnswer !== null;
+
+                            return (
+                              <div key={qi} className="rounded-xl border-2 border-gray-100 overflow-hidden hover:border-gray-200 transition-colors">
+                                <div className={`px-5 py-3 flex items-start gap-3 ${hasStudentAnswer
+                                  ? isStudentCorrect
+                                    ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-b-2 border-green-200'
+                                    : 'bg-gradient-to-r from-red-50 to-orange-50 border-b-2 border-red-200'
+                                  : 'bg-gradient-to-r from-gray-50 to-slate-50 border-b-2 border-gray-200'
+                                  }`}>
+                                  <span className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${hasStudentAnswer
+                                    ? isStudentCorrect
+                                      ? 'bg-green-500 text-white'
+                                      : 'bg-red-500 text-white'
+                                    : 'bg-gray-200 text-gray-700'
+                                    }`}>
+                                    {qi + 1}
+                                  </span>
+                                  <p className="font-medium text-gray-900 flex-1 pt-1">{q.question}</p>
+                                </div>
+
+                                <ul className="p-4 space-y-2">
+                                  {q.options.map((opt: string, oi: number) => {
+                                    const isCorrect = oi === q.correctAnswer;
+                                    const isStudentAnswer = q.studentAnswer !== undefined && q.studentAnswer !== null && oi === q.studentAnswer;
+                                    const isStudentCorrect = isStudentAnswer && isCorrect;
+                                    const isStudentWrong = isStudentAnswer && !isCorrect;
+
+                                    return (
+                                      <li
+                                        key={oi}
+                                        className={`rounded-lg border-2 px-4 py-3 flex items-center gap-3 transition-all ${isStudentCorrect
+                                          ? 'border-green-400 bg-green-50 shadow-sm'
+                                          : isStudentWrong
+                                            ? 'border-red-400 bg-red-50 shadow-sm'
+                                            : isCorrect
+                                              ? 'border-green-300 bg-green-50/50'
+                                              : 'border-gray-200 bg-white hover:bg-gray-50'
+                                          }`}
+                                      >
+                                        <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${isStudentCorrect ? 'bg-green-500 text-white' :
+                                          isStudentWrong ? 'bg-red-500 text-white' :
+                                            isCorrect ? 'bg-green-200 text-green-700' :
+                                              'bg-gray-100 text-gray-600'
+                                          }`}>
+                                          {letters[oi]}
+                                        </span>
+                                        <span className="flex-1 text-gray-800">{opt}</span>
+                                        <div className="flex items-center gap-2">
+                                          {isStudentWrong && (
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-500 text-white">
+                                              ✗ Wrong
+                                            </span>
+                                          )}
+                                          {isStudentCorrect && (
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-500 text-white">
+                                              ✓ Correct
+                                            </span>
+                                          )}
+                                          {isCorrect && !isStudentAnswer && (
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-300">
+                                              ✓ Answer
+                                            </span>
+                                          )}
+                                        </div>
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+
+                                {q.explanation && (
+                                  <div className="px-5 pb-4">
+                                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+                                      <div className="flex items-start gap-2">
+                                        <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div>
+                                          <span className="text-blue-700 font-semibold text-sm">Explanation</span>
+                                          <p className="text-gray-700 mt-1 text-sm">{q.explanation}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {(!quizMetadata?.questions || quizMetadata.questions.length === 0) && (
+                    <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 shadow-md border border-gray-100 text-center">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">No Quiz Data</h3>
+                      <p className="text-gray-500 text-sm">The quiz may have been deleted or there was an error loading the data.</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Column - Actions Sidebar (1/3 width) */}
+                <div className="lg:col-span-1">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-100 overflow-hidden lg:sticky lg:top-6">
+                    <div className="bg-gradient-to-r from-gray-700 to-gray-900 px-5 py-3">
+                      <h2 className="text-white font-bold flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Actions
+                      </h2>
+                    </div>
+                    <div className="p-5">
+                      {flagData.status?.toLowerCase() === 'resolved' && (
+                        <div className="flex items-center gap-2 text-green-700 bg-green-50 rounded-lg p-4 border border-green-200">
+                          <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span className="font-semibold text-sm">Resolved</span>
+                        </div>
+                      )}
+
+                      {flagData.status?.toLowerCase() !== 'resolved' && (
+                        <div className="space-y-4">
+                          {isAdmin && (
+                            <button
+                              onClick={() => {
+                                setSelectedFlagId(flagData.id);
+                                setAssignModalOpen(true);
+                              }}
+                              className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                              </svg>
+                              {flagData.assignedToName ? 'Re-assign' : 'Assign Faculty'}
+                            </button>
+                          )}
+
+                          {isFaculty && (
+                            <div className="space-y-4">
+                              <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Resolution Note *</label>
+                                <textarea
+                                  value={resolutionNote}
+                                  onChange={e => setResolutionNote(e.target.value)}
+                                  placeholder="How did you resolve this issue?"
+                                  className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm min-h-[100px] focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all resize-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Notify Student</label>
+                                <input
+                                  type="text"
+                                  value={studentNotification}
+                                  onChange={e => setStudentNotification(e.target.value)}
+                                  placeholder="Message to student..."
+                                  className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all"
+                                />
+                              </div>
+                              <button
+                                onClick={handleResolve}
+                                disabled={resolving || !resolutionNote.trim()}
+                                className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                              >
+                                {resolving ? (
+                                  <>
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    Resolving...
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Resolve Flag
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Assignment Modal (Admin only) */}
