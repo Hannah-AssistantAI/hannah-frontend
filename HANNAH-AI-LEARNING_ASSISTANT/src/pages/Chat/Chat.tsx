@@ -434,6 +434,7 @@ export default function Chat() {
                     }
                 }}
                 onHint={quiz.getHint}
+                onClearHint={quiz.clearHint}
                 currentHint={quiz.currentHint}
                 isLoadingHint={quiz.isLoadingHint}
             />
@@ -464,6 +465,7 @@ export default function Chat() {
                     }
                 }}
                 onHint={quiz.getHint}
+                onClearHint={quiz.clearHint}
                 currentHint={quiz.currentHint}
                 isLoadingHint={quiz.isLoadingHint}
             />

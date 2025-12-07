@@ -271,11 +271,26 @@
     background: none;
 }
 
+/* Hint active state - when hint is visible */
+.quiz-hint-btn.hint-active,
+.quiz-side-hint-btn.hint-active {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+    color: #7c5c00;
+}
+
+.quiz-hint-btn.hint-active:hover,
+.quiz-side-hint-btn.hint-active:hover {
+    background-color: #ffe69c;
+    border-color: #f59e0b;
+}
+
 /* Spin animation for loading */
 @keyframes spin {
     from {
         transform: rotate(0deg);
     }
+
     to {
         transform: rotate(360deg);
     }
@@ -501,6 +516,7 @@
         transform: translateY(20px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;

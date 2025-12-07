@@ -17,6 +17,7 @@ interface QuizDisplayModalProps {
     isSubmitting: boolean
     onFlag?: () => void
     onHint?: () => void
+    onClearHint?: () => void
     currentHint?: string | null
     isLoadingHint?: boolean
 }
@@ -36,6 +37,7 @@ export const QuizDisplayModal: React.FC<QuizDisplayModalProps> = ({
     isSubmitting,
     onFlag,
     onHint,
+    onClearHint,
     currentHint,
     isLoadingHint
 }) => {
@@ -117,9 +119,9 @@ export const QuizDisplayModal: React.FC<QuizDisplayModalProps> = ({
                 {!showResults && (
                     <div className="quiz-navigation">
                         <button
-                            className="quiz-nav-btn quiz-hint-btn"
-                            onClick={onHint}
-                            disabled={isLoadingHint || !!currentHint}
+                            className={`quiz-nav-btn quiz-hint-btn ${currentHint ? 'hint-active' : ''}`}
+                            onClick={currentHint ? onClearHint : onHint}
+                            disabled={isLoadingHint}
                         >
                             {isLoadingHint ? (
                                 <>
@@ -127,7 +129,7 @@ export const QuizDisplayModal: React.FC<QuizDisplayModalProps> = ({
                                     Đang tải...
                                 </>
                             ) : currentHint ? (
-                                'Đã hiển thị gợi ý'
+                                'Ẩn gợi ý'
                             ) : (
                                 'Gợi ý'
                             )}

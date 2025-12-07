@@ -18,6 +18,7 @@ interface QuizSideModalProps {
     onRetry?: () => void
     onFlag?: () => void
     onHint?: () => void
+    onClearHint?: () => void
     currentHint?: string | null
     isLoadingHint?: boolean
 }
@@ -38,6 +39,7 @@ export const QuizSideModal: React.FC<QuizSideModalProps> = ({
     onRetry,
     onFlag,
     onHint,
+    onClearHint,
     currentHint,
     isLoadingHint
 }) => {
@@ -115,9 +117,9 @@ export const QuizSideModal: React.FC<QuizSideModalProps> = ({
 
                 <div className="quiz-side-navigation">
                     <button
-                        className="quiz-side-nav-btn quiz-side-hint-btn"
-                        onClick={onHint}
-                        disabled={isLoadingHint || !!currentHint}
+                        className={`quiz-side-nav-btn quiz-side-hint-btn ${currentHint ? 'hint-active' : ''}`}
+                        onClick={currentHint ? onClearHint : onHint}
+                        disabled={isLoadingHint}
                     >
                         {isLoadingHint ? (
                             <>
@@ -125,7 +127,7 @@ export const QuizSideModal: React.FC<QuizSideModalProps> = ({
                                 Đang tải...
                             </>
                         ) : currentHint ? (
-                            'Đã hiển thị'
+                            'Ẩn'
                         ) : (
                             'Gợi ý'
                         )}
