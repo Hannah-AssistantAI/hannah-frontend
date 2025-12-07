@@ -16,6 +16,7 @@ interface QuizDisplayModalProps {
     results: any
     isSubmitting: boolean
     onFlag?: () => void
+    onRetry?: () => void
     onHint?: () => void
     onClearHint?: () => void
     currentHint?: string | null
@@ -36,6 +37,7 @@ export const QuizDisplayModal: React.FC<QuizDisplayModalProps> = ({
     results,
     isSubmitting,
     onFlag,
+    onRetry,
     onHint,
     onClearHint,
     currentHint,
@@ -75,7 +77,7 @@ export const QuizDisplayModal: React.FC<QuizDisplayModalProps> = ({
                     {showResults ? (
                         <QuizResults
                             results={results}
-                            onRetry={onClose}
+                            onRetry={onRetry!}
                             onFlag={onFlag}
                         />
                     ) : (

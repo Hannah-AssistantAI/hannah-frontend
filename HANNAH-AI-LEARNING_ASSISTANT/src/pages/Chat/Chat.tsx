@@ -433,6 +433,7 @@ export default function Chat() {
                         setShowFlagQuizModal(true);
                     }
                 }}
+                onRetry={quiz.retryQuiz}
                 onHint={quiz.getHint}
                 onClearHint={quiz.clearHint}
                 currentHint={quiz.currentHint}

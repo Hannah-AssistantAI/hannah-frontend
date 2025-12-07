@@ -7,7 +7,7 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    Cell
+    Legend
 } from 'recharts';
 
 interface TopicPerformanceData {
@@ -22,13 +22,6 @@ interface TopicPerformanceChartProps {
 }
 
 const TopicPerformanceChart: React.FC<TopicPerformanceChartProps> = ({ data }) => {
-    // Color coding based on performance
-    const getColor = (score: number) => {
-        if (score >= 80) return '#10b981'; // green
-        if (score >= 60) return '#f59e0b'; // orange
-        return '#ef4444'; // red
-    };
-
     // Custom tooltip
     const CustomTooltip = ({ active, payload }: any) => {
         if (active && payload && payload.length) {
@@ -36,10 +29,10 @@ const TopicPerformanceChart: React.FC<TopicPerformanceChartProps> = ({ data }) =
                 <div className="bg-white p-4 rounded-lg shadow-lg border border-slate-200">
                     <p className="font-semibold text-slate-800 mb-2">{payload[0].payload.topic}</p>
                     <div className="space-y-1 text-sm">
-                        <p className="text-blue-600">
+                        <p className="text-indigo-600">
                             Average Score: <span className="font-bold">{payload[0].value.toFixed(1)}%</span>
                         </p>
-                        <p className="text-green-600">
+                        <p className="text-emerald-600">
                             Pass Rate: <span className="font-bold">{payload[1].value.toFixed(1)}%</span>
                         </p>
                         <p className="text-slate-600">
@@ -99,12 +92,13 @@ const TopicPerformanceChart: React.FC<TopicPerformanceChartProps> = ({ data }) =
                 />
 
                 <Tooltip content={<CustomTooltip />} />
+                <Legend wrapperStyle={{ paddingTop: '20px' }} />
 
-
-                {/* Average Score Bar - Dynamic color based on performance */}
+                {/* Average Score Bar - Indigo */}
                 <Bar
                     dataKey="averageScore"
                     name="Average Score (%)"
+                    fill="#6366f1"
                     radius={[8, 8, 0, 0]}
                     label={{
                         position: 'top',
@@ -124,17 +118,13 @@ const TopicPerformanceChart: React.FC<TopicPerformanceChartProps> = ({ data }) =
                             );
                         }
                     }}
-                >
-                    {data.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={getColor(entry.averageScore)} />
-                    ))}
-                </Bar>
+                />
 
-                {/* Pass Rate Bar - Blue */}
+                {/* Pass Rate Bar - Emerald */}
                 <Bar
                     dataKey="passRate"
                     name="Pass Rate (%)"
-                    fill="#3b82f6"
+                    fill="#10b981"
                     radius={[8, 8, 0, 0]}
                     label={{
                         position: 'top',
