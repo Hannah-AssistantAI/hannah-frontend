@@ -45,6 +45,7 @@ interface FilterState {
   timePeriod: string;
   scoreFilter: string;
   selectedMonth: string; // Format: 'YYYY-MM' or '' for all
+  subjectSearch: string;
 }
 
 // ==================== MAIN COMPONENT ====================
@@ -64,7 +65,8 @@ const QuestionAnalytics = () => {
     course: '',
     timePeriod: 'all',
     scoreFilter: 'all',
-    selectedMonth: ''
+    selectedMonth: '',
+    subjectSearch: ''
   });
 
   // Generate last 12 months for dropdown
@@ -85,9 +87,6 @@ const QuestionAnalytics = () => {
 
   // Flagged quizzes
   const [flaggedMap, setFlaggedMap] = useState<Record<string, { reason: string; status: string }>>({});
-
-  // Subject search filter for charts
-  const [subjectSearch, setSubjectSearch] = useState<string>('');
 
   // ==================== DATA LOADING ====================
 
@@ -198,7 +197,8 @@ const QuestionAnalytics = () => {
       course: '',
       timePeriod: 'all',
       scoreFilter: 'all',
-      selectedMonth: ''
+      selectedMonth: '',
+      subjectSearch: ''
     });
   };
 
@@ -394,33 +394,67 @@ const QuestionAnalytics = () => {
         <QuestionAnalyticsFilter
           filters={filters}
           courses={availableCourses}
+          monthOptions={getMonthOptions()}
           onFilterChange={handleFilterChange}
           onReset={handleResetFilters}
         />
 
-        {/* Subject Search for Charts */}
-        <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
-          <div className="flex items-center gap-3">
-            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search subject code (e.g., PRN222, MAD101)..."
-              value={subjectSearch}
-              onChange={(e) => setSubjectSearch(e.target.value)}
-              className="flex-1 outline-none text-slate-700 placeholder-slate-400"
-            />
-            {subjectSearch && (
-              <button
-                onClick={() => setSubjectSearch('')}
-                className="text-slate-400 hover:text-slate-600 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">Total Quizzes</p>
+                <p className="text-3xl font-bold text-slate-800">{analyticsData.totalQuizzes}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-              </button>
-            )}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">Total Attempts</p>
+                <p className="text-3xl font-bold text-slate-800">{analyticsData.totalAttempts}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-amber-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">Average Score</p>
+                <p className="text-3xl font-bold" style={{ color: getScoreColor(analyticsData.averageScore) }}>
+                  {analyticsData.averageScore.toFixed(1)}%
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">Active Students</p>
+                <p className="text-3xl font-bold text-slate-800">{analyticsData.totalStudents}</p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                <Users className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -482,59 +516,58 @@ const QuestionAnalytics = () => {
           }));
 
           // ✅ FILTER: Apply subject search if provided
-          const filteredTopicData = subjectSearch.trim()
+          const filteredTopicData = filters.subjectSearch.trim()
             ? topicPerformanceData.filter(item =>
-              item.topic.toLowerCase().includes(subjectSearch.toLowerCase())
+              item.topic.toLowerCase().includes(filters.subjectSearch.toLowerCase())
             )
             : topicPerformanceData;
 
-          const filteredKnowledgeGaps = subjectSearch.trim()
+          const filteredKnowledgeGaps = filters.subjectSearch.trim()
             ? knowledgeGaps.filter(item =>
-              item.topic.toLowerCase().includes(subjectSearch.toLowerCase())
+              item.topic.toLowerCase().includes(filters.subjectSearch.toLowerCase())
             )
             : knowledgeGaps;
 
-          return filteredTopicData.length > 0 ? (
+          return (
             <>
-              {/* Topic Performance Chart */}
-              <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-slate-800">📊 Performance by Topic</h2>
-                    <p className="text-sm text-slate-600 mt-1">Compare average scores and pass rates across different topics</p>
+              {/* Topic Performance Chart - Only show if data exists */}
+              {filteredTopicData.length > 0 && (
+                <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-800">📊 Performance by Topic</h2>
+                      <p className="text-sm text-slate-600 mt-1">Compare average scores and pass rates across different topics</p>
+                    </div>
                   </div>
+                  <TopicPerformanceChart data={filteredTopicData} />
                 </div>
-                <TopicPerformanceChart data={filteredTopicData} />
-              </div>
+              )}
 
-              {/* Knowledge Gap Heatmap */}
+              {/* Knowledge Gap Heatmap - Always show with month filter */}
               <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h2 className="text-2xl font-bold text-slate-800">🎯 Knowledge Gaps</h2>
                     <p className="text-sm text-slate-600 mt-1">Topics where students need more support (score &lt; 60%)</p>
                   </div>
-                  <div className="flex items-center gap-4">
-                    {/* Month Filter */}
-                    <select
-                      className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      value={filters.selectedMonth}
-                      onChange={(e) => handleFilterChange({ selectedMonth: e.target.value, timePeriod: 'all' })}
-                    >
-                      <option value="">All Months</option>
-                      {getMonthOptions().map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                    <div className="text-sm text-slate-500">
-                      Threshold: <span className="font-semibold">60%</span>
-                    </div>
+                  <div className="text-sm text-slate-500">
+                    Threshold: <span className="font-semibold">60%</span>
                   </div>
                 </div>
-                <KnowledgeGapHeatmap gaps={filteredKnowledgeGaps} threshold={60} />
+                {filteredKnowledgeGaps.length > 0 ? (
+                  <KnowledgeGapHeatmap gaps={filteredKnowledgeGaps} threshold={60} />
+                ) : (
+                  <div className="flex items-center justify-center h-48 text-slate-500">
+                    <div className="text-center">
+                      <div className="text-4xl mb-3">📭</div>
+                      <p className="text-lg font-medium mb-1">No data for {filters.selectedMonth ? 'this month' : 'the selected filters'}</p>
+                      <p className="text-sm">Try selecting a different time period or reset filters</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </>
-          ) : null;
+          );
         })()}
 
         {/* Quiz List (Grouped by Title) */}
@@ -582,19 +615,30 @@ const QuestionAnalytics = () => {
                       <div className="font-bold text-blue-600">{group.totalAttempts}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div
-                        className="text-2xl font-bold"
-                        style={{ color: getScoreColor(group.averageScore) }}
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold ${group.averageScore >= 80
+                            ? 'bg-green-100 text-green-800'
+                            : group.averageScore >= 60
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
                       >
                         {group.averageScore.toFixed(1)}%
-                      </div>
+                        {group.averageScore >= 80 && <span className="ml-1">✓</span>}
+                        {group.averageScore < 60 && <span className="ml-1">⚠</span>}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div>
-                        <div className="font-bold text-slate-700">
-                          {group.passRate.toFixed(1)}%
-                        </div>
-                      </div>
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold ${group.passRate >= 80
+                            ? 'bg-green-100 text-green-800'
+                            : group.passRate >= 60
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                      >
+                        {group.passRate.toFixed(1)}%
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1">
