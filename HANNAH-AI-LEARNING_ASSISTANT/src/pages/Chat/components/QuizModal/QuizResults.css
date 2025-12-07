@@ -310,3 +310,73 @@
         justify-content: flex-start;
     }
 }
+
+/* Dark mode support */
+[data-theme="dark"] .quiz-result-item {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .result-topic-tag {
+    background: #334155;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .result-question {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .result-option {
+    border-color: #334155;
+    background: #0f172a;
+}
+
+[data-theme="dark"] .result-option.option-correct {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #10b981;
+}
+
+[data-theme="dark"] .result-option.option-incorrect {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: #ef4444;
+}
+
+[data-theme="dark"] .option-label {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .option-text {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .indicator-selected {
+    background: rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .indicator-correct {
+    background: rgba(16, 185, 129, 0.3);
+    color: #34d399;
+}
+
+[data-theme="dark"] .indicator-wrong {
+    background: rgba(239, 68, 68, 0.3);
+    color: #f87171;
+}
+
+[data-theme="dark"] .result-explanation {
+    background: rgba(59, 130, 246, 0.1);
+    border-left-color: #60a5fa;
+}
+
+[data-theme="dark"] .explanation-header strong {
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .explanation-text {
+    color: #93c5fd;
+}
+
+[data-theme="dark"] .quiz-results-footer {
+    border-top-color: #334155;
+}

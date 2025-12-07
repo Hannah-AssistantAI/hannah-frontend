@@ -5,18 +5,21 @@
 .notification-bell-button {
     position: relative;
     background: transparent;
-    border: none;
+    border: 1px solid var(--border-secondary);
     cursor: pointer;
     padding: 8px;
-    border-radius: 8px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
+    color: var(--text-secondary);
 }
 
 .notification-bell-button:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background: var(--bg-surface-secondary);
+    color: var(--accent-blue);
+    border-color: var(--accent-blue);
 }
 
 .notification-badge {
@@ -42,10 +45,10 @@
     right: 0;
     width: 360px;
     max-height: 480px;
-    background: white;
-    border: 1px solid #e5e7eb;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-primary);
     border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-heavy);
     z-index: 1000;
     overflow: hidden;
     display: flex;
@@ -54,7 +57,7 @@
 
 .notification-header {
     padding: 16px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--border-secondary);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -64,7 +67,7 @@
     margin: 0;
     font-size: 16px;
     font-weight: 600;
-    color: #1f2937;
+    color: var(--text-primary);
 }
 
 .mark-all-read-btn {
@@ -108,7 +111,7 @@
 
 .notification-item {
     padding: 16px;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--border-secondary);
     cursor: pointer;
     transition: background-color 0.2s;
     display: flex;
@@ -117,15 +120,15 @@
 }
 
 .notification-item:hover {
-    background-color: #f9fafb;
+    background-color: var(--bg-surface-secondary);
 }
 
 .notification-item.unread {
-    background-color: #eff6ff;
+    background-color: rgba(59, 130, 246, 0.1);
 }
 
 .notification-item.unread:hover {
-    background-color: #dbeafe;
+    background-color: rgba(59, 130, 246, 0.15);
 }
 
 .notification-content {
@@ -135,7 +138,7 @@
 .notification-message {
     margin: 0 0 8px 0;
     font-size: 14px;
-    color: #1f2937;
+    color: var(--text-primary);
     line-height: 1.5;
 }
 
@@ -165,7 +168,7 @@
 
 .notification-time {
     font-size: 12px;
-    color: #9ca3af;
+    color: var(--text-tertiary);
 }
 
 .unread-indicator {
@@ -177,56 +180,3 @@
     margin-top: 6px;
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-    .notification-bell-button:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-    }
-
-    .notification-dropdown {
-        background: #1f2937;
-        border-color: #374151;
-    }
-
-    .notification-header {
-        border-bottom-color: #374151;
-    }
-
-    .notification-header h3 {
-        color: #f9fafb;
-    }
-
-    .notification-item {
-        border-bottom-color: #374151;
-    }
-
-    .notification-item:hover {
-        background-color: #374151;
-    }
-
-    .notification-item.unread {
-        background-color: #1e3a8a;
-    }
-
-    .notification-item.unread:hover {
-        background-color: #1e40af;
-    }
-
-    .notification-message {
-        color: #f9fafb;
-    }
-
-    .notification-faculty {
-        background-color: #065f46;
-        color: #d1fae5;
-    }
-
-    .notification-document {
-        background-color: #374151;
-        color: #d1d5db;
-    }
-
-    .notification-time {
-        color: #9ca3af;
-    }
-}

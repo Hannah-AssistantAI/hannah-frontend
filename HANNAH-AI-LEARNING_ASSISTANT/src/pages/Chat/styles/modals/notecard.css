@@ -242,3 +242,106 @@
     padding: 0 32px 16px 32px;
     background-color: white;
 }
+
+/* Dark mode support */
+[data-theme="dark"] .notecard-modal-content {
+    background-color: #0f172a;
+}
+
+[data-theme="dark"] .notecard-modal-header {
+    background-color: #1e293b;
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .notecard-modal-title {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .notecard-modal-subtitle {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .notecard-modal-close {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .notecard-modal-close:hover {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .notecard-instruction {
+    background-color: #1e293b;
+    color: #94a3b8;
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .notecard-nav-btn {
+    background: #334155;
+    border-color: #475569;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .notecard-nav-btn:hover:not(:disabled) {
+    background-color: #475569;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .notecard-front {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .notecard-back {
+    background-color: rgba(59, 130, 246, 0.2);
+    border-color: #60a5fa;
+}
+
+[data-theme="dark"] .notecard-text {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .notecard-flip-hint {
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .notecard-flip-hint:hover {
+    background-color: rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="dark"] .notecard-progress {
+    background-color: #1e293b;
+    border-top-color: #334155;
+}
+
+[data-theme="dark"] .notecard-shuffle-btn {
+    border-color: #475569;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .notecard-shuffle-btn:hover {
+    background-color: #334155;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .notecard-counter {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .notecard-modal-footer {
+    background-color: #1e293b;
+}
+
+[data-theme="dark"] .notecard-action-btn {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .notecard-action-btn:hover {
+    background-color: #334155;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .notecard-modal-notice {
+    background-color: #1e293b;
+    color: #64748b;
+}
+

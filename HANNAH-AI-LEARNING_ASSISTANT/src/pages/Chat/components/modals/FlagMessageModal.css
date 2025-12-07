@@ -217,58 +217,72 @@
     cursor: not-allowed;
 }
 
-/* Dark mode support (optional) */
-@media (prefers-color-scheme: dark) {
-    .flag-modal {
-        background: #1f2937;
-    }
-
-    .flag-modal-header {
-        border-bottom-color: #374151;
-    }
-
-    .flag-modal-title h2 {
-        color: #f9fafb;
-    }
-
-    .flag-modal-close {
-        color: #9ca3af;
-    }
-
-    .flag-modal-close:hover {
-        background: #374151;
-        color: #f9fafb;
-    }
-
-    .flag-modal-description {
-        color: #9ca3af;
-    }
-
-    .flag-reason-option {
-        border-color: #374151;
-    }
-
-    .flag-reason-option:hover {
-        border-color: #4b5563;
-        background: #111827;
-    }
-
-    .flag-reason-option span {
-        color: #d1d5db;
-    }
-
-    .flag-custom-reason {
-        background: #111827;
-        border-color: #374151;
-        color: #f9fafb;
-    }
-
-    .flag-btn-secondary {
-        background: #374151;
-        color: #d1d5db;
-    }
-
-    .flag-btn-secondary:hover {
-        background: #4b5563;
-    }
+/* Dark mode support */
+[data-theme="dark"] .flag-modal {
+    background: #1e293b;
 }
+
+[data-theme="dark"] .flag-modal-header {
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .flag-modal-title h2 {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .flag-modal-close {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .flag-modal-close:hover {
+    background: #334155;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .flag-modal-description {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .flag-reason-option {
+    border-color: #334155;
+    background: #0f172a;
+}
+
+[data-theme="dark"] .flag-reason-option:hover {
+    border-color: #475569;
+    background: #1e293b;
+}
+
+[data-theme="dark"] .flag-reason-option span {
+    color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .flag-reason-option:has(input:checked) {
+    border-color: #dc2626;
+    background: rgba(220, 38, 38, 0.15);
+}
+
+[data-theme="dark"] .flag-reason-option:has(input:checked) span {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .flag-custom-reason {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .flag-custom-reason:focus {
+    background: rgba(220, 38, 38, 0.1);
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .flag-btn-secondary {
+    background: #334155;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .flag-btn-secondary:hover {
+    background: #475569;
+}
+
