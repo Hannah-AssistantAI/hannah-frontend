@@ -1,9 +1,29 @@
 // src/pages/SystemMonitoring.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { InfoBox } from '../../../components/Admin/InfoBox';
-import { Card } from '../../../components/Admin/Card';
-import { MetricRow } from '../../../components/Admin/MetricRow';
-import { RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer
+} from 'recharts';
+import {
+  Activity,
+  Server,
+  Database,
+  Brain,
+  Cpu,
+  HardDrive,
+  Clock,
+  AlertCircle,
+  CheckCircle,
+  RefreshCw,
+  Zap,
+  Layers,
+  FileText
+} from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import monitoringService from '../../../service/monitoringService';
 import type {
@@ -13,6 +33,13 @@ import type {
   GeminiMetrics
 } from '../../../service/monitoringService';
 
+// History data point interface
+interface HistoryPoint {
+  time: string;
+  cpu: number;
+  memory: number;
+}
+
 export const SystemMonitoring: React.FC = () => {
   // Real data states
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics | null>(null);
@@ -20,17 +47,12 @@ export const SystemMonitoring: React.FC = () => {
   const [appMetrics, setAppMetrics] = useState<ApplicationMetrics | null>(null);
   const [geminiMetrics, setGeminiMetrics] = useState<GeminiMetrics | null>(null);
 
-  // Loading states
-  const [systemLoading, setSystemLoading] = useState(true);
-  const [dbLoading, setDbLoading] = useState(true);
-  const [appLoading, setAppLoading] = useState(true);
-  const [geminiLoading, setGeminiLoading] = useState(true);
+  // History state for chart
+  const [history, setHistory] = useState<HistoryPoint[]>([]);
 
-  // Error states
-  const [systemError, setSystemError] = useState<string | null>(null);
-  const [dbError, setDbError] = useState<string | null>(null);
-  const [appError, setAppError] = useState<string | null>(null);
-  const [geminiError, setGeminiError] = useState<string | null>(null);
+  // Loading & Error states
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Last updated timestamp
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -39,347 +61,309 @@ export const SystemMonitoring: React.FC = () => {
   // Fetch all metrics
   const fetchMetrics = useCallback(async () => {
     setIsRefreshing(true);
-
-    // Fetch system metrics
-    setSystemLoading(true);
     try {
-      const data = await monitoringService.getSystemMetrics();
-      setSystemMetrics(data);
-      setSystemError(null);
-    } catch (err) {
-      setSystemError(err instanceof Error ? err.message : 'Failed to load system metrics');
-    } finally {
-      setSystemLoading(false);
-    }
+      // Parallel fetching for speed
+      const [sys, db, app, gemini] = await Promise.all([
+        monitoringService.getSystemMetrics(),
+        monitoringService.getDatabaseMetrics(),
+        monitoringService.getApplicationMetrics(),
+        monitoringService.getGeminiMetrics()
+      ]);
 
-    // Fetch database metrics
-    setDbLoading(true);
-    try {
-      const data = await monitoringService.getDatabaseMetrics();
-      setDbMetrics(data);
-      setDbError(null);
-    } catch (err) {
-      setDbError(err instanceof Error ? err.message : 'Failed to load database metrics');
-    } finally {
-      setDbLoading(false);
-    }
+      setSystemMetrics(sys);
+      setDbMetrics(db);
+      setAppMetrics(app);
+      setGeminiMetrics(gemini);
+      setLastUpdated(new Date());
+      setError(null);
 
-    // Fetch application metrics
-    setAppLoading(true);
-    try {
-      const data = await monitoringService.getApplicationMetrics();
-      setAppMetrics(data);
-      setAppError(null);
-    } catch (err) {
-      setAppError(err instanceof Error ? err.message : 'Failed to load application metrics');
-    } finally {
-      setAppLoading(false);
-    }
+      // Update history
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-    // Fetch Gemini metrics
-    setGeminiLoading(true);
-    try {
-      const data = await monitoringService.getGeminiMetrics();
-      setGeminiMetrics(data);
-      setGeminiError(null);
-    } catch (err) {
-      setGeminiError(err instanceof Error ? err.message : 'Failed to load Gemini metrics');
-    } finally {
-      setGeminiLoading(false);
-    }
+      setHistory(prev => {
+        const newPoint = {
+          time: timeStr,
+          cpu: sys.cpu.percent,
+          memory: sys.memory.percent
+        };
+        // Keep last 20 points (approx 100 seconds at 5s interval)
+        const newHistory = [...prev, newPoint];
+        return newHistory.slice(-20);
+      });
 
-    setLastUpdated(new Date());
-    setIsRefreshing(false);
-  }, []);
+    } catch (err) {
+      console.error("Failed to fetch metrics:", err);
+      // Don't overwrite data with null on temporary failure, just show error toast or indicator
+      // But for initial load, we might need to show error
+      if (!systemMetrics) setError(err instanceof Error ? err.message : 'System unavailable');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, [systemMetrics]);
 
   // Initial load and auto-refresh
   useEffect(() => {
     fetchMetrics();
 
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchMetrics, 30000);
+    // Auto-refresh every 5 seconds for "Live" feel
+    const interval = setInterval(fetchMetrics, 5000);
 
     return () => clearInterval(interval);
   }, [fetchMetrics]);
 
-  const getProgressColor = (percent: number): 'primary' | 'success' | 'warning' | 'danger' => {
-    if (percent >= 90) return 'danger';
-    if (percent >= 70) return 'warning';
-    if (percent >= 50) return 'primary';
-    return 'success';
-  };
+  // Reusable Stat Card Component
+  const StatCard = ({ title, icon: Icon, color, children, className = '' }: any) => (
+    <div className={`bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col ${className}`}>
+      <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <h3 className="font-semibold text-slate-700 flex items-center gap-2">
+          <Icon size={18} className={color} />
+          {title}
+        </h3>
+      </div>
+      <div className="p-5 flex-1">
+        {children}
+      </div>
+    </div>
+  );
+
+  // Simple Row for metrics
+  const MetricDataset = ({ label, value, subtext, status }: any) => (
+    <div className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+      <div>
+        <div className="text-sm font-medium text-slate-500">{label}</div>
+        {subtext && <div className="text-xs text-slate-400">{subtext}</div>}
+      </div>
+      <div className="text-right">
+        <div className={`font-bold ${status === 'error' ? 'text-red-600' : 'text-slate-800'}`}>
+          {value}
+        </div>
+      </div>
+    </div>
+  );
 
   const StatusBadge = ({ connected, error }: { connected: boolean; error?: string }) => (
-    <span style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '4px',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontSize: '12px',
-      fontWeight: 600,
-      backgroundColor: connected ? '#dcfce7' : '#fef2f2',
-      color: connected ? '#166534' : '#dc2626'
-    }}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${connected ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+      }`}>
       {connected ? <CheckCircle size={12} /> : <AlertCircle size={12} />}
-      {connected ? 'Connected' : (error || 'Disconnected')}
+      {connected ? 'Operational' : 'Error'}
     </span>
   );
 
+  if (isLoading && !systemMetrics) {
+    return (
+      <AdminPageWrapper title="System Monitoring">
+        <div className="flex flex-col items-center justify-center h-96 text-slate-400">
+          <RefreshCw size={32} className="animate-spin mb-4" />
+          <p>Connecting to system telemetry...</p>
+        </div>
+      </AdminPageWrapper>
+    );
+  }
+
   return (
     <AdminPageWrapper title="System Monitoring">
-      <InfoBox>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>
-            <strong>Live Data:</strong> Metrics are fetched from the Python backend using psutil, MongoDB, and Elasticsearch.
-            {lastUpdated && (
-              <span style={{ marginLeft: '8px', color: '#666', fontSize: '12px' }}>
-                Last updated: {lastUpdated.toLocaleTimeString()}
-              </span>
-            )}
-          </span>
+      {/* Header Actions */}
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <p className="text-slate-500">Real-time performance metrics and system health status.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {lastUpdated && (
+            <span className="text-xs text-slate-400 flex items-center gap-1">
+              <Clock size={12} />
+              Updated: {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
           <button
             onClick={fetchMetrics}
             disabled={isRefreshing}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 16px',
-              border: 'none',
-              borderRadius: '6px',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              cursor: isRefreshing ? 'not-allowed' : 'pointer',
-              opacity: isRefreshing ? 0.7 : 1,
-              fontSize: '14px',
-              fontWeight: 500
-            }}
+            className={`p-2 rounded-lg border border-slate-200 hover:bg-white hover:text-blue-600 transition-colors ${isRefreshing ? 'opacity-50' : ''}`}
+            title="Refresh now"
           >
-            <RefreshCw size={16} className={isRefreshing ? 'spin' : ''} style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} />
-            Refresh
+            <RefreshCw size={18} className={isRefreshing ? 'animate-spin' : ''} />
           </button>
         </div>
-      </InfoBox>
+      </div>
 
-      {/* Backend System Performance */}
-      {systemLoading ? (
-        <Card title="🖥️ Backend System Performance (FastAPI Server)">
-          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Loading system metrics...</div>
-        </Card>
-      ) : systemError ? (
-        <Card title="🖥️ Backend System Performance (FastAPI Server)">
-          <div style={{ padding: '20px', textAlign: 'center', color: '#dc2626' }}>
-            <AlertCircle style={{ marginBottom: '8px' }} />
-            <p>{systemError}</p>
-          </div>
-        </Card>
-      ) : systemMetrics && (
-        <Card
-          title="🖥️ Backend System Performance (FastAPI Server)"
-          action={<StatusBadge connected={true} />}
-        >
-          <MetricRow
-            label={`CPU Usage (${systemMetrics.cpu.cores} cores)`}
-            value={`${systemMetrics.cpu.percent.toFixed(1)}%`}
-            progress={{ value: systemMetrics.cpu.percent, max: 100, color: getProgressColor(systemMetrics.cpu.percent) }}
-          />
-          <MetricRow
-            label="Memory Usage"
-            value={`${systemMetrics.memory.percent.toFixed(1)}% (${systemMetrics.memory.usedFormatted} / ${systemMetrics.memory.totalFormatted})`}
-            progress={{ value: systemMetrics.memory.percent, max: 100, color: getProgressColor(systemMetrics.memory.percent) }}
-          />
-          <MetricRow
-            label="Disk Usage"
-            value={`${systemMetrics.disk.percent.toFixed(1)}% (${systemMetrics.disk.usedFormatted} / ${systemMetrics.disk.totalFormatted})`}
-            progress={{ value: systemMetrics.disk.percent, max: 100, color: getProgressColor(systemMetrics.disk.percent) }}
-          />
-          <MetricRow
-            label="Server Uptime"
-            value={systemMetrics.uptime}
-          />
-        </Card>
+      {/* ERROR DISPLAY */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700">
+          <AlertCircle size={20} />
+          <p>{error}</p>
+        </div>
       )}
 
-      {/* Database Performance */}
-      {dbLoading ? (
-        <Card title="🗄️ Database Performance" className="mt-24">
-          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Loading database metrics...</div>
-        </Card>
-      ) : dbError ? (
-        <Card title="🗄️ Database Performance" className="mt-24">
-          <div style={{ padding: '20px', textAlign: 'center', color: '#dc2626' }}>
-            <AlertCircle style={{ marginBottom: '8px' }} />
-            <p>{dbError}</p>
-          </div>
-        </Card>
-      ) : dbMetrics && (
-        <Card
-          title="🗄️ Database Performance"
-          className="mt-24"
-        >
-          {/* MongoDB Section */}
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-              <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#16a34a', margin: 0 }}>
-                MongoDB (Conversations & Messages)
-              </h4>
-              <StatusBadge connected={dbMetrics.mongodb?.connected || false} error={dbMetrics.mongodb?.error} />
+      {/* LIVE CHART SECTION */}
+      {systemMetrics && (
+        <div className="mb-6 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <Activity className="text-indigo-600" size={20} />
+                Live System Performance
+              </h2>
+              <p className="text-sm text-slate-500">Real-time monitoring of CPU and Memory resources</p>
             </div>
-            {dbMetrics.mongodb?.connected ? (
-              <>
-                <MetricRow
-                  label="Active Connections"
-                  value={`${dbMetrics.mongodb.activeConnections} / ${dbMetrics.mongodb.availableConnections}`}
-                />
-                <MetricRow
-                  label="Total Conversations"
-                  value={dbMetrics.mongodb.totalConversations?.toLocaleString() || '0'}
-                />
-                <MetricRow
-                  label="Learn Topics"
-                  value={dbMetrics.mongodb.totalLearnTopics?.toLocaleString() || '0'}
-                />
-                <MetricRow
-                  label="Quiz Questions"
-                  value={dbMetrics.mongodb.totalQuizQuestions?.toLocaleString() || '0'}
-                />
-                <MetricRow
-                  label="Database Size"
-                  value={dbMetrics.mongodb.storageSizeFormatted || 'N/A'}
-                />
-              </>
-            ) : (
-              <p style={{ color: '#dc2626', padding: '12px', background: '#fef2f2', borderRadius: '6px' }}>
-                {dbMetrics.mongodb?.error || 'Unable to connect to MongoDB'}
-              </p>
-            )}
-          </div>
-
-          {/* Elasticsearch Section */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-              <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#2563eb', margin: 0 }}>
-                Elasticsearch (Knowledge Base)
-              </h4>
-              <StatusBadge connected={dbMetrics.elasticsearch?.connected || false} error={dbMetrics.elasticsearch?.error} />
+            <div className="flex gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                <span className="text-slate-600 font-medium">CPU: {systemMetrics.cpu.percent.toFixed(1)}%</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                <span className="text-slate-600 font-medium">RAM: {systemMetrics.memory.percent.toFixed(1)}%</span>
+              </div>
             </div>
-            {dbMetrics.elasticsearch?.connected ? (
-              <>
-                <MetricRow
-                  label="Cluster Status"
-                  value={dbMetrics.elasticsearch.status || 'unknown'}
+          </div>
+
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={history}>
+                <defs>
+                  <linearGradient id="colorCpu" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorMem" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis
+                  dataKey="time"
+                  tick={{ fontSize: 12, fill: '#94a3b8' }}
+                  tickLine={false}
+                  axisLine={false}
                 />
-                <MetricRow
-                  label="Indexed Documents"
-                  value={dbMetrics.elasticsearch.indexedDocuments?.toLocaleString() || '0'}
+                <YAxis
+                  domain={[0, 100]}
+                  tick={{ fontSize: 12, fill: '#94a3b8' }}
+                  tickLine={false}
+                  axisLine={false}
+                  unit="%"
                 />
-                <MetricRow
-                  label="Index Size"
-                  value={dbMetrics.elasticsearch.indexSizeFormatted || 'N/A'}
+                <RechartsTooltip
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
-                <MetricRow
-                  label="Active Shards"
-                  value={dbMetrics.elasticsearch.activeShards?.toString() || '0'}
+                <Area
+                  type="monotone"
+                  dataKey="cpu"
+                  stroke="#6366f1"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#colorCpu)"
+                  name="CPU Usage"
+                  animationDuration={500}
                 />
-              </>
-            ) : (
-              <p style={{ color: '#dc2626', padding: '12px', background: '#fef2f2', borderRadius: '6px' }}>
-                {dbMetrics.elasticsearch?.error || 'Unable to connect to Elasticsearch'}
+                <Area
+                  type="monotone"
+                  dataKey="memory"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#colorMem)"
+                  name="Memory Usage"
+                  animationDuration={500}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100">
+            <div>
+              <p className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Uptime</p>
+              <p className="text-slate-800 font-medium mt-1">{systemMetrics.uptime}</p>
+            </div>
+            <div>
+              <p className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Disk Usage</p>
+              <p className="text-slate-800 font-medium mt-1">{systemMetrics.disk.percent}% ({systemMetrics.disk.usedFormatted})</p>
+            </div>
+            <div>
+              <p className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Cores</p>
+              <p className="text-slate-800 font-medium mt-1">{systemMetrics.cpu.cores} Physical</p>
+            </div>
+            <div>
+              <p className="text-slate-500 text-xs uppercase tracking-wider font-semibold">OS Platform</p>
+              <p className="text-slate-800 font-medium mt-1">Linux / Container</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* GRID SECTION */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        {/* DATABASE METRICS */}
+        {dbMetrics && (
+          <StatCard title="Databases" icon={Database} color="text-blue-500">
+            {/* MongoDB */}
+            <div className="mb-4 pb-4 border-b border-slate-100">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-semibold text-slate-700 text-sm">MongoDB</h4>
+                <StatusBadge connected={dbMetrics.mongodb.connected} />
+              </div>
+              <MetricDataset label="Connections" value={`${dbMetrics.mongodb.activeConnections}/${dbMetrics.mongodb.availableConnections}`} />
+              <MetricDataset label="Conversations" value={dbMetrics.mongodb.totalConversations?.toLocaleString()} />
+              <MetricDataset label="Size" value={dbMetrics.mongodb.storageSizeFormatted} />
+            </div>
+
+            {/* Elasticsearch */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-semibold text-slate-700 text-sm">Elasticsearch</h4>
+                <StatusBadge connected={dbMetrics.elasticsearch.connected} />
+              </div>
+              <MetricDataset label="Status" value={dbMetrics.elasticsearch.status} status={dbMetrics.elasticsearch.status === 'green' ? 'success' : 'warning'} />
+              <MetricDataset label="Documents" value={dbMetrics.elasticsearch.indexedDocuments?.toLocaleString()} />
+            </div>
+          </StatCard>
+        )}
+
+        {/* APPLICATION METRICS */}
+        {appMetrics && (
+          <StatCard title="Application Stats" icon={Server} color="text-amber-500">
+            <div className="space-y-1">
+              <MetricDataset label="Total Conversations" value={appMetrics.totalConversations.toLocaleString()} />
+              <MetricDataset label="Flashcards" value={appMetrics.totalFlashcards.toLocaleString()} />
+              <MetricDataset label="Quizzes" value={appMetrics.totalQuizzes.toLocaleString()} />
+              <MetricDataset
+                label="Learn Topics"
+                value={appMetrics.totalLearnTopics.toLocaleString()}
+                subtext={`+${appMetrics.topicsCreatedToday} today`}
+              />
+            </div>
+            <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100">
+              <p className="text-xs text-amber-800 italic">
+                "Stats reflect active engagement across all learning modules."
               </p>
-            )}
-          </div>
-        </Card>
-      )}
+            </div>
+          </StatCard>
+        )}
 
-      {/* Application Metrics */}
-      {appLoading ? (
-        <Card title="📊 Application Metrics" className="mt-24">
-          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Loading application metrics...</div>
-        </Card>
-      ) : appError ? (
-        <Card title="📊 Application Metrics" className="mt-24">
-          <div style={{ padding: '20px', textAlign: 'center', color: '#dc2626' }}>
-            <AlertCircle style={{ marginBottom: '8px' }} />
-            <p>{appError}</p>
-          </div>
-        </Card>
-      ) : appMetrics && (
-        <Card
-          title="📊 Application Metrics"
-          action={<StatusBadge connected={true} />}
-          className="mt-24"
-        >
-          <MetricRow
-            label="Total Conversations"
-            value={appMetrics.totalConversations.toLocaleString()}
-          />
-          <MetricRow
-            label="Learn Topics"
-            value={appMetrics.totalLearnTopics.toLocaleString()}
-          />
-          <MetricRow
-            label="Topics Created Today"
-            value={appMetrics.topicsCreatedToday.toLocaleString()}
-          />
-          <MetricRow
-            label="Total Quizzes"
-            value={appMetrics.totalQuizzes.toLocaleString()}
-          />
-          <MetricRow
-            label="Total Flashcards"
-            value={appMetrics.totalFlashcards.toLocaleString()}
-          />
-        </Card>
-      )}
+        {/* GEMINI AI METRICS */}
+        {geminiMetrics && (
+          <StatCard title="Gemini AI Engine" icon={Brain} color="text-purple-500">
+            <div className="flex items-center justify-between mb-4 bg-purple-50 p-3 rounded-lg border border-purple-100">
+              <span className="text-sm text-purple-700 font-medium">Model</span>
+              <span className="text-xs font-bold bg-white px-2 py-1 rounded text-purple-600 border border-purple-200">
+                {geminiMetrics.model}
+              </span>
+            </div>
+            <MetricDataset label="Calls Today" value={geminiMetrics.apiCallsToday.toLocaleString()} />
+            <MetricDataset label="Tokens Today" value={geminiMetrics.tokensToday.toLocaleString()} />
+            <MetricDataset label="Total Lifetime Calls" value={geminiMetrics.totalApiCalls.toLocaleString()} />
 
-      {/* Gemini AI Metrics */}
-      {geminiLoading ? (
-        <Card title="🤖 Gemini AI Usage" className="mt-24">
-          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Loading Gemini metrics...</div>
-        </Card>
-      ) : geminiError ? (
-        <Card title="🤖 Gemini AI Usage" className="mt-24">
-          <div style={{ padding: '20px', textAlign: 'center', color: '#dc2626' }}>
-            <AlertCircle style={{ marginBottom: '8px' }} />
-            <p>{geminiError}</p>
-          </div>
-        </Card>
-      ) : geminiMetrics && (
-        <Card
-          title="🤖 Gemini AI Usage"
-          action={<StatusBadge connected={true} />}
-          className="mt-24"
-        >
-          <MetricRow
-            label="AI Responses Today"
-            value={geminiMetrics.apiCallsToday.toLocaleString()}
-          />
-          <MetricRow
-            label="Total AI Responses"
-            value={geminiMetrics.totalApiCalls.toLocaleString()}
-          />
-          <MetricRow
-            label="Tokens Today"
-            value={geminiMetrics.tokensToday.toLocaleString()}
-          />
-          <MetricRow
-            label="Total Tokens"
-            value={geminiMetrics.totalTokens.toLocaleString()}
-          />
-          <MetricRow
-            label="Conversations Today"
-            value={geminiMetrics.conversationsToday.toLocaleString()}
-          />
-          <MetricRow
-            label="Model"
-            value={geminiMetrics.model}
-          />
-          <p style={{ fontSize: '12px', color: '#666', marginTop: '12px', fontStyle: 'italic' }}>
-            {geminiMetrics.note}
-          </p>
-        </Card>
-      )}
+            <div className="mt-4 flex items-center gap-2 text-xs text-slate-400">
+              <Zap size={12} />
+              <span>{geminiMetrics.note}</span>
+            </div>
+          </StatCard>
+        )}
+
+      </div>
     </AdminPageWrapper>
   );
 };
