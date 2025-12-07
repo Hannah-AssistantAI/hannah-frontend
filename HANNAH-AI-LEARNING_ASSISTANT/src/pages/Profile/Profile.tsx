@@ -4,6 +4,7 @@ import ChangePasswordForm from './ChangePasswordForm'; // Import the new compone
 import { useAuth } from '../../contexts/AuthContext';
 import authService from '../../service/authService';
 import userService from '../../service/userService';
+import studentService from '../../service/studentService';
 import type { UserData } from '../../service/authService';
 import toast from 'react-hot-toast'; // Import toast for notifications
 import { buildAvatarUrl } from '../../config/apiConfig'; // Import the helper function
@@ -50,6 +51,7 @@ interface UserProfile {
     // Student-specific fields
     student_id?: string;
     student_specialty?: 'SE' | 'IS' | 'AI' | 'DS';
+    current_semester?: string; // e.g., "HK1 2024-2025"
 
     // Faculty-specific fields
     faculty_specialty?: string;
@@ -121,6 +123,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
                     bio: profileData.bio || undefined,
                     student_id: profileData.studentId || undefined,
                     student_specialty: profileData.studentSpecialty as any,
+                    current_semester: profileData.currentSemester || undefined,
                     notification_preferences: profileData.notificationPreferences || {
                         emailUpdates: true,
                         appEvents: true,
@@ -186,7 +189,26 @@ export default function Profile({ embedded = false }: ProfileProps) {
                 setUserProfile(updatedProfileData);
                 setEditedProfile(updatedProfileData);
                 toast.success("Cập nhật hồ sơ thành công!");
-            } else {
+            }
+
+            // Handle current semester update separately (uses different API)
+            if (editedProfile.current_semester !== userProfile?.current_semester && editedProfile.current_semester) {
+                try {
+                    const semesterResult = await studentService.setCurrentSemester(user.userId, editedProfile.current_semester);
+                    if (semesterResult.success) {
+                        setUserProfile(prev => prev ? { ...prev, current_semester: semesterResult.currentSemester } : prev);
+                        setEditedProfile(prev => prev ? { ...prev, current_semester: semesterResult.currentSemester } : prev);
+                        toast.success("Cập nhật kỳ học thành công!");
+                    } else {
+                        toast.error(semesterResult.message || "Cập nhật kỳ học thất bại.");
+                    }
+                } catch (semesterError) {
+                    console.error("Failed to update semester:", semesterError);
+                    toast.error("Cập nhật kỳ học thất bại.");
+                }
+            }
+
+            if (Object.keys(updateData).length === 0 && editedProfile.current_semester === userProfile?.current_semester) {
                 toast.success("Không có thay đổi nào để lưu.");
             }
 
@@ -516,6 +538,34 @@ export default function Profile({ embedded = false }: ProfileProps) {
                                                         </select>
                                                     ) : (
                                                         <p className="profile-detail-value">{userProfile.student_specialty}</p>
+                                                    )}
+                                                </div>
+                                                <div className="profile-detail-item">
+                                                    <label className="profile-detail-label">
+                                                        <Calendar size={18} />
+                                                        Kỳ học hiện tại
+                                                    </label>
+                                                    {isEditing ? (
+                                                        <select
+                                                            className="profile-detail-input"
+                                                            value={editedProfile.current_semester || ''}
+                                                            onChange={(e) => setEditedProfile({ ...editedProfile, current_semester: e.target.value })}
+                                                        >
+                                                            <option value="">Chọn kỳ học</option>
+                                                            <option value="1">Kỳ 1</option>
+                                                            <option value="2">Kỳ 2</option>
+                                                            <option value="3">Kỳ 3</option>
+                                                            <option value="4">Kỳ 4</option>
+                                                            <option value="5">Kỳ 5</option>
+                                                            <option value="6">Kỳ 6</option>
+                                                            <option value="7">Kỳ 7</option>
+                                                            <option value="8">Kỳ 8</option>
+                                                            <option value="9">Kỳ 9</option>
+                                                        </select>
+                                                    ) : (
+                                                        <p className="profile-detail-value">
+                                                            {userProfile.current_semester ? `Kỳ ${userProfile.current_semester}` : 'Chưa được thiết lập'}
+                                                        </p>
                                                     )}
                                                 </div>
                                             </>

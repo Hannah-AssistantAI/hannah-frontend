@@ -41,6 +41,7 @@ export interface UserProfile {
   bio: string | null;
   studentId: string | null;
   studentSpecialty: string | null;
+  currentSemester: string | null; // e.g., "HK1 2024-2025"
   notificationPreferences: any | null; // Adjust based on actual structure
   createdAt: string;
   updatedAt: string | null;

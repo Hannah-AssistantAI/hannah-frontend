@@ -1,4 +1,17 @@
 import { pythonApiClient } from './pythonApiClient';
+import apiClient from './apiClient';
+
+// Types for Set Current Semester
+export interface SetCurrentSemesterRequest {
+    currentSemester: string; // e.g., "HK1 2024-2025" or just "1"
+}
+
+export interface SetCurrentSemesterResponse {
+    success: boolean;
+    message: string;
+    currentSemester: string;
+    semesterNumber: number;
+}
 
 // Types for Full Roadmap Overview
 export interface SubjectOverviewChunk {
@@ -102,6 +115,19 @@ const studentService = {
     getNextSemesterOverview: async () => {
         const response = await pythonApiClient.get(
             '/api/v1/students/me/next-semester-overview'
+        );
+        return response.data;
+    },
+
+    /**
+     * Set current semester for a student
+     * @param userId - The student's user ID
+     * @param currentSemester - Semester string (e.g., "HK1 2024-2025" or just "1")
+     */
+    setCurrentSemester: async (userId: number, currentSemester: string): Promise<SetCurrentSemesterResponse> => {
+        const response = await apiClient.put<SetCurrentSemesterResponse>(
+            `/api/students/${userId}/current-semester`,
+            { currentSemester }
         );
         return response.data;
     }
