@@ -1,5 +1,5 @@
 import React from 'react'
-import { Minimize2, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { Minimize2, ThumbsUp, ThumbsDown, Lightbulb, Loader2 } from 'lucide-react'
 import { QuizResults } from '../QuizModal/QuizResults'
 
 interface QuizDisplayModalProps {
@@ -16,6 +16,9 @@ interface QuizDisplayModalProps {
     results: any
     isSubmitting: boolean
     onFlag?: () => void
+    onHint?: () => void
+    currentHint?: string | null
+    isLoadingHint?: boolean
 }
 
 export const QuizDisplayModal: React.FC<QuizDisplayModalProps> = ({
@@ -31,7 +34,10 @@ export const QuizDisplayModal: React.FC<QuizDisplayModalProps> = ({
     showResults,
     results,
     isSubmitting,
-    onFlag
+    onFlag,
+    onHint,
+    currentHint,
+    isLoadingHint
 }) => {
     if (!isOpen) return null
 
@@ -80,6 +86,13 @@ export const QuizDisplayModal: React.FC<QuizDisplayModalProps> = ({
                                 </p>
                             </div>
 
+                            {currentHint && (
+                                <div className="quiz-hint-display">
+                                    <Lightbulb size={18} className="quiz-hint-icon" />
+                                    <p className="quiz-hint-text">{currentHint}</p>
+                                </div>
+                            )}
+
                             <div className="quiz-answers">
                                 {content?.questions?.[currentQuestionIndex]?.options?.map((option: string, idx: number) => {
                                     const label = String.fromCharCode(65 + idx); // A, B, C, D...
@@ -103,8 +116,21 @@ export const QuizDisplayModal: React.FC<QuizDisplayModalProps> = ({
 
                 {!showResults && (
                     <div className="quiz-navigation">
-                        <button className="quiz-nav-btn quiz-hint-btn">
-                            Gợi ý
+                        <button
+                            className="quiz-nav-btn quiz-hint-btn"
+                            onClick={onHint}
+                            disabled={isLoadingHint || !!currentHint}
+                        >
+                            {isLoadingHint ? (
+                                <>
+                                    <Loader2 size={16} className="animate-spin" />
+                                    Đang tải...
+                                </>
+                            ) : currentHint ? (
+                                'Đã hiển thị gợi ý'
+                            ) : (
+                                'Gợi ý'
+                            )}
                         </button>
                         {isLastQuestion ? (
                             <button

@@ -10,31 +10,35 @@ export function useQuiz() {
     const [quizResults, setQuizResults] = useState<any>(null);
     const [isSubmittingQuiz, setIsSubmittingQuiz] = useState(false);
     const [quizStartTime, setQuizStartTime] = useState<Date | null>(null);
+    const [currentHint, setCurrentHint] = useState<string | null>(null);
+    const [isLoadingHint, setIsLoadingHint] = useState(false);
 
     const loadQuiz = async (quizId: string) => {
+        console.log('🔄 loadQuiz called with quizId:', quizId);
         try {
             const response = await studioService.getQuizContent(quizId);
             const quizData = response.data.data || response.data;
             setQuizContent(quizData);
             setSelectedQuizId(quizId);
-            
+            setCurrentHint(null); // Clear any previous hint
+
             // Check if user has already completed this quiz
             try {
                 const { default: quizApiService } = await import('../../../service/quizApi');
                 const attempts = await quizApiService.getQuizAttempts(Number(quizId));
                 console.log('📋 All quiz attempts:', attempts);
-                
+
                 // Get current user ID from localStorage (stored as 'user_data')
                 const userData = localStorage.getItem('user_data');
                 const currentUserId = userData ? JSON.parse(userData).userId : null;
                 console.log('👤 Current user ID:', currentUserId);
-                
+
                 // Find user's completed attempt
                 const userCompletedAttempt = attempts.find(
                     a => a.userId === currentUserId && a.isCompleted
                 );
                 console.log('🎯 User completed attempt:', userCompletedAttempt);
-                
+
                 if (userCompletedAttempt) {
                     // Load the completed attempt details and show results
                     console.log('✅ Found existing completed attempt:', userCompletedAttempt.attemptId);
@@ -42,12 +46,16 @@ export function useQuiz() {
                         Number(quizId),
                         userCompletedAttempt.attemptId
                     );
-                    
+
+                    // DEBUG: Log the attemptDetail to understand the data structure
+                    console.log('📊 Attempt Detail from API:', attemptDetail);
+                    console.log('📊 Score:', attemptDetail.score, 'MaxScore:', attemptDetail.maxScore, 'Percentage:', attemptDetail.percentage);
+
                     // Convert attempt detail to quiz results format
                     // Use percentage from API or calculate from score/maxScore
-                    const percentage = attemptDetail.percentage ?? 
+                    const percentage = attemptDetail.percentage ??
                         (attemptDetail.maxScore > 0 ? (attemptDetail.score / attemptDetail.maxScore) * 100 : 0);
-                    
+
                     const results = {
                         score: percentage,  // QuizResults expects score as percentage
                         correctAnswers: attemptDetail.questions?.filter(q => q.isCorrect).length || 0,
@@ -64,7 +72,7 @@ export function useQuiz() {
                         timeTaken: attemptDetail.timeTaken,
                         attemptId: attemptDetail.attemptId
                     };
-                    
+
                     setQuizResults(results);
                     setShowQuizResults(true);
                     setCurrentQuestionIndex(0);
@@ -74,7 +82,7 @@ export function useQuiz() {
             } catch (attemptError) {
                 console.log('No existing attempt found or error checking:', attemptError);
             }
-            
+
             // No completed attempt found - start fresh quiz
             setCurrentQuestionIndex(0);
             setSelectedAnswers({});
@@ -88,18 +96,6 @@ export function useQuiz() {
 
     const selectAnswer = (questionIndex: number, answer: string) => {
         setSelectedAnswers(prev => ({ ...prev, [questionIndex]: answer }));
-    };
-
-    const nextQuestion = () => {
-        if (currentQuestionIndex < (quizContent?.questions?.length || 0) - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
-        }
-    };
-
-    const previousQuestion = () => {
-        if (currentQuestionIndex > 0) {
-            setCurrentQuestionIndex(prev => prev - 1);
-        }
     };
 
     const submitQuiz = async () => {
@@ -119,6 +115,8 @@ export function useQuiz() {
             console.log('Quiz submission response:', response);
 
             const results = response.data.data || response.data;
+            console.log('📊 Parsed results for QuizResults component:', results);
+            console.log('📊 Score:', results.score, 'CorrectAnswers:', results.correctAnswers, 'TotalQuestions:', results.totalQuestions);
             setQuizResults(results);
             setShowQuizResults(true);
         } catch (error: any) {
@@ -140,6 +138,44 @@ export function useQuiz() {
         setSelectedAnswers({});
         setCurrentQuestionIndex(0);
         setQuizStartTime(new Date());
+        setCurrentHint(null);
+    };
+
+    const getHint = async () => {
+        if (!selectedQuizId || !quizContent) return;
+
+        const currentQuestion = quizContent.questions?.[currentQuestionIndex];
+        if (!currentQuestion) return;
+
+        setIsLoadingHint(true);
+        try {
+            const hintData = await studioService.getQuestionHint(selectedQuizId, currentQuestion.questionId);
+            setCurrentHint(hintData.hint);
+        } catch (error) {
+            console.error('Failed to get hint:', error);
+            setCurrentHint('Không thể tải gợi ý. Vui lòng thử lại.');
+        } finally {
+            setIsLoadingHint(false);
+        }
+    };
+
+    const clearHint = () => {
+        setCurrentHint(null);
+    };
+
+    // Clear hint when moving to a different question
+    const nextQuestion = () => {
+        if (currentQuestionIndex < (quizContent?.questions?.length || 0) - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
+            setCurrentHint(null);
+        }
+    };
+
+    const previousQuestion = () => {
+        if (currentQuestionIndex > 0) {
+            setCurrentQuestionIndex(prev => prev - 1);
+            setCurrentHint(null);
+        }
     };
 
     return {
@@ -150,11 +186,15 @@ export function useQuiz() {
         showQuizResults,
         quizResults,
         isSubmittingQuiz,
+        currentHint,
+        isLoadingHint,
         loadQuiz,
         selectAnswer,
         nextQuestion,
         previousQuestion,
         submitQuiz,
-        retryQuiz
+        retryQuiz,
+        getHint,
+        clearHint
     };
 }
