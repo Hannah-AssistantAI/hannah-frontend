@@ -152,19 +152,6 @@ export const QuizDisplayModal: React.FC<QuizDisplayModalProps> = ({
                         )}
                     </div>
                 )}
-
-                {!showResults && (
-                    <div className="quiz-modal-footer">
-                        <button className="quiz-feedback-btn">
-                            <ThumbsUp size={18} />
-                            Nội dung hữu ích
-                        </button>
-                        <button className="quiz-feedback-btn">
-                            <ThumbsDown size={18} />
-                            Nội dung không phù hợp
-                        </button>
-                    </div>
-                )}
             </div>
         </div>
     )
