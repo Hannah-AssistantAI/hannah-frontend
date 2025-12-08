@@ -5,6 +5,8 @@
 
 // Python API Base URL (same as pythonApiClient.ts)
 const PYTHON_API_URL = 'http://localhost:8001';
+// .NET API Base URL for SQL Server metrics
+const DOTNET_API_URL = 'http://localhost:5001';
 
 // Helper function to format bytes to human-readable size
 function formatBytes(bytes: number): string {
@@ -124,7 +126,19 @@ export interface ElasticsearchMetrics {
 export interface DatabaseMetrics {
     mongodb: MongoDBMetrics;
     elasticsearch: ElasticsearchMetrics;
+    sqlserver?: SqlServerMetrics;
     timestamp: string;
+}
+
+// SQL Server metrics from .NET API
+export interface SqlServerMetrics {
+    connected: boolean;
+    status?: string;
+    activeConnections?: number;
+    maxConnections?: number;
+    size?: string;
+    avgQueryTime?: number;
+    error?: string;
 }
 
 export interface ApplicationMetrics {
@@ -136,14 +150,20 @@ export interface ApplicationMetrics {
     timestamp: string;
 }
 
-// Raw Gemini metrics from backend
+// Raw Gemini metrics from backend (matches actual API response)
 interface RawGeminiMetrics {
     apiCallsToday: number;
-    totalTokensUsed: number;
-    avgResponseTime: number;
-    errorRate: number;
-    slowestResponse: number;
-    fastestResponse: number;
+    totalApiCalls: number;
+    tokensToday: number;
+    totalTokens: number;
+    conversationsToday: number;
+    totalConversations: number;
+    model: string;
+    provider: string;
+    timestamp: string;
+    note: string;
+    avgResponseTime?: number;
+    errorRate?: number;
 }
 
 export interface GeminiMetrics {
@@ -169,9 +189,11 @@ interface ApiResponse<T> {
 
 class MonitoringService {
     private baseUrl: string;
+    private dotnetUrl: string;
 
     constructor() {
         this.baseUrl = PYTHON_API_URL || 'http://localhost:8001';
+        this.dotnetUrl = DOTNET_API_URL || 'http://localhost:5001';
     }
 
     private async fetchWithTimeout<T>(url: string, timeout = 10000): Promise<T> {
@@ -244,56 +266,105 @@ class MonitoringService {
     }
 
     /**
-     * Get database metrics (MongoDB, Elasticsearch)
+     * Get database metrics (MongoDB, Elasticsearch, SQL Server)
      * Transforms backend response to match frontend expected format
+     * SQL Server is fetched separately from .NET API with independent error handling
      */
     async getDatabaseMetrics(): Promise<DatabaseMetrics> {
-        try {
-            const response = await this.fetchWithTimeout<ApiResponse<RawDatabaseMetrics>>(
-                `${this.baseUrl}/api/v1/monitoring/database`
-            );
-            const raw = response.data;
+        // Fetch Python metrics (MongoDB, ES) and .NET metrics (SQL Server) in parallel
+        // Using Promise.allSettled to prevent one failure from crashing everything
+        const [pythonResult, sqlServerResult] = await Promise.allSettled([
+            this.fetchWithTimeout<ApiResponse<RawDatabaseMetrics>>(
+                `${this.baseUrl}/api/v1/monitoring/database`,
+                5000 // 5 second timeout for Python
+            ),
+            this.getSqlServerMetricsSafe() // Separate safe call for SQL Server
+        ]);
 
-            // Transform raw backend data to frontend format
-            // Note: Backend now returns 'connected' directly, not 'status'
+        // Process Python metrics (MongoDB, ES)
+        let mongodb: MongoDBMetrics = {
+            connected: false,
+            activeConnections: 0,
+            availableConnections: 0,
+            storageSizeFormatted: 'N/A',
+            error: 'Unable to fetch metrics',
+        };
+        let elasticsearch: ElasticsearchMetrics = {
+            connected: false,
+            status: 'unknown',
+            indexedDocuments: 0,
+            indexSizeFormatted: 'N/A',
+            error: 'Unable to fetch metrics',
+        };
+
+        if (pythonResult.status === 'fulfilled') {
+            const raw = pythonResult.value.data;
+            mongodb = {
+                connected: raw.mongodb?.connected ?? false,
+                activeConnections: raw.mongodb?.activeConnections ?? 0,
+                availableConnections: raw.mongodb?.availableConnections ?? 0,
+                totalConversations: raw.mongodb?.totalConversations ?? 0,
+                storageSizeFormatted: raw.mongodb?.storageSizeFormatted ?? 'N/A',
+                collections: raw.mongodb?.collections ?? 0,
+                error: raw.mongodb?.error,
+            };
+            elasticsearch = {
+                connected: raw.elasticsearch?.connected ?? false,
+                status: raw.elasticsearch?.status ?? 'unknown',
+                indexedDocuments: raw.elasticsearch?.indexedDocuments ?? 0,
+                indexSizeFormatted: raw.elasticsearch?.indexSizeFormatted ?? 'N/A',
+                error: raw.elasticsearch?.error,
+            };
+        }
+
+        // Process SQL Server metrics (already safe, returns default on error)
+        const sqlserver: SqlServerMetrics = sqlServerResult.status === 'fulfilled'
+            ? sqlServerResult.value
+            : { connected: false, error: 'Unable to fetch metrics' };
+
+        return {
+            mongodb,
+            elasticsearch,
+            sqlserver,
+            timestamp: new Date().toISOString(),
+        };
+    }
+
+    /**
+     * Safely fetch SQL Server metrics from .NET API
+     * Returns default values on any error - will NEVER throw or crash
+     */
+    private async getSqlServerMetricsSafe(): Promise<SqlServerMetrics> {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+
+            const response = await fetch(`${this.dotnetUrl}/api/monitoring/sqlserver`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal,
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                return { connected: false, error: `HTTP ${response.status}` };
+            }
+
+            const json = await response.json();
+            const data = json.data;
+
             return {
-                mongodb: {
-                    connected: raw.mongodb?.connected ?? false,
-                    activeConnections: raw.mongodb?.activeConnections ?? 0,
-                    availableConnections: raw.mongodb?.availableConnections ?? 0,
-                    totalConversations: raw.mongodb?.totalConversations ?? 0,
-                    storageSizeFormatted: raw.mongodb?.storageSizeFormatted ?? 'N/A',
-                    collections: raw.mongodb?.collections ?? 0,
-                    error: raw.mongodb?.error,
-                },
-                elasticsearch: {
-                    connected: raw.elasticsearch?.connected ?? false,
-                    status: raw.elasticsearch?.status ?? 'unknown',
-                    indexedDocuments: raw.elasticsearch?.indexedDocuments ?? 0,
-                    indexSizeFormatted: raw.elasticsearch?.indexSizeFormatted ?? 'N/A',
-                    error: raw.elasticsearch?.error,
-                },
-                timestamp: new Date().toISOString(),
+                connected: data?.status === 'healthy',
+                status: data?.status ?? 'unknown',
+                activeConnections: data?.activeConnections ?? 0,
+                maxConnections: data?.maxConnections ?? 0,
+                size: data?.size ?? 'N/A',
+                avgQueryTime: data?.avgQueryTime ?? 0,
             };
         } catch {
-            // Return default values on error
-            return {
-                mongodb: {
-                    connected: false,
-                    activeConnections: 0,
-                    availableConnections: 0,
-                    storageSizeFormatted: 'N/A',
-                    error: 'Unable to fetch metrics',
-                },
-                elasticsearch: {
-                    connected: false,
-                    status: 'unknown',
-                    indexedDocuments: 0,
-                    indexSizeFormatted: 'N/A',
-                    error: 'Unable to fetch metrics',
-                },
-                timestamp: new Date().toISOString(),
-            };
+            // Silently return default - no console.error to avoid noise
+            return { connected: false, error: 'Service unavailable' };
         }
     }
 
@@ -345,15 +416,15 @@ class MonitoringService {
             // Transform raw backend data to frontend format
             return {
                 apiCallsToday: raw?.apiCallsToday ?? 0,
-                totalApiCalls: raw?.apiCallsToday ?? 0, // Backend only provides today's count
-                tokensToday: raw?.totalTokensUsed ?? 0,
-                totalTokens: raw?.totalTokensUsed ?? 0,
-                conversationsToday: 0, // Not provided by backend
-                totalConversations: 0, // Not provided by backend
-                model: 'gemini-2.0-flash', // Default model
-                provider: 'Google AI',
-                timestamp: new Date().toISOString(),
-                note: raw?.avgResponseTime ? `Avg response: ${raw.avgResponseTime.toFixed(0)}ms` : 'Metrics from today\'s usage',
+                totalApiCalls: raw?.totalApiCalls ?? 0,
+                tokensToday: raw?.tokensToday ?? 0,
+                totalTokens: raw?.totalTokens ?? 0,
+                conversationsToday: raw?.conversationsToday ?? 0,
+                totalConversations: raw?.totalConversations ?? 0,
+                model: raw?.model ?? 'gemini-2.0-flash',
+                provider: raw?.provider ?? 'Google AI',
+                timestamp: raw?.timestamp ?? new Date().toISOString(),
+                note: raw?.note ?? 'Metrics from today\'s usage',
                 avgResponseTime: raw?.avgResponseTime ?? 0,
                 errorRate: raw?.errorRate ?? 0,
             };

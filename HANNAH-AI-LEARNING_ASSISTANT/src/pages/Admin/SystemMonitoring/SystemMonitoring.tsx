@@ -311,13 +311,23 @@ export const SystemMonitoring: React.FC = () => {
             </div>
 
             {/* Elasticsearch */}
-            <div>
+            <div className="mb-4 pb-4 border-b border-slate-100">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-semibold text-slate-700 text-sm">Elasticsearch</h4>
                 <StatusBadge connected={dbMetrics.elasticsearch.connected} />
               </div>
               <MetricDataset label="Status" value={dbMetrics.elasticsearch.status} status={dbMetrics.elasticsearch.status === 'green' ? 'success' : 'warning'} />
               <MetricDataset label="Documents" value={dbMetrics.elasticsearch.indexedDocuments?.toLocaleString()} />
+            </div>
+
+            {/* SQL Server */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-semibold text-slate-700 text-sm">SQL Server</h4>
+                <StatusBadge connected={dbMetrics.sqlserver?.connected ?? false} />
+              </div>
+              <MetricDataset label="Connections" value={`${dbMetrics.sqlserver?.activeConnections ?? 0}/${dbMetrics.sqlserver?.maxConnections ?? 0}`} />
+              <MetricDataset label="Database Size" value={dbMetrics.sqlserver?.size ?? 'N/A'} />
             </div>
           </StatCard>
         )}
@@ -329,11 +339,6 @@ export const SystemMonitoring: React.FC = () => {
               <MetricDataset label="Total Conversations" value={appMetrics.totalConversations.toLocaleString()} />
               <MetricDataset label="Flashcards" value={appMetrics.totalFlashcards.toLocaleString()} />
               <MetricDataset label="Quizzes" value={appMetrics.totalQuizzes.toLocaleString()} />
-              <MetricDataset
-                label="Learn Topics"
-                value={appMetrics.totalLearnTopics.toLocaleString()}
-                subtext={`+${appMetrics.topicsCreatedToday} today`}
-              />
             </div>
             <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100">
               <p className="text-xs text-amber-800 italic">
