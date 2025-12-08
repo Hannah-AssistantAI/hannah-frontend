@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { studioService } from '../../../service/studioService'
 import studentService, { formatRoadmapAsMarkdown } from '../../../service/studentService'
+import orientationService from '../../../service/orientationService'
 import type { StudioItem } from '../types'
 import { mockRoadmapContent } from '../../../data/mockData'
 
@@ -271,28 +272,27 @@ export const useStudio = (conversationId: number | null) => {
                     });
                     break;
                 case 'roadmap':
-                    // Call real API for full roadmap overview
+                    // Fetch admin-edited Course Overview content from Orientation API
                     try {
-                        const roadmapData = await studentService.getFullRoadmapOverview();
-                        const formattedContent = formatRoadmapAsMarkdown(roadmapData);
+                        const orientationData = await orientationService.getContent();
                         response = {
                             data: {
                                 data: {
                                     roadmapId: `roadmap-${Date.now()}`,
-                                    title: roadmapData.current_semester ? `Lộ trình học tập - ${roadmapData.current_semester}` : 'Lộ trình học tập',
-                                    content: formattedContent
+                                    title: orientationData.subjectName || 'Định hướng',
+                                    content: orientationData.content || 'Chưa có nội dung. Vui lòng liên hệ Admin để cập nhật.'
                                 }
                             }
                         };
                     } catch (error) {
-                        console.error('Failed to fetch roadmap from API, using mock data:', error);
-                        // Fallback to mock data if API fails
+                        console.error('Failed to fetch orientation content, using fallback:', error);
+                        // Fallback message if API fails
                         response = {
                             data: {
                                 data: {
-                                    roadmapId: `mock-${Date.now()}`,
-                                    title: effectiveTitle,
-                                    content: mockRoadmapContent.content
+                                    roadmapId: `fallback-${Date.now()}`,
+                                    title: 'Định hướng',
+                                    content: 'Không thể tải nội dung định hướng. Vui lòng thử lại sau.'
                                 }
                             }
                         };

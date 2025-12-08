@@ -103,7 +103,7 @@ class AuthService {
 
       if (!response.ok) {
         const error = await response.json();
-        
+
         // Map HTTP status to specific error codes
         switch (response.status) {
           case 401:
@@ -297,6 +297,35 @@ class AuthService {
     } catch (error) {
       console.error('Change password error:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Verify password (for sensitive operations like editing protected content)
+   */
+  async verifyPassword(password: string): Promise<boolean> {
+    try {
+      const token = this.getAccessToken();
+
+      if (!token) {
+        throw new Error('No access token available');
+      }
+
+      const response = await fetch(buildApiUrl('/api/Auth/verify-password'), {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify({ password }),
+      });
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const result = await response.json();
+      return result.success === true;
+    } catch (error) {
+      console.error('Verify password error:', error);
+      return false;
     }
   }
 
