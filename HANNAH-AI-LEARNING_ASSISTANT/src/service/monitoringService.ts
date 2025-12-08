@@ -6,7 +6,32 @@
 // Python API Base URL (same as pythonApiClient.ts)
 const PYTHON_API_URL = 'http://localhost:8001';
 
-// Types for monitoring data
+// Helper function to format bytes to human-readable size
+function formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+// Raw response from backend
+interface RawSystemMetrics {
+    cpu: number;  // Backend returns just a number
+    memory: {
+        percent: number;
+        used: number;
+        total: number;
+    };
+    disk: {
+        percent: number;
+        used: number;
+        total: number;
+    };
+    uptime: string;
+}
+
+// Types for monitoring data (transformed for frontend use)
 export interface SystemMetrics {
     cpu: {
         percent: number;
@@ -31,6 +56,42 @@ export interface SystemMetrics {
     uptime: string;
     bootTime: string;
     timestamp: string;
+}
+
+// Raw MongoDB metrics from backend (matches actual API response)
+interface RawMongoDBMetrics {
+    connected: boolean;
+    activeConnections: number;
+    availableConnections: number;
+    totalConversations?: number;
+    totalQuizQuestions?: number;
+    totalLearnTopics?: number;
+    dataSize?: number;
+    dataSizeFormatted?: string;
+    storageSize?: number;
+    storageSizeFormatted?: string;
+    collections: number;
+    error?: string;
+}
+
+// Raw Elasticsearch metrics from backend (matches actual API response)
+interface RawElasticsearchMetrics {
+    connected: boolean;
+    status: string;  // 'yellow', 'green', 'red'
+    clusterName?: string;
+    numberOfNodes?: number;
+    activeShards?: number;
+    indexedDocuments: number;
+    indexSize?: number;
+    indexSizeFormatted?: string;
+    error?: string;
+}
+
+// Raw database response from backend
+interface RawDatabaseMetrics {
+    mongodb: RawMongoDBMetrics;
+    elasticsearch: RawElasticsearchMetrics;
+    timestamp?: string;
 }
 
 export interface MongoDBMetrics {
@@ -61,8 +122,8 @@ export interface ElasticsearchMetrics {
 }
 
 export interface DatabaseMetrics {
-    mongodb: MongoDBMetrics | null;
-    elasticsearch: ElasticsearchMetrics | null;
+    mongodb: MongoDBMetrics;
+    elasticsearch: ElasticsearchMetrics;
     timestamp: string;
 }
 
@@ -73,6 +134,16 @@ export interface ApplicationMetrics {
     totalQuizzes: number;
     totalFlashcards: number;
     timestamp: string;
+}
+
+// Raw Gemini metrics from backend
+interface RawGeminiMetrics {
+    apiCallsToday: number;
+    totalTokensUsed: number;
+    avgResponseTime: number;
+    errorRate: number;
+    slowestResponse: number;
+    fastestResponse: number;
 }
 
 export interface GeminiMetrics {
@@ -86,6 +157,8 @@ export interface GeminiMetrics {
     provider: string;
     timestamp: string;
     note: string;
+    avgResponseTime: number;
+    errorRate: number;
 }
 
 // API Response wrapper
@@ -134,42 +207,173 @@ class MonitoringService {
 
     /**
      * Get system metrics (CPU, Memory, Disk, Uptime)
+     * Transforms backend response to match frontend expected format
      */
     async getSystemMetrics(): Promise<SystemMetrics> {
-        const response = await this.fetchWithTimeout<ApiResponse<SystemMetrics>>(
+        const response = await this.fetchWithTimeout<ApiResponse<RawSystemMetrics>>(
             `${this.baseUrl}/api/v1/monitoring/system`
         );
-        return response.data;
+        const raw = response.data;
+
+        // Transform raw backend data to frontend format
+        return {
+            cpu: {
+                percent: typeof raw.cpu === 'number' ? raw.cpu : 0,
+                cores: navigator.hardwareConcurrency || 4, // Use browser API or default
+            },
+            memory: {
+                percent: raw.memory?.percent ?? 0,
+                used: raw.memory?.used ?? 0,
+                total: raw.memory?.total ?? 0,
+                available: (raw.memory?.total ?? 0) - (raw.memory?.used ?? 0),
+                usedFormatted: formatBytes(raw.memory?.used ?? 0),
+                totalFormatted: formatBytes(raw.memory?.total ?? 0),
+            },
+            disk: {
+                percent: raw.disk?.percent ?? 0,
+                used: raw.disk?.used ?? 0,
+                total: raw.disk?.total ?? 0,
+                free: (raw.disk?.total ?? 0) - (raw.disk?.used ?? 0),
+                usedFormatted: formatBytes(raw.disk?.used ?? 0),
+                totalFormatted: formatBytes(raw.disk?.total ?? 0),
+            },
+            uptime: raw.uptime || 'N/A',
+            bootTime: '',
+            timestamp: new Date().toISOString(),
+        };
     }
 
     /**
      * Get database metrics (MongoDB, Elasticsearch)
+     * Transforms backend response to match frontend expected format
      */
     async getDatabaseMetrics(): Promise<DatabaseMetrics> {
-        const response = await this.fetchWithTimeout<ApiResponse<DatabaseMetrics>>(
-            `${this.baseUrl}/api/v1/monitoring/databases`
-        );
-        return response.data;
+        try {
+            const response = await this.fetchWithTimeout<ApiResponse<RawDatabaseMetrics>>(
+                `${this.baseUrl}/api/v1/monitoring/database`
+            );
+            const raw = response.data;
+
+            // Transform raw backend data to frontend format
+            // Note: Backend now returns 'connected' directly, not 'status'
+            return {
+                mongodb: {
+                    connected: raw.mongodb?.connected ?? false,
+                    activeConnections: raw.mongodb?.activeConnections ?? 0,
+                    availableConnections: raw.mongodb?.availableConnections ?? 0,
+                    totalConversations: raw.mongodb?.totalConversations ?? 0,
+                    storageSizeFormatted: raw.mongodb?.storageSizeFormatted ?? 'N/A',
+                    collections: raw.mongodb?.collections ?? 0,
+                    error: raw.mongodb?.error,
+                },
+                elasticsearch: {
+                    connected: raw.elasticsearch?.connected ?? false,
+                    status: raw.elasticsearch?.status ?? 'unknown',
+                    indexedDocuments: raw.elasticsearch?.indexedDocuments ?? 0,
+                    indexSizeFormatted: raw.elasticsearch?.indexSizeFormatted ?? 'N/A',
+                    error: raw.elasticsearch?.error,
+                },
+                timestamp: new Date().toISOString(),
+            };
+        } catch {
+            // Return default values on error
+            return {
+                mongodb: {
+                    connected: false,
+                    activeConnections: 0,
+                    availableConnections: 0,
+                    storageSizeFormatted: 'N/A',
+                    error: 'Unable to fetch metrics',
+                },
+                elasticsearch: {
+                    connected: false,
+                    status: 'unknown',
+                    indexedDocuments: 0,
+                    indexSizeFormatted: 'N/A',
+                    error: 'Unable to fetch metrics',
+                },
+                timestamp: new Date().toISOString(),
+            };
+        }
     }
 
     /**
      * Get application metrics (requests, conversations)
      */
     async getApplicationMetrics(): Promise<ApplicationMetrics> {
-        const response = await this.fetchWithTimeout<ApiResponse<ApplicationMetrics>>(
-            `${this.baseUrl}/api/v1/monitoring/application`
-        );
-        return response.data;
+        try {
+            const response = await this.fetchWithTimeout<ApiResponse<{
+                totalConversations: number;
+                totalLearnTopics: number;
+                topicsCreatedToday: number;
+                totalQuizzes: number;
+                totalFlashcards: number;
+            }>>(`${this.baseUrl}/api/v1/monitoring/application`);
+
+            const data = response.data;
+            return {
+                totalConversations: data.totalConversations ?? 0,
+                totalLearnTopics: data.totalLearnTopics ?? 0,
+                topicsCreatedToday: data.topicsCreatedToday ?? 0,
+                totalQuizzes: data.totalQuizzes ?? 0,
+                totalFlashcards: data.totalFlashcards ?? 0,
+                timestamp: new Date().toISOString(),
+            };
+        } catch {
+            return {
+                totalConversations: 0,
+                totalLearnTopics: 0,
+                topicsCreatedToday: 0,
+                totalQuizzes: 0,
+                totalFlashcards: 0,
+                timestamp: new Date().toISOString(),
+            };
+        }
     }
 
     /**
      * Get Gemini AI usage metrics
+     * Transforms backend response to match frontend expected format
      */
     async getGeminiMetrics(): Promise<GeminiMetrics> {
-        const response = await this.fetchWithTimeout<ApiResponse<GeminiMetrics>>(
-            `${this.baseUrl}/api/v1/monitoring/gemini`
-        );
-        return response.data;
+        try {
+            const response = await this.fetchWithTimeout<ApiResponse<RawGeminiMetrics>>(
+                `${this.baseUrl}/api/v1/monitoring/gemini`
+            );
+            const raw = response.data;
+
+            // Transform raw backend data to frontend format
+            return {
+                apiCallsToday: raw?.apiCallsToday ?? 0,
+                totalApiCalls: raw?.apiCallsToday ?? 0, // Backend only provides today's count
+                tokensToday: raw?.totalTokensUsed ?? 0,
+                totalTokens: raw?.totalTokensUsed ?? 0,
+                conversationsToday: 0, // Not provided by backend
+                totalConversations: 0, // Not provided by backend
+                model: 'gemini-2.0-flash', // Default model
+                provider: 'Google AI',
+                timestamp: new Date().toISOString(),
+                note: raw?.avgResponseTime ? `Avg response: ${raw.avgResponseTime.toFixed(0)}ms` : 'Metrics from today\'s usage',
+                avgResponseTime: raw?.avgResponseTime ?? 0,
+                errorRate: raw?.errorRate ?? 0,
+            };
+        } catch {
+            // Return default values on error
+            return {
+                apiCallsToday: 0,
+                totalApiCalls: 0,
+                tokensToday: 0,
+                totalTokens: 0,
+                conversationsToday: 0,
+                totalConversations: 0,
+                model: 'gemini-2.0-flash',
+                provider: 'Google AI',
+                timestamp: new Date().toISOString(),
+                note: 'Unable to fetch metrics',
+                avgResponseTime: 0,
+                errorRate: 0,
+            };
+        }
     }
 
     /**
