@@ -103,8 +103,8 @@ export interface DashboardStats {
 
 export interface ConfigSettings {
   database: {
-    postgresHost: string;
-    postgresMaxConnections: number;
+    sqlServerHost: string;
+    sqlServerMaxConnections: number;
     mongodbUri: string;
     mongodbPoolSize: number;
     elasticsearchUrl: string;
