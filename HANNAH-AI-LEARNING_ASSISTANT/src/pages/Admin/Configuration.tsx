@@ -1,64 +1,156 @@
 // src/pages/Configuration.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { ConfigSettings } from '../../types';
 import { Card } from '../../components/Admin/Card';
 import { Badge } from 'lucide-react';
 import { InfoBox } from '../../components/Admin/InfoBox';
 import { Button } from '../../components/Admin/Button';
 import AdminPageWrapper from './components/AdminPageWrapper';
+import configurationService from '../../service/configurationService';
+
+// Default config values - used as fallback when API is unavailable
+const DEFAULT_CONFIG: ConfigSettings = {
+  database: {
+    sqlServerHost: 'localhost',
+    sqlServerMaxConnections: 100,
+    mongodbUri: 'mongodb://localhost:27017',
+    mongodbPoolSize: 50,
+    elasticsearchUrl: 'http://localhost:9200'
+  },
+  gemini: {
+    apiKey: '**********************',
+    model: 'gemini-2.0-flash',
+    temperature: 0.7,
+    maxTokens: 2048,
+    topP: 0.9,
+    topK: 40
+  },
+  application: {
+    sessionTimeout: 60,
+    dailyQuestionLimit: 100,
+    websocketPort: 8000,
+    apiRateLimit: 60,
+    cacheExpiry: 24,
+    enableEmailNotifications: true,
+    enableRealtimeMonitoring: true
+  },
+  integrations: {
+    youtubeApiKey: '',
+    githubApiToken: '',
+    stackOverflowApiKey: '',
+    enableAutoFetch: false
+  }
+};
 
 export const Configuration: React.FC = () => {
-  // MOCK DATA IMPLEMENTATION
-  const [config, setConfig] = useState<ConfigSettings | null>({
-    database: {
-      postgresHost: 'localhost',
-      postgresMaxConnections: 100,
-      mongodbUri: 'mongodb://localhost:27017',
-      mongodbPoolSize: 50,
-      elasticsearchUrl: 'http://localhost:9200'
-    },
-    gemini: {
-      apiKey: '**********************',
-      model: 'gemini-1.5-flash-2.0',
-      temperature: 0.7,
-      maxTokens: 2048,
-      topP: 0.9,
-      topK: 40
-    },
-    application: {
-      sessionTimeout: 60,
-      dailyQuestionLimit: 100,
-      websocketPort: 8000,
-      apiRateLimit: 60,
-      cacheExpiry: 24,
-      enableEmailNotifications: true,
-      enableRealtimeMonitoring: true
-    },
-    integrations: {
-      youtubeApiKey: '',
-      githubApiToken: '',
-      stackOverflowApiKey: '',
-      enableAutoFetch: false
-    }
-  });
+  const [config, setConfig] = useState<ConfigSettings | null>(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Mock update function
-  const updateConfig = async (section: keyof ConfigSettings, formData: any) => {
-    setSaving(true);
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+  // Load configuration from backend on mount
+  const loadConfig = useCallback(async () => {
+    setLoading(true);
+    try {
+      const settings = await configurationService.getConfigurationSettings();
 
-    setConfig(prev => prev ? ({
-      ...prev,
-      [section]: formData
-    }) : null);
+      // Map backend settings to frontend config structure
+      setConfig({
+        database: {
+          sqlServerHost: settings.database['database.sqlserver.host'] || DEFAULT_CONFIG.database.sqlServerHost,
+          sqlServerMaxConnections: parseInt(settings.database['database.sqlserver.max_connections'] || String(DEFAULT_CONFIG.database.sqlServerMaxConnections)),
+          mongodbUri: settings.database['database.mongodb.uri'] || DEFAULT_CONFIG.database.mongodbUri,
+          mongodbPoolSize: parseInt(settings.database['database.mongodb.pool_size'] || String(DEFAULT_CONFIG.database.mongodbPoolSize)),
+          elasticsearchUrl: settings.database['database.elasticsearch.url'] || DEFAULT_CONFIG.database.elasticsearchUrl,
+        },
+        gemini: {
+          apiKey: settings.gemini['gemini.api_key'] || DEFAULT_CONFIG.gemini.apiKey,
+          model: settings.gemini['gemini.model'] || DEFAULT_CONFIG.gemini.model,
+          temperature: parseFloat(settings.gemini['gemini.temperature'] || String(DEFAULT_CONFIG.gemini.temperature)),
+          maxTokens: parseInt(settings.gemini['gemini.max_tokens'] || String(DEFAULT_CONFIG.gemini.maxTokens)),
+          topP: parseFloat(settings.gemini['gemini.top_p'] || String(DEFAULT_CONFIG.gemini.topP)),
+          topK: parseInt(settings.gemini['gemini.top_k'] || String(DEFAULT_CONFIG.gemini.topK)),
+        },
+        application: {
+          sessionTimeout: parseInt(settings.application['application.session_timeout'] || String(DEFAULT_CONFIG.application.sessionTimeout)),
+          dailyQuestionLimit: parseInt(settings.application['application.daily_question_limit'] || String(DEFAULT_CONFIG.application.dailyQuestionLimit)),
+          websocketPort: parseInt(settings.application['application.websocket_port'] || String(DEFAULT_CONFIG.application.websocketPort)),
+          apiRateLimit: parseInt(settings.application['application.api_rate_limit'] || String(DEFAULT_CONFIG.application.apiRateLimit)),
+          cacheExpiry: parseInt(settings.application['application.cache_expiry'] || String(DEFAULT_CONFIG.application.cacheExpiry)),
+          enableEmailNotifications: settings.application['application.enable_email_notifications'] === 'true',
+          enableRealtimeMonitoring: settings.application['application.enable_realtime_monitoring'] === 'true',
+        },
+        integrations: DEFAULT_CONFIG.integrations, // Keep default for integrations
+      });
+    } catch (error) {
+      console.warn('Failed to load config from API, using defaults:', error);
+      setConfig(DEFAULT_CONFIG);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadConfig();
+  }, [loadConfig]);
+
+  // Update config via backend API
+  const updateConfig = async (section: keyof ConfigSettings, formData: Record<string, unknown>) => {
+    setSaving(true);
+    let allSuccess = true;
+
+    try {
+      // Map frontend field names to backend setting keys
+      const keyMappings: Record<string, Record<string, string>> = {
+        database: {
+          sqlServerHost: 'database.sqlserver.host',
+          sqlServerMaxConnections: 'database.sqlserver.max_connections',
+          mongodbUri: 'database.mongodb.uri',
+          mongodbPoolSize: 'database.mongodb.pool_size',
+          elasticsearchUrl: 'database.elasticsearch.url',
+        },
+        gemini: {
+          apiKey: 'gemini.api_key',
+          model: 'gemini.model',
+          temperature: 'gemini.temperature',
+          maxTokens: 'gemini.max_tokens',
+          topP: 'gemini.top_p',
+          topK: 'gemini.top_k',
+        },
+        application: {
+          sessionTimeout: 'application.session_timeout',
+          dailyQuestionLimit: 'application.daily_question_limit',
+          websocketPort: 'application.websocket_port',
+          apiRateLimit: 'application.api_rate_limit',
+          cacheExpiry: 'application.cache_expiry',
+          enableEmailNotifications: 'application.enable_email_notifications',
+          enableRealtimeMonitoring: 'application.enable_realtime_monitoring',
+        },
+      };
+
+      const mappings = keyMappings[section] || {};
+
+      // Update each field in the section
+      for (const [fieldName, value] of Object.entries(formData)) {
+        const settingKey = mappings[fieldName];
+        if (settingKey) {
+          const success = await configurationService.updateSetting(settingKey, String(value));
+          if (!success) {
+            allSuccess = false;
+          }
+        }
+      }
+
+      // Update local state
+      setConfig(prev => prev ? ({ ...prev, [section]: formData }) : null);
+    } catch (error) {
+      console.error('Failed to update config:', error);
+      allSuccess = false;
+    }
 
     setSaving(false);
-    return { success: true };
+    return { success: allSuccess };
   };
 
   const handleSaveConfig = async (section: keyof ConfigSettings, formData: any) => {
@@ -184,21 +276,21 @@ const DatabaseConfigCard: React.FC<{
 
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label className="form-label">PostgreSQL Host</label>
+          <label className="form-label">SQL Server Host</label>
           <input
             type="text"
             className="form-input"
-            value={formData.postgresHost}
-            onChange={(e) => setFormData({ ...formData, postgresHost: e.target.value })}
+            value={formData.sqlServerHost}
+            onChange={(e) => setFormData({ ...formData, sqlServerHost: e.target.value })}
           />
         </div>
         <div className="form-group">
-          <label className="form-label">PostgreSQL Max Connections</label>
+          <label className="form-label">SQL Server Max Connections</label>
           <input
             type="number"
             className="form-input"
-            value={formData.postgresMaxConnections}
-            onChange={(e) => setFormData({ ...formData, postgresMaxConnections: parseInt(e.target.value) })}
+            value={formData.sqlServerMaxConnections}
+            onChange={(e) => setFormData({ ...formData, sqlServerMaxConnections: parseInt(e.target.value) })}
           />
         </div>
         <div className="form-group">
@@ -281,9 +373,12 @@ const GeminiConfigCard: React.FC<{
             value={formData.model}
             onChange={(e) => setFormData({ ...formData, model: e.target.value })}
           >
-            <option value="gemini-1.5-flash-2.0">gemini-1.5-flash-2.0 (Recommended)</option>
+            <option value="gemini-2.0-flash">gemini-2.0-flash (Recommended)</option>
+            <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
             <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+            <option value="gemini-1.5-flash-8b">gemini-1.5-flash-8b</option>
             <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+            <option value="gemini-2.5-flash-preview-05-20">gemini-2.5-flash-preview (Latest)</option>
           </select>
           <small style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '4px' }}>
             ✅ Can select available models
