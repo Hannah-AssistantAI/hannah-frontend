@@ -49,6 +49,7 @@ export interface UserData {
   bio?: string | null;
   studentId?: string | null;
   studentSpecialty?: string | null;
+  currentSemester?: string | null; // Student's current semester
   notificationPreferences?: string | null;
   updatedAt?: string | null;
 }

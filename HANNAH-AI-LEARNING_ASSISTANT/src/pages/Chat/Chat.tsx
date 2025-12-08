@@ -17,6 +17,7 @@ import { ShareModal } from './components/modals/ShareModal'
 import { FlagMessageModal } from './components/modals/FlagMessageModal'
 import { FlagQuizModal } from './components/modals/FlagQuizModal'
 import { RoadmapModal } from './components/modals/RoadmapModal'
+import { RoadmapOptionsModal } from './components/modals/RoadmapOptionsModal'
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal'
 import { BigPictureSidebar } from './components/BigPictureSidebar'
 import { StudioSidebar } from './components/StudioSidebar'
@@ -86,8 +87,34 @@ export default function Chat() {
         { icon: FileText, title: 'Báo cáo', description: 'Report', type: 'report' as const, note: 'Tạo báo cáo dựa vào nội dung cuộc trò chuyện' },
         { icon: StickyNote, title: 'Thẻ ghi nhớ', description: 'Note cards', type: 'notecard' as const, note: 'Tạo thẻ ghi nhớ dựa vào nội dung cuộc trò chuyện' },
         { icon: ClipboardCheck, title: 'Bài kiểm tra', description: 'Quiz', type: 'quiz' as const, note: 'Tạo bài kiểm tra dựa vào nội dung cuộc trò chuyện' },
-        { icon: Map, title: 'Tư vấn lộ trình', description: 'Roadmap', type: 'roadmap' as const, note: 'Tạo lộ trình học tập dựa vào nội dung cuộc trò chuyện' }
+        { icon: Map, title: 'Tư vấn lộ trình', description: 'Roadmap', type: 'roadmap' as const, note: 'Xem lộ trình học tập và định hướng' }
     ]
+
+    // Wrapper for feature click with semester validation for roadmap
+    const handleFeatureClick = (type: 'mindmap' | 'report' | 'notecard' | 'quiz' | 'roadmap', title: string) => {
+        if (type === 'roadmap') {
+            // Check if student has set their semester (from context or localStorage)
+            const storedUser = localStorage.getItem('user_data');
+            const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+            const currentSemester = user?.currentSemester || parsedUser?.currentSemester;
+
+            console.log('=== Roadmap Semester Check ===');
+            console.log('user?.currentSemester:', user?.currentSemester);
+            console.log('parsedUser?.currentSemester:', parsedUser?.currentSemester);
+            console.log('Final currentSemester:', currentSemester);
+
+            if (!currentSemester) {
+                toast.error('Vui lòng cập nhật kỳ học hiện tại trong hồ sơ để sử dụng tính năng này!', {
+                    duration: 4000,
+                    icon: '📚'
+                });
+                navigate('/profile');
+                return;
+            }
+        }
+        // Proceed with studio feature click
+        studio.handleStudioFeatureClick(type, title);
+    }
 
     // Fetch subjects on component mount
     useEffect(() => {
@@ -349,7 +376,7 @@ export default function Chat() {
                     onToggle={() => studio.setIsStudioOpen(!studio.isStudioOpen)}
                     items={studio.studioItems}
                     features={studioFeatures}
-                    onFeatureClick={studio.handleStudioFeatureClick}
+                    onFeatureClick={handleFeatureClick}
                     onEditFeature={(type: 'mindmap' | 'notecard' | 'quiz' | 'roadmap') => {
                         studio.setSelectedFeatureType(type)
                         studio.setShowCustomizeModal(true)
@@ -541,6 +568,14 @@ export default function Chat() {
                 isOpen={studio.showRoadmapModal}
                 onClose={() => studio.setShowRoadmapModal(false)}
                 content={studio.roadmapContent}
+            />
+
+            {/* Roadmap Options Modal */}
+            <RoadmapOptionsModal
+                isOpen={studio.showRoadmapOptionsModal}
+                onClose={() => studio.setShowRoadmapOptionsModal(false)}
+                onSelectOption={studio.handleRoadmapOptionSelect}
+                currentSemester={user?.currentSemester || undefined}
             />
 
             {/* Delete Confirm Modal */}

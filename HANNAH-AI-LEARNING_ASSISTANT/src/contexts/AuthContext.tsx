@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import authService, { type UserData } from '../service/authService';
+import userService from '../service/userService';
 
 interface AuthContextType {
   user: UserData | null;
@@ -63,8 +64,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // Then, verify with the server
         const freshUser = await authService.getCurrentUser();
-        if (isMounted) {
-          setUser(freshUser);
+        if (isMounted && freshUser) {
+          // Fetch user profile to get currentSemester
+          try {
+            const profile = await userService.getUserProfile(freshUser.userId.toString());
+            const userWithSemester = {
+              ...freshUser,
+              currentSemester: profile.currentSemester
+            };
+            setUser(userWithSemester);
+            authService.saveUserData(userWithSemester); // Persist to localStorage
+          } catch (profileError) {
+            // If profile fetch fails, still set user without semester
+            console.warn('Could not fetch user profile for semester:', profileError);
+            setUser(freshUser);
+          }
         }
       } catch (error) {
         // If token is invalid or expired, clear session

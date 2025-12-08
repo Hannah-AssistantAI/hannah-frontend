@@ -198,6 +198,10 @@ export default function Profile({ embedded = false }: ProfileProps) {
                     if (semesterResult.success) {
                         setUserProfile(prev => prev ? { ...prev, current_semester: semesterResult.currentSemester } : prev);
                         setEditedProfile(prev => prev ? { ...prev, current_semester: semesterResult.currentSemester } : prev);
+                        // Update AuthContext so other components (like Chat) can access the new semester
+                        if (updateUser && user) {
+                            updateUser({ ...user, currentSemester: semesterResult.currentSemester });
+                        }
                         toast.success("Cập nhật kỳ học thành công!");
                     } else {
                         toast.error(semesterResult.message || "Cập nhật kỳ học thất bại.");
@@ -502,7 +506,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
                                         </div>
 
                                         {/* Role-specific fields */}
-                                        {userProfile.role === 'Student' && (
+                                        {userProfile.role.toLowerCase() === 'student' && (
                                             <>
                                                 <div className="profile-detail-item">
                                                     <label className="profile-detail-label">
@@ -571,7 +575,8 @@ export default function Profile({ embedded = false }: ProfileProps) {
                                             </>
                                         )}
 
-                                        {userProfile.role === 'Faculty' && (
+
+                                        {userProfile.role.toLowerCase() === 'faculty' && (
                                             <>
                                                 <div className="profile-detail-item">
                                                     <label className="profile-detail-label">
