@@ -6,7 +6,7 @@
 }
 
 .course-container {
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
 }
 
@@ -109,17 +109,18 @@
 
 /* Filters */
 .filters-container {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
-  padding: 16px;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 2px solid #cbd5e1;
+  padding: 20px 24px;
 }
 
 .filters-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 2fr 1fr 1fr;
   gap: 16px;
+  align-items: center;
 }
 
 .search-wrapper {
@@ -135,35 +136,41 @@
 }
 
 .search-input {
-  width: 80%;
-  padding: 10px 12px 10px 40px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 14px;
+  width: 100%;
+  padding: 14px 16px 14px 48px;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  font-size: 15px;
   outline: none;
   transition: all 0.2s ease;
+  background: white;
+}
+
+.search-input::placeholder {
+  color: #94a3b8;
 }
 
 .search-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
 .filter-select {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 14px;
+  padding: 14px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  font-size: 15px;
   background: white;
   outline: none;
   cursor: pointer;
   transition: all 0.2s ease;
+  color: #374151;
 }
 
 .filter-select:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
 .btn-more-filters {
@@ -171,18 +178,20 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 16px;
-  border: 1px solid #cbd5e1;
+  padding: 14px 20px;
+  border: 2px solid #e2e8f0;
   color: #475569;
   background: white;
-  border-radius: 8px;
+  border-radius: 14px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 500;
   transition: all 0.2s ease;
 }
 
 .btn-more-filters:hover {
-  background: #f8fafc;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
 /* Semester Stats */
@@ -238,16 +247,17 @@
 
 .course-card {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 2px solid #cbd5e1;
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
 .course-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
   transform: translateY(-4px);
+  border-color: #94a3b8;
 }
 
 .course-card-content {
@@ -543,10 +553,10 @@
 
 .form-section {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
-  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 2px solid #cbd5e1;
+  padding: 28px;
 }
 
 .form-section-title {
@@ -583,19 +593,21 @@
 
 .form-input,
 .form-select {
-  width: 90%;
-  padding: 10px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
   font-size: 14px;
   outline: none;
   transition: all 0.2s ease;
+  background: #f9fafb;
 }
 
 .form-input:focus,
 .form-select:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  background: white;
 }
 
 .form-textarea {
