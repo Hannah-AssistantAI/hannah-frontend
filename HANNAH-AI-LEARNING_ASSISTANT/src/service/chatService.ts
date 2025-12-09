@@ -1,4 +1,4 @@
-import pythonApiClient from './pythonApiClient';
+import pythonApiClient, { PYTHON_API_BASE_URL } from './pythonApiClient';
 
 export interface ChatQuery {
     type: 'text';
@@ -142,7 +142,7 @@ class ChatService {
         chatHistory: Array<{ role: string, content: string }> = [],
         onChunk: (chunk: string) => void
     ): Promise<string> {
-        const response = await fetch('http://localhost:8001/api/v1/studio/mindmap/chat/stream', {
+        const response = await fetch(`${PYTHON_API_BASE_URL}/api/v1/studio/mindmap/chat/stream`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -167,7 +167,7 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
         const quizId = currentFlag.metadata?.quizId || currentFlag.contentId;
         if (quizId) {
           try {
-            const PYTHON_API_BASE_URL = 'http://localhost:8001';
+            const PYTHON_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
             const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
 
             const quizResponse = await fetch(

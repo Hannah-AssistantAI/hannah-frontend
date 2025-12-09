@@ -191,6 +191,7 @@ export default function SharedConversationView() {
                                 key={index}
                                 message={message}
                                 messageIndex={index}
+                                messages={conversation.messages}
                                 expandedSources={{}}
                                 onToggleSource={() => { }}
                                 onInteractiveItemClick={() => { }}

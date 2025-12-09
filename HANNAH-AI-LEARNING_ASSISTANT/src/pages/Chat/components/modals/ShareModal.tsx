@@ -40,8 +40,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, convers
                 const enable = generalAccess === 'anyone'
                 const result = await conversationService.shareConversation(conversationId, user.userId, enable)
 
-                if (enable && result.shareUrl) {
-                    setShareUrl(result.shareUrl)
+                if (enable && result.shareToken) {
+                    setShareUrl(`${window.location.origin}/shared/${result.shareToken}`)
                 } else {
                     setShareUrl(null)
                 }

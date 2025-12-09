@@ -3,10 +3,10 @@
  * Connects to Python backend monitoring endpoints for real-time system metrics.
  */
 
-// Python API Base URL (same as pythonApiClient.ts)
-const PYTHON_API_URL = 'http://localhost:8001';
-// .NET API Base URL for SQL Server metrics
-const DOTNET_API_URL = 'http://localhost:5001';
+// API Base URLs from environment (routes through API Gateway in production)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+const PYTHON_API_URL = API_BASE_URL;
+const DOTNET_API_URL = API_BASE_URL;
 
 // Helper function to format bytes to human-readable size
 function formatBytes(bytes: number): string {
@@ -192,8 +192,8 @@ class MonitoringService {
     private dotnetUrl: string;
 
     constructor() {
-        this.baseUrl = PYTHON_API_URL || 'http://localhost:8001';
-        this.dotnetUrl = DOTNET_API_URL || 'http://localhost:5001';
+        this.baseUrl = PYTHON_API_URL;
+        this.dotnetUrl = DOTNET_API_URL;
     }
 
     private async fetchWithTimeout<T>(url: string, timeout = 10000): Promise<T> {

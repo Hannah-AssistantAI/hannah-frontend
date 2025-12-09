@@ -3,8 +3,8 @@ import { Key, BarChart2, Sparkles, AlertCircle, EyeOff, Eye, Save, RefreshCw, Ch
 import AdminPageWrapper from '../../components/AdminPageWrapper';
 import './APIKeys.css';
 
-// Python API Base URL
-const PYTHON_API_URL = 'http://localhost:8001';
+// Python API Base URL (uses same API Gateway as main app)
+const PYTHON_API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
 
 interface ApiKeyInfo {
   key_name: string;

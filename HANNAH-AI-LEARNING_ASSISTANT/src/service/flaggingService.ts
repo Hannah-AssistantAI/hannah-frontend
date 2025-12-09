@@ -327,8 +327,8 @@ class FlaggingService {
    */
   async flagQuiz(quizId: number, reason: string, attemptId?: number): Promise<any> {
     try {
-      // Python API base URL
-      const PYTHON_API_BASE_URL = 'http://localhost:8001';
+      // Python API uses same gateway as main API
+      const PYTHON_API_BASE_URL = API_BASE_URL;
 
       const body: any = { reason };
       if (attemptId !== undefined) {

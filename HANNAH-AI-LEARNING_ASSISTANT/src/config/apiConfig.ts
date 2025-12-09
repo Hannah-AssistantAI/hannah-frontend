@@ -3,8 +3,8 @@
  * Centralized API endpoints and base URL configuration
  */
 
-// Base API URL
-export const API_BASE_URL = 'http://localhost:5001';
+// Base API URL - uses environment variable in production, falls back to localhost for development
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
 
 /**
  * API Endpoints
@@ -138,7 +138,7 @@ export const API_ENDPOINTS = {
     MY_CONVERSATIONS: '/api/Conversations/my-conversations',
     GET_FLAGGED: '/api/Conversations/flagged',
     ASSIGN_FACULTY: (flagId: number) => `/api/Conversations/flagged/${flagId}/assign`,
-    GET_MESSAGE_CONTEXT: (conversationId: number, messageId: string) => 
+    GET_MESSAGE_CONTEXT: (conversationId: number, messageId: string) =>
       `/api/Conversations/${conversationId}/context-for-message/${messageId}`,
   },
 };

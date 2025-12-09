@@ -39,15 +39,15 @@ export default function Home() {
     const sampleQuestions = [
         {
             text: "React Hook hoạt động như thế nào?",
-            background: "url('/images/topics/topic_react_hooks_1764723105490.png')"
+            background: "url('/images/topics/react_hooks.png')"
         },
         {
             text: "Sự khác biệt giữa SQL và NoSQL?",
-            background: "url('/images/topics/topic_database_1764723120798.png')"
+            background: "url('/images/topics/database.png')"
         },
         {
             text: "Cách tối ưu hiệu suất web application?",
-            background: "url('/images/topics/topic_performance_1764723137954.png')"
+            background: "url('/images/topics/performance.png')"
         },
         {
             text: "Design Pattern nào phổ biến nhất?",
