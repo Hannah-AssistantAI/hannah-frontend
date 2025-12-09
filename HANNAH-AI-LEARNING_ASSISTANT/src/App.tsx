@@ -15,6 +15,7 @@ import UserManagement from './pages/Admin/UserManagement/UserManagement'
 import APIKeys from './pages/Admin/SystemMonitoring/APIKeys/APIKeys'
 import CourseManagement from './pages/Admin/CourseManagement/CourseManagement'
 import CourseDetail from './pages/Admin/CourseManagement/CourseDetail'
+import CourseOverviewManagement from './pages/Admin/CourseOverviewManagement/CourseOverviewManagement'
 
 import FacultyLayout from './pages/Faculty/FacultyLayout'
 import FAQManagement from './pages/Faculty/FAQ/FAQManagement'
@@ -92,6 +93,7 @@ function App() {
             <Route path="course-management" element={<CourseManagement />} />
             <Route path="course-management/:id" element={<CourseDetail />} />
             <Route path="semester-management" element={<SemesterManagement />} />
+            <Route path="course-overview" element={<CourseOverviewManagement />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path='configuration' element={<Configuration />} />
             <Route path="profile" element={<Profile embedded={true} />} />

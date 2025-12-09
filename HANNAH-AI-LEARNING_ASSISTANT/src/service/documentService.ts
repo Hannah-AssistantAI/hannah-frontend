@@ -31,11 +31,19 @@ export interface Document {
   updatedAt: string | null; // Changed from lastModifiedAt to match backend
 }
 
+// Document Category constants matching backend enum
+export const DocumentCategory = {
+  CourseOverview: 1
+} as const;
+
+export type DocumentCategoryType = typeof DocumentCategory[keyof typeof DocumentCategory];
+
 export interface CreateDocumentRequest {
   title: string;
   description?: string;
   subjectId: number;
   file: File;
+  category?: DocumentCategoryType; // For Course Overview documents (Admin only)
 }
 
 export interface UpdateDocumentRequest {
@@ -106,6 +114,10 @@ class DocumentService {
       }
       formData.append('SubjectId', data.subjectId.toString());
       formData.append('File', data.file);
+      // Add category for Course Overview documents (Admin only)
+      if (data.category !== undefined) {
+        formData.append('Category', data.category.toString());
+      }
 
       const response = await apiClient.postFormData<Document>(
         API_ENDPOINTS.DOCUMENT.CREATE,

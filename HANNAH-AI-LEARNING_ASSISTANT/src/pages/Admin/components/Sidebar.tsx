@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Users, Settings, Book, ChevronDown, ChevronRight, Key, Monitor, MessageSquare, Flag } from 'lucide-react';
+import { Users, Settings, Book, ChevronDown, ChevronRight, Key, Monitor, MessageSquare, Flag, Map } from 'lucide-react';
 import ReusableSidebar from '../../../components/Sidebar/Sidebar';
 import '../style.css';
 
@@ -34,6 +34,14 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ isCollapsed =
       >
         <Book size={20} />
         {!isCollapsed && <span className="sidebar-label">Course Management</span>}
+      </NavLink>
+      <NavLink
+        to="/admin/course-overview"
+        className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+        title={isCollapsed ? "Course Overview Docs" : ""}
+      >
+        <Map size={20} />
+        {!isCollapsed && <span className="sidebar-label">Course Overview Docs</span>}
       </NavLink>
 
       {/* <NavLink to="/admin/dashboard" className="sidebar-link" title={isCollapsed ? "Tổng quan" : ""}>

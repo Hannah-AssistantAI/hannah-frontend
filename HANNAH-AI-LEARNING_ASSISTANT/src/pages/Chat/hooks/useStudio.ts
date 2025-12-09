@@ -1,8 +1,50 @@
 import { useState, useEffect } from 'react'
 import { studioService } from '../../../service/studioService'
 import studentService, { formatRoadmapAsMarkdown } from '../../../service/studentService'
+import orientationService from '../../../service/orientationService'
 import type { StudioItem } from '../types'
 import { mockRoadmapContent } from '../../../data/mockData'
+
+/**
+ * Extract a specific semester section from orientation document
+ * Matches patterns like: 🟩 KỲ 1, 🟦 KỲ 2, etc.
+ */
+const extractSemesterSection = (content: string, semesterNumber: number): string | null => {
+    if (!content || semesterNumber < 1 || semesterNumber > 9) {
+        return null;
+    }
+
+    // Build regex to match semester header (with any emoji prefix)
+    // Pattern: Any emoji(s) + "KỲ" + space + number
+    const semesterPattern = new RegExp(
+        `([\\p{Emoji}\\s]*KỲ\\s*${semesterNumber}[^\\n]*)`,
+        'iu'
+    );
+
+    // Find start of target semester
+    const startMatch = content.match(semesterPattern);
+    if (!startMatch) {
+        return null;
+    }
+
+    const startIndex = content.indexOf(startMatch[0]);
+
+    // Find start of next semester (KỲ X+1 to KỲ 9)
+    let endIndex = content.length;
+    for (let nextSem = semesterNumber + 1; nextSem <= 9; nextSem++) {
+        const nextPattern = new RegExp(`[\\p{Emoji}\\s]*KỲ\\s*${nextSem}`, 'iu');
+        const nextMatch = content.substring(startIndex + startMatch[0].length).match(nextPattern);
+        if (nextMatch) {
+            endIndex = startIndex + startMatch[0].length + content.substring(startIndex + startMatch[0].length).indexOf(nextMatch[0]);
+            break;
+        }
+    }
+
+    // Extract the semester section
+    const section = content.substring(startIndex, endIndex).trim();
+
+    return section || null;
+};
 
 export const useStudio = (conversationId: number | null) => {
     const [isStudioOpen, setIsStudioOpen] = useState(true)
@@ -20,6 +62,7 @@ export const useStudio = (conversationId: number | null) => {
     const [showCustomizeModal, setShowCustomizeModal] = useState(false)
     const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
     const [showRoadmapModal, setShowRoadmapModal] = useState(false)
+    const [showRoadmapOptionsModal, setShowRoadmapOptionsModal] = useState(false)
     const [itemToDelete, setItemToDelete] = useState<string | null>(null)
 
     // Content States
@@ -271,28 +314,27 @@ export const useStudio = (conversationId: number | null) => {
                     });
                     break;
                 case 'roadmap':
-                    // Call real API for full roadmap overview
+                    // Fetch admin-edited Course Overview content from Orientation API
                     try {
-                        const roadmapData = await studentService.getFullRoadmapOverview();
-                        const formattedContent = formatRoadmapAsMarkdown(roadmapData);
+                        const orientationData = await orientationService.getContent();
                         response = {
                             data: {
                                 data: {
                                     roadmapId: `roadmap-${Date.now()}`,
-                                    title: roadmapData.current_semester ? `Lộ trình học tập - ${roadmapData.current_semester}` : 'Lộ trình học tập',
-                                    content: formattedContent
+                                    title: orientationData.subjectName || 'Định hướng',
+                                    content: orientationData.content || 'Chưa có nội dung. Vui lòng liên hệ Admin để cập nhật.'
                                 }
                             }
                         };
                     } catch (error) {
-                        console.error('Failed to fetch roadmap from API, using mock data:', error);
-                        // Fallback to mock data if API fails
+                        console.error('Failed to fetch orientation content, using fallback:', error);
+                        // Fallback message if API fails
                         response = {
                             data: {
                                 data: {
-                                    roadmapId: `mock-${Date.now()}`,
-                                    title: effectiveTitle,
-                                    content: mockRoadmapContent.content
+                                    roadmapId: `fallback-${Date.now()}`,
+                                    title: 'Định hướng',
+                                    content: 'Không thể tải nội dung định hướng. Vui lòng thử lại sau.'
                                 }
                             }
                         };
@@ -467,8 +509,89 @@ export const useStudio = (conversationId: number | null) => {
     const handleStudioFeatureClick = (type: 'mindmap' | 'report' | 'notecard' | 'quiz' | 'roadmap', title: string) => {
         if (type === 'report') {
             setShowReportFormatModal(true)
+        } else if (type === 'roadmap') {
+            // For roadmap, show options modal instead of creating item
+            setShowRoadmapOptionsModal(true)
         } else {
             createStudioItem(type, title)
+        }
+    }
+
+    // Handle roadmap option selection
+    const handleRoadmapOptionSelect = async (option: 'all' | 'current') => {
+        setShowRoadmapOptionsModal(false)
+        setIsLoadingContent(true)
+
+        try {
+            let content: any;
+            let title: string;
+
+            if (option === 'all') {
+                // Fetch Course Overview from Orientation API
+                const orientationData = await orientationService.getContent();
+                title = orientationData.subjectName || 'Định hướng';
+                content = {
+                    title,
+                    content: orientationData.content || 'Chưa có nội dung. Vui lòng liên hệ Admin để cập nhật.'
+                };
+            } else {
+                // Fetch orientation document and extract current semester section
+                const orientationData = await orientationService.getContent();
+                const fullContent = orientationData.content || '';
+
+                // Get current semester from localStorage (key is 'user_data' per STORAGE_KEYS)
+                const storedUser = localStorage.getItem('user_data');
+                const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+
+                // Debug log to see what we're getting
+                console.log('=== Semester Debug ===');
+                console.log('storedUser raw:', storedUser);
+                console.log('parsedUser:', parsedUser);
+                console.log('parsedUser?.currentSemester:', parsedUser?.currentSemester);
+
+                // Parse semester number - handle both "4" and "HK4" formats
+                let currentSemesterNumber = 1;
+                const semesterStr = parsedUser?.currentSemester;
+                if (semesterStr) {
+                    // Extract number from string (e.g., "4", "HK4", "Kỳ 4" -> 4)
+                    const numMatch = semesterStr.toString().match(/\d+/);
+                    if (numMatch) {
+                        currentSemesterNumber = parseInt(numMatch[0], 10);
+                    }
+                }
+
+                console.log('Final currentSemesterNumber:', currentSemesterNumber);
+
+                // Extract the section for current semester using regex
+                // Pattern matches: emoji + KỲ X (where X is the semester number)
+                const semesterSection = extractSemesterSection(fullContent, currentSemesterNumber);
+
+                if (semesterSection) {
+                    title = `Lộ trình Kỳ ${currentSemesterNumber}`;
+                    content = {
+                        title,
+                        content: semesterSection
+                    };
+                } else {
+                    title = `Kỳ ${currentSemesterNumber}`;
+                    content = {
+                        title,
+                        content: `Không tìm thấy nội dung cho Kỳ ${currentSemesterNumber} trong tài liệu định hướng.`
+                    };
+                }
+            }
+
+            setRoadmapContent(content);
+            setShowRoadmapModal(true);
+        } catch (error) {
+            console.error('Failed to fetch roadmap content:', error);
+            setRoadmapContent({
+                title: 'Lỗi',
+                content: 'Không thể tải nội dung. Vui lòng thử lại sau.'
+            });
+            setShowRoadmapModal(true);
+        } finally {
+            setIsLoadingContent(false);
         }
     }
 
@@ -575,6 +698,9 @@ export const useStudio = (conversationId: number | null) => {
         confirmDeleteItem,
         showRoadmapModal,
         setShowRoadmapModal,
+        showRoadmapOptionsModal,
+        setShowRoadmapOptionsModal,
+        handleRoadmapOptionSelect,
         selectedRoadmapId,
         roadmapContent
     }

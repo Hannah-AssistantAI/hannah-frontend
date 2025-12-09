@@ -156,6 +156,10 @@ export default function Profile({ embedded = false }: ProfileProps) {
                     if (semesterResult.success) {
                         setUserProfile(prev => prev ? { ...prev, current_semester: semesterResult.currentSemester } : prev);
                         setEditedProfile(prev => prev ? { ...prev, current_semester: semesterResult.currentSemester } : prev);
+                        // Update AuthContext so other components (like Chat) can access the new semester
+                        if (updateUser && user) {
+                            updateUser({ ...user, currentSemester: semesterResult.currentSemester });
+                        }
                         toast.success("Cập nhật kỳ học thành công!");
                     }
                 } catch (semesterError) {
@@ -431,7 +435,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
                                         </div>
 
                                         {/* Student-specific fields */}
-                                        {userProfile.role === 'Student' && (
+                                        {userProfile.role.toLowerCase() === 'student' && (
                                             <>
                                                 <div className="pf-field">
                                                     <label className="pf-label">
@@ -488,8 +492,8 @@ export default function Profile({ embedded = false }: ProfileProps) {
                                             </>
                                         )}
 
-                                        {/* Faculty-specific fields */}
-                                        {userProfile.role === 'Faculty' && (
+
+                                        {userProfile.role.toLowerCase() === 'faculty' && (
                                             <>
                                                 <div className="pf-field">
                                                     <label className="pf-label">
