@@ -1,12 +1,10 @@
 // src/pages/Configuration.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import type { ConfigSettings } from '../../types';
-import { Card } from '../../components/Admin/Card';
-import { Badge } from 'lucide-react';
-import { InfoBox } from '../../components/Admin/InfoBox';
-import { Button } from '../../components/Admin/Button';
+import { Database, Sparkles, Settings, Info, CheckCircle, AlertCircle, Save, RefreshCw, AlertTriangle } from 'lucide-react';
 import AdminPageWrapper from './components/AdminPageWrapper';
 import configurationService from '../../service/configurationService';
+import './Configuration.css';
 
 // Default config values - used as fallback when API is unavailable
 const DEFAULT_CONFIG: ConfigSettings = {
@@ -55,7 +53,6 @@ export const Configuration: React.FC = () => {
     try {
       const settings = await configurationService.getConfigurationSettings();
 
-      // Map backend settings to frontend config structure
       setConfig({
         database: {
           sqlServerHost: settings.database['database.sqlserver.host'] || DEFAULT_CONFIG.database.sqlServerHost,
@@ -81,7 +78,7 @@ export const Configuration: React.FC = () => {
           enableEmailNotifications: settings.application['application.enable_email_notifications'] === 'true',
           enableRealtimeMonitoring: settings.application['application.enable_realtime_monitoring'] === 'true',
         },
-        integrations: DEFAULT_CONFIG.integrations, // Keep default for integrations
+        integrations: DEFAULT_CONFIG.integrations,
       });
     } catch (error) {
       console.warn('Failed to load config from API, using defaults:', error);
@@ -95,13 +92,11 @@ export const Configuration: React.FC = () => {
     loadConfig();
   }, [loadConfig]);
 
-  // Update config via backend API
   const updateConfig = async (section: keyof ConfigSettings, formData: Record<string, unknown>) => {
     setSaving(true);
     let allSuccess = true;
 
     try {
-      // Map frontend field names to backend setting keys
       const keyMappings: Record<string, Record<string, string>> = {
         database: {
           sqlServerHost: 'database.sqlserver.host',
@@ -131,7 +126,6 @@ export const Configuration: React.FC = () => {
 
       const mappings = keyMappings[section] || {};
 
-      // Update each field in the section
       for (const [fieldName, value] of Object.entries(formData)) {
         const settingKey = mappings[fieldName];
         if (settingKey) {
@@ -142,7 +136,6 @@ export const Configuration: React.FC = () => {
         }
       }
 
-      // Update local state
       setConfig(prev => prev ? ({ ...prev, [section]: formData }) : null);
     } catch (error) {
       console.error('Failed to update config:', error);
@@ -166,90 +159,69 @@ export const Configuration: React.FC = () => {
   };
 
   if (loading || !config) {
-    return <div>Loading configuration...</div>;
+    return (
+      <AdminPageWrapper title="System Configuration">
+        <div className="sc-loading">
+          <RefreshCw size={24} className="sc-loading-spinner" />
+          <span>Loading configuration...</span>
+        </div>
+      </AdminPageWrapper>
+    );
   }
 
   return (
     <AdminPageWrapper title="System Configuration">
-      <InfoBox>
-        <strong>Configuration Options:</strong> Settings can be edited through the admin interface.
-        Changes are saved to the system configuration file.
-      </InfoBox>
-
-      {successMessage && (
-        <div className="alert success" style={{ marginBottom: '24px' }}>
-          <div className="alert-icon">
-            <i className="fas fa-check-circle"></i>
+      <div className="sc-container">
+        {/* Info Box */}
+        <div className="sc-info-box">
+          <div className="sc-info-icon">
+            <Info size={20} />
           </div>
-          <div className="alert-content">
-            <div className="alert-message">{successMessage}</div>
+          <div className="sc-info-content">
+            <strong>Configuration Options:</strong> Settings can be edited through the admin interface.
+            Changes are saved to the system configuration file.
           </div>
         </div>
-      )}
 
-      {errorMessage && (
-        <div className="alert error" style={{ marginBottom: '24px' }}>
-          <div className="alert-icon">
-            <i className="fas fa-times-circle"></i>
+        {/* Status Messages */}
+        {successMessage && (
+          <div className="sc-message sc-message-success">
+            <CheckCircle size={20} />
+            <span>{successMessage}</span>
           </div>
-          <div className="alert-content">
-            <div className="alert-message">{errorMessage}</div>
+        )}
+
+        {errorMessage && (
+          <div className="sc-message sc-message-error">
+            <AlertCircle size={20} />
+            <span>{errorMessage}</span>
           </div>
+        )}
+
+        {/* Cards Grid */}
+        <div className="sc-cards-grid">
+          {/* Database Configuration */}
+          <DatabaseConfigCard
+            config={config.database}
+            onSave={(data) => handleSaveConfig('database', data)}
+            saving={saving}
+          />
+
+          {/* Gemini API Configuration */}
+          <GeminiConfigCard
+            config={config.gemini}
+            onSave={(data) => handleSaveConfig('gemini', data)}
+            saving={saving}
+          />
+
+          {/* Application Settings - Full Width */}
+          <ApplicationConfigCard
+            config={config.application}
+            onSave={(data) => handleSaveConfig('application', data)}
+            saving={saving}
+          />
         </div>
-      )}
-
-      <div className="grid grid-2">
-        {/* Database Configuration */}
-        <DatabaseConfigCard
-          config={config.database}
-          onSave={(data) => handleSaveConfig('database', data)}
-          saving={saving}
-        />
-
-        {/* Gemini API Configuration */}
-        <GeminiConfigCard
-          config={config.gemini}
-          onSave={(data) => handleSaveConfig('gemini', data)}
-          saving={saving}
-        />
-
-        {/* Application Settings */}
-        <ApplicationConfigCard
-          config={config.application}
-          onSave={(data) => handleSaveConfig('application', data)}
-          saving={saving}
-        />
-
-        {/* Integration Settings */}
-        {/* <IntegrationConfigCard
-          config={config.integrations}
-          onSave={(data) => handleSaveConfig('integrations', data)}
-          saving={saving}
-        /> */}
       </div>
-
-      {/* What Cannot Be Configured */}
-      {/* <Card
-        title="❌ What CANNOT Be Configured"
-        action={<Badge type="danger">Google Internal - No Access</Badge>}
-        className="mt-24"
-      >
-        <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-          These aspects are controlled by Google and cannot be modified through this admin panel:
-        </p>
-        <ul style={{ listStylePosition: 'inside', color: 'var(--text-secondary)', lineHeight: 2 }}>
-          <li>Gemini model architecture and neural network design</li>
-          <li>Gemini training data and training process</li>
-          <li>Gemini server infrastructure and hardware</li>
-          <li>Gemini internal performance (GPU/CPU usage on Google's servers)</li>
-          <li>Gemini API rate limits and quotas (set by Google)</li>
-          <li>Gemini API pricing structure</li>
-        </ul>
-        <InfoBox icon="fas fa-info-circle" style={{ marginTop: '16px' }}>
-          <strong>Remember:</strong> Hannah uses Gemini as a reasoning engine, but we control 
-          the orchestration, knowledge base, caching, and user experience.
-        </InfoBox>
-      </Card> */}
     </AdminPageWrapper>
   );
 };
@@ -268,68 +240,83 @@ const DatabaseConfigCard: React.FC<{
   };
 
   return (
-    <Card>
-      <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '20px' }}>
-        <i className="fas fa-database" style={{ color: 'var(--success-color)' }}></i> Database Configuration
-      </h3>
-      <Badge type="success" style={{ marginBottom: '16px' }}>✅ Full Control</Badge>
+    <div className="sc-config-card">
+      <div className="sc-card-header">
+        <div className="sc-card-title-wrapper">
+          <div className="sc-card-icon database">
+            <Database size={24} />
+          </div>
+          <h3 className="sc-card-title">Database Configuration</h3>
+        </div>
+        <span className="sc-status-badge full-control">Full Control</span>
+      </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label className="form-label">SQL Server Host</label>
-          <input
-            type="text"
-            className="form-input"
-            value={formData.sqlServerHost}
-            onChange={(e) => setFormData({ ...formData, sqlServerHost: e.target.value })}
-          />
+        <div className="sc-card-content">
+          <div className="sc-form-group">
+            <label className="sc-form-label">SQL Server Host</label>
+            <input
+              type="text"
+              className="sc-form-input"
+              value={formData.sqlServerHost}
+              onChange={(e) => setFormData({ ...formData, sqlServerHost: e.target.value })}
+            />
+          </div>
+          <div className="sc-form-group">
+            <label className="sc-form-label">SQL Server Max Connections</label>
+            <input
+              type="number"
+              className="sc-form-input"
+              value={formData.sqlServerMaxConnections}
+              onChange={(e) => setFormData({ ...formData, sqlServerMaxConnections: parseInt(e.target.value) })}
+            />
+          </div>
+          <div className="sc-form-group">
+            <label className="sc-form-label">MongoDB URI</label>
+            <input
+              type="text"
+              className="sc-form-input"
+              value={formData.mongodbUri}
+              onChange={(e) => setFormData({ ...formData, mongodbUri: e.target.value })}
+            />
+          </div>
+          <div className="sc-form-group">
+            <label className="sc-form-label">MongoDB Connection Pool Size</label>
+            <input
+              type="number"
+              className="sc-form-input"
+              value={formData.mongodbPoolSize}
+              onChange={(e) => setFormData({ ...formData, mongodbPoolSize: parseInt(e.target.value) })}
+            />
+          </div>
+          <div className="sc-form-group">
+            <label className="sc-form-label">Elasticsearch URL</label>
+            <input
+              type="text"
+              className="sc-form-input"
+              value={formData.elasticsearchUrl}
+              onChange={(e) => setFormData({ ...formData, elasticsearchUrl: e.target.value })}
+            />
+          </div>
         </div>
-        <div className="form-group">
-          <label className="form-label">SQL Server Max Connections</label>
-          <input
-            type="number"
-            className="form-input"
-            value={formData.sqlServerMaxConnections}
-            onChange={(e) => setFormData({ ...formData, sqlServerMaxConnections: parseInt(e.target.value) })}
-          />
+
+        <div className="sc-card-footer">
+          <button type="submit" className="sc-btn sc-btn-primary" disabled={saving}>
+            {saving ? (
+              <>
+                <RefreshCw size={18} className="sc-loading-spinner" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save size={18} />
+                Save Database Configuration
+              </>
+            )}
+          </button>
         </div>
-        <div className="form-group">
-          <label className="form-label">MongoDB URI</label>
-          <input
-            type="text"
-            className="form-input"
-            value={formData.mongodbUri}
-            onChange={(e) => setFormData({ ...formData, mongodbUri: e.target.value })}
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">MongoDB Connection Pool Size</label>
-          <input
-            type="number"
-            className="form-input"
-            value={formData.mongodbPoolSize}
-            onChange={(e) => setFormData({ ...formData, mongodbPoolSize: parseInt(e.target.value) })}
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Elasticsearch URL</label>
-          <input
-            type="text"
-            className="form-input"
-            value={formData.elasticsearchUrl}
-            onChange={(e) => setFormData({ ...formData, elasticsearchUrl: e.target.value })}
-          />
-        </div>
-        <Button
-          type="submit"
-          variant="primary"
-          icon="fas fa-save"
-          disabled={saving}
-        >
-          {saving ? 'Saving...' : 'Save Database Configuration'}
-        </Button>
       </form>
-    </Card>
+    </div>
   );
 };
 
@@ -347,112 +334,117 @@ const GeminiConfigCard: React.FC<{
   };
 
   return (
-    <Card>
-      <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '20px' }}>
-        <i className="fas fa-robot" style={{ color: 'var(--primary-color)' }}></i> Gemini API Configuration
-      </h3>
-      <Badge type="warning" style={{ marginBottom: '16px' }}>⚠️ Limited - Parameters Only</Badge>
+    <div className="sc-config-card">
+      <div className="sc-card-header">
+        <div className="sc-card-title-wrapper">
+          <div className="sc-card-icon gemini">
+            <Sparkles size={24} />
+          </div>
+          <h3 className="sc-card-title">Gemini API Configuration</h3>
+        </div>
+        <span className="sc-status-badge limited">Parameters Only</span>
+      </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label className="form-label">Gemini API Key</label>
-          <input
-            type="password"
-            className="form-input"
-            value={formData.apiKey}
-            onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-          />
-          <small style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '4px' }}>
-            ✅ Can change API key
-          </small>
+        <div className="sc-card-content">
+          <div className="sc-form-group">
+            <label className="sc-form-label">Gemini API Key</label>
+            <input
+              type="password"
+              className="sc-form-input"
+              value={formData.apiKey}
+              onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+            />
+            <span className="sc-helper-text success">✓ Can change API key</span>
+          </div>
+          <div className="sc-form-group">
+            <label className="sc-form-label">Model Selection</label>
+            <select
+              className="sc-form-select"
+              value={formData.model}
+              onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+            >
+              <option value="gemini-2.0-flash">gemini-2.0-flash (Recommended)</option>
+              <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
+              <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+              <option value="gemini-1.5-flash-8b">gemini-1.5-flash-8b</option>
+              <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+              <option value="gemini-2.5-flash-preview-05-20">gemini-2.5-flash-preview (Latest)</option>
+            </select>
+            <span className="sc-helper-text success">✓ Can select available models</span>
+          </div>
+          <div className="sc-form-group">
+            <label className="sc-form-label">Temperature (0.0 - 1.0)</label>
+            <input
+              type="number"
+              className="sc-form-input"
+              value={formData.temperature}
+              step="0.1"
+              min="0"
+              max="1"
+              onChange={(e) => setFormData({ ...formData, temperature: parseFloat(e.target.value) })}
+            />
+            <span className="sc-helper-text success">✓ Can adjust creativity level</span>
+          </div>
+          <div className="sc-form-group">
+            <label className="sc-form-label">Max Output Tokens</label>
+            <input
+              type="number"
+              className="sc-form-input"
+              value={formData.maxTokens}
+              onChange={(e) => setFormData({ ...formData, maxTokens: parseInt(e.target.value) })}
+            />
+            <span className="sc-helper-text success">✓ Can set response length limit</span>
+          </div>
+          <div className="sc-form-group">
+            <label className="sc-form-label">Top P (Nucleus Sampling)</label>
+            <input
+              type="number"
+              className="sc-form-input"
+              value={formData.topP}
+              step="0.05"
+              min="0"
+              max="1"
+              onChange={(e) => setFormData({ ...formData, topP: parseFloat(e.target.value) })}
+            />
+          </div>
+          <div className="sc-form-group">
+            <label className="sc-form-label">Top K</label>
+            <input
+              type="number"
+              className="sc-form-input"
+              value={formData.topK}
+              onChange={(e) => setFormData({ ...formData, topK: parseInt(e.target.value) })}
+            />
+          </div>
+
+          {/* Info Note */}
+          <div className="sc-info-note">
+            <AlertTriangle size={18} className="sc-info-note-icon" />
+            <span className="sc-info-note-text">
+              <strong>Note:</strong> Cannot modify Gemini's internal architecture, training data,
+              or infrastructure. These parameters control how we USE the API.
+            </span>
+          </div>
         </div>
-        <div className="form-group">
-          <label className="form-label">Model Selection</label>
-          <select
-            className="form-select"
-            value={formData.model}
-            onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-          >
-            <option value="gemini-2.0-flash">gemini-2.0-flash (Recommended)</option>
-            <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
-            <option value="gemini-1.5-flash">gemini-1.5-flash</option>
-            <option value="gemini-1.5-flash-8b">gemini-1.5-flash-8b</option>
-            <option value="gemini-1.5-pro">gemini-1.5-pro</option>
-            <option value="gemini-2.5-flash-preview-05-20">gemini-2.5-flash-preview (Latest)</option>
-          </select>
-          <small style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '4px' }}>
-            ✅ Can select available models
-          </small>
+
+        <div className="sc-card-footer">
+          <button type="submit" className="sc-btn sc-btn-primary" disabled={saving}>
+            {saving ? (
+              <>
+                <RefreshCw size={18} className="sc-loading-spinner" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save size={18} />
+                Save Gemini Config
+              </>
+            )}
+          </button>
         </div>
-        <div className="form-group">
-          <label className="form-label">Temperature (0.0 - 1.0)</label>
-          <input
-            type="number"
-            className="form-input"
-            value={formData.temperature}
-            step="0.1"
-            min="0"
-            max="1"
-            onChange={(e) => setFormData({ ...formData, temperature: parseFloat(e.target.value) })}
-          />
-          <small style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '4px' }}>
-            ✅ Can adjust creativity level
-          </small>
-        </div>
-        <div className="form-group">
-          <label className="form-label">Max Output Tokens</label>
-          <input
-            type="number"
-            className="form-input"
-            value={formData.maxTokens}
-            onChange={(e) => setFormData({ ...formData, maxTokens: parseInt(e.target.value) })}
-          />
-          <small style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '4px' }}>
-            ✅ Can set response length limit
-          </small>
-        </div>
-        <div className="form-group">
-          <label className="form-label">Top P (Nucleus Sampling)</label>
-          <input
-            type="number"
-            className="form-input"
-            value={formData.topP}
-            step="0.05"
-            min="0"
-            max="1"
-            onChange={(e) => setFormData({ ...formData, topP: parseFloat(e.target.value) })}
-          />
-          <small style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '4px' }}>
-            ✅ Can configure sampling
-          </small>
-        </div>
-        <div className="form-group">
-          <label className="form-label">Top K</label>
-          <input
-            type="number"
-            className="form-input"
-            value={formData.topK}
-            onChange={(e) => setFormData({ ...formData, topK: parseInt(e.target.value) })}
-          />
-          <small style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '4px' }}>
-            ✅ Can configure token selection
-          </small>
-        </div>
-        <InfoBox icon="fas fa-exclamation-triangle" style={{ marginTop: '16px' }}>
-          <strong>Note:</strong> Cannot modify Gemini's internal architecture, training data,
-          or infrastructure. These parameters control how we USE the API.
-        </InfoBox>
-        <Button
-          type="submit"
-          variant="primary"
-          icon="fas fa-save"
-          disabled={saving}
-          style={{ marginTop: '16px' }}
-        >
-          {saving ? 'Saving...' : 'Save Gemini Config'}
-        </Button>
       </form>
-    </Card>
+    </div>
   );
 };
 
@@ -470,166 +462,108 @@ const ApplicationConfigCard: React.FC<{
   };
 
   return (
-    <Card>
-      <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '20px' }}>
-        <i className="fas fa-cog" style={{ color: 'var(--info-color)' }}></i> Application Settings
-      </h3>
-      <Badge type="success" style={{ marginBottom: '16px' }}>✅ Full Control</Badge>
+    <div className="sc-config-card">
+      <div className="sc-card-header">
+        <div className="sc-card-title-wrapper">
+          <div className="sc-card-icon application">
+            <Settings size={24} />
+          </div>
+          <h3 className="sc-card-title">Application Settings</h3>
+        </div>
+        <span className="sc-status-badge full-control">Full Control</span>
+      </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label className="form-label">Session timeout (minutes)</label>
-          <input
-            type="number"
-            className="form-input"
-            value={formData.sessionTimeout}
-            onChange={(e) => setFormData({ ...formData, sessionTimeout: parseInt(e.target.value) })}
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Daily question limit per student</label>
-          <input
-            type="number"
-            className="form-input"
-            value={formData.dailyQuestionLimit}
-            onChange={(e) => setFormData({ ...formData, dailyQuestionLimit: parseInt(e.target.value) })}
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">WebSocket Port</label>
-          <input
-            type="number"
-            className="form-input"
-            value={formData.websocketPort}
-            onChange={(e) => setFormData({ ...formData, websocketPort: parseInt(e.target.value) })}
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Backend API rate limit (requests/min)</label>
-          <input
-            type="number"
-            className="form-input"
-            value={formData.apiRateLimit}
-            onChange={(e) => setFormData({ ...formData, apiRateLimit: parseInt(e.target.value) })}
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Cache expiration (hours)</label>
-          <input
-            type="number"
-            className="form-input"
-            value={formData.cacheExpiry}
-            onChange={(e) => setFormData({ ...formData, cacheExpiry: parseInt(e.target.value) })}
-          />
-        </div>
-        <div className="form-group">
-          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+        <div className="sc-card-content">
+          <div className="sc-form-group">
+            <label className="sc-form-label">Session Timeout (minutes)</label>
             <input
-              type="checkbox"
-              checked={formData.enableEmailNotifications}
-              onChange={(e) => setFormData({ ...formData, enableEmailNotifications: e.target.checked })}
-              style={{ width: '20px', height: '20px' }}
+              type="number"
+              className="sc-form-input"
+              value={formData.sessionTimeout}
+              onChange={(e) => setFormData({ ...formData, sessionTimeout: parseInt(e.target.value) })}
             />
-            <span className="form-label" style={{ margin: 0 }}>Enable email notifications</span>
-          </label>
-        </div>
-        <div className="form-group">
-          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+          </div>
+          <div className="sc-form-group">
+            <label className="sc-form-label">Daily Question Limit per Student</label>
             <input
-              type="checkbox"
-              checked={formData.enableRealtimeMonitoring}
-              onChange={(e) => setFormData({ ...formData, enableRealtimeMonitoring: e.target.checked })}
-              style={{ width: '20px', height: '20px' }}
+              type="number"
+              className="sc-form-input"
+              value={formData.dailyQuestionLimit}
+              onChange={(e) => setFormData({ ...formData, dailyQuestionLimit: parseInt(e.target.value) })}
             />
-            <span className="form-label" style={{ margin: 0 }}>Enable real-time monitoring</span>
-          </label>
+          </div>
+          <div className="sc-form-group">
+            <label className="sc-form-label">WebSocket Port</label>
+            <input
+              type="number"
+              className="sc-form-input"
+              value={formData.websocketPort}
+              onChange={(e) => setFormData({ ...formData, websocketPort: parseInt(e.target.value) })}
+            />
+          </div>
+          <div className="sc-form-group">
+            <label className="sc-form-label">API Rate Limit (requests/min)</label>
+            <input
+              type="number"
+              className="sc-form-input"
+              value={formData.apiRateLimit}
+              onChange={(e) => setFormData({ ...formData, apiRateLimit: parseInt(e.target.value) })}
+            />
+          </div>
+          <div className="sc-form-group">
+            <label className="sc-form-label">Cache Expiration (hours)</label>
+            <input
+              type="number"
+              className="sc-form-input"
+              value={formData.cacheExpiry}
+              onChange={(e) => setFormData({ ...formData, cacheExpiry: parseInt(e.target.value) })}
+            />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <label
+              className="sc-checkbox-group"
+              onClick={() => setFormData({ ...formData, enableEmailNotifications: !formData.enableEmailNotifications })}
+            >
+              <input
+                type="checkbox"
+                className="sc-checkbox"
+                checked={formData.enableEmailNotifications}
+                onChange={(e) => setFormData({ ...formData, enableEmailNotifications: e.target.checked })}
+              />
+              <span className="sc-checkbox-label">Enable email notifications</span>
+            </label>
+            <label
+              className="sc-checkbox-group"
+              onClick={() => setFormData({ ...formData, enableRealtimeMonitoring: !formData.enableRealtimeMonitoring })}
+            >
+              <input
+                type="checkbox"
+                className="sc-checkbox"
+                checked={formData.enableRealtimeMonitoring}
+                onChange={(e) => setFormData({ ...formData, enableRealtimeMonitoring: e.target.checked })}
+              />
+              <span className="sc-checkbox-label">Enable real-time monitoring</span>
+            </label>
+          </div>
         </div>
-        <Button
-          type="submit"
-          variant="primary"
-          icon="fas fa-save"
-          disabled={saving}
-          style={{ marginTop: '16px' }}
-        >
-          {saving ? 'Saving...' : 'Save Application Settings'}
-        </Button>
+
+        <div className="sc-card-footer">
+          <button type="submit" className="sc-btn sc-btn-primary" disabled={saving}>
+            {saving ? (
+              <>
+                <RefreshCw size={18} className="sc-loading-spinner" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save size={18} />
+                Save Application Settings
+              </>
+            )}
+          </button>
+        </div>
       </form>
-    </Card>
+    </div>
   );
 };
-
-// // Integration Configuration Card Component
-// const IntegrationConfigCard: React.FC<{
-//   config: ConfigSettings['integrations'];
-//   onSave: (data: any) => void;
-//   saving: boolean;
-// }> = ({ config, onSave, saving }) => {
-//   const [formData, setFormData] = useState(config);
-
-//   const handleSubmit = (e: React.FormEvent) => {
-//     e.preventDefault();
-//     onSave(formData);
-//   };
-
-//   return (
-//     <Card>
-//       <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '20px' }}>
-//         <i className="fas fa-plug" style={{ color: 'var(--warning-color)' }}></i> Tích hợp Bên ngoài
-//       </h3>
-//       <Badge type="success" style={{ marginBottom: '16px' }}>✅ Toàn quyền Kiểm soát</Badge>
-
-//       <form onSubmit={handleSubmit}>
-//         <div className="form-group">
-//           <label className="form-label">Khóa API YouTube Data</label>
-//           <input
-//             type="password"
-//             className="form-input"
-//             value={formData.youtubeApiKey}
-//             onChange={(e) => setFormData({ ...formData, youtubeApiKey: e.target.value })}
-//             placeholder="Nhập khóa API YouTube"
-//           />
-//         </div>
-//         <div className="form-group">
-//           <label className="form-label">Token API GitHub</label>
-//           <input
-//             type="password"
-//             className="form-input"
-//             value={formData.githubApiToken}
-//             onChange={(e) => setFormData({ ...formData, githubApiToken: e.target.value })}
-//             placeholder="Nhập token GitHub"
-//           />
-//         </div>
-//         <div className="form-group">
-//           <label className="form-label">Khóa API Stack Overflow</label>
-//           <input
-//             type="password"
-//             className="form-input"
-//             value={formData.stackOverflowApiKey}
-//             onChange={(e) => setFormData({ ...formData, stackOverflowApiKey: e.target.value })}
-//             placeholder="Nhập khóa Stack Overflow"
-//           />
-//         </div>
-//         <div className="form-group">
-//           <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-//             <input
-//               type="checkbox"
-//               checked={formData.enableAutoFetch}
-//               onChange={(e) => setFormData({ ...formData, enableAutoFetch: e.target.checked })}
-//               style={{ width: '20px', height: '20px' }}
-//             />
-//             <span className="form-label" style={{ margin: 0 }}>Bật tự động tải tài nguyên</span>
-//           </label>
-//         </div>
-//         <Button
-//           type="submit"
-//           variant="primary"
-//           icon="fas fa-save"
-//           disabled={saving}
-//           style={{ marginTop: '16px' }}
-//         >
-//           {saving ? 'Đang lưu...' : 'Lưu cấu hình Tích hợp'}
-//         </Button>
-//       </form>
-//     </Card>
-//   );
-// };
