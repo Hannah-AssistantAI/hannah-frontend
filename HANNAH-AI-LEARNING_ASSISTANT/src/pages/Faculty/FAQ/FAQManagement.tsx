@@ -38,9 +38,12 @@ const FAQManagement = () => {
     loadSubjects();
   }, []);
 
+  // Only load FAQs when subjects are loaded
   useEffect(() => {
-    loadFAQs();
-  }, [filters]);
+    if (subjects.length > 0) {
+      loadFAQs();
+    }
+  }, [filters, subjects]);
 
   const loadFAQs = async () => {
     try {
@@ -54,7 +57,7 @@ const FAQManagement = () => {
         question: item.questionPattern || item.triggerKeywords.join(', '),  // Display question pattern or keywords
         answer: item.responseContent,
         subjectId: item.subjectId,
-        subjectName: subjects.find(s => s.subjectId === item.subjectId)?.name || 'N/A',
+        subjectName: subjects.find(s => s.subjectId === item.subjectId)?.name || 'Unknown',
         tags: item.triggerKeywords,
         usageCount: item.usageCount,
         createdAt: item.createdAt,
@@ -85,8 +88,6 @@ const FAQManagement = () => {
       const response = await subjectService.getAllSubjects();
       if (response && response.items) {
         setSubjects(response.items);
-        // Load FAQs after subjects are loaded
-        loadFAQs();
       }
     } catch (error) {
       console.error('Error loading subjects:', error);
@@ -169,19 +170,43 @@ const FAQManagement = () => {
             </button>
           </div>
 
-          {/* Filters Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
-            <div className="p-6">
-              <div className="flex flex-col lg:flex-row gap-4">
+          {/* Filters Section - Clean horizontal layout */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mb-6">
+            <div className="p-5">
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4">
+                {/* Search Input */}
+                <div className="flex-1 relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200"
+                    placeholder="Search questions, answers or tags..."
+                    value={filters.search}
+                    onChange={(e) => handleFilterChange({ search: e.target.value })}
+                  />
+                </div>
+
                 {/* Subject Filter */}
-                <div className="lg:w-64">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Subject
-                  </label>
+                <div className="relative lg:w-56">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
                   <select
-                    className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                    className="w-full pl-12 pr-10 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-sm text-gray-900 appearance-none cursor-pointer focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200"
                     value={filters.subjectId}
                     onChange={(e) => handleFilterChange({ subjectId: e.target.value })}
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                      backgroundPosition: 'right 12px center',
+                      backgroundRepeat: 'no-repeat',
+                      backgroundSize: '20px'
+                    }}
                   >
                     <option value="">All Subjects</option>
                     {subjects.map(subject => (
@@ -189,74 +214,7 @@ const FAQManagement = () => {
                     ))}
                   </select>
                 </div>
-
-                {/* Search Input */}
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Search
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </div>
-                    <input
-                      type="text"
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                      placeholder="Search questions, answers or tags..."
-                      value={filters.search}
-                      onChange={(e) => handleFilterChange({ search: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                {/* Reset Button */}
-                <div className="lg:w-auto flex items-end">
-                  <button
-                    className="inline-flex items-center px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
-                    onClick={() => setFilters({ subjectId: '', search: '', tags: [] })}
-                  >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Reset
-                  </button>
-                </div>
               </div>
-
-              {/* Active Filters Display */}
-              {(filters.subjectId || filters.search || filters.tags.length > 0) && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="text-sm text-gray-600">Active filters:</span>
-                  {filters.subjectId && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                      {subjects.find(s => s.subjectId.toString() === filters.subjectId)?.name || filters.subjectId}
-                      <button
-                        onClick={() => handleFilterChange({ subjectId: '' })}
-                        className="ml-2 hover:text-blue-900"
-                      >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    </span>
-                  )}
-                  {filters.search && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                      Search: "{filters.search}"
-                      <button
-                        onClick={() => handleFilterChange({ search: '' })}
-                        className="ml-2 hover:text-green-900"
-                      >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    </span>
-                  )}
-                </div>
-              )}
             </div>
           </div>
 

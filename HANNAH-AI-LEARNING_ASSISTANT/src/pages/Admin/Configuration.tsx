@@ -267,8 +267,9 @@ const DatabaseConfigCard: React.FC<{
             <input
               type="number"
               className="sc-form-input"
+              min="1"
               value={formData.sqlServerMaxConnections}
-              onChange={(e) => setFormData({ ...formData, sqlServerMaxConnections: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, sqlServerMaxConnections: Math.max(1, parseInt(e.target.value) || 1) })}
             />
           </div>
           <div className="sc-form-group">
@@ -285,8 +286,9 @@ const DatabaseConfigCard: React.FC<{
             <input
               type="number"
               className="sc-form-input"
+              min="1"
               value={formData.mongodbPoolSize}
-              onChange={(e) => setFormData({ ...formData, mongodbPoolSize: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, mongodbPoolSize: Math.max(1, parseInt(e.target.value) || 1) })}
             />
           </div>
           <div className="sc-form-group">
@@ -391,8 +393,9 @@ const GeminiConfigCard: React.FC<{
             <input
               type="number"
               className="sc-form-input"
+              min="1"
               value={formData.maxTokens}
-              onChange={(e) => setFormData({ ...formData, maxTokens: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, maxTokens: Math.max(1, parseInt(e.target.value) || 1) })}
             />
             <span className="sc-helper-text success">✓ Can set response length limit</span>
           </div>
@@ -413,8 +416,9 @@ const GeminiConfigCard: React.FC<{
             <input
               type="number"
               className="sc-form-input"
+              min="1"
               value={formData.topK}
-              onChange={(e) => setFormData({ ...formData, topK: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, topK: Math.max(1, parseInt(e.target.value) || 1) })}
             />
           </div>
 
@@ -480,8 +484,9 @@ const ApplicationConfigCard: React.FC<{
             <input
               type="number"
               className="sc-form-input"
+              min="1"
               value={formData.sessionTimeout}
-              onChange={(e) => setFormData({ ...formData, sessionTimeout: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, sessionTimeout: Math.max(1, parseInt(e.target.value) || 1) })}
             />
           </div>
           <div className="sc-form-group">
@@ -489,8 +494,9 @@ const ApplicationConfigCard: React.FC<{
             <input
               type="number"
               className="sc-form-input"
+              min="1"
               value={formData.dailyQuestionLimit}
-              onChange={(e) => setFormData({ ...formData, dailyQuestionLimit: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, dailyQuestionLimit: Math.max(1, parseInt(e.target.value) || 1) })}
             />
           </div>
           <div className="sc-form-group">
@@ -498,8 +504,9 @@ const ApplicationConfigCard: React.FC<{
             <input
               type="number"
               className="sc-form-input"
+              min="1"
               value={formData.websocketPort}
-              onChange={(e) => setFormData({ ...formData, websocketPort: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, websocketPort: Math.max(1, parseInt(e.target.value) || 1) })}
             />
           </div>
           <div className="sc-form-group">
@@ -507,8 +514,9 @@ const ApplicationConfigCard: React.FC<{
             <input
               type="number"
               className="sc-form-input"
+              min="1"
               value={formData.apiRateLimit}
-              onChange={(e) => setFormData({ ...formData, apiRateLimit: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, apiRateLimit: Math.max(1, parseInt(e.target.value) || 1) })}
             />
           </div>
           <div className="sc-form-group">
@@ -516,8 +524,9 @@ const ApplicationConfigCard: React.FC<{
             <input
               type="number"
               className="sc-form-input"
+              min="1"
               value={formData.cacheExpiry}
-              onChange={(e) => setFormData({ ...formData, cacheExpiry: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, cacheExpiry: Math.max(1, parseInt(e.target.value) || 1) })}
             />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

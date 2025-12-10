@@ -27,14 +27,22 @@ const FAQList: React.FC<FAQListProps> = ({ faqs, onEdit, onDelete }) => {
   return (
     <div className="divide-y divide-gray-200">
       {/* Header */}
-      <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+      <div className="px-6 py-5 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <h2 className="text-lg font-semibold text-gray-900">Frequently Asked Questions List</h2>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-              {faqs.length} {faqs.length === 1 ? 'question' : 'questions'}
-            </span>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Frequently Asked Questions</h2>
+              <p className="text-sm text-gray-500">Manage your FAQ entries</p>
+            </div>
           </div>
+          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-blue-100 text-blue-700 shadow-sm">
+            {faqs.length} {faqs.length === 1 ? 'question' : 'questions'}
+          </span>
         </div>
       </div>
 

@@ -522,8 +522,12 @@ export default function Profile({ embedded = false }: ProfileProps) {
                                                         <input
                                                             type="number"
                                                             className="pf-input"
+                                                            min="0"
                                                             value={editedProfile.years_of_experience || 0}
-                                                            onChange={(e) => setEditedProfile({ ...editedProfile, years_of_experience: parseInt(e.target.value, 10) })}
+                                                            onChange={(e) => {
+                                                                const val = parseInt(e.target.value, 10);
+                                                                setEditedProfile({ ...editedProfile, years_of_experience: val >= 0 ? val : 0 });
+                                                            }}
                                                         />
                                                     ) : (
                                                         <p className="pf-value">{userProfile.years_of_experience || 0} năm</p>

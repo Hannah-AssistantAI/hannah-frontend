@@ -84,7 +84,8 @@
 
 /* Embedded Mode - For Admin/Faculty layouts */
 /* Force light theme for embedded mode with blue accent */
-.pf-embedded {
+.pf-embedded,
+[data-theme="dark"] .pf-embedded {
     background: transparent;
     min-height: auto;
     padding: 20px;

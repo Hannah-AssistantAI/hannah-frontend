@@ -323,16 +323,29 @@ export default function CourseManagement() {
           <div><p className="course-subtitle">Manage course information, prerequisites, and learning outcomes.</p></div>
           <div className="course-actions"><button onClick={handleCreateClick} className="btn-create-course"><Plus size={20} />Create New Course</button></div>
         </div>
-        <div className="filters-container">
-          <div className="filters-grid">
-            <div className="search-wrapper">
-              <Search className="search-icon" size={20} /><input type="text" placeholder="Search by name or code..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="search-input" />
-            </div>
-            <select value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)} className="filter-select">
+        <div className="cm-filters">
+          <div className="cm-search-wrapper">
+            <Search className="cm-search-icon" size={18} />
+            <input
+              type="text"
+              placeholder="Search by name or code..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="cm-search-input"
+            />
+          </div>
+          <div className="cm-filter-wrapper">
+            <Filter className="cm-filter-icon" size={18} />
+            <select
+              value={selectedSemester}
+              onChange={(e) => setSelectedSemester(e.target.value)}
+              className="cm-filter-select"
+            >
               <option value="all">All Semesters</option>
-              {Array.from({ length: 9 }, (_, i) => i + 1).map(sem => (<option key={sem} value={sem}>Semester {sem}</option>))}
+              {Array.from({ length: 9 }, (_, i) => i + 1).map(sem => (
+                <option key={sem} value={sem}>Semester {sem}</option>
+              ))}
             </select>
-            <button className="btn-more-filters"><Filter size={16} />More filters</button>
           </div>
         </div>
       </div>

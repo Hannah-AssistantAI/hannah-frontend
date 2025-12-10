@@ -142,10 +142,10 @@ export default function CourseDetail() {
     try {
       setSuggestionsLoading(true);
       // Fetch all suggestions for this subject (no status filter)
-      const allSuggestions = await suggestionService.getSuggestions({ 
+      const allSuggestions = await suggestionService.getSuggestions({
         subjectId: parseInt(id, 10)
       });
-      
+
       // Separate by status
       setPendingSuggestions(allSuggestions.filter(s => s.status === SuggestionStatus.Pending));
       setApprovedSuggestions(allSuggestions.filter(s => s.status === SuggestionStatus.Approved));
@@ -295,26 +295,47 @@ export default function CourseDetail() {
                     <div className="info-item"><label className="preview-label">Decision No.</label><p className="preview-value">{subject.decisionNo || '-'}</p></div>
                     <div className="info-item"><label className="preview-label">Approved Date</label><p className="preview-value">{subject.approvedDate ? new Date(subject.approvedDate).toLocaleDateString() : '-'}</p></div>
                   </div>
-                  <div className="time-tools">
+                  <div className="time-tools" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
                     <div className="time-box"><h4 className="subsection-title">Time Allocation</h4><p>{subject.timeAllocation || 'Not specified'}</p></div>
                     <div className="tools-box"><h4 className="subsection-title">Tools</h4><div className="tags-wrapper"><span className="tag">{subject.tools || 'Not specified'}</span></div></div>
+                    <div className="tools-box"><h4 className="subsection-title">Prerequisites</h4><div className="tags-wrapper">{subject.prerequisites && subject.prerequisites.length > 0 ? subject.prerequisites.map((p, i) => <span key={i} className="tag tag-prerequisite">{p}</span>) : <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>None</p>}</div></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Two column grid: Learning Outcomes, Common Challenges */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                {/* Learning Outcomes Section */}
+                <div className="form-section" style={{ margin: 0 }}>
+                  <h3 className="form-section-title">Learning Outcomes</h3>
+                  <div className="form-content">
+                    <div className="tags-wrapper">
+                      {subject.learningOutcomes && subject.learningOutcomes.length > 0
+                        ? subject.learningOutcomes.map((outcome, i) => (
+                          <span key={i} className="tag" style={{ background: '#dcfce7', color: '#166534', border: '1px solid #86efac' }}>{outcome}</span>
+                        ))
+                        : <p className="empty-description" style={{ margin: 0 }}>None available.</p>}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Common Challenges Section */}
+                <div className="form-section" style={{ margin: 0 }}>
+                  <h3 className="form-section-title">Common Challenges</h3>
+                  <div className="form-content">
+                    <div className="tags-wrapper">
+                      {subject.commonChallenges && subject.commonChallenges.length > 0
+                        ? subject.commonChallenges.map((challenge, i) => (
+                          <span key={i} className="tag" style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fcd34d' }}>{challenge}</span>
+                        ))
+                        : <p className="empty-description" style={{ margin: 0 }}>None available.</p>}
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="form-section">
-                <h3 className="form-section-title">Prerequisites</h3>
-                <div className="form-content">
-                  <div className="tags-wrapper">
-                    {subject.prerequisites && subject.prerequisites.length > 0
-                      ? subject.prerequisites.map((p, i) => <span key={i} className="tag tag-prerequisite">{p}</span>)
-                      : <p className="empty-description" style={{ margin: 0 }}>None available.</p>}
-                  </div>
-                </div>
-              </div>
-
-              <div className="form-section">
-                <h3 className="form-section-title">Material</h3>
+                <h3 className="form-section-title">Faculty Submissions</h3>
                 <div className="form-content">
                   <div className="tabs">
                     <button className={`tab ${activeTab === 'document' ? 'active' : ''}`} onClick={() => setActiveTab('document')}>
@@ -356,7 +377,7 @@ export default function CourseDetail() {
                     <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                       {/* Part 1: Faculty Requests */}
                       <div>
-                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: '#1e293b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <AlertTriangle size={18} className="text-warning" /> Faculty Requests
                         </h4>
                         {loadingDocuments ? (
@@ -487,7 +508,7 @@ export default function CourseDetail() {
 
                       {/* Part 2: Current Documents */}
                       <div>
-                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: '#1e293b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <CheckSquare size={18} className="text-success" /> Current Documents
                         </h4>
                         {!approvedDocuments || approvedDocuments.length === 0 ? (
@@ -582,7 +603,7 @@ export default function CourseDetail() {
 
                       {/* Part 3: Rejected Documents */}
                       <div>
-                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: '#1e293b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <X size={18} style={{ color: '#ef4444' }} /> Rejected Documents
                         </h4>
                         {!rejectedDocuments || rejectedDocuments.length === 0 ? (
@@ -695,7 +716,7 @@ export default function CourseDetail() {
                         <>
                           {/* Part 1: Pending Requests */}
                           <div>
-                            <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: '#1e293b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               <AlertTriangle size={18} className="text-warning" /> Pending Requests
                             </h4>
                             {pendingSuggestions.filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge)).length === 0 ? (
@@ -782,7 +803,7 @@ export default function CourseDetail() {
 
                           {/* Part 2: Approved Suggestions */}
                           <div>
-                            <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: '#1e293b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               <CheckSquare size={18} className="text-success" /> Approved
                             </h4>
                             {approvedSuggestions.filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge)).length === 0 ? (
@@ -843,7 +864,7 @@ export default function CourseDetail() {
 
                           {/* Part 3: Rejected Suggestions */}
                           <div>
-                            <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: '#1e293b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               <X size={18} style={{ color: '#ef4444' }} /> Rejected
                             </h4>
                             {rejectedSuggestions.filter(s => s.contentType === (activeTab === 'outcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge)).length === 0 ? (
