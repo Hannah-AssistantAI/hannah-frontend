@@ -42,6 +42,8 @@ export interface UserProfile {
   studentId: string | null;
   studentSpecialty: string | null;
   currentSemester: string | null; // e.g., "HK1 2024-2025"
+  facultySpecialty: string | null; // Teaching specialty for faculty
+  yearsOfExperience: number | null; // Years of experience for faculty
   notificationPreferences: any | null; // Adjust based on actual structure
   createdAt: string;
   updatedAt: string | null;
