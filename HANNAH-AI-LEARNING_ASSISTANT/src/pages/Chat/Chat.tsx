@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Send, Upload, GitBranch, FileText, ClipboardCheck, StickyNote, Map } from 'lucide-react'
+import { Send, GitBranch, FileText, ClipboardCheck, StickyNote, Map } from 'lucide-react'
 import subjectService, { type Subject } from '../../service/subjectService'
 import flaggingService from '../../service/flaggingService'
 import { useStudio } from './hooks/useStudio'
@@ -363,9 +363,7 @@ export default function Chat() {
                                 onKeyPress={handleKeyPress}
                                 className="chat-input"
                             />
-                            <button className="upload-file-btn" aria-label="Tải lên tệp tin">
-                                <Upload size={20} />
-                            </button>
+
                             <button
                                 className={`send-btn ${inputValue.trim() ? 'active' : ''}`}
                                 onClick={handleSend}

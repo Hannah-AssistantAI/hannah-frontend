@@ -22,7 +22,7 @@ const ImportPreviewModal: React.FC<ImportPreviewModalProps> = ({
     return createPortal(
         (
             <div className="modal-overlay">
-                <div className="modal-content">
+                <div className="modal">
                     <h3>Import users from Excel/CSV</h3>
                     <div>
                         <p><strong>File:</strong> {selectedFileName}</p>

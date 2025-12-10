@@ -543,7 +543,7 @@ const NotificationDetailModal: React.FC<NotificationDetailModalProps> = ({ notif
                                         className="notification-btn flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg"
                                         onClick={() => {
                                             onClose();
-                                            navigate(`/chat?conversationId=${flagDetail.conversationId}`);
+                                            navigate(`/chat/${flagDetail.conversationId}`);
                                         }}
                                     >
                                         <ExternalLink className="w-5 h-5" />

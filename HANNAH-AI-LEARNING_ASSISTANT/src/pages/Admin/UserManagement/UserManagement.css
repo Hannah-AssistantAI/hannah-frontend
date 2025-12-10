@@ -433,7 +433,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .um-empty-icon {
@@ -470,6 +472,7 @@
     opacity: 0;
     transform: translateX(100%);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -559,6 +562,8 @@
 }
 
 .modal {
+  position: relative;
+  z-index: 1001;
   background: white;
   border-radius: 16px;
   padding: 24px;
@@ -567,6 +572,8 @@
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
 }
 
 .modal h3 {
@@ -644,4 +651,29 @@
   align-items: center;
   gap: 12px;
   color: #dc2626;
+}
+
+/* Reason Textarea */
+.reason-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #1f2937;
+  resize: vertical;
+  margin-top: 12px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.reason-textarea:focus {
+  outline: none;
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.reason-textarea::placeholder {
+  color: #9ca3af;
 }

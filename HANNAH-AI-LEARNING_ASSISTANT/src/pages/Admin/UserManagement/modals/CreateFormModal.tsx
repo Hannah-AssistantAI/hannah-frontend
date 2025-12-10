@@ -13,7 +13,7 @@ const CreateFormModal: React.FC<CreateFormModalProps> = ({
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content">
+            <div className="modal">
                 <h3>Add new user</h3>
                 <p>The form will be developed in the next version</p>
                 <div className="modal-actions">

@@ -26,7 +26,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     return createPortal(
         (
             <div className="modal-overlay">
-                <div className="modal-content" style={{ maxWidth: '500px' }}>
+                <div className="modal">
                     <div className="modal-header">
                         <div className="modal-title">Edit User</div>
                     </div>

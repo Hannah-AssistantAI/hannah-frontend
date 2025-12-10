@@ -18,7 +18,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
     return createPortal(
         (
             <div className="modal-overlay">
-                <div className="modal-content">
+                <div className="modal">
                     <div className="modal-header">
                         <div className="danger-title">
                             <span className="char-icon" aria-hidden style={{ fontSize: 20 }}>⚠️</span>
