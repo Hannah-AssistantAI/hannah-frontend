@@ -100,6 +100,8 @@ export default function Profile({ embedded = false }: ProfileProps) {
                     student_id: profileData.studentId || undefined,
                     student_specialty: profileData.studentSpecialty as any,
                     current_semester: profileData.currentSemester || undefined,
+                    faculty_specialty: profileData.facultySpecialty || undefined,
+                    years_of_experience: profileData.yearsOfExperience || undefined,
                     notification_preferences: profileData.notificationPreferences || {
                         emailUpdates: true,
                         appEvents: true,
@@ -131,6 +133,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
             if (editedProfile.phone !== userProfile?.phone) updateData.phone = editedProfile.phone;
             if (editedProfile.date_of_birth !== userProfile?.date_of_birth) updateData.dateOfBirth = editedProfile.date_of_birth;
             if (editedProfile.bio !== userProfile?.bio) updateData.bio = editedProfile.bio;
+            if (editedProfile.student_id !== userProfile?.student_id) updateData.studentId = editedProfile.student_id;
             if (editedProfile.student_specialty !== userProfile?.student_specialty) updateData.studentSpecialty = editedProfile.student_specialty;
             if (editedProfile.faculty_specialty !== userProfile?.faculty_specialty) updateData.facultySpecialty = editedProfile.faculty_specialty;
             if (editedProfile.years_of_experience !== userProfile?.years_of_experience) updateData.yearsOfExperience = editedProfile.years_of_experience;
@@ -142,6 +145,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
                     phone: updatedBackendProfile.phone || undefined,
                     date_of_birth: updatedBackendProfile.dateOfBirth ? updatedBackendProfile.dateOfBirth.split('T')[0] : undefined,
                     bio: updatedBackendProfile.bio || undefined,
+                    student_id: (updatedBackendProfile as any).studentId || undefined,
                     student_specialty: updatedBackendProfile.studentSpecialty as any,
                     faculty_specialty: (updatedBackendProfile as any).facultySpecialty || undefined,
                     years_of_experience: (updatedBackendProfile as any).yearsOfExperience || undefined
@@ -451,7 +455,17 @@ export default function Profile({ embedded = false }: ProfileProps) {
                                                         <Award size={16} />
                                                         Mã số sinh viên
                                                     </label>
-                                                    <p className="pf-value">{userProfile.student_id || 'Chưa cập nhật'}</p>
+                                                    {isEditing ? (
+                                                        <input
+                                                            type="text"
+                                                            className="pf-input"
+                                                            value={editedProfile.student_id || ''}
+                                                            onChange={(e) => setEditedProfile({ ...editedProfile, student_id: e.target.value })}
+                                                            placeholder="Nhập mã số sinh viên"
+                                                        />
+                                                    ) : (
+                                                        <p className="pf-value">{userProfile.student_id || 'Chưa cập nhật'}</p>
+                                                    )}
                                                 </div>
 
                                                 <div className="pf-field">
