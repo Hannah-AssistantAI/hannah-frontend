@@ -9,6 +9,7 @@ import type { UserData } from '../../service/authService';
 import toast from 'react-hot-toast';
 import { buildAvatarUrl } from '../../config/apiConfig';
 import { Header } from '../../components/Header';
+import { HistorySidebar } from '../../components/HistorySidebar';
 import {
     User,
     Mail,
@@ -271,6 +272,14 @@ export default function Profile({ embedded = false }: ProfileProps) {
                 <Header
                     onToggleHistory={() => setShowHistorySidebar(!showHistorySidebar)}
                     showNotifications={true}
+                />
+            )}
+
+            {/* History Sidebar */}
+            {!embedded && (
+                <HistorySidebar
+                    isOpen={showHistorySidebar}
+                    onClose={() => setShowHistorySidebar(false)}
                 />
             )}
 

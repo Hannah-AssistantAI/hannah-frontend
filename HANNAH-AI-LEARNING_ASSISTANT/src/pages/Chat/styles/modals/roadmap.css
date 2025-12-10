@@ -1,14 +1,16 @@
-/* Roadmap Modal - Similar to Notecard Modal */
+/* Roadmap Modal - Sized to match Mindmap Modal */
 .roadmap-modal-content {
     background-color: white;
-    border-radius: 16px;
+    border-radius: 12px;
     padding: 0;
-    width: 90%;
-    max-width: 900px;
-    max-height: 80vh;
+    width: 95vw;
+    max-width: 1400px;
+    height: 80vh;
+    max-height: 900px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e2e8f0;
     overflow: hidden;
     animation: slideIn 0.3s ease-out;
 }

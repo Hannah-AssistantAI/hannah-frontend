@@ -25,11 +25,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Let the calling component handle errors (e.g., to show a toast)
     const loginResponse = await authService.login({ email, password });
 
-    // Set the user state with the data from the response
-    setUser(loginResponse.user);
+    // Fetch user profile to get currentSemester immediately after login
+    try {
+      const profile = await userService.getUserProfile(loginResponse.user.userId.toString());
+      console.log('=== Login Profile Fetch ===');
+      console.log('Profile currentSemester:', profile.currentSemester);
 
-    // Return the user data so the caller can use it (e.g., for role-based redirect)
-    return loginResponse.user;
+      const userWithSemester = {
+        ...loginResponse.user,
+        currentSemester: profile.currentSemester
+      };
+
+      setUser(userWithSemester);
+      authService.saveUserData(userWithSemester); // Persist to localStorage
+
+      return userWithSemester;
+    } catch (profileError) {
+      console.warn('Could not fetch profile during login:', profileError);
+      // Fallback to user without semester
+      setUser(loginResponse.user);
+      return loginResponse.user;
+    }
   };
 
   const logout = async () => {
@@ -68,10 +84,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Fetch user profile to get currentSemester
           try {
             const profile = await userService.getUserProfile(freshUser.userId.toString());
+            console.log('=== AuthContext Profile Fetch ===');
+            console.log('Profile data:', profile);
+            console.log('Profile currentSemester:', profile.currentSemester);
             const userWithSemester = {
               ...freshUser,
               currentSemester: profile.currentSemester
             };
+            console.log('User with semester:', userWithSemester);
             setUser(userWithSemester);
             authService.saveUserData(userWithSemester); // Persist to localStorage
           } catch (profileError) {

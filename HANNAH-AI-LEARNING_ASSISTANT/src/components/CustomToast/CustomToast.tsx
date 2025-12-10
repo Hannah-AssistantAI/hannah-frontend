@@ -1,6 +1,8 @@
 import toast, { Toaster, type Toast } from 'react-hot-toast';
 import './CustomToast.css';
 
+const TOAST_DURATION = 2000; // Visual duration for progress bar
+
 const CustomToast = () => {
     return (
         <Toaster
@@ -8,16 +10,14 @@ const CustomToast = () => {
             reverseOrder={false}
             gutter={8}
             toastOptions={{
-                duration: 1500, // Default 1.5s
+                duration: Infinity, // We control dismissal manually
                 success: {
-                    duration: 1500, // Exact 1.5s
                     iconTheme: {
                         primary: '#10b981',
                         secondary: '#ffffff',
                     },
                 },
                 error: {
-                    duration: 1500, // Exact 2s
                     iconTheme: {
                         primary: '#ef4444',
                         secondary: '#ffffff',
@@ -31,10 +31,6 @@ const CustomToast = () => {
                 const progressColor = isSuccess ? '#10b981' : isError ? '#ef4444' : '#6b7280';
                 const textColor = isSuccess ? '#059669' : isError ? '#dc2626' : '#1f2937';
                 const borderColor = isSuccess ? '#d1fae5' : isError ? '#fee2e2' : '#e5e7eb';
-
-                // Add 1000ms to match actual toast lifetime (includes fade-out + internal delays)
-                const baseDuration = t.duration ?? 1500;
-                const animationDuration = baseDuration + 1000; // +1s buffer for perfect sync
 
                 return (
                     <div
@@ -50,9 +46,9 @@ const CustomToast = () => {
                                 className="custom-toast-close"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    toast.remove(t.id);  // Use remove() for instant dismiss without animation
+                                    toast.remove(t.id);
                                 }}
-                                title="Đóng"
+                                title="Close"
                                 style={{
                                     background: 'transparent',
                                     border: 'none',
@@ -84,12 +80,15 @@ const CustomToast = () => {
 
                         {/* Progress bar container */}
                         <div className="custom-toast-progress-track">
-                            {/* Progress bar fill */}
+                            {/* Progress bar fill - dismisses toast when animation ends */}
                             <div
                                 className="custom-toast-progress-bar"
                                 style={{
                                     background: progressColor,
-                                    animation: `toast-progress ${animationDuration}ms linear forwards`,
+                                    animation: `toast-progress ${TOAST_DURATION}ms linear forwards`,
+                                }}
+                                onAnimationEnd={() => {
+                                    toast.remove(t.id); // Dismiss immediately when progress bar ends
                                 }}
                             />
                         </div>
@@ -110,4 +109,3 @@ const CustomToast = () => {
 };
 
 export default CustomToast;
-

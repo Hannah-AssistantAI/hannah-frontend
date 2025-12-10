@@ -29,10 +29,10 @@ const PasswordVerifyModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, on
                 setPassword('');
                 onClose();
             } else {
-                setError('Mật khẩu không chính xác');
+                setError('Incorrect password');
             }
         } catch (err) {
-            setError('Có lỗi xảy ra. Vui lòng thử lại.');
+            setError('An error occurred. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -48,22 +48,22 @@ const PasswordVerifyModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, on
                         <Lock className="w-6 h-6 text-blue-600" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-slate-800">Xác thực mật khẩu</h2>
-                        <p className="text-sm text-slate-500">Nhập mật khẩu để tiếp tục chỉnh sửa</p>
+                        <h2 className="text-xl font-bold text-slate-800">Password Verification</h2>
+                        <p className="text-sm text-slate-500">Enter your password to continue editing</p>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                            Mật khẩu Admin
+                            Admin Password
                         </label>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:outline-none transition"
-                            placeholder="Nhập mật khẩu của bạn"
+                            placeholder="Enter your password"
                             autoFocus
                             required
                         />
@@ -85,7 +85,7 @@ const PasswordVerifyModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, on
                             }}
                             className="flex-1 px-4 py-3 border-2 border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition font-medium"
                         >
-                            Hủy
+                            Cancel
                         </button>
                         <button
                             type="submit"
@@ -95,12 +95,12 @@ const PasswordVerifyModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, on
                             {loading ? (
                                 <>
                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                    Đang xác thực...
+                                    Verifying...
                                 </>
                             ) : (
                                 <>
                                     <Lock className="w-4 h-4" />
-                                    Xác nhận
+                                    Confirm
                                 </>
                             )}
                         </button>
@@ -132,9 +132,9 @@ const CourseOverviewManagement: React.FC = () => {
         } catch (err: any) {
             console.error('Error fetching orientation content:', err);
             if (err.response?.status === 404) {
-                setError('Môn "Định hướng" chưa được tạo. Vui lòng chạy SQL script để tạo subject với ID 999.');
+                setError('"Orientation" subject has not been created. Please run the SQL script to create subject with ID 999.');
             } else {
-                setError(err.message || 'Không thể tải nội dung định hướng');
+                setError(err.message || 'Failed to load orientation content');
             }
         } finally {
             setLoading(false);
@@ -166,7 +166,7 @@ const CourseOverviewManagement: React.FC = () => {
             setIsPreviewMode(false);
         } catch (err: any) {
             console.error('Error saving orientation content:', err);
-            alert(err.message || 'Không thể lưu nội dung');
+            alert(err.message || 'Failed to save content');
         } finally {
             setSaving(false);
         }
@@ -179,11 +179,11 @@ const CourseOverviewManagement: React.FC = () => {
     };
 
     return (
-        <AdminPageWrapper title="Tài liệu Định hướng">
+        <AdminPageWrapper title="Orientation Document">
             <div className="orientation-management">
                 <div className="mb-4">
                     <p className="text-slate-600 text-sm">
-                        Quản lý tài liệu định hướng cho sinh viên. Nội dung này sẽ hiển thị trong Student Roadmap.
+                        Manage orientation documents for students. This content will be displayed in the Student Roadmap.
                     </p>
                 </div>
 
@@ -191,7 +191,7 @@ const CourseOverviewManagement: React.FC = () => {
                 {loading && (
                     <div className="flex items-center justify-center py-16">
                         <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-                        <span className="ml-3 text-slate-600">Đang tải nội dung...</span>
+                        <span className="ml-3 text-slate-600">Loading content...</span>
                     </div>
                 )}
 
@@ -201,7 +201,7 @@ const CourseOverviewManagement: React.FC = () => {
                         <div className="flex items-center gap-3">
                             <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0" />
                             <div>
-                                <h3 className="font-semibold text-red-900">Lỗi tải dữ liệu</h3>
+                                <h3 className="font-semibold text-red-900">Failed to Load Data</h3>
                                 <p className="text-red-700 text-sm mt-1">{error}</p>
                             </div>
                         </div>
@@ -209,7 +209,7 @@ const CourseOverviewManagement: React.FC = () => {
                             onClick={fetchContent}
                             className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
                         >
-                            Thử lại
+                            Retry
                         </button>
                     </div>
                 )}
@@ -229,7 +229,7 @@ const CourseOverviewManagement: React.FC = () => {
                                             {content?.subjectName || 'Định hướng'}
                                         </h2>
                                         <p className="text-sm text-slate-500">
-                                            Mã môn: {content?.subjectCode || 'ORIENTATION'} • Học kỳ 1
+                                            Subject Code: {content?.subjectCode || 'ORIENTATION'} • Semester 1
                                         </p>
                                     </div>
                                 </div>
@@ -241,7 +241,7 @@ const CourseOverviewManagement: React.FC = () => {
                                         className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-md"
                                     >
                                         <Edit3 className="w-4 h-4" />
-                                        Chỉnh sửa
+                                        Edit
                                     </button>
                                 ) : (
                                     <div className="flex items-center gap-2">
@@ -253,13 +253,13 @@ const CourseOverviewManagement: React.FC = () => {
                                                 }`}
                                         >
                                             <Eye className="w-4 h-4" />
-                                            {isPreviewMode ? 'Xem trước' : 'Xem trước'}
+                                            {isPreviewMode ? 'Preview' : 'Preview'}
                                         </button>
                                         <button
                                             onClick={handleCancel}
                                             className="flex items-center gap-2 px-4 py-2.5 border-2 border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition font-medium"
                                         >
-                                            Hủy
+                                            Cancel
                                         </button>
                                         <button
                                             onClick={handleSave}
@@ -269,12 +269,12 @@ const CourseOverviewManagement: React.FC = () => {
                                             {saving ? (
                                                 <>
                                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                                    Đang lưu...
+                                                    Saving...
                                                 </>
                                             ) : (
                                                 <>
                                                     <Save className="w-4 h-4" />
-                                                    Lưu
+                                                    Save
                                                 </>
                                             )}
                                         </button>
@@ -287,12 +287,12 @@ const CourseOverviewManagement: React.FC = () => {
                                 <div className="mt-4 flex items-center gap-4 text-sm text-slate-500">
                                     <span className="flex items-center gap-1">
                                         <Clock className="w-4 h-4" />
-                                        Cập nhật: {new Date(content.lastUpdatedAt).toLocaleString('vi-VN')}
+                                        Updated: {new Date(content.lastUpdatedAt).toLocaleString('en-US')}
                                     </span>
                                     {content.lastUpdatedBy && (
                                         <span className="flex items-center gap-1">
                                             <User className="w-4 h-4" />
-                                            Bởi: {content.lastUpdatedBy}
+                                            By: {content.lastUpdatedBy}
                                         </span>
                                     )}
                                 </div>
@@ -309,16 +309,16 @@ const CourseOverviewManagement: React.FC = () => {
                                 ) : (
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            Nội dung (Hỗ trợ Markdown)
+                                            Content (Supports Markdown)
                                         </label>
                                         <textarea
                                             value={editedContent}
                                             onChange={(e) => setEditedContent(e.target.value)}
                                             className="w-full h-[400px] px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none transition font-mono text-sm resize-none"
-                                            placeholder="Nhập nội dung định hướng cho sinh viên (hỗ trợ Markdown)..."
+                                            placeholder="Enter orientation content for students (supports Markdown)..."
                                         />
                                         <p className="mt-2 text-xs text-slate-500">
-                                            💡 Mẹo: Bạn có thể sử dụng cú pháp Markdown như **in đậm**, *in nghiêng*, # tiêu đề, - danh sách...
+                                            💡 Tip: You can use Markdown syntax like **bold**, *italic*, # heading, - list...
                                         </p>
                                     </div>
                                 )
@@ -329,8 +329,8 @@ const CourseOverviewManagement: React.FC = () => {
                                     ) : (
                                         <div className="text-center py-16 text-slate-400">
                                             <Map className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                                            <p className="text-lg">Chưa có nội dung</p>
-                                            <p className="text-sm mt-1">Nhấn "Chỉnh sửa" để thêm nội dung định hướng</p>
+                                            <p className="text-lg">No content yet</p>
+                                            <p className="text-sm mt-1">Click "Edit" to add orientation content</p>
                                         </div>
                                     )}
                                 </div>

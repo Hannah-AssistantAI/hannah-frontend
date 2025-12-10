@@ -93,14 +93,25 @@ export default function Chat() {
     // Wrapper for feature click with semester validation for roadmap
     const handleFeatureClick = (type: 'mindmap' | 'report' | 'notecard' | 'quiz' | 'roadmap', title: string) => {
         if (type === 'roadmap') {
-            // Check if student has set their semester (from context or localStorage)
-            const storedUser = localStorage.getItem('user_data');
-            const parsedUser = storedUser ? JSON.parse(storedUser) : null;
-            const currentSemester = user?.currentSemester || parsedUser?.currentSemester;
+            // Check if student has set their semester
+            // First check AuthContext (most up-to-date after Profile update)
+            let currentSemester = user?.currentSemester;
+
+            // If not in context, check localStorage (may have been updated in Profile)
+            if (!currentSemester) {
+                try {
+                    const storedUser = localStorage.getItem('user_data');
+                    if (storedUser) {
+                        const parsedUser = JSON.parse(storedUser);
+                        currentSemester = parsedUser?.currentSemester;
+                    }
+                } catch (e) {
+                    console.error('Failed to parse user_data from localStorage:', e);
+                }
+            }
 
             console.log('=== Roadmap Semester Check ===');
             console.log('user?.currentSemester:', user?.currentSemester);
-            console.log('parsedUser?.currentSemester:', parsedUser?.currentSemester);
             console.log('Final currentSemester:', currentSemester);
 
             if (!currentSemester) {

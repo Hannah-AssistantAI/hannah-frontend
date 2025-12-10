@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface LoginFormProps {
   onSubmit: (email: string, password: string) => Promise<void>;
@@ -15,6 +16,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading = false }) =>
     email: '',
     password: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -39,7 +41,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading = false }) =>
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const newErrors = {
       email: '',
       password: ''
@@ -92,21 +94,32 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading = false }) =>
         <label htmlFor="login-password" className="form-label">
           Mật khẩu
         </label>
-        <input
-          id="login-password"
-          name="password"
-          type="password"
-          value={formData.password}
-          onChange={handleChange}
-          className={`form-input ${errors.password ? 'error' : ''}`}
-          placeholder="Nhập mật khẩu"
-          disabled={isLoading}
-        />
+        <div className="password-input-wrapper">
+          <input
+            id="login-password"
+            name="password"
+            type={showPassword ? 'text' : 'password'}
+            value={formData.password}
+            onChange={handleChange}
+            className={`form-input ${errors.password ? 'error' : ''}`}
+            placeholder="Nhập mật khẩu"
+            disabled={isLoading}
+          />
+          <button
+            type="button"
+            className="password-toggle-btn"
+            onClick={() => setShowPassword(!showPassword)}
+            tabIndex={-1}
+            aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
         {errors.password && <span className="form-error">{errors.password}</span>}
       </div>
 
-      <button 
-        type="submit" 
+      <button
+        type="submit"
         className="auth-button"
         disabled={isLoading}
       >

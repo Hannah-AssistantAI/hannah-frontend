@@ -37,15 +37,22 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="app-logo" onClick={() => navigate('/learn')}>
                     <span className="app-logo-text">Hannah Assistant</span>
                 </div>
-                <img
-                    src="/images/header/2021-FPTU-Logo.png"
-                    alt="FPT University Logo"
-                    className="header-logo-image"
-                    onError={(e) => {
-                        console.error('Logo failed to load:', e);
-                        e.currentTarget.style.display = 'none';
-                    }}
-                />
+                <div
+                    className="header-logo-link"
+                    onClick={() => navigate('/')}
+                    style={{ cursor: 'pointer' }}
+                    title="Về trang chủ"
+                >
+                    <img
+                        src="/images/header/2021-FPTU-Logo.png"
+                        alt="FPT University Logo"
+                        className="header-logo-image"
+                        onError={(e) => {
+                            console.error('Logo failed to load:', e);
+                            e.currentTarget.style.display = 'none';
+                        }}
+                    />
+                </div>
             </div>
             <div className="app-header-right">
                 {showShareButton && (

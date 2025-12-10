@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import authService from '../../service/authService';
 
@@ -8,6 +9,7 @@ interface RegisterFormProps {
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -186,16 +188,27 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
         <label htmlFor="register-password" className="form-label">
           Mật khẩu
         </label>
-        <input
-          id="register-password"
-          name="password"
-          type="password"
-          value={formData.password}
-          onChange={handleChange}
-          className={`form-input ${errors.password ? 'error' : ''}`}
-          placeholder="Nhập mật khẩu"
-          disabled={isLoading}
-        />
+        <div className="password-input-wrapper">
+          <input
+            id="register-password"
+            name="password"
+            type={showPassword ? 'text' : 'password'}
+            value={formData.password}
+            onChange={handleChange}
+            className={`form-input ${errors.password ? 'error' : ''}`}
+            placeholder="Nhập mật khẩu"
+            disabled={isLoading}
+          />
+          <button
+            type="button"
+            className="password-toggle-btn"
+            onClick={() => setShowPassword(!showPassword)}
+            tabIndex={-1}
+            aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
         {errors.password && <span className="form-error">{errors.password}</span>}
       </div>
 
