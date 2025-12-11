@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
@@ -22,8 +24,23 @@ jobs:
           script: |
             cd ~/hannah/hannah-frontend
             
+            # Get current commit on server
+            SERVER_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "none")
+            
             # Pull latest code
             git pull origin master
+            
+            # Get new commit after pull
+            NEW_COMMIT=$(git rev-parse HEAD)
+            
+            # Check if code actually changed
+            if [ "$SERVER_COMMIT" = "$NEW_COMMIT" ]; then
+              echo "⏭️ Server already has latest code (commit: $NEW_COMMIT). Skipping rebuild."
+              exit 0
+            fi
+            
+            echo "🔄 Code changed: $SERVER_COMMIT -> $NEW_COMMIT"
+            echo "📦 Rebuilding frontend container..."
             
             # Rebuild frontend container
             cd ~/hannah/hannah-backend
