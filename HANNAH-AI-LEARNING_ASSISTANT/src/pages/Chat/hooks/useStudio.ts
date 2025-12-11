@@ -14,10 +14,12 @@ const extractSemesterSection = (content: string, semesterNumber: number): string
         return null;
     }
 
-    // Build regex to match semester header (with any emoji prefix)
-    // Pattern: Any emoji(s) + "KỲ" + space + number
+    // Build regex to match semester header
+    // MUST start at beginning of line (or file).
+    // MUST look for "KỲ X" followed by boundary or non-digit to avoid matching "KỲ 1" inside "KỲ 1-4"
+    // We strictly look for the format: Newline + (Optional Emojis/Spaces) + "KỲ" + Space + Number
     const semesterPattern = new RegExp(
-        `([\\p{Emoji}\\s]*KỲ\\s*${semesterNumber}[^\\n]*)`,
+        `(?:^|\\n)([\\p{Emoji}\\s]*KỲ\\s*${semesterNumber}(?!-\\d)[^\\n]*)`,
         'iu'
     );
 
@@ -26,23 +28,86 @@ const extractSemesterSection = (content: string, semesterNumber: number): string
     if (!startMatch) {
         return null;
     }
+    
+    // startMatch[0] matches the whole line including the newline prefix if any. 
+    // We need the index of the actual content.
+    // If it matched a newline at start, index is pointing to it.
+    const matchIndex = startMatch.index !== undefined ? startMatch.index : -1;
+    // content start is matchIndex + (startMatch[0].startsWith('\n') ? 1 : 0) ? 
+    // Actually we want to include the header in the result.
+    // But if we use split logic, we need strict positions.
+    
+    // Let's use the captured group 1 if we used parens? 
+    // The regex above `(?:^|\\n)(...)` captures the line without the leading newline if we are careful.
+    // Actually capture group 1 is `([\\p{Emoji}\\s]*KỲ...)`.
+    
+    const headerContent = startMatch[1]; 
+    const startIndex = content.indexOf(headerContent, matchIndex);
 
-    const startIndex = content.indexOf(startMatch[0]);
-
-    // Find start of next semester (KỲ X+1 to KỲ 9)
+    // Find start of next semester (KỲ X+1 to KỲ 12)
+    // We iterate to find ANY future semester header
     let endIndex = content.length;
-    for (let nextSem = semesterNumber + 1; nextSem <= 9; nextSem++) {
-        const nextPattern = new RegExp(`[\\p{Emoji}\\s]*KỲ\\s*${nextSem}`, 'iu');
-        const nextMatch = content.substring(startIndex + startMatch[0].length).match(nextPattern);
-        if (nextMatch) {
-            endIndex = startIndex + startMatch[0].length + content.substring(startIndex + startMatch[0].length).indexOf(nextMatch[0]);
-            break;
+    for (let nextSem = 1; nextSem <= 12; nextSem++) {
+        if (nextSem === semesterNumber) continue;
+        
+        // Only look for semesters AFTER the current one found content-wise?
+        // No, typically roadmaps are ordered. But just in case, we search after startIndex.
+        if (nextSem > semesterNumber) {
+             const nextPattern = new RegExp(`(?:^|\\n)[\\p{Emoji}\\s]*KỲ\\s*${nextSem}(?!-\\d)`, 'iu');
+             const remainingContent = content.substring(startIndex + headerContent.length);
+             const nextMatch = remainingContent.match(nextPattern);
+             if (nextMatch) {
+                 // Found a future semester
+                 endIndex = startIndex + headerContent.length + (nextMatch.index || 0);
+                 break;
+             }
         }
+    }
+    
+    // Also stop if we hit "CÂU HỎI THƯỜNG GẶP" or "LỜI KẾT"
+    const footerPattern = /(?:^|\n)[\p{Emoji}\s]*(CÂU HỎI THƯỜNG GẶP|LỜI KẾT)/iu;
+    const remaining = content.substring(startIndex);
+    const footerMatch = remaining.match(footerPattern);
+    if (footerMatch && (startIndex + footerMatch.index!) < endIndex) {
+        endIndex = startIndex + (footerMatch.index || 0);
     }
 
     // Extract the semester section
     const section = content.substring(startIndex, endIndex).trim();
 
+    return section || null;
+};
+
+/**
+ * Extract the "Program Structure" section (before Semester 1)
+ */
+const extractStructureSection = (content: string): string | null => {
+    if (!content) return null;
+
+    // Find start of Structure section (approximate match for "CẤU TRÚC CHƯƠNG TRÌNH")
+    const startPattern = /(?:^|\\n)[\\p{Emoji}\\s]*CẤU TRÚC CHƯƠNG TRÌNH/iu;
+    const startMatch = content.match(startPattern);
+    
+    if (!startMatch) {
+         return null;
+    }
+
+    const matchIndex = startMatch.index !== undefined ? startMatch.index : 0;
+    // Adjust to skip leading newline if captured implicitly
+    const headerContent = startMatch[0].trim();
+    const startIndex = content.indexOf(headerContent, matchIndex);
+
+    // Find start of Semester 1 to end the structure section
+    // Strict match for Semester 1 Header
+    const endPattern = /(?:^|\\n)[\\p{Emoji}\\s]*KỲ\s*1(?!-\\d)/iu;
+    const endMatch = content.match(endPattern);
+    
+    let endIndex = content.length;
+    if (endMatch) {
+         endIndex = endMatch.index || content.length;
+    }
+    
+    const section = content.substring(startIndex, endIndex).trim();
     return section || null;
 };
 
@@ -568,9 +633,19 @@ export const useStudio = (conversationId: number | null) => {
 
                 if (semesterSection) {
                     title = `Lộ trình Kỳ ${currentSemesterNumber}`;
+                    let finalContent = semesterSection;
+
+                    // If it is Semester 1, also include the "Program Structure" section
+                    if (currentSemesterNumber === 1) {
+                         const structureSection = extractStructureSection(fullContent);
+                         if (structureSection) {
+                             finalContent = structureSection + "\n\n---\n\n" + semesterSection;
+                         }
+                    }
+
                     content = {
                         title,
-                        content: semesterSection
+                        content: finalContent
                     };
                 } else {
                     title = `Kỳ ${currentSemesterNumber}`;

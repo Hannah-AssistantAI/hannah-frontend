@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Loader2, AlertCircle, Lock, Save, Edit3, Eye, Map, Clock, User } from 'lucide-react';
+import { Loader2, AlertCircle, Lock, Save, Edit3, Eye, Map, Clock, User, Check, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import orientationService from '../../../service/orientationService';
 import type { OrientationContent } from '../../../service/orientationService';
@@ -111,6 +111,178 @@ const PasswordVerifyModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, on
     );
 };
 
+// Custom Markdown Components
+const MarkdownComponents: any = {
+    h1: ({ node, ...props }: any) => (
+        <div className="text-center mb-12">
+            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-4" {...props} />
+            <div className="h-1 w-20 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto rounded-full"></div>
+        </div>
+    ),
+    h2: ({ node, ...props }: any) => (
+        <div className="flex items-center gap-4 mt-12 mb-6 group">
+            <div className="hidden md:flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                <div className="font-bold text-xl">#</div>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 border-b-2 border-slate-100 pb-2 w-full" {...props} />
+        </div>
+    ),
+    h3: ({ node, ...props }: any) => (
+        <h3 className="text-lg font-bold text-purple-700 mt-6 mb-3 flex items-center gap-2 uppercase tracking-wide text-sm" {...props} />
+    ),
+    p: ({ node, ...props }: any) => {
+        const text = String(props.children);
+        // Check if this paragraph contains checkmarks ( Goals section )
+        if (text.includes("✅")) {
+            const parts = text.split("✅").filter(part => part.trim().length > 0);
+            return (
+                <div className="flex flex-wrap gap-2 mb-4">
+                    {parts.map((part, index) => (
+                        <span key={index} className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-xl text-slate-700 font-medium shadow-sm hover:bg-green-100 transition-colors">
+                            <span className="text-green-600 font-bold">✓</span>
+                            {part.trim()}
+                        </span>
+                    ))}
+                </div>
+            );
+        }
+        return <p className="text-slate-600 leading-7 mb-4 text-[16px]" {...props} />;
+    },
+    ul: ({ node, ...props }: any) => (
+        <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8" {...props} />
+    ),
+    li: ({ node, ...props }: any) => {
+        // Convert children to string to check for checkmarks
+        const childText = React.Children.toArray(props.children).map(child => String(child)).join('');
+        const isChecklist = childText.includes("✅");
+
+        if (isChecklist) {
+            return (
+                <li className="flex items-center gap-3 p-3 bg-green-50 border border-green-100 rounded-xl mb-2 col-span-2">
+                    <div className="flex-shrink-0 text-green-600 bg-white p-1 rounded-full border border-green-200">
+                        <Check size={14} strokeWidth={3} />
+                    </div>
+                    <span className="text-slate-700 font-medium text-sm">{props.children}</span>
+                </li>
+            )
+        }
+
+        return (
+            <li className="flex flex-col p-4 bg-slate-50 border border-slate-100 rounded-xl hover:shadow-md hover:border-blue-200 transition-all duration-300 h-full" {...props}>
+                <span className="text-slate-700 font-medium">{props.children}</span>
+            </li>
+        )
+    },
+    strong: ({ node, ...props }: any) => {
+        const text = String(props.children);
+        if (text.includes("Mục tiêu")) {
+            return (
+                <div className="flex items-center gap-2 mt-6 mb-3 p-2 bg-blue-50/50 rounded-lg border-l-4 border-blue-500 w-full col-span-2">
+                    <span className="text-blue-600 font-bold uppercase tracking-wider text-sm flex items-center gap-2">
+                        <span>🎯</span>
+                        {props.children}
+                    </span>
+                </div>
+            );
+        }
+        return <strong className="block text-blue-900 font-bold mb-1" {...props} />;
+    },
+    blockquote: ({ node, ...props }: any) => (
+        <div className="my-8 p-6 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl text-white shadow-lg overflow-hidden relative">
+            <div className="relative z-10">
+                <blockquote className="font-medium text-lg opacity-95 italic" {...props} />
+            </div>
+            <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-xl"></div>
+            <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-20 h-20 bg-purple-500 opacity-20 rounded-full blur-xl"></div>
+        </div>
+    ),
+    hr: ({ node, ...props }: any) => (
+        <hr className="my-12 border-slate-200" {...props} />
+    ),
+};
+
+const SAMPLE_ROADMAP_CONTENT = `# LỘ TRÌNH NGÀNH KỸ THUẬT PHẦN MỀM - TỔNG QUAN
+*(Đại học FPT - Tổng quan Chương trình Kỹ thuật Phần mềm)*
+
+## 🎯 GIỚI THIỆU LỘ TRÌNH
+Chào mừng bạn đến với chương trình Kỹ thuật Phần mềm tại Đại học FPT! Tài liệu này cung cấp tổng quan toàn diện về hành trình 9 kỳ học từ sinh viên năm nhất đến kỹ sư phần mềm chuyên nghiệp.
+
+## 📊 CẤU TRÚC CHƯƠNG TRÌNH
+
+### 🔹 Giai đoạn 1: Nền tảng (KỲ 1-4)
+**Trọng tâm:** Lập trình cơ bản & Nền tảng Khoa học Máy tính
+**Mục tiêu:** Xây dựng kỹ năng code, hiểu thuật toán
+
+### 🔹 Giai đoạn 2: Chuyên ngành hẹp (KỲ 5-8)
+**Trọng tâm:** Chọn hướng đi + Kỹ năng chuyên sâu
+**Mục tiêu:** Chọn 1 trong 5 chuyên ngành hẹp
+
+### 🔹 Thực tập (KỲ 6)
+**Trọng tâm:** On-the-Job Training (OJT)
+**Mục tiêu:** Kinh nghiệm thực tế
+
+### 🔹 Đồ án tốt nghiệp (KỲ 9)
+**Trọng tâm:** Capstone Project
+**Mục tiêu:** Thể hiện mọi thứ đã học
+
+---
+
+## 📅 KỲ 1 - LẬP TRÌNH CƠ BẢN
+*Mọi người đều bắt đầu từ đây. Chưa chọn chuyên ngành - tập trung xây dựng nền tảng lập trình.*
+
+**Các môn chính:**
+- **PRF192 - Programming Fundamentals:** Giới thiệu tư duy lập trình với ngôn ngữ C
+- **MAE101 - Mathematics for Engineering:** Nền tảng Giải tích
+- **CEA201 - Computer Organization & Architecture:** Cách máy tính hoạt động
+- **SSG104 - Communication & Soft Skills:** Kỹ năng thuyết trình và làm việc nhóm
+
+> **Mục tiêu KỲ 1:**
+> ✅ Hiểu tư duy lập trình cơ bản
+> ✅ Làm quen với môi trường học đại học
+> ✅ Xây dựng thói quen code hàng ngày
+
+## 📅 KỲ 2 - LẬP TRÌNH HƯỚNG ĐỐI TƯỢNG
+*Chuyển từ C sang Java, học OOP - nền tảng cho mọi ngôn ngữ hiện đại.*
+
+**Các môn chính:**
+- **PRO192 - Object-Oriented Programming:** Lập trình Java, khái niệm OOP (Classes, Objects, Inheritance, Polymorphism)
+- **MAD101 - Discrete Mathematics:** Logic, tập hợp, đồ thị - nền tảng cho thuật toán
+- **NWC203 - Computer Networking:** Internet hoạt động như thế nào
+- **JPD113/116 - Japanese/English:** Kỹ năng ngôn ngữ
+
+> **Mục tiêu KỲ 2:**
+> ✅ Thành thạo Java cơ bản
+> ✅ Hiểu OOP (Class, Object, Inheritance, Polymorphism)
+> ✅ Tư duy về cấu trúc chương trình
+
+## 📅 KỲ 3 - CẤU TRÚC DỮ LIỆU & THUẬT TOÁN
+*KỲ quan trọng nhất cho phỏng vấn technical sau này.*
+
+**Các môn chính:**
+- **CSD201 - Data Structures & Algorithms:** Arrays, Linked Lists, Trees, Sorting, Searching
+- **DBI202 - Database Systems:** SQL, cơ sở dữ liệu quan hệ, ER diagrams
+- **WED201c - Web Development:** HTML, CSS, JavaScript cơ bản
+- **OSG202 - Operating Systems:** Quản lý tiến trình, bộ nhớ, file systems
+
+> **Mục tiêu KỲ 3:**
+> ✅ Giải được các bài toán thuật toán cơ bản
+> ✅ Thiết kế database và viết SQL
+> ✅ Làm được website tĩnh đơn giản
+
+## 📅 KỲ 4 - QUY TRÌNH PHẦN MỀM
+*Học cách làm việc theo team, quy trình Agile/Scrum.*
+
+**Các môn chính:**
+- **SWE201c - Introduction to Software Engineering:** SDLC, Agile, Scrum, Waterfall
+- **IOT102 - Internet of Things:** Cơ bản hệ thống nhúng
+- **MAS291 - Statistics & Probability:** Nền tảng phân tích dữ liệu
+- **Electives:** Bắt đầu khám phá các lĩnh vực quan tâm
+
+> **Mục tiêu KỲ 4:**
+> ✅ Hiểu quy trình phát triển phần mềm
+> ✅ Sẵn sàng chọn chuyên ngành hẹp!
+> ✅ Chuẩn bị GitHub, portfolio cá nhân`;
+
 // Main Component
 const CourseOverviewManagement: React.FC = () => {
     const [content, setContent] = useState<OrientationContent | null>(null);
@@ -121,6 +293,7 @@ const CourseOverviewManagement: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [isPreviewMode, setIsPreviewMode] = useState(false);
+    const [isContentVisible, setIsContentVisible] = useState(true);
 
     const fetchContent = useCallback(async () => {
         try {
@@ -236,13 +409,22 @@ const CourseOverviewManagement: React.FC = () => {
 
                                 {/* Action Buttons */}
                                 {!isEditing ? (
-                                    <button
-                                        onClick={handleEditClick}
-                                        className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-md"
-                                    >
-                                        <Edit3 className="w-4 h-4" />
-                                        Edit
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={handleEditClick}
+                                            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-md"
+                                        >
+                                            <Edit3 className="w-4 h-4" />
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => setIsContentVisible(!isContentVisible)}
+                                            className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                            title={isContentVisible ? "Thu gọn" : "Mở rộng"}
+                                        >
+                                            {isContentVisible ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                                        </button>
+                                    </div>
                                 ) : (
                                     <div className="flex items-center gap-2">
                                         <button
@@ -303,8 +485,8 @@ const CourseOverviewManagement: React.FC = () => {
                         <div className="p-6">
                             {isEditing ? (
                                 isPreviewMode ? (
-                                    <div className="prose prose-slate max-w-none p-6 bg-slate-50 rounded-xl border-2 border-slate-200 min-h-[400px]">
-                                        <ReactMarkdown>{editedContent}</ReactMarkdown>
+                                    <div className="prose prose-slate max-w-none p-6 bg-slate-50 rounded-xl border-2 border-slate-200 min-h-[500px]">
+                                        <ReactMarkdown components={MarkdownComponents}>{editedContent}</ReactMarkdown>
                                     </div>
                                 ) : (
                                     <div>
@@ -314,25 +496,41 @@ const CourseOverviewManagement: React.FC = () => {
                                         <textarea
                                             value={editedContent}
                                             onChange={(e) => setEditedContent(e.target.value)}
-                                            className="w-full h-[400px] px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none transition font-mono text-sm resize-none"
+                                            className="w-full h-[500px] px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none transition font-mono text-sm resize-none"
                                             placeholder="Enter orientation content for students (supports Markdown)..."
                                         />
-                                        <p className="mt-2 text-xs text-slate-500">
-                                            💡 Tip: You can use Markdown syntax like **bold**, *italic*, # heading, - list...
-                                        </p>
+                                        <div className="mt-3 flex items-center justify-between">
+                                            <p className="text-xs text-slate-500">
+                                                💡 Tip: You can use Markdown syntax like **bold**, *italic*, # heading, - list...
+                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditedContent(SAMPLE_ROADMAP_CONTENT)}
+                                                className="text-xs text-blue-600 hover:text-blue-800 font-semibold hover:underline"
+                                            >
+                                                Insert Sample Template
+                                            </button>
+                                        </div>
                                     </div>
                                 )
                             ) : (
-                                <div className="prose prose-slate max-w-none">
-                                    {content?.content ? (
-                                        <ReactMarkdown>{content.content}</ReactMarkdown>
-                                    ) : (
-                                        <div className="text-center py-16 text-slate-400">
-                                            <Map className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                                            <p className="text-lg">No content yet</p>
-                                            <p className="text-sm mt-1">Click "Edit" to add orientation content</p>
+                                <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isContentVisible ? 'max-h-[200vh] opacity-100 mt-6' : 'max-h-0 opacity-0 mt-0'}`}>
+                                    <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl overflow-hidden border border-blue-100">
+                                        <div className="h-[calc(100vh-24rem)] min-h-[300px] overflow-y-auto px-4 py-8 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-transparent custom-markdown-content font-sans">
+                                            <div className="max-w-4xl mx-auto bg-white p-12 shadow-2xl rounded-2xl min-h-full border-t-8 border-blue-600 relative">
+                                                {content?.content ? (
+                                                    <ReactMarkdown components={MarkdownComponents}>
+                                                        {content.content}
+                                                    </ReactMarkdown>
+                                                ) : (
+                                                    <div className="text-center py-16 text-slate-400">
+                                                        <Map className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                                                        <p className="text-lg">No content yet</p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -346,7 +544,7 @@ const CourseOverviewManagement: React.FC = () => {
                 onClose={() => setIsPasswordModalOpen(false)}
                 onVerify={handlePasswordVerify}
             />
-        </AdminPageWrapper>
+        </AdminPageWrapper >
     );
 };
 
