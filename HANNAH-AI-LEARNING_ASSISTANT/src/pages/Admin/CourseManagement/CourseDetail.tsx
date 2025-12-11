@@ -27,6 +27,27 @@ export default function CourseDetail() {
   const [suggestionsError, setSuggestionsError] = useState<string | null>(null);
   const [processingSuggestionId, setProcessingSuggestionId] = useState<number | null>(null);
 
+  // State for reject modal
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectModalType, setRejectModalType] = useState<'document' | 'suggestion'>('document');
+  const [rejectingId, setRejectingId] = useState<number | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectSubmitting, setRejectSubmitting] = useState(false);
+
+  // State for expanded document descriptions
+  const [expandedDocs, setExpandedDocs] = useState<Set<number>>(new Set());
+  const toggleDocExpand = (docId: number) => {
+    setExpandedDocs(prev => {
+      const next = new Set(prev);
+      if (next.has(docId)) {
+        next.delete(docId);
+      } else {
+        next.add(docId);
+      }
+      return next;
+    });
+  };
+
   const fetchSubjectDetail = async () => {
     if (!id) return;
     try {
@@ -95,20 +116,44 @@ export default function CourseDetail() {
     }
   };
 
-  const handleReject = async (documentId: number) => {
-    const reason = prompt('Please enter rejection reason:');
-    if (!reason) return;
+  // Open reject modal for document
+  const openRejectModal = (itemId: number, type: 'document' | 'suggestion') => {
+    setRejectingId(itemId);
+    setRejectModalType(type);
+    setRejectReason('');
+    setShowRejectModal(true);
+  };
+
+  // Handle reject submission from modal
+  const handleRejectSubmit = async () => {
+    if (!rejectReason.trim() || !rejectingId) {
+      toast.error('Please enter a rejection reason');
+      return;
+    }
 
     try {
-      setProcessingDocId(documentId);
-      await documentService.rejectDocument(documentId, reason);
-      toast.success('Document rejected');
-      await fetchPendingDocuments();
+      setRejectSubmitting(true);
+      if (rejectModalType === 'document') {
+        setProcessingDocId(rejectingId);
+        await documentService.rejectDocument(rejectingId, rejectReason);
+        toast.success('Document rejected');
+        await fetchPendingDocuments();
+        setProcessingDocId(null);
+      } else {
+        setProcessingSuggestionId(rejectingId);
+        await suggestionService.rejectSuggestion(rejectingId, rejectReason);
+        toast.success('Suggestion rejected');
+        await fetchSuggestions();
+        setProcessingSuggestionId(null);
+      }
+      setShowRejectModal(false);
+      setRejectReason('');
+      setRejectingId(null);
     } catch (error) {
-      console.error('Error rejecting document:', error);
-      toast.error('Failed to reject document');
+      console.error('Error rejecting:', error);
+      toast.error('Failed to reject');
     } finally {
-      setProcessingDocId(null);
+      setRejectSubmitting(false);
     }
   };
 
@@ -175,22 +220,7 @@ export default function CourseDetail() {
     }
   };
 
-  const handleRejectSuggestion = async (suggestionId: number) => {
-    const reason = prompt('Please enter rejection reason:');
-    if (!reason) return;
 
-    try {
-      setProcessingSuggestionId(suggestionId);
-      await suggestionService.rejectSuggestion(suggestionId, reason);
-      toast.success('Suggestion rejected.');
-      await fetchSuggestions(); // Refresh list
-    } catch (error) {
-      console.error('Error rejecting suggestion:', error);
-      toast.error('Failed to reject suggestion.');
-    } finally {
-      setProcessingSuggestionId(null);
-    }
-  };
 
   const handleDeleteSuggestion = async (suggestionId: number) => {
     const confirmed = window.confirm('Are you sure you want to delete this suggestion? This action cannot be undone.');
@@ -396,94 +426,92 @@ export default function CourseDetail() {
                                 padding: '1rem',
                                 backgroundColor: 'var(--bg-secondary)'
                               }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
-                                  <div style={{ flex: 1 }}>
-                                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{doc.title}</h4>
-                                    {doc.description && (
-                                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                        {doc.description}
-                                      </p>
+                                <div style={{ marginBottom: '0.75rem' }}>
+                                  <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#1e3a5f', lineHeight: 1.4 }}>{doc.title}</h4>
+                                  {doc.description && (
+                                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                      Uploaded file: {doc.description}
+                                    </p>
+                                  )}
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                  <button
+                                    onClick={() => handleDownload(doc.documentId, doc.title)}
+                                    style={{
+                                      padding: '0.5rem 1rem',
+                                      fontSize: '0.875rem',
+                                      fontWeight: 600,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.5rem',
+                                      backgroundColor: '#3b82f6',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '8px',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s ease',
+                                    }}
+                                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+                                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
+                                    title="Download document"
+                                  >
+                                    <Download size={16} />
+                                    Download
+                                  </button>
+                                  <button
+                                    onClick={() => handleApprove(doc.documentId)}
+                                    disabled={processingDocId === doc.documentId}
+                                    style={{
+                                      padding: '0.6rem 1.2rem',
+                                      fontSize: '0.875rem',
+                                      fontWeight: 600,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.5rem',
+                                      backgroundColor: '#10b981',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '8px',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s ease',
+                                      boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.3)',
+                                    }}
+                                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#059669')}
+                                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#10b981')}
+                                    title="Approve document"
+                                  >
+                                    {processingDocId === doc.documentId ? (
+                                      <Loader size={16} className="animate-spin" />
+                                    ) : (
+                                      <Check size={16} />
                                     )}
-                                  </div>
-                                  <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
-                                    <button
-                                      onClick={() => handleDownload(doc.documentId, doc.title)}
-                                      style={{
-                                        padding: '0.5rem 1rem',
-                                        fontSize: '0.875rem',
-                                        fontWeight: 600,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.5rem',
-                                        backgroundColor: '#3b82f6',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease',
-                                      }}
-                                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
-                                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#3b82f6')}
-                                      title="Download document"
-                                    >
-                                      <Download size={16} />
-                                      Download
-                                    </button>
-                                    <button
-                                      onClick={() => handleApprove(doc.documentId)}
-                                      disabled={processingDocId === doc.documentId}
-                                      style={{
-                                        padding: '0.6rem 1.2rem',
-                                        fontSize: '0.875rem',
-                                        fontWeight: 600,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.5rem',
-                                        backgroundColor: '#10b981',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease',
-                                        boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.3)',
-                                      }}
-                                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#059669')}
-                                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#10b981')}
-                                      title="Approve document"
-                                    >
-                                      {processingDocId === doc.documentId ? (
-                                        <Loader size={16} className="animate-spin" />
-                                      ) : (
-                                        <Check size={16} />
-                                      )}
-                                      Approve
-                                    </button>
-                                    <button
-                                      onClick={() => handleReject(doc.documentId)}
-                                      disabled={processingDocId === doc.documentId}
-                                      style={{
-                                        padding: '0.6rem 1.2rem',
-                                        fontSize: '0.875rem',
-                                        fontWeight: 600,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.5rem',
-                                        backgroundColor: '#ef4444',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease',
-                                        boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.3)',
-                                      }}
-                                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
-                                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#ef4444')}
-                                      title="Reject document"
-                                    >
-                                      <X size={16} />
-                                      Reject
-                                    </button>
-                                  </div>
+                                    Approve
+                                  </button>
+                                  <button
+                                    onClick={() => openRejectModal(doc.documentId, 'document')}
+                                    disabled={processingDocId === doc.documentId}
+                                    style={{
+                                      padding: '0.6rem 1.2rem',
+                                      fontSize: '0.875rem',
+                                      fontWeight: 600,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.5rem',
+                                      backgroundColor: '#ef4444',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '8px',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s ease',
+                                      boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.3)',
+                                    }}
+                                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
+                                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#ef4444')}
+                                    title="Reject document"
+                                  >
+                                    <X size={16} />
+                                    Reject
+                                  </button>
                                 </div>
                                 <div style={{
                                   display: 'flex',
@@ -522,16 +550,47 @@ export default function CourseDetail() {
                                 padding: '1rem',
                                 backgroundColor: 'var(--bg-primary)'
                               }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                  <div style={{ flex: 1 }}>
-                                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{doc.title}</h4>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '1rem' }}>
+                                  <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, wordBreak: 'break-word', color: '#1e293b' }}>{doc.title}</h4>
                                     {doc.description && (
-                                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                        {doc.description}
-                                      </p>
+                                      <>
+                                        <p style={{
+                                          margin: '0.25rem 0 0 0',
+                                          fontSize: '0.875rem',
+                                          color: '#475569',
+                                          ...(expandedDocs.has(doc.documentId) ? {} : {
+                                            maxHeight: '3rem',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 2,
+                                            WebkitBoxOrient: 'vertical' as any,
+                                          }),
+                                        }}>
+                                          Uploaded file: {doc.description}
+                                        </p>
+                                        {doc.description.length > 100 && (
+                                          <button
+                                            onClick={() => toggleDocExpand(doc.documentId)}
+                                            style={{
+                                              background: 'none',
+                                              border: 'none',
+                                              color: '#3b82f6',
+                                              fontSize: '0.75rem',
+                                              fontWeight: 600,
+                                              cursor: 'pointer',
+                                              padding: '0.25rem 0',
+                                              marginTop: '0.25rem',
+                                            }}
+                                          >
+                                            {expandedDocs.has(doc.documentId) ? '▲ Thu gọn' : '▼ Xem thêm'}
+                                          </button>
+                                        )}
+                                      </>
                                     )}
                                   </div>
-                                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
                                     <span className="chip status published">Approved</span>
                                     <button
                                       onClick={() => handleDownload(doc.documentId, doc.title)}
@@ -617,21 +676,53 @@ export default function CourseDetail() {
                                 padding: '1rem',
                                 backgroundColor: '#fef2f2'
                               }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
-                                  <div style={{ flex: 1 }}>
-                                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{doc.title}</h4>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem', gap: '1rem' }}>
+                                  <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, wordBreak: 'break-word', color: '#1e293b' }}>{doc.title}</h4>
                                     {doc.description && (
-                                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                        {doc.description}
-                                      </p>
+                                      <>
+                                        <p style={{
+                                          margin: '0.25rem 0 0 0',
+                                          fontSize: '0.875rem',
+                                          color: '#475569',
+                                          ...(expandedDocs.has(doc.documentId) ? {} : {
+                                            maxHeight: '3rem',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 2,
+                                            WebkitBoxOrient: 'vertical' as any,
+                                          }),
+                                        }}>
+                                          Uploaded file: {doc.description}
+                                        </p>
+                                        {doc.description.length > 100 && (
+                                          <button
+                                            onClick={() => toggleDocExpand(doc.documentId)}
+                                            style={{
+                                              background: 'none',
+                                              border: 'none',
+                                              color: '#3b82f6',
+                                              fontSize: '0.75rem',
+                                              fontWeight: 600,
+                                              cursor: 'pointer',
+                                              padding: '0.25rem 0',
+                                              marginTop: '0.25rem',
+                                            }}
+                                          >
+                                            {expandedDocs.has(doc.documentId) ? '▲ Thu gọn' : '▼ Xem thêm'}
+                                          </button>
+                                        )}
+                                      </>
                                     )}
                                     {doc.rejectionReason && (
-                                      <div style={{ marginTop: '0.5rem', padding: '0.5rem', backgroundColor: '#fee', borderRadius: '4px', fontSize: '0.875rem' }}>
-                                        <strong style={{ color: '#dc2626' }}>Rejection Reason:</strong> {doc.rejectionReason}
+                                      <div style={{ marginTop: '0.5rem', padding: '0.5rem', backgroundColor: '#fecaca', borderRadius: '4px', fontSize: '0.875rem' }}>
+                                        <strong style={{ color: '#dc2626' }}>Rejection Reason:</strong>{' '}
+                                        <span style={{ color: '#7f1d1d' }}>{doc.rejectionReason}</span>
                                       </div>
                                     )}
                                   </div>
-                                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
                                     <span className="chip" style={{ backgroundColor: '#fecaca', color: '#991b1b' }}>Rejected</span>
                                     <button
                                       onClick={() => handleDownload(doc.documentId, doc.title)}
@@ -766,7 +857,7 @@ export default function CourseDetail() {
                                             Approve
                                           </button>
                                           <button
-                                            onClick={() => handleRejectSuggestion(suggestion.id)}
+                                            onClick={() => openRejectModal(suggestion.id, 'suggestion')}
                                             disabled={processingSuggestionId === suggestion.id}
                                             style={{
                                               padding: '0.6rem 1.2rem',
@@ -960,6 +1051,107 @@ export default function CourseDetail() {
           </div>
         )}
       </div>
+
+      {/* Reject Modal */}
+      {
+        showRejectModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '1.5rem',
+              width: '100%',
+              maxWidth: '500px',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            }}>
+              <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', fontWeight: 600, color: '#1e293b' }}>
+                Reject {rejectModalType === 'document' ? 'Document' : 'Suggestion'}
+              </h3>
+              <p style={{ margin: '0 0 1rem 0', color: '#64748b', fontSize: '0.875rem' }}>
+                Please provide a reason for rejection. This will be shown to the submitter.
+              </p>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Enter rejection reason..."
+                style={{
+                  width: '100%',
+                  minHeight: '120px',
+                  padding: '0.75rem',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  resize: 'vertical',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                autoFocus
+              />
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => { setShowRejectModal(false); setRejectReason(''); setRejectingId(null); }}
+                  style={{
+                    padding: '0.625rem 1.25rem',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    backgroundColor: '#f1f5f9',
+                    color: '#475569',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRejectSubmit}
+                  disabled={!rejectReason.trim() || rejectSubmitting}
+                  style={{
+                    padding: '0.625rem 1.25rem',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    backgroundColor: rejectSubmitting || !rejectReason.trim() ? '#fca5a5' : '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: rejectSubmitting || !rejectReason.trim() ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                  }}
+                >
+                  {rejectSubmitting ? (
+                    <>
+                      <Loader size={16} className="animate-spin" />
+                      Rejecting...
+                    </>
+                  ) : (
+                    <>
+                      <X size={16} />
+                      Reject
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
     </AdminPageWrapper >
   );
 }

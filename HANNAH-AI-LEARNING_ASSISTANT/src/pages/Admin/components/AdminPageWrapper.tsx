@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './AdminPageWrapper.css';
 
 interface AdminPageWrapperProps {
@@ -14,6 +14,10 @@ const AdminPageWrapper: React.FC<AdminPageWrapperProps> = ({
   className = '',
   variant = 'classic'
 }) => {
+  // Force light theme for Admin pages
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }, []);
   // For classic variant, render title outside content
   if (variant === 'classic') {
     return (

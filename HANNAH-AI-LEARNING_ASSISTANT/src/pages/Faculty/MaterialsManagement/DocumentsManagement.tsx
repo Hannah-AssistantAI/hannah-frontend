@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Upload, File, Trash2, Edit2, FileText, BookOpen, ChevronDown, Undo, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
 import subjectService from '../../../service/subjectService';
 import type { Subject } from '../../../service/subjectService';
@@ -29,6 +30,11 @@ interface Course {
 }
 
 const DocumentsManagement: React.FC = () => {
+  // URL params for state persistence
+  const [searchParams, setSearchParams] = useSearchParams();
+  const courseIdFromUrl = searchParams.get('courseId');
+  const semesterFromUrl = searchParams.get('semester');
+
   // State management
 
   const [courses, setCourses] = useState<Course[]>([]);
@@ -37,11 +43,11 @@ const DocumentsManagement: React.FC = () => {
   const [documentsLoading, setDocumentsLoading] = useState(false);
 
   // View state: show course grid or materials screen
-  const [view, setView] = useState<'courses' | 'materials'>('courses');
+  const [view, setView] = useState<'courses' | 'materials'>(courseIdFromUrl ? 'materials' : 'courses');
 
   const semesters = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8', 'Semester 9'];
 
-  const [selectedSemester, setSelectedSemester] = useState<string>('Semester 1');
+  const [selectedSemester, setSelectedSemester] = useState<string>(semesterFromUrl || 'Semester 1');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [showSemesterDropdown, setShowSemesterDropdown] = useState(false);
 
@@ -57,6 +63,20 @@ const DocumentsManagement: React.FC = () => {
   useEffect(() => {
     fetchSubjects();
   }, []);
+
+  // Restore course selection from URL after courses are loaded
+  useEffect(() => {
+    if (courses.length > 0 && courseIdFromUrl) {
+      const courseId = parseInt(courseIdFromUrl);
+      const course = courses.find(c => c.subjectId === courseId);
+      if (course && !selectedCourse) {
+        setSelectedCourse(course);
+        setSelectedSemester(course.semester);
+        setView('materials');
+        fetchDocuments(course.subjectId);
+      }
+    }
+  }, [courses, courseIdFromUrl]);
 
   const fetchSubjects = async () => {
     try {
@@ -76,11 +96,42 @@ const DocumentsManagement: React.FC = () => {
       }));
 
       setCourses(transformedCourses);
+
+      // Fetch materials count for all courses after initial load
+      fetchMaterialsCountForCourses(transformedCourses);
     } catch (err: any) {
       console.error('Error fetching subjects:', err);
       setError(err.message || 'Failed to load subjects');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch materials count for all courses
+  const fetchMaterialsCountForCourses = async (coursesToUpdate: Course[]) => {
+    try {
+      // Fetch document counts for each subject in parallel
+      const countPromises = coursesToUpdate.map(async (course) => {
+        try {
+          const documents = await documentService.getAllDocuments({ subjectId: course.subjectId });
+          return {
+            subjectId: course.subjectId,
+            count: documents.totalCount || documents.items.length
+          };
+        } catch {
+          return { subjectId: course.subjectId, count: 0 };
+        }
+      });
+
+      const counts = await Promise.all(countPromises);
+
+      // Update courses with materials count
+      setCourses(prev => prev.map(course => {
+        const countInfo = counts.find(c => c.subjectId === course.subjectId);
+        return countInfo ? { ...course, materialsCount: countInfo.count } : course;
+      }));
+    } catch (err) {
+      console.error('Error fetching materials count:', err);
     }
   };
 
@@ -152,6 +203,8 @@ const DocumentsManagement: React.FC = () => {
   const handleCourseSelect = async (course: Course) => {
     setSelectedCourse(course);
     setView('materials');
+    // Save to URL for persistence on reload
+    setSearchParams({ courseId: course.subjectId.toString(), semester: course.semester });
     await fetchDocuments(course.subjectId);
   };
 
@@ -471,7 +524,7 @@ const DocumentsManagement: React.FC = () => {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <button
-                    onClick={() => { setView('courses'); setSelectedCourse(null); }}
+                    onClick={() => { setView('courses'); setSelectedCourse(null); setSearchParams({}); }}
                     className="mb-3 flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold transition-colors"
                   >
                     <ChevronRight className="w-4 h-4 rotate-180" />
