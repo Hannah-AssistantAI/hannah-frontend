@@ -11,13 +11,17 @@
   },
   "dependencies": {
     "@microsoft/signalr": "^10.0.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.4.2",
     "@tailwindcss/vite": "^4.1.14",
     "@types/dagre": "^0.7.53",
+    "@types/three": "^0.181.0",
     "@xyflow/react": "^12.10.0",
     "axios": "^1.13.2",
     "dagre": "^0.8.5",
     "framer-motion": "^12.23.25",
     "html2canvas": "^1.4.1",
+    "leva": "^0.10.1",
     "lucide-react": "^0.553.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
@@ -27,6 +31,7 @@
     "recharts": "^3.5.1",
     "rehype-highlight": "^7.0.2",
     "remark-gfm": "^4.0.1",
+    "three": "^0.182.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
