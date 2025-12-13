@@ -232,10 +232,25 @@ const studentService = {
      */
     setSpecialization: async (specializationId: number): Promise<SetSpecializationResponse> => {
         const response = await apiClient.put<SetSpecializationResponse>(
-            '/api/students/me/specialization',
+            '/api/v1/students/me/specialization',
             { specializationId }
         );
         return response.data;
+    },
+
+    /**
+     * Get current student's specialization
+     */
+    getMySpecialization: async (): Promise<Specialization | null> => {
+        try {
+            const response = await apiClient.get<{ specialization: Specialization | null }>('/api/v1/students/me/specialization');
+            return response.data.specialization;
+        } catch (error: any) {
+            if (error.response?.status === 404) {
+                return null;
+            }
+            throw error;
+        }
     },
 
     // =============================================
