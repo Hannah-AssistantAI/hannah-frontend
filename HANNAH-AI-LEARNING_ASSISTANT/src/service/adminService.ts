@@ -45,7 +45,7 @@ const adminService = {
     getSettings: async (category?: string): Promise<SystemSetting[]> => {
         const params = category ? { category } : undefined;
         const response = await apiClient.get<{ success: boolean; data: SystemSetting[] }>(
-            '/api/admin/settings',
+            '/api/v1/admin/settings',
             params
         );
         return response.data.data;
@@ -64,7 +64,7 @@ const adminService = {
     getSettingByKey: async (key: string): Promise<SystemSetting | null> => {
         try {
             const response = await apiClient.get<{ success: boolean; data: SystemSetting }>(
-                `/api/admin/settings/${key}`
+                `/api/v1/admin/settings/${key}`
             );
             return response.data.data;
         } catch (error) {
@@ -78,7 +78,7 @@ const adminService = {
      */
     updateSetting: async (key: string, value: string): Promise<SystemSetting> => {
         const response = await apiClient.put<{ success: boolean; data: SystemSetting }>(
-            `/api/admin/settings/${key}`,
+            `/api/v1/admin/settings/${key}`,
             { key, settingValue: value }
         );
         return response.data.data;
