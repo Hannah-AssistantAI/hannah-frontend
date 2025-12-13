@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
-import { ClipboardCheck } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { ClipboardCheck, FileText, Loader2 } from 'lucide-react'
 import type { Subject } from '../../../../service/subjectService'
+import documentService, { type Document } from '../../../../service/documentService'
 
 interface CustomizeFeatureModalProps {
     isOpen: boolean
@@ -24,6 +25,35 @@ export const CustomizeFeatureModal: React.FC<CustomizeFeatureModalProps> = ({
     const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([])
     const [courseSearchQuery, setCourseSearchQuery] = useState('')
     const [showCourseDropdown, setShowCourseDropdown] = useState(false)
+
+    // 🆕 Document picker state
+    const [subjectDocuments, setSubjectDocuments] = useState<Document[]>([])
+    const [selectedDocumentIds, setSelectedDocumentIds] = useState<number[]>([])
+    const [loadingDocs, setLoadingDocs] = useState(false)
+
+    // 🆕 Fetch documents when subject is selected
+    useEffect(() => {
+        if (selectedSubjectIds.length > 0) {
+            const fetchDocs = async () => {
+                setLoadingDocs(true)
+                try {
+                    const docs = await documentService.getDocumentsBySubject(String(selectedSubjectIds[0]))
+                    // Only show approved/processed documents
+                    const readyDocs = docs.filter(d => d.processingStatus === 'Completed' || d.isProcessed)
+                    setSubjectDocuments(readyDocs)
+                } catch (error) {
+                    console.error('Failed to fetch documents:', error)
+                    setSubjectDocuments([])
+                } finally {
+                    setLoadingDocs(false)
+                }
+            }
+            fetchDocs()
+        } else {
+            setSubjectDocuments([])
+            setSelectedDocumentIds([])
+        }
+    }, [selectedSubjectIds])
 
     if (!isOpen) return null
 
@@ -49,7 +79,8 @@ export const CustomizeFeatureModal: React.FC<CustomizeFeatureModalProps> = ({
             cardQuantity,
             cardTopic,
             selectedCourseCode,
-            selectedSubjectIds
+            selectedSubjectIds,
+            selectedDocumentIds  // 🆕 Include selected documents
         })
         // Reset form
         setCustomizeTab('conversation')
@@ -57,8 +88,28 @@ export const CustomizeFeatureModal: React.FC<CustomizeFeatureModalProps> = ({
         setCardTopic('')
         setSelectedCourseCode('')
         setSelectedSubjectIds([])
+        setSelectedDocumentIds([])  // 🆕 Reset document selection
+        setSubjectDocuments([])
         setCourseSearchQuery('')
         setShowCourseDropdown(false)
+    }
+
+    // 🆕 Toggle document selection
+    const toggleDocument = (docId: number) => {
+        setSelectedDocumentIds(prev =>
+            prev.includes(docId)
+                ? prev.filter(id => id !== docId)
+                : [...prev, docId]
+        )
+    }
+
+    // 🆕 Select/deselect all documents
+    const toggleAllDocuments = () => {
+        if (selectedDocumentIds.length === subjectDocuments.length) {
+            setSelectedDocumentIds([])
+        } else {
+            setSelectedDocumentIds(subjectDocuments.map(d => d.documentId))
+        }
     }
 
     return (
@@ -216,6 +267,60 @@ export const CustomizeFeatureModal: React.FC<CustomizeFeatureModalProps> = ({
                                     </div>
                                 </div>
                             </div>
+
+                            {/* 🆕 Document Picker - appears when subject is selected */}
+                            {selectedSubjectIds.length > 0 && (
+                                <div className="customize-section document-picker">
+                                    <div className="document-picker-header">
+                                        <h4 className="customize-section-title">
+                                            Chọn tài liệu
+                                            {subjectDocuments.length > 0 && (
+                                                <span className="doc-count">({subjectDocuments.length} files)</span>
+                                            )}
+                                        </h4>
+                                        {subjectDocuments.length > 0 && (
+                                            <button
+                                                type="button"
+                                                className="select-all-btn"
+                                                onClick={toggleAllDocuments}
+                                            >
+                                                {selectedDocumentIds.length === subjectDocuments.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+                                            </button>
+                                        )}
+                                    </div>
+                                    <p className="document-picker-hint">
+                                        Bỏ trống để sử dụng toàn bộ tài liệu của môn học
+                                    </p>
+
+                                    {loadingDocs ? (
+                                        <div className="document-loading">
+                                            <Loader2 size={20} className="spinning" />
+                                            <span>Đang tải tài liệu...</span>
+                                        </div>
+                                    ) : subjectDocuments.length === 0 ? (
+                                        <div className="document-empty">
+                                            Chưa có tài liệu nào cho môn học này
+                                        </div>
+                                    ) : (
+                                        <div className="document-list">
+                                            {subjectDocuments.map(doc => (
+                                                <label
+                                                    key={doc.documentId}
+                                                    className={`document-item ${selectedDocumentIds.includes(doc.documentId) ? 'selected' : ''}`}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedDocumentIds.includes(doc.documentId)}
+                                                        onChange={() => toggleDocument(doc.documentId)}
+                                                    />
+                                                    <FileText size={16} color="#5f6368" />
+                                                    <span className="document-title">{doc.title}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Mô tả */}
                             <div className="customize-section">
