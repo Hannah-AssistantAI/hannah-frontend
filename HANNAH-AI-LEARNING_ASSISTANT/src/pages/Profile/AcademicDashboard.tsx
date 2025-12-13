@@ -58,14 +58,19 @@ export default function AcademicDashboard({ userId, profileSemester, onSemesterU
     const loadData = async () => {
         setIsLoading(true);
         try {
-            // Load transcript and specializations in parallel
-            const [transcriptData, specializationsData] = await Promise.all([
+            // Load transcript, specializations, and saved specialization in parallel
+            const [transcriptData, specializationsData, mySpecialization] = await Promise.all([
                 studentService.getTranscript().catch(() => null),
-                studentService.getSpecializations().catch(() => [])
+                studentService.getSpecializations().catch(() => []),
+                studentService.getMySpecialization().catch(() => null)
             ]);
 
             setTranscript(transcriptData);
             setSpecializations(specializationsData);
+            // Set saved specialization from backend
+            if (mySpecialization?.id) {
+                setSelectedSpecializationId(mySpecialization.id);
+            }
         } catch (error) {
             console.error('Failed to load academic data:', error);
         } finally {
