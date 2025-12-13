@@ -76,7 +76,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, initialTab = 'login' }) =>
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth="450px">
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="450px" closeOnOverlayClick={false}>
       <div className="auth-container">
         <div className={`auth-tabs ${activeTab === 'register' ? 'register-active' : ''}`}>
           <button
