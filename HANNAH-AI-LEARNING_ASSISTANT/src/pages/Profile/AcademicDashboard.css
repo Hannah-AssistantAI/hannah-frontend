@@ -29,6 +29,182 @@
     color: #818cf8;
 }
 
+/* Current Semester Banner */
+.semester-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.08));
+    border-radius: 12px;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.semester-banner.warning {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.08));
+    border-color: rgba(251, 191, 36, 0.4);
+}
+
+.semester-banner-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
+    border-radius: 10px;
+    color: #818cf8;
+    flex-shrink: 0;
+}
+
+.semester-banner.warning .semester-banner-icon {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.15));
+    color: #fbbf24;
+}
+
+.semester-banner-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.semester-banner-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #f1f5f9;
+}
+
+.semester-banner-title strong {
+    color: #818cf8;
+}
+
+.semester-banner.warning .semester-banner-title strong {
+    color: #fbbf24;
+}
+
+.semester-banner-title .warning-icon {
+    color: #fbbf24;
+}
+
+.semester-banner-subtitle {
+    margin-top: 4px;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.semester-banner-subtitle strong {
+    color: #e2e8f0;
+}
+
+.semester-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.semester-sync-btn,
+.semester-edit-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.semester-sync-btn {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+}
+
+.semester-sync-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    transform: translateY(-1px);
+}
+
+.semester-edit-btn {
+    background: rgba(71, 85, 105, 0.3);
+    color: #cbd5e1;
+    border: 1px solid rgba(71, 85, 105, 0.5);
+}
+
+.semester-edit-btn:hover:not(:disabled) {
+    background: rgba(71, 85, 105, 0.5);
+    border-color: rgba(99, 102, 241, 0.4);
+    color: #f1f5f9;
+}
+
+.semester-sync-btn:disabled,
+.semester-edit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.semester-edit-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.semester-select {
+    padding: 6px 10px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    border-radius: 6px;
+    color: #f1f5f9;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.semester-select:focus {
+    outline: none;
+    border-color: #6366f1;
+}
+
+.semester-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.semester-action-btn.save {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.semester-action-btn.save:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+.semester-action-btn.cancel {
+    background: rgba(71, 85, 105, 0.4);
+    color: #94a3b8;
+}
+
+.semester-action-btn.cancel:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.semester-action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 /* GPA Display */
 .gpa-display {
     display: flex;
@@ -396,6 +572,7 @@
     0% {
         background-position: 200% 0;
     }
+
     100% {
         background-position: -200% 0;
     }

@@ -495,9 +495,6 @@ export default function Profile({ embedded = false }: ProfileProps) {
                                                         >
                                                             <option value="">Chọn chuyên ngành</option>
                                                             <option value="SE">Kỹ thuật phần mềm (SE)</option>
-                                                            <option value="IS">An toàn thông tin (IS)</option>
-                                                            <option value="AI">Trí tuệ nhân tạo (AI)</option>
-                                                            <option value="DS">Khoa học dữ liệu (DS)</option>
                                                         </select>
                                                     ) : (
                                                         <p className="pf-value">{userProfile.student_specialty || 'Chưa cập nhật'}</p>
@@ -579,7 +576,17 @@ export default function Profile({ embedded = false }: ProfileProps) {
                     )}
 
                     {activeTab === 'academic' && user && (
-                        <AcademicDashboard userId={user.userId} />
+                        <AcademicDashboard
+                            userId={user.userId}
+                            profileSemester={userProfile?.current_semester}
+                            onSemesterUpdate={(newSemester) => {
+                                setUserProfile(prev => prev ? { ...prev, current_semester: newSemester } : prev);
+                                setEditedProfile(prev => prev ? { ...prev, current_semester: newSemester } : prev);
+                                if (updateUser && user) {
+                                    updateUser({ ...user, currentSemester: newSemester });
+                                }
+                            }}
+                        />
                     )}
 
                     {activeTab === 'security' && (

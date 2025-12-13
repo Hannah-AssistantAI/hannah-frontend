@@ -21,15 +21,21 @@ import {
     Clock,
     Loader2,
     ChevronDown,
-    AlertCircle
+    AlertCircle,
+    Calendar,
+    RefreshCw,
+    Edit3,
+    Check
 } from 'lucide-react';
 import './AcademicDashboard.css';
 
 interface AcademicDashboardProps {
     userId: number;
+    profileSemester?: string; // Current semester from UserProfile
+    onSemesterUpdate?: (newSemester: string) => void; // Callback when semester synced/updated
 }
 
-export default function AcademicDashboard({ userId }: AcademicDashboardProps) {
+export default function AcademicDashboard({ userId, profileSemester, onSemesterUpdate }: AcademicDashboardProps) {
     const [transcript, setTranscript] = useState<TranscriptDetail | null>(null);
     const [specializations, setSpecializations] = useState<Specialization[]>([]);
     const [selectedSpecializationId, setSelectedSpecializationId] = useState<number | null>(null);
@@ -38,6 +44,11 @@ export default function AcademicDashboard({ userId }: AcademicDashboardProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [semesterFilter, setSemesterFilter] = useState<number | 'all'>('all');
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Semester banner state
+    const [isEditingSemester, setIsEditingSemester] = useState(false);
+    const [editingSemesterValue, setEditingSemesterValue] = useState<string>('');
+    const [isSyncingSemester, setIsSyncingSemester] = useState(false);
 
     // Load data on mount
     useEffect(() => {
@@ -181,6 +192,97 @@ export default function AcademicDashboard({ userId }: AcademicDashboardProps) {
     const strongSubjects = gradesByScore.slice(0, 3);
     const weakSubjects = gradesByScore.slice(-3).reverse();
 
+    // Semester sync logic
+    const transcriptSemester = transcript?.currentSemesterNumber;
+    const profileSemesterNumber = profileSemester ? parseInt(profileSemester.replace(/\D/g, '')) || null : null;
+    const hasSemesterMismatch = transcriptSemester && profileSemesterNumber && transcriptSemester !== profileSemesterNumber;
+    const needsSemesterSetup = transcriptSemester && !profileSemesterNumber;
+
+    // Debug logging - always log when component mounts or data changes
+    useEffect(() => {
+        console.log('========================================');
+        console.log('[AcademicDashboard] MOUNTED');
+        console.log('[AcademicDashboard] Props:', {
+            userId,
+            profileSemester,
+            onSemesterUpdateExists: !!onSemesterUpdate
+        });
+        console.log('========================================');
+    }, []);
+
+    useEffect(() => {
+        console.log('[AcademicDashboard] Transcript loaded:', transcript ? {
+            id: transcript.id,
+            currentSemesterNumber: transcript.currentSemesterNumber,
+            importedAt: transcript.importedAt
+        } : 'NULL - No transcript uploaded yet');
+    }, [transcript]);
+
+    useEffect(() => {
+        console.log('[AcademicDashboard] Semester comparison:', {
+            profileSemester,
+            profileSemesterNumber,
+            transcriptSemester,
+            hasSemesterMismatch,
+            needsSemesterSetup,
+            onSemesterUpdateExists: !!onSemesterUpdate
+        });
+    }, [profileSemester, transcriptSemester, hasSemesterMismatch, needsSemesterSetup, onSemesterUpdate]);
+
+    const handleSyncSemester = async () => {
+        if (!transcriptSemester || !onSemesterUpdate) return;
+
+        setIsSyncingSemester(true);
+        try {
+            const result = await studentService.setCurrentSemester(userId, transcriptSemester.toString());
+            if (result.success) {
+                onSemesterUpdate(result.currentSemester);
+                toast.success(`Đã cập nhật kỳ học thành HK${transcriptSemester}`);
+            } else {
+                toast.error(result.message || 'Cập nhật thất bại');
+            }
+        } catch (error) {
+            console.error('Failed to sync semester:', error);
+            toast.error('Đồng bộ kỳ học thất bại');
+        } finally {
+            setIsSyncingSemester(false);
+        }
+    };
+
+    const handleEditSemester = () => {
+        setEditingSemesterValue(profileSemesterNumber?.toString() || transcriptSemester?.toString() || '');
+        setIsEditingSemester(true);
+    };
+
+    const handleSaveSemester = async () => {
+        if (!editingSemesterValue || !onSemesterUpdate) return;
+
+        setIsSyncingSemester(true);
+        try {
+            const result = await studentService.setCurrentSemester(userId, editingSemesterValue);
+            if (result.success) {
+                onSemesterUpdate(result.currentSemester);
+                toast.success(`Đã cập nhật kỳ học thành HK${editingSemesterValue}`);
+                setIsEditingSemester(false);
+            } else {
+                toast.error(result.message || 'Cập nhật thất bại');
+            }
+        } catch (error) {
+            console.error('Failed to save semester:', error);
+            toast.error('Lưu kỳ học thất bại');
+        } finally {
+            setIsSyncingSemester(false);
+        }
+    };
+
+    const formatImportDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    };
+
     if (isLoading) {
         return (
             <div className="academic-section">
@@ -203,6 +305,103 @@ export default function AcademicDashboard({ userId }: AcademicDashboardProps) {
                     Kết quả học tập
                 </h3>
             </div>
+
+            {/* Current Semester Banner - Only show when transcript exists */}
+            {transcript && transcriptSemester && (
+                <div className={`semester-banner ${hasSemesterMismatch || needsSemesterSetup ? 'warning' : ''}`}>
+                    <div className="semester-banner-icon">
+                        <Calendar size={24} />
+                    </div>
+                    <div className="semester-banner-content">
+                        {hasSemesterMismatch ? (
+                            <>
+                                <div className="semester-banner-title">
+                                    <AlertCircle size={16} className="warning-icon" />
+                                    Kỳ học trong hồ sơ khác với bảng điểm
+                                </div>
+                                <p className="semester-banner-subtitle">
+                                    Hồ sơ: <strong>HK{profileSemesterNumber}</strong> • Bảng điểm: <strong>HK{transcriptSemester}</strong>
+                                </p>
+                            </>
+                        ) : needsSemesterSetup ? (
+                            <>
+                                <div className="semester-banner-title">
+                                    Phát hiện kỳ học từ bảng điểm
+                                </div>
+                                <p className="semester-banner-subtitle">
+                                    Bạn đang học <strong>HK{transcriptSemester}</strong> • Chưa thiết lập trong hồ sơ
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <div className="semester-banner-title">
+                                    Kỳ học hiện tại: <strong>HK{transcriptSemester}</strong>
+                                </div>
+                                <p className="semester-banner-subtitle">
+                                    Cập nhật từ bảng điểm • {formatImportDate(transcript.importedAt)}
+                                </p>
+                            </>
+                        )}
+                    </div>
+                    <div className="semester-banner-actions">
+                        {isEditingSemester ? (
+                            <div className="semester-edit-group">
+                                <select
+                                    className="semester-select"
+                                    value={editingSemesterValue}
+                                    onChange={(e) => setEditingSemesterValue(e.target.value)}
+                                    disabled={isSyncingSemester}
+                                >
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(k => (
+                                        <option key={k} value={k.toString()}>Kỳ {k}</option>
+                                    ))}
+                                </select>
+                                <button
+                                    className="semester-action-btn save"
+                                    onClick={handleSaveSemester}
+                                    disabled={isSyncingSemester}
+                                >
+                                    {isSyncingSemester ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                                </button>
+                                <button
+                                    className="semester-action-btn cancel"
+                                    onClick={() => setIsEditingSemester(false)}
+                                    disabled={isSyncingSemester}
+                                >
+                                    <XCircle size={14} />
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                {(hasSemesterMismatch || needsSemesterSetup) && onSemesterUpdate && (
+                                    <button
+                                        className="semester-sync-btn"
+                                        onClick={handleSyncSemester}
+                                        disabled={isSyncingSemester}
+                                    >
+                                        {isSyncingSemester ? (
+                                            <Loader2 size={14} className="animate-spin" />
+                                        ) : (
+                                            <RefreshCw size={14} />
+                                        )}
+                                        <span>Cập nhật thành HK{transcriptSemester}</span>
+                                    </button>
+                                )}
+                                {onSemesterUpdate && (
+                                    <button
+                                        className="semester-edit-btn"
+                                        onClick={handleEditSemester}
+                                        disabled={isSyncingSemester}
+                                    >
+                                        <Edit3 size={14} />
+                                        <span>Thay đổi</span>
+                                    </button>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* No transcript - Upload Section */}
             {!transcript ? (
