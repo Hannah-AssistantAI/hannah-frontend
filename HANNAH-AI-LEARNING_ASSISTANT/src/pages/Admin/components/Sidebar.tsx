@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Users, Settings, Book, ChevronDown, ChevronRight, Key, Monitor, MessageSquare, Flag, Map } from 'lucide-react';
+import { Users, Settings, Book, ChevronDown, ChevronRight, Key, Monitor, MessageSquare, Flag, Map, Bot } from 'lucide-react';
 import ReusableSidebar from '../../../components/Sidebar/Sidebar';
 import '../style.css';
 
@@ -15,7 +15,8 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ isCollapsed =
   // Auto-toggle Configuration submenu based on current route
   useEffect(() => {
     const isConfigRoute = location.pathname.startsWith('/admin/configuration')
-      || location.pathname.startsWith('/admin/system-monitoring/api-keys');
+      || location.pathname.startsWith('/admin/system-monitoring/api-keys')
+      || location.pathname.startsWith('/admin/ai-settings');
     setIsConfigOpen(isConfigRoute);
   }, [location.pathname]);
 
@@ -99,6 +100,13 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ isCollapsed =
             >
               <Settings size={18} />
               <span>System Configuration</span>
+            </NavLink>
+            <NavLink
+              to="/admin/ai-settings"
+              className={({ isActive }) => `sidebar-sublink${isActive ? ' active' : ''}`}
+            >
+              <Bot size={18} />
+              <span>AI Settings</span>
             </NavLink>
           </div>
         )}

@@ -28,6 +28,7 @@ import DocumentsManagement from './pages/Faculty/MaterialsManagement/DocumentsMa
 import { Dashboard } from './pages/Admin/Dashboard'
 import { SystemMonitoring } from './pages/Admin/SystemMonitoring/SystemMonitoring'
 import { Configuration } from './pages/Admin/Configuration'
+import { AiSettingsManagement } from './pages/Admin/AiSettingsManagement'
 import SemesterManagement from './pages/Admin/SemesterManagement/SemesterManagement'
 import QuizAttemptDetail from './pages/Faculty/QuestionAnalytics/QuizAttemptDetail'
 import QuizDetail from './pages/Faculty/QuestionAnalytics/QuizDetail'
@@ -96,6 +97,7 @@ function App() {
             <Route path="course-overview" element={<CourseOverviewManagement />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path='configuration' element={<Configuration />} />
+            <Route path='ai-settings' element={<AiSettingsManagement />} />
             <Route path="profile" element={<Profile embedded={true} />} />
             <Route path="flagged-quizzes" element={<FlaggedQuizzes />} />
             <Route path="flagged-quizzes/:id" element={<FlaggedQuizDetail />} />
