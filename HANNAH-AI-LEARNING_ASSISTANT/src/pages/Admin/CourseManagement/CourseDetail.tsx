@@ -6,6 +6,7 @@ import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
 import documentService, { type Document } from '../../../service/documentService';
 import suggestionService, { type Suggestion, SuggestionStatus, SuggestionContentType } from '../../../service/suggestionService';
+import SyllabusImporter from './SyllabusImporter';
 import './CourseManagement.css';
 
 export default function CourseDetail() {
@@ -289,7 +290,14 @@ export default function CourseDetail() {
                 )}
               </div>
             </div>
-            <div className="course-actions" style={{ gap: 8 }}>
+            <div className="course-actions" style={{ gap: 8, display: 'flex', alignItems: 'center' }}>
+              {subject && (
+                <SyllabusImporter
+                  subjectId={subject.subjectId}
+                  subjectCode={subject.code}
+                  onImportSuccess={fetchSubjectDetail}
+                />
+              )}
               <Link to="/admin/course-management" className="btn-secondary" aria-label="Back to list">Back</Link>
             </div>
           </div>
