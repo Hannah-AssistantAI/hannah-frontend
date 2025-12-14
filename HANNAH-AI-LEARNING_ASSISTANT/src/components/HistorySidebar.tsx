@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import conversationService from '../service/conversationService';
 import './HistorySidebar.css';
@@ -19,6 +20,10 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
     const [conversations, setConversations] = useState<any[]>([]);
     const [isLoadingConversations, setIsLoadingConversations] = useState(false);
     const [showAll, setShowAll] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; conversationId: number | null }>({
+        show: false,
+        conversationId: null
+    });
     const INITIAL_DISPLAY_COUNT = 6;
 
     useEffect(() => {
@@ -78,15 +83,15 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
         onClose();
     };
 
-    const handleDeleteConversation = async (conversationId: number, e: React.MouseEvent) => {
-        e.stopPropagation(); // Prevent conversation click when clicking delete
+    const handleDeleteClick = (conversationId: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setDeleteConfirm({ show: true, conversationId });
+    };
 
-        if (!user?.userId) {
-            console.error('User not logged in');
-            return;
-        }
-
-        if (!confirm('Bạn có chắc chắn muốn xóa cuộc trò chuyện này?')) {
+    const handleConfirmDelete = async () => {
+        const conversationId = deleteConfirm.conversationId;
+        if (!conversationId || !user?.userId) {
+            setDeleteConfirm({ show: false, conversationId: null });
             return;
         }
 
@@ -96,11 +101,13 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
             // Clear cache for deleted conversation
             localStorage.removeItem(`conversation_${conversationId}_cache`);
 
-            // ✅ Update local state immediately (Optimistic update)
+            // Update local state immediately (Optimistic update)
             setConversations(prev => prev.filter(c =>
                 (c.conversation_id && c.conversation_id !== conversationId) ||
                 (c.conversationId && c.conversationId !== conversationId)
             ));
+
+            toast.success('Đã xóa cuộc trò chuyện!');
 
             // If deleting the currently active conversation, trigger new chat state
             if (conversationId === currentConversationId) {
@@ -112,8 +119,14 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
             }
         } catch (error) {
             console.error('Failed to delete conversation:', error);
-            alert('Không thể xóa cuộc trò chuyện. Vui lòng thử lại.');
+            toast.error('Không thể xóa cuộc trò chuyện. Vui lòng thử lại.');
+        } finally {
+            setDeleteConfirm({ show: false, conversationId: null });
         }
+    };
+
+    const handleCancelDelete = () => {
+        setDeleteConfirm({ show: false, conversationId: null });
     };
 
     const groupConversationsByDate = (conversations: any[]) => {
@@ -217,7 +230,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
                                                         </div>
                                                         <button
                                                             className="delete-conversation-btn"
-                                                            onClick={(e) => handleDeleteConversation(conv.conversation_id || conv.conversationId, e)}
+                                                            onClick={(e) => handleDeleteClick(conv.conversation_id || conv.conversationId, e)}
                                                             title="Xóa cuộc trò chuyện"
                                                         >
                                                             <Trash2 size={16} />
@@ -261,6 +274,27 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
                     </div>
                 </div>
             </aside>
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirm.show && (
+                <div className="delete-confirm-overlay" onClick={handleCancelDelete}>
+                    <div className="delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="delete-confirm-title">Xóa cuộc trò chuyện?</h3>
+                        <p className="delete-confirm-message">
+                            Bạn có chắc chắn muốn xóa cuộc trò chuyện này không? Hành động này không thể hoàn tác.
+                        </p>
+                        <div className="delete-confirm-actions">
+                            <button className="delete-confirm-cancel" onClick={handleCancelDelete}>
+                                Hủy
+                            </button>
+                            <button className="delete-confirm-delete" onClick={handleConfirmDelete}>
+                                Xóa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 };
+
