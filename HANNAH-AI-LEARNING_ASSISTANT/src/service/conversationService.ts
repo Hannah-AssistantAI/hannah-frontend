@@ -69,11 +69,18 @@ class ConversationService {
      * Get conversation details
      */
     async getConversation(conversationId: number, userId: number): Promise<ConversationDetails> {
-        const response = await pythonApiClient.get<BaseResponse<ConversationDetails>>(
+        const response = await pythonApiClient.get<BaseResponse<ConversationDetails> | ConversationDetails>(
             `/api/v1/conversations/${conversationId}`,
             { user_id: userId }
         );
-        return response.data.data;
+        // Handle both wrapped (Python style) and direct (dotnet style) responses
+        const responseData = response.data;
+        if (responseData && 'data' in responseData && 'success' in responseData) {
+            // Python API wrapped response: { success: true, data: { ... } }
+            return (responseData as BaseResponse<ConversationDetails>).data;
+        }
+        // .NET API direct response or unwrapped: { conversationId: ..., ... }
+        return responseData as ConversationDetails;
     }
 
     /**

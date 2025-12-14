@@ -71,6 +71,13 @@ export const useChatMessages = ({
                 }
 
                 const conversationDetails = await conversationService.getConversation(currentConversationId, user.userId);
+                console.log('📥 Conversation details:', conversationDetails);
+
+                // Defensive check for conversationDetails
+                if (!conversationDetails) {
+                    console.warn('⚠️ No conversation details returned');
+                    return;
+                }
 
                 // Extract subjectId from conversation if not already set
                 if (conversationDetails.subjectId && !subjectId) {
@@ -78,7 +85,7 @@ export const useChatMessages = ({
                     console.log('📚 Subject ID from conversation:', conversationDetails.subjectId);
                 }
 
-                if (conversationDetails.messages.length > 0) {
+                if (conversationDetails.messages && conversationDetails.messages.length > 0) {
                     console.log('⏭️ Skipping auto-send: conversation already has', conversationDetails.messages.length, 'messages');
 
                     const transformedMessages: Message[] = conversationDetails.messages.map(msg => {
@@ -252,13 +259,20 @@ export const useChatMessages = ({
                     const conversationDetails = await conversationService.getConversation(conversationId, user.userId);
                     console.log('✅ Loaded conversation:', conversationDetails);
 
+                    // Defensive check for conversationDetails
+                    if (!conversationDetails) {
+                        console.warn('⚠️ No conversation details returned');
+                        return;
+                    }
+
                     // Extract subjectId from conversation if not already set
                     if (conversationDetails.subjectId && !subjectId) {
                         setSubjectId(conversationDetails.subjectId);
                         console.log('📚 Subject ID from loaded conversation:', conversationDetails.subjectId);
                     }
 
-                    const transformedMessages: Message[] = conversationDetails.messages.map((msg, index) => {
+                    const messages = conversationDetails.messages || [];
+                    const transformedMessages: Message[] = messages.map((msg, index) => {
                         console.log(`🔍 Processing message ${index}:`, msg);
                         console.log(`  - role:`, msg.role);
 
