@@ -61,8 +61,12 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
     };
 
     const handleNewChat = () => {
-        // Navigate to empty chat state - conversation will be created lazily when user sends first message
-        // This saves database resources by not creating empty conversations
+        // ✅ Call the parent callback to clear state immediately
+        if (onNewChat) {
+            onNewChat();
+        }
+
+        // Navigate to reset URL state and force fresh chat view
         navigate("/chat", {
             replace: true,
             state: {
