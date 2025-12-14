@@ -51,11 +51,18 @@ class ConversationService {
      * Create a new conversation
      */
     async createConversation(data: CreateConversationRequest): Promise<CreateConversationResponse> {
-        const response = await pythonApiClient.post<BaseResponse<CreateConversationResponse>>(
+        const response = await pythonApiClient.post<CreateConversationResponse | BaseResponse<CreateConversationResponse>>(
             '/api/v1/conversations',
             data
         );
-        return response.data.data;
+        // Handle both wrapped (Python style) and direct (dotnet style) responses
+        const responseData = response.data;
+        if (responseData && 'data' in responseData && 'success' in responseData) {
+            // Python API wrapped response: { success: true, data: { ... } }
+            return (responseData as BaseResponse<CreateConversationResponse>).data;
+        }
+        // .NET API direct response: { conversationId: ..., ... }
+        return responseData as CreateConversationResponse;
     }
 
     /**
