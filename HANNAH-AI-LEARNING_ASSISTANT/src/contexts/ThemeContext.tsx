@@ -13,7 +13,14 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 const THEME_STORAGE_KEY = 'hannah.theme';
 
 function getInitialTheme(): ThemeMode {
-  // Don't read from localStorage - always start with system preference or light
+  // First check localStorage for user's saved preference
+  if (typeof window !== 'undefined') {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (savedTheme === 'light' || savedTheme === 'dark') {
+      return savedTheme;
+    }
+  }
+  // Fallback to system preference
   if (typeof window !== 'undefined' && window.matchMedia) {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
@@ -23,17 +30,21 @@ function getInitialTheme(): ThemeMode {
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const [theme, setThemeState] = useState<ThemeMode>(getInitialTheme);
 
-  // Apply theme to document (but don't persist to localStorage)
+  // Apply theme to document AND persist to localStorage
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    // Removed: localStorage.setItem(THEME_STORAGE_KEY, theme);
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
   }, [theme]);
 
-  // React to system changes
+  // React to system changes only if user hasn't set a preference
   useEffect(() => {
     const mql = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent) => {
-      setThemeState(e.matches ? 'dark' : 'light');
+      // Only auto-switch if no saved preference
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+      if (!savedTheme) {
+        setThemeState(e.matches ? 'dark' : 'light');
+      }
     };
     mql.addEventListener?.('change', handleChange);
     return () => mql.removeEventListener?.('change', handleChange);
