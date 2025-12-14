@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Share2, ChevronDown, Link as LinkIcon } from 'lucide-react'
+import toast from 'react-hot-toast'
 import conversationService from '../../../../service/conversationService'
 import { useAuth } from '../../../../contexts/AuthContext'
 
@@ -47,7 +48,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, convers
                 }
             } catch (error) {
                 console.error('Failed to generate share link:', error)
-                alert('Không thể tạo link chia sẻ. Vui lòng thử lại.')
+                toast.error('Không thể tạo link chia sẻ. Vui lòng thử lại.')
             } finally {
                 setIsLoading(false)
             }
@@ -65,7 +66,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, convers
     const handleCopyLink = () => {
         if (shareUrl) {
             navigator.clipboard.writeText(shareUrl)
-            alert('Đã sao chép đường liên kết!')
+            toast.success('Đã sao chép đường liên kết!')
         }
     }
 
