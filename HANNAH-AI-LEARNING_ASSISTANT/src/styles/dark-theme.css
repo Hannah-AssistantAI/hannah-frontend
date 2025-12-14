@@ -242,8 +242,9 @@
 }
 
 [data-theme="dark"] .message-text h2 {
-  color: #ffffff;
-  border-bottom-color: #475569;
+  color: #ffffff !important;
+  border-bottom-color: #60a5fa !important;
+  font-weight: 700;
 }
 
 [data-theme="dark"] .message-text h3 {
