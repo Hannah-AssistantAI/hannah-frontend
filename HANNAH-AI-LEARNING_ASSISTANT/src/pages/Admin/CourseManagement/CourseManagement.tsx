@@ -5,6 +5,7 @@ import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
 import { toast } from 'react-hot-toast';
 import ConfirmModal from '../../../components/ConfirmModal/ConfirmModal';
+import SyllabusImportButton from './SyllabusImportButton';
 import './CourseManagement.css';
 
 const initialFormState: Partial<Subject> = {
@@ -161,6 +162,66 @@ export default function CourseManagement() {
       const currentArray = (prev[field] as string[]) || [];
       return { ...prev, [field]: currentArray.filter((_, i) => i !== index) };
     });
+  };
+
+  /**
+   * Handle syllabus import from HTML file
+   * Auto-fills the form with parsed data from FLM syllabus
+   * Note: Semester is NOT imported - admin already selected it before creating subject
+   */
+  const handleSyllabusImport = (importedData: {
+    code: string;
+    name: string;
+    credits: number;
+    description: string;
+    prerequisites: string[];
+    learningOutcomes?: string; // JSON string with full CLO data [{number, name, details}]
+    degreeLevel: string;
+    timeAllocation: string;
+    tools: string;
+    scoringScale: string;
+    decisionNo: string;
+    minAvgMarkToPass: number;
+    // Syllabus JSON fields
+    assessments?: string;
+    sessions?: string;
+    syllabusMaterials?: string;
+    studentTasks?: string;
+  }) => {
+    console.log('📥 Syllabus data imported:', importedData);
+
+    // Parse learningOutcomes JSON to create display-friendly array
+    let parsedLOs: string[] = [];
+    if (importedData.learningOutcomes) {
+      try {
+        const cloData = JSON.parse(importedData.learningOutcomes) as Array<{ number: string; name: string; details: string }>;
+        // Create display format: "CLO1: Full description"
+        parsedLOs = cloData.map(clo => `${clo.name}: ${clo.details || clo.name}`);
+        console.log('📚 Parsed Learning Outcomes:', parsedLOs);
+      } catch (e) {
+        console.warn('Failed to parse learningOutcomes JSON:', e);
+      }
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      code: importedData.code || prev.code,
+      name: importedData.name || prev.name,
+      credits: importedData.credits || prev.credits,
+      description: importedData.description || prev.description,
+      degreeLevel: importedData.degreeLevel || prev.degreeLevel,
+      timeAllocation: importedData.timeAllocation || prev.timeAllocation,
+      tools: importedData.tools || prev.tools,
+      scoringScale: importedData.scoringScale || prev.scoringScale,
+      decisionNo: importedData.decisionNo || prev.decisionNo,
+      minAvgMarkToPass: importedData.minAvgMarkToPass || prev.minAvgMarkToPass,
+      // Note: Keep existing semester - admin already selected it
+      prerequisites: importedData.prerequisites?.length ? importedData.prerequisites : prev.prerequisites,
+      learningOutcomes: parsedLOs.length ? parsedLOs : prev.learningOutcomes,
+    }));
+
+    // Clear any previous validation errors since we have new data
+    setFieldErrors({});
   };
 
   const validateForm = (): boolean => {
@@ -392,8 +453,15 @@ export default function CourseManagement() {
   const renderCreateEditView = () => (
     <div className="create-view">
       <div className="create-header">
-        <div><h1 className="create-title"><Map size={32} />{view === 'create' ? 'Create New Course' : 'Edit Course'}</h1><p className="create-subtitle">Define course information and learning outcomes</p></div>
-        <button onClick={handleCancel} className="btn-cancel"><X size={16} />Cancel</button>
+        <div>
+          <h1 className="create-title"><Map size={32} />{view === 'create' ? 'Create New Course' : 'Edit Course'}</h1>
+          <p className="create-subtitle">Define course information and learning outcomes</p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {/* Import from HTML - available in both create and edit modes */}
+          <SyllabusImportButton onImport={handleSyllabusImport} disabled={isSubmitting} />
+          <button onClick={handleCancel} className="btn-cancel"><X size={16} />Cancel</button>
+        </div>
       </div>
       <div className="create-layout">
         <div className="create-main">
