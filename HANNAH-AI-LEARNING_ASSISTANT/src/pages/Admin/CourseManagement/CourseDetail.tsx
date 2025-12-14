@@ -372,6 +372,129 @@ export default function CourseDetail() {
                 </div>
               </div>
 
+              {/* Syllabus Data: Sessions, Assessments, Materials */}
+              {(subject.sessions || subject.assessments || subject.syllabusMaterials || subject.studentTasks) && (
+                <div className="form-section">
+                  <h3 className="form-section-title">📚 Imported Syllabus Data</h3>
+                  <div className="form-content" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+                    {/* Sessions Table */}
+                    {subject.sessions && (() => {
+                      try {
+                        const sessions = JSON.parse(subject.sessions) as Array<{ session?: string; topic?: string; type?: string; lo?: string; materials?: string; studentTasks?: string }>;
+                        return (
+                          <div>
+                            <h4 style={{ margin: '0 0 0.75rem 0', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              📅 Course Sessions ({sessions.length})
+                            </h4>
+                            <div style={{ maxHeight: '350px', overflowY: 'auto', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                                <thead style={{ background: '#10b981', color: 'white', position: 'sticky', top: 0 }}>
+                                  <tr>
+                                    <th style={{ padding: '0.6rem', textAlign: 'left', width: '60px' }}>#</th>
+                                    <th style={{ padding: '0.6rem', textAlign: 'left' }}>Topic</th>
+                                    <th style={{ padding: '0.6rem', textAlign: 'left', width: '100px' }}>Type</th>
+                                    <th style={{ padding: '0.6rem', textAlign: 'left', width: '80px' }}>LO</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {sessions.map((s, i) => (
+                                    <tr key={i} style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: i % 2 === 0 ? '#f9fafb' : 'white' }}>
+                                      <td style={{ padding: '0.5rem 0.6rem', color: '#6b7280', fontWeight: 500 }}>{s.session || i + 1}</td>
+                                      <td style={{ padding: '0.5rem 0.6rem' }}>{s.topic || '-'}</td>
+                                      <td style={{ padding: '0.5rem 0.6rem', color: '#6b7280' }}>{s.type || '-'}</td>
+                                      <td style={{ padding: '0.5rem 0.6rem', color: '#6366f1', fontWeight: 500 }}>{s.lo || '-'}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        );
+                      } catch { return null; }
+                    })()}
+
+                    {/* Assessments Table */}
+                    {subject.assessments && (() => {
+                      try {
+                        const assessments = JSON.parse(subject.assessments) as Array<{ type?: string; category?: string; weight?: string; duration?: string; clo?: string; passCondition?: string }>;
+                        return (
+                          <div>
+                            <h4 style={{ margin: '0 0 0.75rem 0', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              📝 Assessments ({assessments.length})
+                            </h4>
+                            <div style={{ borderRadius: '8px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                                <thead style={{ background: '#f59e0b', color: 'white' }}>
+                                  <tr>
+                                    <th style={{ padding: '0.6rem', textAlign: 'left' }}>Type</th>
+                                    <th style={{ padding: '0.6rem', textAlign: 'left' }}>Category</th>
+                                    <th style={{ padding: '0.6rem', textAlign: 'left' }}>Weight</th>
+                                    <th style={{ padding: '0.6rem', textAlign: 'left' }}>Duration</th>
+                                    <th style={{ padding: '0.6rem', textAlign: 'left' }}>CLO</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {assessments.map((a, i) => (
+                                    <tr key={i} style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: i % 2 === 0 ? '#fffbeb' : 'white' }}>
+                                      <td style={{ padding: '0.6rem', fontWeight: 600 }}>{a.type || '-'}</td>
+                                      <td style={{ padding: '0.6rem' }}>{a.category || '-'}</td>
+                                      <td style={{ padding: '0.6rem', color: '#10b981', fontWeight: 700 }}>{a.weight || '-'}</td>
+                                      <td style={{ padding: '0.6rem', color: '#6b7280' }}>{a.duration || '-'}</td>
+                                      <td style={{ padding: '0.6rem', color: '#6366f1', fontWeight: 500 }}>{a.clo || '-'}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        );
+                      } catch { return null; }
+                    })()}
+
+                    {/* Two column grid: Materials and Student Tasks */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                      {/* Materials List */}
+                      {subject.syllabusMaterials && (() => {
+                        try {
+                          const materials = JSON.parse(subject.syllabusMaterials) as Array<{ description?: string; author?: string; isMain?: boolean }>;
+                          return (
+                            <div>
+                              <h4 style={{ margin: '0 0 0.75rem 0', color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                📖 Learning Materials ({materials.length})
+                              </h4>
+                              <div style={{ background: '#eff6ff', borderRadius: '8px', padding: '1rem', border: '1px solid #bfdbfe' }}>
+                                <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>
+                                  {materials.map((m, i) => (
+                                    <li key={i} style={{ marginBottom: '0.5rem', fontSize: '0.85rem', lineHeight: 1.5 }}>
+                                      <span style={{ color: '#1e40af' }}>{m.description}</span>
+                                      {m.author && <span style={{ color: '#6b7280' }}> - {m.author}</span>}
+                                      {m.isMain && <span style={{ background: '#3b82f6', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', marginLeft: '0.5rem' }}>Main</span>}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          );
+                        } catch { return null; }
+                      })()}
+
+                      {/* Student Tasks */}
+                      {subject.studentTasks && (
+                        <div>
+                          <h4 style={{ margin: '0 0 0.75rem 0', color: '#8b5cf6', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            ✅ Student Tasks
+                          </h4>
+                          <div style={{ background: '#f5f3ff', borderRadius: '8px', padding: '1rem', border: '1px solid #ddd6fe', fontSize: '0.85rem', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                            {subject.studentTasks}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="form-section">
                 <h3 className="form-section-title">Faculty Submissions</h3>
                 <div className="form-content">

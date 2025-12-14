@@ -27,6 +27,11 @@ export type Subject = {
   decisionNo?: string;
   minAvgMarkToPass?: number;
   approvedDate?: string | null;
+  // Syllabus import fields (JSON strings)
+  assessments?: string;
+  sessions?: string;
+  syllabusMaterials?: string;
+  studentTasks?: string;
 }
 
 // Interface for the paginated response of subjects

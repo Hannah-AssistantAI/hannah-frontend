@@ -26,6 +26,7 @@ export default function CourseManagement() {
   const [showInput, setShowInput] = useState<{ [key: string]: boolean }>({});
   const [inputValue, setInputValue] = useState<{ [key: string]: string }>({});
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
+  const [expandedSyllabus, setExpandedSyllabus] = useState<{ [key: string]: boolean }>({});
 
   // State for filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -218,6 +219,11 @@ export default function CourseManagement() {
       // Note: Keep existing semester - admin already selected it
       prerequisites: importedData.prerequisites?.length ? importedData.prerequisites : prev.prerequisites,
       learningOutcomes: parsedLOs.length ? parsedLOs : prev.learningOutcomes,
+      // Syllabus JSON data (store raw JSON for backend)
+      assessments: importedData.assessments || prev.assessments,
+      sessions: importedData.sessions || prev.sessions,
+      syllabusMaterials: importedData.syllabusMaterials || prev.syllabusMaterials,
+      studentTasks: importedData.studentTasks || prev.studentTasks,
     }));
 
     // Clear any previous validation errors since we have new data
@@ -283,6 +289,11 @@ export default function CourseManagement() {
       scoringScale: formData.scoringScale,
       decisionNo: formData.decisionNo,
       minAvgMarkToPass: formData.minAvgMarkToPass,
+      // Syllabus import fields (JSON strings from HTML import)
+      assessments: formData.assessments,
+      sessions: formData.sessions,
+      syllabusMaterials: formData.syllabusMaterials,
+      studentTasks: formData.studentTasks,
     };
 
     // Remove empty string fields (but keep empty arrays)
@@ -625,6 +636,149 @@ export default function CourseManagement() {
                 />
                 {fieldErrors.decisionNo && <span className="error-message">{fieldErrors.decisionNo}</span>}
               </div>
+
+              {/* Syllabus Import Summary - show only if data was imported */}
+              {(formData.sessions || formData.assessments || formData.syllabusMaterials || formData.studentTasks) && (
+                <div className="form-group" style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '8px', border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+                  <label className="form-label" style={{ color: '#6366f1', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    📚 Imported Syllabus Data (Click to expand)
+                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: expandedSyllabus.sessions || expandedSyllabus.assessments || expandedSyllabus.materials || expandedSyllabus.studentTasks ? '1rem' : 0 }}>
+                    {formData.sessions && (() => {
+                      try {
+                        const sessions = JSON.parse(formData.sessions);
+                        return (
+                          <button type="button" onClick={() => setExpandedSyllabus(prev => ({ ...prev, sessions: !prev.sessions }))}
+                            style={{ padding: '0.5rem 1rem', background: expandedSyllabus.sessions ? '#059669' : '#10b981', color: 'white', borderRadius: '20px', fontSize: '0.875rem', border: 'none', cursor: 'pointer' }}>
+                            {expandedSyllabus.sessions ? '▼' : '▶'} {sessions.length} Sessions
+                          </button>
+                        );
+                      } catch { return null; }
+                    })()}
+                    {formData.assessments && (() => {
+                      try {
+                        const assessments = JSON.parse(formData.assessments);
+                        return (
+                          <button type="button" onClick={() => setExpandedSyllabus(prev => ({ ...prev, assessments: !prev.assessments }))}
+                            style={{ padding: '0.5rem 1rem', background: expandedSyllabus.assessments ? '#d97706' : '#f59e0b', color: 'white', borderRadius: '20px', fontSize: '0.875rem', border: 'none', cursor: 'pointer' }}>
+                            {expandedSyllabus.assessments ? '▼' : '▶'} {assessments.length} Assessments
+                          </button>
+                        );
+                      } catch { return null; }
+                    })()}
+                    {formData.syllabusMaterials && (() => {
+                      try {
+                        const materials = JSON.parse(formData.syllabusMaterials);
+                        return (
+                          <button type="button" onClick={() => setExpandedSyllabus(prev => ({ ...prev, materials: !prev.materials }))}
+                            style={{ padding: '0.5rem 1rem', background: expandedSyllabus.materials ? '#2563eb' : '#3b82f6', color: 'white', borderRadius: '20px', fontSize: '0.875rem', border: 'none', cursor: 'pointer' }}>
+                            {expandedSyllabus.materials ? '▼' : '▶'} {materials.length} Materials
+                          </button>
+                        );
+                      } catch { return null; }
+                    })()}
+                    {formData.studentTasks && (
+                      <button type="button" onClick={() => setExpandedSyllabus(prev => ({ ...prev, studentTasks: !prev.studentTasks }))}
+                        style={{ padding: '0.5rem 1rem', background: expandedSyllabus.studentTasks ? '#7c3aed' : '#8b5cf6', color: 'white', borderRadius: '20px', fontSize: '0.875rem', border: 'none', cursor: 'pointer' }}>
+                        {expandedSyllabus.studentTasks ? '▼' : '▶'} Student Tasks
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Expanded Sessions Table */}
+                  {expandedSyllabus.sessions && formData.sessions && (() => {
+                    try {
+                      const sessions = JSON.parse(formData.sessions) as Array<{ session?: string; topic?: string; type?: string; lo?: string; materials?: string; studentTasks?: string }>;
+                      return (
+                        <div style={{ marginBottom: '1rem', maxHeight: '300px', overflowY: 'auto', background: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                            <thead style={{ background: '#10b981', color: 'white', position: 'sticky', top: 0 }}>
+                              <tr>
+                                <th style={{ padding: '0.5rem', textAlign: 'left', width: '50px' }}>#</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'left' }}>Topic</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'left', width: '80px' }}>Type</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'left', width: '80px' }}>LO</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {sessions.map((s, i) => (
+                                <tr key={i} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                                  <td style={{ padding: '0.5rem', color: '#6b7280' }}>{s.session || i + 1}</td>
+                                  <td style={{ padding: '0.5rem' }}>{s.topic || '-'}</td>
+                                  <td style={{ padding: '0.5rem', color: '#6b7280' }}>{s.type || '-'}</td>
+                                  <td style={{ padding: '0.5rem', color: '#6b7280' }}>{s.lo || '-'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    } catch { return null; }
+                  })()}
+
+                  {/* Expanded Assessments Table */}
+                  {expandedSyllabus.assessments && formData.assessments && (() => {
+                    try {
+                      const assessments = JSON.parse(formData.assessments) as Array<{ type?: string; category?: string; weight?: string; duration?: string; clo?: string; passCondition?: string }>;
+                      return (
+                        <div style={{ marginBottom: '1rem', background: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                            <thead style={{ background: '#f59e0b', color: 'white' }}>
+                              <tr>
+                                <th style={{ padding: '0.5rem', textAlign: 'left' }}>Type</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'left' }}>Category</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'left' }}>Weight</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'left' }}>Duration</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'left' }}>CLO</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {assessments.map((a, i) => (
+                                <tr key={i} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                                  <td style={{ padding: '0.5rem', fontWeight: 500 }}>{a.type || '-'}</td>
+                                  <td style={{ padding: '0.5rem' }}>{a.category || '-'}</td>
+                                  <td style={{ padding: '0.5rem', color: '#10b981', fontWeight: 600 }}>{a.weight || '-'}</td>
+                                  <td style={{ padding: '0.5rem', color: '#6b7280' }}>{a.duration || '-'}</td>
+                                  <td style={{ padding: '0.5rem', color: '#6366f1' }}>{a.clo || '-'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    } catch { return null; }
+                  })()}
+
+                  {/* Expanded Materials List */}
+                  {expandedSyllabus.materials && formData.syllabusMaterials && (() => {
+                    try {
+                      const materials = JSON.parse(formData.syllabusMaterials) as Array<{ description?: string; author?: string; isMain?: boolean }>;
+                      return (
+                        <div style={{ marginBottom: '1rem', background: 'white', borderRadius: '8px', border: '1px solid #e5e7eb', padding: '0.75rem' }}>
+                          <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
+                            {materials.map((m, i) => (
+                              <li key={i} style={{ marginBottom: '0.5rem', fontSize: '0.8rem' }}>
+                                <a href={m.description} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6' }}>
+                                  {m.description}
+                                </a>
+                                {m.author && <span style={{ color: '#6b7280' }}> - {m.author}</span>}
+                                {m.isMain && <span style={{ background: '#3b82f6', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', marginLeft: '0.5rem' }}>Main</span>}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    } catch { return null; }
+                  })()}
+
+                  {/* Expanded Student Tasks */}
+                  {expandedSyllabus.studentTasks && formData.studentTasks && (
+                    <div style={{ background: 'white', borderRadius: '8px', border: '1px solid #e5e7eb', padding: '0.75rem', fontSize: '0.8rem', whiteSpace: 'pre-wrap' }}>
+                      {formData.studentTasks}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           {['prerequisites', 'learningOutcomes', 'commonChallenges'].map(field => {
