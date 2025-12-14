@@ -304,26 +304,36 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
                         studentAttempt.attemptId
                       );
                       console.log('✅ Fetched attempt detail:', attemptData);
+                      console.log('🔍 attemptData.questions sample:', JSON.stringify(attemptData.questions?.[0], null, 2));
+                      console.log('🔍 attemptData.questions length:', attemptData.questions?.length);
 
-                      // Map attempt data to quiz questions
+                      // Map attempt data to quiz questions - use INDEX BASED matching since questionIds may not match
                       metadata.questions = metadata.questions?.map((q, index) => {
-                        let attemptQuestion = attemptData.questions.find(
-                          (aq: any) => String(aq.questionId) === String(q.questionId)
-                        );
-
-                        if (!attemptQuestion && attemptData.questions[index]) {
-                          attemptQuestion = attemptData.questions[index];
-                        }
+                        // Use index-based matching as primary method (most reliable)
+                        const attemptQuestion = attemptData.questions?.[index];
 
                         if (attemptQuestion) {
+                          // Try multiple possible property names for selectedOptionIndex
+                          const aq = attemptQuestion as any;
+                          const selectedIdx = aq.selectedOptionIndex ??
+                            aq.SelectedOptionIndex ??
+                            aq.selected_option_index;
+
+                          console.log(`🎯 Q${index}: selectedIdx=${selectedIdx}, attemptQuestion keys=`, Object.keys(attemptQuestion));
+
                           return {
                             ...q,
-                            studentAnswer: attemptQuestion.selectedOptionIndex
+                            studentAnswer: selectedIdx
                           };
                         }
+                        console.log(`⚠️ Q${index}: No attemptQuestion found`);
                         return q;
                       });
-                      console.log('📊 Final merged questions:', metadata.questions);
+                      console.log('📊 Final merged questions:', metadata.questions?.map(q => ({
+                        questionId: q.questionId,
+                        studentAnswer: q.studentAnswer,
+                        correctAnswer: q.correctAnswer
+                      })));
                     }
                   }
                 } catch (attemptErr) {
