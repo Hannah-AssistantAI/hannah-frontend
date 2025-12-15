@@ -16,9 +16,10 @@ export const handleSubmitQuiz = async (
     setIsSubmittingQuiz(true);
     try {
         // Transform selectedAnswers to API format
+        // Use empty string for skipped questions instead of 'A'
         const answersArray = quizContent.questions.map((q: any, idx: number) => ({
             questionId: q.questionId,
-            selectedAnswer: selectedAnswers[idx] || 'A',
+            selectedAnswer: selectedAnswers[idx] || '',
             timeSpentSeconds: null
         }));
 

@@ -55,7 +55,7 @@ export function useQuiz() {
                     // Calculate correctAnswers from questions data
                     const correctCount = attemptDetail.questions?.filter(q => q.isCorrect).length || 0;
                     const totalCount = attemptDetail.totalQuestions || attemptDetail.questions?.length || 1;
-                    
+
                     // Use percentage from API, or score if already percentage, or calculate from correctAnswers/totalQuestions
                     let percentage = attemptDetail.percentage;
                     if (percentage === undefined || percentage === null) {
@@ -71,9 +71,9 @@ export function useQuiz() {
                             percentage = 0;
                         }
                     }
-                    
+
                     console.log('📊 Quiz score calculation:', { correctCount, totalCount, percentage, attemptDetail });
-                    
+
                     const results = {
                         score: percentage,  // QuizResults expects score as percentage
                         correctAnswers: correctCount,
@@ -82,7 +82,8 @@ export function useQuiz() {
                             questionId: q.questionId,
                             questionText: q.content,  // Match QuizResults expected field
                             options: q.options,
-                            selectedAnswer: String.fromCharCode(65 + q.selectedOptionIndex),
+                            // Handle skipped questions (selectedOptionIndex = -1 or undefined)
+                            selectedAnswer: q.selectedOptionIndex >= 0 ? String.fromCharCode(65 + q.selectedOptionIndex) : '',
                             correctAnswer: String.fromCharCode(65 + q.correctOptionIndex),
                             isCorrect: q.isCorrect,
                             explanation: q.explanation || ''
@@ -123,7 +124,8 @@ export function useQuiz() {
         try {
             const answersArray = quizContent.questions.map((q: any, idx: number) => ({
                 questionId: q.questionId,
-                selectedAnswer: selectedAnswers[idx] || 'A',
+                // Use empty string for skipped questions instead of defaulting to 'A'
+                selectedAnswer: selectedAnswers[idx] || '',
                 timeSpentSeconds: null
             }));
 
@@ -134,26 +136,26 @@ export function useQuiz() {
 
             const apiResults = response.data.data || response.data;
             console.log('📊 API results:', apiResults);
-            
+
             // Ensure score is properly set as percentage
             // Backend returns score as percentage already
             const correctCount = apiResults.correctAnswers || apiResults.answers?.filter((a: any) => a.isCorrect).length || 0;
             const totalCount = apiResults.totalQuestions || apiResults.answers?.length || 1;
             let scorePercentage = apiResults.score;
-            
+
             // If score looks like it's not a percentage (e.g., 0 when there are correct answers), recalculate
             if ((scorePercentage === 0 || scorePercentage === undefined) && correctCount > 0 && totalCount > 0) {
                 scorePercentage = (correctCount / totalCount) * 100;
                 console.log('📊 Recalculated score:', scorePercentage);
             }
-            
+
             const results = {
                 ...apiResults,
                 score: scorePercentage,
                 correctAnswers: correctCount,
                 totalQuestions: totalCount
             };
-            
+
             console.log('📊 Final quiz results:', results);
             setQuizResults(results);
             setShowQuizResults(true);

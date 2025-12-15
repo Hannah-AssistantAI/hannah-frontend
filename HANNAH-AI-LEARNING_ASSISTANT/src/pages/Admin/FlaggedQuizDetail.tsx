@@ -274,8 +274,8 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
 
                 try {
                   const quizApiService = (await import('../../service/quizApi')).default;
-                  // Get all attempts for this quiz
-                  const attempts = await quizApiService.getQuizAttempts(quizId);
+                  // Get all attempts for this quiz from Python API (where they are stored)
+                  const attempts = await quizApiService.getQuizAttemptsFromPython(quizId);
                   console.log('📋 All quiz attempts:', attempts);
                   console.log('📋 Attempts type:', typeof attempts, 'isArray:', Array.isArray(attempts), 'length:', attempts?.length);
 
@@ -605,8 +605,10 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
                         <div className="p-5 space-y-4">
                           {questions.map((q: QuizQuestion, qi: number) => {
                             const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-                            const isStudentCorrect = q.studentAnswer !== undefined && q.studentAnswer !== null && q.studentAnswer === q.correctAnswer;
-                            const hasStudentAnswer = q.studentAnswer !== undefined && q.studentAnswer !== null;
+                            // -1 or undefined/null means skipped
+                            const wasSkipped = q.studentAnswer === undefined || q.studentAnswer === null || q.studentAnswer === -1;
+                            const hasStudentAnswer = !wasSkipped && typeof q.studentAnswer === 'number' && q.studentAnswer >= 0;
+                            const isStudentCorrect = hasStudentAnswer && q.studentAnswer === q.correctAnswer;
 
                             return (
                               <div key={qi} className="rounded-xl border-2 border-gray-100 overflow-hidden hover:border-gray-200 transition-colors">
