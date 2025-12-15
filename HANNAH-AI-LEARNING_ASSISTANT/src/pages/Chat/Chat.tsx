@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Send, Upload, GitBranch, FileText, ClipboardCheck, StickyNote, Map } from 'lucide-react'
@@ -55,7 +55,8 @@ export default function Chat() {
     const [flaggingQuizId, setFlaggingQuizId] = useState<string | null>(null)
     const [flaggingAttemptId, setFlaggingAttemptId] = useState<number | null>(null)
     const [isFlaggingQuiz, setIsFlaggingQuiz] = useState(false)
-    const [bigPictureData, setBigPictureData] = useState<BigPictureTopic[]>([])
+    const [bigPictureData, setBigPictureData] = useState<BigPictureTopic[]>([]);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Use custom hook for message management
     const {
@@ -272,6 +273,13 @@ export default function Chat() {
         setExpandedSources(newExpandedState)
     }, [messages])
 
+    // Auto-scroll to bottom when messages change
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages, isSendingMessage]);
+
 
 
     return (
@@ -349,6 +357,8 @@ export default function Chat() {
                                     language={message.detectedLanguage}
                                 />
                             ))}
+                            {/* Auto-scroll anchor */}
+                            <div ref={messagesEndRef} />
                         </div>
                     </div>
 
