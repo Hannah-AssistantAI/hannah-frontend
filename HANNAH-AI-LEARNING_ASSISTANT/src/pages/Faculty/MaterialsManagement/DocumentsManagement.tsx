@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Upload, File, Trash2, Edit2, FileText, BookOpen, ChevronDown, Undo, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
+import { Upload, File, Trash2, Edit2, FileText, BookOpen, ChevronDown, Undo, ChevronRight, Loader2, AlertCircle, ChevronLeft } from 'lucide-react';
+import toast from 'react-hot-toast';
 import subjectService from '../../../service/subjectService';
 import type { Subject } from '../../../service/subjectService';
 import documentService from '../../../service/documentService';
@@ -58,6 +59,13 @@ const DocumentsManagement: React.FC = () => {
   const [deletingMaterialId, setDeletingMaterialId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const PAGE_SIZE = 10;
 
   // Fetch subjects on mount
   useEffect(() => {
@@ -135,11 +143,20 @@ const DocumentsManagement: React.FC = () => {
     }
   };
 
-  // Fetch documents for a specific subject
-  const fetchDocuments = async (subjectId: number) => {
+  // Fetch documents for a specific subject with pagination
+  const fetchDocuments = async (subjectId: number, page: number = 1) => {
     try {
       setDocumentsLoading(true);
-      const documents = await documentService.getAllDocuments({ subjectId });
+      const documents = await documentService.getAllDocuments({
+        subjectId,
+        pageNumber: page,
+        pageSize: PAGE_SIZE
+      });
+
+      // Update pagination state
+      setCurrentPage(documents.pageNumber);
+      setTotalPages(documents.totalPages);
+      setTotalCount(documents.totalCount);
 
       // Transform documents to materials format
       const materials: Material[] = documents.items.map(doc => {
@@ -170,13 +187,13 @@ const DocumentsManagement: React.FC = () => {
       // Update the selected course with materials
       setCourses(prev => prev.map(course =>
         course.subjectId === subjectId
-          ? { ...course, materials, materialsCount: materials.length }
+          ? { ...course, materials, materialsCount: documents.totalCount }
           : course
       ));
 
       // Update selected course
       setSelectedCourse(prev =>
-        prev ? { ...prev, materials, materialsCount: materials.length } : null
+        prev ? { ...prev, materials, materialsCount: documents.totalCount } : null
       );
     } catch (err: any) {
       console.error('Error fetching documents:', err);
@@ -219,15 +236,27 @@ const DocumentsManagement: React.FC = () => {
 
     try {
       await documentService.deleteDocument(deletingMaterialId.toString());
-
+      toast.success('Document deleted successfully!');
       // Refresh documents
-      await fetchDocuments(selectedCourse.subjectId);
-
+      await fetchDocuments(selectedCourse.subjectId, currentPage);
       setShowDeleteModal(false);
       setDeletingMaterialId(null);
     } catch (err: any) {
       console.error('Error deleting document:', err);
-      alert(err.message || 'Failed to delete document');
+
+      // Handle 404 - document doesn't exist (stale data)
+      if (err?.response?.status === 404 || err?.message?.includes('Not Found')) {
+        toast.error('Document not found - it may have already been deleted. Refreshing list...');
+        // Refresh to get current data
+        await fetchDocuments(selectedCourse.subjectId, 1);
+        setShowDeleteModal(false);
+        setDeletingMaterialId(null);
+      } else if (err?.message?.includes('approved')) {
+        // Handle approved document restriction
+        toast.error('Cannot delete approved documents. Only administrators can delete approved documents.');
+      } else {
+        toast.error(err?.message || 'Failed to delete document');
+      }
     }
   };
 
@@ -237,24 +266,36 @@ const DocumentsManagement: React.FC = () => {
     const inputElement = e.currentTarget;
     if (files.length === 0) return;
 
-    try {
-      // Upload each file
-      for (const file of files) {
-        await documentService.createDocument({
-          title: file.name,
-          description: `Uploaded file: ${file.name}`,
-          subjectId: selectedCourse.subjectId,
-          file: file
-        });
+    setIsUploading(true);
+    const uploadPromise = toast.promise(
+      (async () => {
+        // Upload each file
+        for (const file of files) {
+          await documentService.createDocument({
+            title: file.name,
+            description: `Uploaded file: ${file.name}`,
+            subjectId: selectedCourse.subjectId,
+            file: file
+          });
+        }
+        // Refresh documents after all uploads complete
+        await fetchDocuments(selectedCourse.subjectId);
+        return files.length;
+      })(),
+      {
+        loading: `Uploading ${files.length} file(s)...`,
+        success: (count) => `Successfully uploaded ${count} file(s)!`,
+        error: (err) => err?.message || 'Failed to upload files'
       }
+    );
 
-      // Refresh documents
-      await fetchDocuments(selectedCourse.subjectId);
-
-    } catch (err: any) {
+    try {
+      await uploadPromise;
+    } catch (err) {
+      // Error already handled by toast.promise
       console.error('Error uploading documents:', err);
-      alert(err.message || 'Failed to upload documents');
     } finally {
+      setIsUploading(false);
       // Clear input
       if (inputElement) {
         inputElement.value = '';
@@ -533,15 +574,24 @@ const DocumentsManagement: React.FC = () => {
                   <h2 className="text-2xl font-bold text-slate-800">Materials - {selectedCourse.subjectName}</h2>
                   <p className="text-slate-500 text-sm mt-1">{selectedCourse.subjectCode}</p>
                 </div>
-                <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition disabled:opacity-50 disabled:cursor-not-allowed">
-                  <Upload className="w-5 h-5" />
-                  Upload files
+                <label className={`flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg transition ${isUploading || documentsLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 cursor-pointer'}`}>
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-5 h-5" />
+                      Upload files
+                    </>
+                  )}
                   <input
                     type="file"
                     className="hidden"
                     multiple
                     onChange={handleFileInput}
-                    disabled={documentsLoading}
+                    disabled={documentsLoading || isUploading}
                     accept=".pdf,.doc,.docx,.ppt,.pptx,.txt"
                   />
                 </label>
@@ -800,12 +850,91 @@ const DocumentsManagement: React.FC = () => {
                   )}
                 </div>
               )}
+
+              {/* Pagination Controls */}
+              {!documentsLoading && totalPages > 1 && selectedCourse && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-200">
+                  <div className="text-sm text-slate-600">
+                    Showing page {currentPage} of {totalPages} ({totalCount} documents total)
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => selectedCourse && fetchDocuments(selectedCourse.subjectId, currentPage - 1)}
+                      disabled={currentPage <= 1 || documentsLoading}
+                      className="flex items-center gap-1 px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium text-sm"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Previous
+                    </button>
+
+                    {/* Page numbers */}
+                    <div className="flex gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum: number;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => selectedCourse && fetchDocuments(selectedCourse.subjectId, pageNum)}
+                            disabled={documentsLoading}
+                            className={`w-8 h-8 rounded-lg text-sm font-medium transition ${currentPage === pageNum
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                              }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      onClick={() => selectedCourse && fetchDocuments(selectedCourse.subjectId, currentPage + 1)}
+                      disabled={currentPage >= totalPages || documentsLoading}
+                      className="flex items-center gap-1 px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium text-sm"
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
 
-      {/* Edit Modal */}
+      {/* Upload Progress Overlay - Shows when uploading */}
+      {isUploading && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
+            <div className="relative w-20 h-20 mx-auto mb-6">
+              {/* Animated rings */}
+              <div className="absolute inset-0 border-4 border-blue-200 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+              <div className="absolute inset-2 border-4 border-orange-200 rounded-full"></div>
+              <div className="absolute inset-2 border-4 border-orange-500 rounded-full border-b-transparent animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}></div>
+              <Upload className="absolute inset-0 m-auto w-6 h-6 text-blue-600" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Uploading Documents</h3>
+            <p className="text-slate-600 mb-4">Please wait while your files are being uploaded...</p>
+            <div className="flex items-center justify-center gap-1">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
+            <p className="text-xs text-slate-400 mt-4">Do not close this page</p>
+          </div>
+        </div>
+      )}      {/* Edit Modal */}
       {showEditModal && editingMaterial && (
         <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
