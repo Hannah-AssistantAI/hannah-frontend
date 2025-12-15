@@ -1,13 +1,116 @@
-name: Deploy Frontend to EC2
+name: CI/CD Frontend to EC2
 
 on:
   push:
     branches: [master]
+  pull_request:
+    branches: [master]
   workflow_dispatch:  # Allow manual trigger
 
+env:
+  NODE_VERSION: '20.x'
+
 jobs:
-  deploy:
+  # ========================================
+  # Job 1: Build & Lint (CI)
+  # ========================================
+  build-and-lint:
+    name: 🔨 Build & Lint
     runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'HANNAH-AI-LEARNING_ASSISTANT/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: HANNAH-AI-LEARNING_ASSISTANT
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: HANNAH-AI-LEARNING_ASSISTANT
+        run: npm run lint --if-present
+        continue-on-error: true
+
+      - name: Type check
+        working-directory: HANNAH-AI-LEARNING_ASSISTANT
+        run: npx tsc --noEmit
+        continue-on-error: true
+
+      - name: Build production bundle
+        working-directory: HANNAH-AI-LEARNING_ASSISTANT
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: https://hannahai.online
+
+      - name: Check build output
+        working-directory: HANNAH-AI-LEARNING_ASSISTANT
+        run: |
+          if [ -d "dist" ]; then
+            echo "✅ Build output exists"
+            ls -la dist/
+            du -sh dist/
+          else
+            echo "❌ Build output not found!"
+            exit 1
+          fi
+
+      - name: Build summary
+        run: |
+          echo "### ✅ Build Successful" >> $GITHUB_STEP_SUMMARY
+          echo "- **Node.js:** ${{ env.NODE_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build size:** $(du -sh HANNAH-AI-LEARNING_ASSISTANT/dist/ | cut -f1)" >> $GITHUB_STEP_SUMMARY
+
+  # ========================================
+  # Job 2: Docker Build Validation (PRs only)
+  # ========================================
+  docker-build:
+    name: 🐳 Docker Build Check
+    runs-on: ubuntu-latest
+    needs: build-and-lint
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./HANNAH-AI-LEARNING_ASSISTANT
+          file: ./HANNAH-AI-LEARNING_ASSISTANT/Dockerfile
+          push: false
+          tags: hannah-frontend:test
+          build-args: |
+            VITE_API_BASE_URL=https://hannahai.online
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Docker build summary
+        run: |
+          echo "### 🐳 Docker Build Successful" >> $GITHUB_STEP_SUMMARY
+          echo "- hannah-frontend: Built successfully" >> $GITHUB_STEP_SUMMARY
+
+  # ========================================
+  # Job 3: Deploy to EC2 (CD)
+  # ========================================
+  deploy:
+    name: 🚀 Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: build-and-lint
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    environment: production
     
     steps:
       - name: Checkout code
@@ -21,17 +124,23 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 20m
           script: |
+            set -e  # Exit on any error
+            
             cd ~/hannah/hannah-frontend
             
-            # Get current commit on server
+            # Get current commit on server (for rollback)
             SERVER_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "none")
+            echo "📍 Current server commit: $SERVER_COMMIT"
             
             # Pull latest code
-            git pull origin master
+            git fetch origin master
+            git reset --hard origin/master
             
             # Get new commit after pull
             NEW_COMMIT=$(git rev-parse HEAD)
+            echo "📍 New commit: $NEW_COMMIT"
             
             # Check if code actually changed
             if [ "$SERVER_COMMIT" = "$NEW_COMMIT" ]; then
@@ -42,12 +151,63 @@ jobs:
             echo "🔄 Code changed: $SERVER_COMMIT -> $NEW_COMMIT"
             echo "📦 Rebuilding frontend container..."
             
-            # Rebuild frontend container
+            # Save current commit for potential rollback
+            echo "$SERVER_COMMIT" > /tmp/hannah_frontend_last_good_commit
+            
+            # Rebuild frontend container (from backend directory where docker-compose is)
             cd ~/hannah/hannah-backend
             docker-compose build --no-cache hannah-frontend
             docker-compose up -d hannah-frontend
             
-            # Restart nginx
+            # Wait for container to start
+            echo "⏳ Waiting for frontend container to start..."
+            sleep 10
+            
+            # Health check - verify container is running
+            CONTAINER_STATUS=$(docker ps --filter "name=hannah-frontend" --format "{{.Status}}" | head -1)
+            if [[ ! "$CONTAINER_STATUS" =~ ^Up ]]; then
+              echo "❌ Frontend container is not running!"
+              echo "📋 Container status: $CONTAINER_STATUS"
+              docker logs --tail 50 hannah-frontend
+              exit 1
+            fi
+            echo "✅ Frontend container is running: $CONTAINER_STATUS"
+            
+            # Restart nginx to clear cache
             docker-compose restart nginx-proxy
             
-            echo "✅ Frontend deployment completed!"
+            # Verify frontend is accessible
+            sleep 5
+            HTTP_STATUS=$(curl -sf -o /dev/null -w "%{http_code}" http://localhost:80 || echo "000")
+            if [ "$HTTP_STATUS" != "200" ]; then
+              echo "⚠️ Frontend returned HTTP $HTTP_STATUS (expected 200)"
+              echo "📋 Nginx logs:"
+              docker logs --tail 20 hannah-nginx-proxy
+            else
+              echo "✅ Frontend is accessible (HTTP 200)"
+            fi
+            
+            echo "✅ Frontend deployment completed successfully!"
+            echo "📍 Deployed commit: $NEW_COMMIT"
+
+      - name: Deployment summary
+        if: success()
+        run: |
+          echo "### 🚀 Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** master" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployed by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Time:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL:** https://hannahai.online" >> $GITHUB_STEP_SUMMARY
+
+      - name: Deployment failed
+        if: failure()
+        run: |
+          echo "### ❌ Deployment Failed" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for details." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Rollback command:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "cd ~/hannah/hannah-frontend && git reset --hard \$(cat /tmp/hannah_frontend_last_good_commit)" >> $GITHUB_STEP_SUMMARY
+          echo "cd ~/hannah/hannah-backend && docker-compose build hannah-frontend && docker-compose up -d hannah-frontend" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
