@@ -143,28 +143,47 @@ export default function SyllabusImporter({
         try {
             setSaving(true);
 
+            // Format learningOutcomes: include details for richer context
+            // Format: "CLO1: Name - Details" or "CLO1: Name" if no details
+            const formattedLOs = (parsedData.learningOutcomes || []).map(clo => {
+                const base = `${clo.number}: ${clo.name}`;
+                return clo.details && clo.details !== clo.name
+                    ? `${base} - ${clo.details}`
+                    : base;
+            });
+
+            console.log('📚 Syllabus Import - Learning Outcomes:', {
+                raw: parsedData.learningOutcomes,
+                formatted: formattedLOs,
+                count: formattedLOs.length
+            });
+
             // Call .NET API to update subject with syllabus data
             const token = localStorage.getItem('access_token');
+            const requestBody = {
+                description: parsedData.description,
+                credits: parsedData.noCredit,
+                prerequisites: parsedData.preRequisite ? [parsedData.preRequisite] : [],
+                learningOutcomes: formattedLOs,
+                degreeLevel: parsedData.degreeLevel,
+                timeAllocation: parsedData.timeAllocation,
+                tools: parsedData.tools,
+                scoringScale: parsedData.scoringScale,
+                studentTasks: parsedData.studentTasks,
+                assessments: JSON.stringify(parsedData.assessments || []),
+                sessions: JSON.stringify(parsedData.sessions || []),
+                syllabusMaterials: JSON.stringify(parsedData.materials || []),
+            };
+
+            console.log('📤 Sending to API:', requestBody);
+
             const response = await fetch(`/api/subjects/${subjectId}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    description: parsedData.description,
-                    credits: parsedData.noCredit,
-                    prerequisites: parsedData.preRequisite ? [parsedData.preRequisite] : [],
-                    learningOutcomes: parsedData.learningOutcomes.map(clo => `${clo.number}: ${clo.name}`),
-                    degreeLevel: parsedData.degreeLevel,
-                    timeAllocation: parsedData.timeAllocation,
-                    tools: parsedData.tools,
-                    scoringScale: parsedData.scoringScale,
-                    studentTasks: parsedData.studentTasks,
-                    assessments: JSON.stringify(parsedData.assessments),
-                    sessions: JSON.stringify(parsedData.sessions),
-                    syllabusMaterials: JSON.stringify(parsedData.materials),
-                }),
+                body: JSON.stringify(requestBody),
             });
 
             if (!response.ok) {
