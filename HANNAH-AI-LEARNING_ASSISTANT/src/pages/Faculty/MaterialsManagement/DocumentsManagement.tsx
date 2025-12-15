@@ -716,13 +716,16 @@ const DocumentsManagement: React.FC = () => {
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
-                              <button
-                                onClick={() => handleDeleteMaterial(mat.documentId)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                                title="Delete"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              {/* Only show delete button for non-approved documents */}
+                              {mat.approvalStatus !== 'approved' && (
+                                <button
+                                  onClick={() => handleDeleteMaterial(mat.documentId)}
+                                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -772,13 +775,16 @@ const DocumentsManagement: React.FC = () => {
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
-                              <button
-                                onClick={() => handleDeleteMaterial(mat.documentId)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                                title="Delete"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              {/* Only show delete button for non-approved documents */}
+                              {mat.approvalStatus !== 'approved' && (
+                                <button
+                                  onClick={() => handleDeleteMaterial(mat.documentId)}
+                                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
                             </div>
                           </div>
                         ))}
