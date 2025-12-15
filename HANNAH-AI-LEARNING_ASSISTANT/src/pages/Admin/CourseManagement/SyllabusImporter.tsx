@@ -101,7 +101,7 @@ export default function SyllabusImporter({
             formData.append('file', file);
 
             // Call Python API to parse HTML
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             const response = await fetch('/api/v1/syllabus/parse', {
                 method: 'POST',
                 headers: {
@@ -144,7 +144,7 @@ export default function SyllabusImporter({
             setSaving(true);
 
             // Call .NET API to update subject with syllabus data
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             const response = await fetch(`/api/subjects/${subjectId}`, {
                 method: 'PUT',
                 headers: {
