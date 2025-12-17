@@ -94,14 +94,37 @@ const DocumentsManagement: React.FC = () => {
 
 
       // Transform subjects to courses format
-      const transformedCourses: Course[] = response.items.map((subject: Subject) => ({
-        subjectId: subject.subjectId,
-        subjectName: subject.name,
-        subjectCode: subject.code,
-        semester: `Semester ${subject.semester || 1}`,
-        materials: [],
-        materialsCount: 0
-      }));
+      // Handle semester which can come as number (1,2,3) or enum name (First, Second, Third)
+      const semesterEnumToNumber: { [key: string]: number } = {
+        'First': 1, 'Second': 2, 'Third': 3, 'Fourth': 4, 'Fifth': 5,
+        'Sixth': 6, 'Seventh': 7, 'Eighth': 8, 'Ninth': 9
+      };
+
+      const transformedCourses: Course[] = response.items.map((subject: Subject) => {
+        // Parse semester: could be number, string number, or enum name
+        let semesterNumber = 1;
+        const rawSemester = subject.semester;
+        if (typeof rawSemester === 'number') {
+          semesterNumber = rawSemester;
+        } else if (typeof rawSemester === 'string') {
+          // Check if it's an enum name like "First", "Second"
+          if (semesterEnumToNumber[rawSemester]) {
+            semesterNumber = semesterEnumToNumber[rawSemester];
+          } else {
+            // Try to parse as number
+            semesterNumber = parseInt(rawSemester) || 1;
+          }
+        }
+
+        return {
+          subjectId: subject.subjectId,
+          subjectName: subject.name,
+          subjectCode: subject.code,
+          semester: `Semester ${semesterNumber}`,
+          materials: [],
+          materialsCount: 0
+        };
+      });
 
       setCourses(transformedCourses);
 
