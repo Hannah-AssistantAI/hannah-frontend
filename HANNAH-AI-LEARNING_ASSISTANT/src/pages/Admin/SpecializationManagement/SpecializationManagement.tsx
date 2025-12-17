@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, BookOpen, Plus, Trash2, X, Loader2, ChevronDown, ChevronRight, Search, Filter } from 'lucide-react';
+import { Users, BookOpen, Plus, Trash2, X, Loader2, ChevronDown, ChevronRight, Search, Edit2 } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import specializationService, { type Specialization, type SpecializationSubject } from '../../../service/specializationService';
 import subjectService, { type Subject } from '../../../service/subjectService';
@@ -25,6 +25,19 @@ export default function SpecializationManagement() {
     });
     const [subjectSearch, setSubjectSearch] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Specialization CRUD modal state
+    const [showSpecModal, setShowSpecModal] = useState(false);
+    const [editingSpec, setEditingSpec] = useState<Specialization | null>(null);
+    const [specFormData, setSpecFormData] = useState({
+        code: '',
+        name: '',
+        nameEn: '',
+        description: '',
+        majorCode: 'SE',
+        requiredCredits: 148,
+        isActive: true
+    });
 
     useEffect(() => {
         fetchData();
@@ -137,6 +150,78 @@ export default function SpecializationManagement() {
         }
     };
 
+    // ==================== Specialization CRUD Handlers ====================
+
+    const handleCreateSpec = () => {
+        setEditingSpec(null);
+        setSpecFormData({
+            code: '',
+            name: '',
+            nameEn: '',
+            description: '',
+            majorCode: 'SE',
+            requiredCredits: 148,
+            isActive: true
+        });
+        setShowSpecModal(true);
+    };
+
+    const handleEditSpec = (spec: Specialization, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditingSpec(spec);
+        setSpecFormData({
+            code: spec.code,
+            name: spec.name,
+            nameEn: spec.nameEn || '',
+            description: spec.description || '',
+            majorCode: spec.majorCode,
+            requiredCredits: spec.requiredCredits,
+            isActive: spec.isActive
+        });
+        setShowSpecModal(true);
+    };
+
+    const handleSaveSpec = async () => {
+        if (!specFormData.code || !specFormData.name) {
+            toast.error('Code and Name are required.');
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            if (editingSpec) {
+                // Update existing
+                await specializationService.updateSpecialization(editingSpec.id, specFormData);
+                toast.success('Specialization updated!');
+            } else {
+                // Create new
+                await specializationService.createSpecialization(specFormData as any);
+                toast.success('Specialization created!');
+            }
+            setShowSpecModal(false);
+            await fetchData();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to save specialization.');
+            console.error(error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteSpec = async (spec: Specialization, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!confirm(`Delete specialization "${spec.name}"? This will also remove all linked subjects and clear student associations.`)) return;
+
+        try {
+            await specializationService.deleteSpecialization(spec.id);
+            toast.success('Specialization deleted!');
+            await fetchData();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to delete specialization.');
+            console.error(error);
+        }
+    };
+
     // Filter subjects for dropdown (exclude already added ones)
     const availableSubjects = subjects.filter(sub => {
         const alreadyAdded = selectedSpecId && specializationSubjects[selectedSpecId]?.some(
@@ -172,6 +257,9 @@ export default function SpecializationManagement() {
             <div className="spec-management">
                 <div className="spec-header">
                     <p className="spec-subtitle">Manage which subjects belong to each specialization (chuyên ngành hẹp).</p>
+                    <button className="btn-create-spec" onClick={handleCreateSpec}>
+                        <Plus size={16} /> Create Specialization
+                    </button>
                 </div>
 
                 <div className="spec-grid">
@@ -189,6 +277,14 @@ export default function SpecializationManagement() {
                                         <span className="stat elective">{spec.electiveSubjects} elective</span>
                                         <span className="stat total">{spec.totalSubjects} total</span>
                                     </div>
+                                </div>
+                                <div className="spec-actions">
+                                    <button className="btn-edit" onClick={(e) => handleEditSpec(spec, e)} title="Edit">
+                                        <Edit2 size={16} />
+                                    </button>
+                                    <button className="btn-delete" onClick={(e) => handleDeleteSpec(spec, e)} title="Delete">
+                                        <Trash2 size={16} />
+                                    </button>
                                 </div>
                                 <div className="spec-expand">
                                     {expandedId === spec.id ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
@@ -362,6 +458,124 @@ export default function SpecializationManagement() {
                                 ) : (
                                     <>
                                         <Plus size={16} /> Add Subject
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Create/Edit Specialization Modal */}
+            {showSpecModal && (
+                <div className="modal-overlay" onClick={() => setShowSpecModal(false)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>{editingSpec ? 'Edit Specialization' : 'Create Specialization'}</h3>
+                            <button className="modal-close" onClick={() => setShowSpecModal(false)}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="modal-body">
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Code *</label>
+                                    <input
+                                        type="text"
+                                        value={specFormData.code}
+                                        onChange={(e) => setSpecFormData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                                        placeholder="e.g. BE_NET"
+                                        className="form-input"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Major Code</label>
+                                    <select
+                                        value={specFormData.majorCode}
+                                        onChange={(e) => setSpecFormData(prev => ({ ...prev, majorCode: e.target.value }))}
+                                        className="form-select"
+                                    >
+                                        <option value="SE">SE - Software Engineering</option>
+                                        <option value="AI">AI - Artificial Intelligence</option>
+                                        <option value="IS">IS - Information Systems</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Name (Vietnamese) *</label>
+                                <input
+                                    type="text"
+                                    value={specFormData.name}
+                                    onChange={(e) => setSpecFormData(prev => ({ ...prev, name: e.target.value }))}
+                                    placeholder="e.g. Backend .NET Developer"
+                                    className="form-input"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Name (English)</label>
+                                <input
+                                    type="text"
+                                    value={specFormData.nameEn}
+                                    onChange={(e) => setSpecFormData(prev => ({ ...prev, nameEn: e.target.value }))}
+                                    placeholder="e.g. Backend .NET Developer"
+                                    className="form-input"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Description</label>
+                                <textarea
+                                    value={specFormData.description}
+                                    onChange={(e) => setSpecFormData(prev => ({ ...prev, description: e.target.value }))}
+                                    placeholder="Brief description of the specialization..."
+                                    className="form-textarea"
+                                    rows={3}
+                                />
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Required Credits</label>
+                                    <input
+                                        type="number"
+                                        value={specFormData.requiredCredits}
+                                        onChange={(e) => setSpecFormData(prev => ({ ...prev, requiredCredits: Number(e.target.value) }))}
+                                        className="form-input"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Status</label>
+                                    <select
+                                        value={specFormData.isActive ? 'active' : 'inactive'}
+                                        onChange={(e) => setSpecFormData(prev => ({ ...prev, isActive: e.target.value === 'active' }))}
+                                        className="form-select"
+                                    >
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="modal-footer">
+                            <button className="btn-cancel" onClick={() => setShowSpecModal(false)}>
+                                Cancel
+                            </button>
+                            <button
+                                className="btn-submit"
+                                onClick={handleSaveSpec}
+                                disabled={isSubmitting || !specFormData.code || !specFormData.name}
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                                    </>
+                                ) : (
+                                    <>
+                                        {editingSpec ? 'Save Changes' : 'Create Specialization'}
                                     </>
                                 )}
                             </button>

@@ -3,12 +3,79 @@
 }
 
 .spec-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .spec-subtitle {
     color: #64748b;
     font-size: 14px;
+    margin: 0;
+}
+
+.btn-create-spec {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-create-spec:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.spec-actions {
+    display: flex;
+    gap: 8px;
+    margin-right: 12px;
+}
+
+.btn-edit,
+.btn-delete {
+    padding: 6px;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.btn-edit:hover {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.btn-delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .spec-grid {
