@@ -1,6 +1,6 @@
 import React from 'react';
 import { Clock, Trophy, CheckCircle, XCircle, History, Eye } from 'lucide-react';
-import { QuizAttemptSummary } from '../../../../service/studioService';
+import type { QuizAttemptSummary } from '../../../../service/studioService';
 import './QuizAttemptHistory.css';
 
 interface QuizAttemptHistoryProps {
