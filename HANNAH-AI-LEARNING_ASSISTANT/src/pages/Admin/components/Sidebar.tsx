@@ -44,6 +44,14 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ isCollapsed =
         <Map size={20} />
         {!isCollapsed && <span className="sidebar-label">Course Overview Docs</span>}
       </NavLink>
+      <NavLink
+        to="/admin/specializations"
+        className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+        title={isCollapsed ? "Specializations" : ""}
+      >
+        <Users size={20} />
+        {!isCollapsed && <span className="sidebar-label">Specializations</span>}
+      </NavLink>
 
       {/* <NavLink to="/admin/dashboard" className="sidebar-link" title={isCollapsed ? "Tổng quan" : ""}>
         <Users size={20} />

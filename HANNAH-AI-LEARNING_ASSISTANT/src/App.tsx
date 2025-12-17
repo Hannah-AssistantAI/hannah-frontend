@@ -30,6 +30,7 @@ import { SystemMonitoring } from './pages/Admin/SystemMonitoring/SystemMonitorin
 import { Configuration } from './pages/Admin/Configuration'
 import { AiSettingsManagement } from './pages/Admin/AiSettingsManagement'
 import SemesterManagement from './pages/Admin/SemesterManagement/SemesterManagement'
+import SpecializationManagement from './pages/Admin/SpecializationManagement/SpecializationManagement'
 import QuizAttemptDetail from './pages/Faculty/QuestionAnalytics/QuizAttemptDetail'
 import QuizDetail from './pages/Faculty/QuestionAnalytics/QuizDetail'
 import FlaggedQuizzes from './pages/Admin/FlaggedQuizzes'
@@ -94,6 +95,7 @@ function App() {
             <Route path="course-management" element={<CourseManagement />} />
             <Route path="course-management/:id" element={<CourseDetail />} />
             <Route path="semester-management" element={<SemesterManagement />} />
+            <Route path="specializations" element={<SpecializationManagement />} />
             <Route path="course-overview" element={<CourseOverviewManagement />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path='configuration' element={<Configuration />} />
