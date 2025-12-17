@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { studioService } from '../../../service/studioService';
+import type { MyQuizAttemptsResponse } from '../../../service/studioService';
 
 export function useQuiz() {
     const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
@@ -12,6 +13,12 @@ export function useQuiz() {
     const [quizStartTime, setQuizStartTime] = useState<Date | null>(null);
     const [currentHint, setCurrentHint] = useState<string | null>(null);
     const [isLoadingHint, setIsLoadingHint] = useState(false);
+
+    // 🆕 Attempt History State
+    const [showAttemptHistory, setShowAttemptHistory] = useState(false);
+    const [attemptHistory, setAttemptHistory] = useState<MyQuizAttemptsResponse | null>(null);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
 
     const loadQuiz = async (quizId: string) => {
         console.log('🔄 loadQuiz called with quizId:', quizId);
@@ -218,6 +225,68 @@ export function useQuiz() {
         }
     };
 
+    // 🆕 Load attempt history for current quiz
+    const loadAttemptHistory = async () => {
+        if (!selectedQuizId) return;
+
+        setIsLoadingHistory(true);
+        try {
+            const history = await studioService.getMyQuizAttempts(Number(selectedQuizId));
+            setAttemptHistory(history);
+            setShowAttemptHistory(true);
+            console.log('📋 Loaded attempt history:', history);
+        } catch (error) {
+            console.error('Failed to load attempt history:', error);
+        } finally {
+            setIsLoadingHistory(false);
+        }
+    };
+
+    // 🆕 View specific attempt details
+    const viewAttemptDetail = async (attemptId: number) => {
+        if (!selectedQuizId) return;
+
+        try {
+            const { default: quizApiService } = await import('../../../service/quizApi');
+            const attemptDetail = await quizApiService.getQuizAttemptDetail(
+                Number(selectedQuizId),
+                attemptId
+            );
+
+            // Convert to quiz results format
+            const correctCount = attemptDetail.questions?.filter((q: any) => q.isCorrect).length || 0;
+            const totalCount = attemptDetail.totalQuestions || attemptDetail.questions?.length || 1;
+            const percentage = attemptDetail.score ?? (correctCount / totalCount) * 100;
+
+            const results = {
+                score: percentage,
+                correctAnswers: correctCount,
+                totalQuestions: totalCount,
+                answers: attemptDetail.questions?.map((q: any) => ({
+                    questionId: q.questionId,
+                    questionText: q.content,
+                    options: q.options,
+                    selectedAnswer: q.selectedOptionIndex >= 0 ? String.fromCharCode(65 + q.selectedOptionIndex) : '',
+                    correctAnswer: String.fromCharCode(65 + q.correctOptionIndex),
+                    isCorrect: q.isCorrect,
+                    explanation: q.explanation || ''
+                })) || [],
+                attemptId: attemptDetail.attemptId
+            };
+
+            setQuizResults(results);
+            setShowAttemptHistory(false);
+            setShowQuizResults(true);
+        } catch (error) {
+            console.error('Failed to load attempt detail:', error);
+        }
+    };
+
+    // 🆕 Close history view
+    const closeHistory = () => {
+        setShowAttemptHistory(false);
+    };
+
     return {
         selectedQuizId,
         quizContent,
@@ -228,6 +297,10 @@ export function useQuiz() {
         isSubmittingQuiz,
         currentHint,
         isLoadingHint,
+        // 🆕 History exports
+        showAttemptHistory,
+        attemptHistory,
+        isLoadingHistory,
         loadQuiz,
         selectAnswer,
         nextQuestion,
@@ -235,6 +308,10 @@ export function useQuiz() {
         submitQuiz,
         retryQuiz,
         getHint,
-        clearHint
+        clearHint,
+        // 🆕 History functions
+        loadAttemptHistory,
+        viewAttemptDetail,
+        closeHistory
     };
 }

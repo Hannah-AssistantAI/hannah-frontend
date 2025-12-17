@@ -20,9 +20,10 @@ interface QuizResultsProps {
     };
     onRetry: () => void;
     onFlag?: () => void;
+    onViewHistory?: () => void;  // 🆕 View attempt history
 }
 
-export function QuizResults({ results, onRetry, onFlag }: QuizResultsProps) {
+export function QuizResults({ results, onRetry, onFlag, onViewHistory }: QuizResultsProps) {
     if (!results) return null;
 
     const getOptionLabel = (index: number) => String.fromCharCode(65 + index); // A, B, C, D...
@@ -159,6 +160,23 @@ export function QuizResults({ results, onRetry, onFlag }: QuizResultsProps) {
                 >
                     🔄 Làm lại
                 </button>
+                {onViewHistory && (
+                    <button
+                        className="quiz-history-btn"
+                        onClick={onViewHistory}
+                        style={{
+                            padding: '10px 20px',
+                            background: '#f3f4f6',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: 500,
+                            color: '#4f46e5'
+                        }}
+                    >
+                        📋 Xem lịch sử
+                    </button>
+                )}
             </div>
         </div>
     );
