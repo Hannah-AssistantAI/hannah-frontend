@@ -82,11 +82,51 @@ const removeSubjectFromSpecialization = async (
     return response.data;
 };
 
+/**
+ * Creates a new specialization.
+ */
+const createSpecialization = async (
+    data: Omit<Specialization, 'id' | 'totalSubjects' | 'requiredSubjects' | 'electiveSubjects'>
+): Promise<{ success: boolean; id: number; message: string }> => {
+    const response = await apiClient.post<{ success: boolean; id: number; message: string }>(
+        '/api/specializations',
+        data
+    );
+    return response.data;
+};
+
+/**
+ * Updates an existing specialization.
+ */
+const updateSpecialization = async (
+    id: number,
+    data: Partial<Specialization>
+): Promise<{ success: boolean; message: string }> => {
+    const response = await apiClient.put<{ success: boolean; message: string }>(
+        `/api/specializations/${id}`,
+        data
+    );
+    return response.data;
+};
+
+/**
+ * Deletes a specialization.
+ */
+const deleteSpecialization = async (id: number): Promise<{ success: boolean; message: string }> => {
+    const response = await apiClient.delete<{ success: boolean; message: string }>(
+        `/api/specializations/${id}`
+    );
+    return response.data;
+};
+
 const specializationService = {
     getAllSpecializations,
     getSpecializationSubjects,
     addSubjectToSpecialization,
     removeSubjectFromSpecialization,
+    createSpecialization,
+    updateSpecialization,
+    deleteSpecialization,
 };
 
 export default specializationService;
