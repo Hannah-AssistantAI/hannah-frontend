@@ -67,11 +67,23 @@ const getSubjectById = async (id: number): Promise<Subject> => {
 const createSubject = async (subjectData: Partial<Subject>): Promise<Subject> => {
   console.log('=== CREATE SUBJECT REQUEST ===');
   console.log('Endpoint:', API_ENDPOINTS.SUBJECT.CREATE);
-  console.log('Data being sent:', JSON.stringify(subjectData, null, 2));
+
+  // Convert semester number to enum name for backend
+  // Backend uses Semester enum: First=1, Second=2, Third=3, etc.
+  const semesterEnumNames = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth'];
+  const dataToSend = {
+    ...subjectData,
+    // Send semester as enum name string if it's a number
+    semester: typeof subjectData.semester === 'number'
+      ? semesterEnumNames[subjectData.semester - 1] || subjectData.semester
+      : subjectData.semester
+  };
+
+  console.log('Data being sent:', JSON.stringify(dataToSend, null, 2));
   console.log('==============================');
 
   try {
-    const response = await apiClient.post<Subject>(API_ENDPOINTS.SUBJECT.CREATE, subjectData);
+    const response = await apiClient.post<Subject>(API_ENDPOINTS.SUBJECT.CREATE, dataToSend);
 
     console.log('=== CREATE SUBJECT RESPONSE ===');
     console.log('Response data:', JSON.stringify(response.data, null, 2));
@@ -93,7 +105,16 @@ const deleteSubject = async (id: number): Promise<void> => {
 };
 
 const updateSubject = async (id: number, subjectData: Partial<Subject>): Promise<Subject> => {
-  const response = await apiClient.put<Subject>(`${API_ENDPOINTS.SUBJECT.GET_ALL}/${id}`, subjectData);
+  // Convert semester number to enum name for backend
+  const semesterEnumNames = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth'];
+  const dataToSend = {
+    ...subjectData,
+    semester: typeof subjectData.semester === 'number'
+      ? semesterEnumNames[subjectData.semester - 1] || subjectData.semester
+      : subjectData.semester
+  };
+
+  const response = await apiClient.put<Subject>(`${API_ENDPOINTS.SUBJECT.GET_ALL}/${id}`, dataToSend);
   return response.data;
 };
 
