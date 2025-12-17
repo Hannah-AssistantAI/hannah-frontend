@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X, Download } from 'lucide-react';
+import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X, Download, RefreshCw } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
 import documentService, { type Document } from '../../../service/documentService';
@@ -252,6 +252,21 @@ export default function CourseDetail() {
     } catch (error) {
       console.error('Error deleting document:', error);
       toast.error('Failed to delete document.');
+    } finally {
+      setProcessingDocId(null);
+    }
+  };
+
+  // Handle reprocess failed document
+  const handleReprocessDocument = async (documentId: number) => {
+    try {
+      setProcessingDocId(documentId);
+      await documentService.reprocessDocument(documentId.toString());
+      toast.success('Document reprocessing started. This may take a few minutes.');
+      await fetchApprovedDocuments(); // Refresh list
+    } catch (error) {
+      console.error('Error reprocessing document:', error);
+      toast.error('Failed to reprocess document.');
     } finally {
       setProcessingDocId(null);
     }
@@ -667,9 +682,81 @@ export default function CourseDetail() {
 
                       {/* Part 2: Current Documents */}
                       <div>
-                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: '#1e293b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <CheckSquare size={18} className="text-success" /> Current Documents
-                        </h4>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                          <h4 style={{ fontSize: '1.1rem', margin: 0, color: '#1e293b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <CheckSquare size={18} className="text-success" /> Current Documents
+                            {approvedDocuments.filter(d => d.processingStatus === 'failed').length > 0 && (
+                              <span style={{
+                                backgroundColor: '#fee2e2',
+                                color: '#991b1b',
+                                padding: '0.2rem 0.5rem',
+                                borderRadius: '999px',
+                                fontSize: '0.7rem',
+                                fontWeight: 600
+                              }}>
+                                {approvedDocuments.filter(d => d.processingStatus === 'failed').length} failed
+                              </span>
+                            )}
+                          </h4>
+                          {approvedDocuments.filter(d => d.processingStatus === 'failed').length > 0 && (
+                            <button
+                              onClick={async () => {
+                                const failedDocs = approvedDocuments.filter(d => d.processingStatus === 'failed');
+                                toast.loading(`Reprocessing ${failedDocs.length} documents...`, { id: 'reprocess-all' });
+                                for (const doc of failedDocs) {
+                                  try {
+                                    await documentService.reprocessDocument(doc.documentId.toString());
+                                  } catch (error) {
+                                    console.error(`Failed to reprocess doc ${doc.documentId}:`, error);
+                                  }
+                                }
+                                toast.success(`Started reprocessing ${failedDocs.length} documents. This may take a few minutes.`, { id: 'reprocess-all' });
+                                await fetchApprovedDocuments();
+                              }}
+                              style={{
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.8rem',
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                backgroundColor: '#f59e0b',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                              }}
+                              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#d97706')}
+                              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f59e0b')}
+                              title="Reprocess all failed documents"
+                            >
+                              <RefreshCw size={14} />
+                              Reprocess All Failed
+                            </button>
+                          )}
+                        </div>
+                        {/* Warning banner for failed documents */}
+                        {approvedDocuments.filter(d => d.processingStatus === 'failed').length > 0 && (
+                          <div style={{
+                            backgroundColor: '#fef3c7',
+                            border: '1px solid #f59e0b',
+                            borderRadius: '8px',
+                            padding: '0.75rem 1rem',
+                            marginBottom: '1rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                            fontSize: '0.875rem',
+                            color: '#92400e'
+                          }}>
+                            <AlertTriangle size={18} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                            <div>
+                              <strong>{approvedDocuments.filter(d => d.processingStatus === 'failed').length} document(s) failed processing.</strong>{' '}
+                              These documents are approved but not indexed for AI search. Click "Reprocess" to retry.
+                            </div>
+                          </div>
+                        )}
                         {!approvedDocuments || approvedDocuments.length === 0 ? (
                           <p className="empty-description">No approved documents available.</p>
                         ) : (
@@ -723,6 +810,47 @@ export default function CourseDetail() {
                                   </div>
                                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
                                     <span className="chip status published">Approved</span>
+                                    {/* Processing Status Badge */}
+                                    {doc.processingStatus === 'completed' && (
+                                      <span className="chip" style={{ backgroundColor: '#dcfce7', color: '#166534' }}>✓ Indexed</span>
+                                    )}
+                                    {doc.processingStatus === 'failed' && (
+                                      <span className="chip" style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}>⚠ Processing Failed</span>
+                                    )}
+                                    {(doc.processingStatus === 'pending' || doc.processingStatus === 'processing') && (
+                                      <span className="chip" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>⏳ Processing...</span>
+                                    )}
+                                    {/* Reprocess Button for Failed Documents */}
+                                    {doc.processingStatus === 'failed' && (
+                                      <button
+                                        onClick={() => handleReprocessDocument(doc.documentId)}
+                                        disabled={processingDocId === doc.documentId}
+                                        style={{
+                                          padding: '0.5rem 0.75rem',
+                                          fontSize: '0.75rem',
+                                          fontWeight: 600,
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '0.4rem',
+                                          backgroundColor: '#f59e0b',
+                                          color: 'white',
+                                          border: 'none',
+                                          borderRadius: '6px',
+                                          cursor: 'pointer',
+                                          transition: 'all 0.2s ease',
+                                        }}
+                                        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#d97706')}
+                                        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f59e0b')}
+                                        title="Reprocess this document"
+                                      >
+                                        {processingDocId === doc.documentId ? (
+                                          <Loader size={14} className="animate-spin" />
+                                        ) : (
+                                          <RefreshCw size={14} />
+                                        )}
+                                        Reprocess
+                                      </button>
+                                    )}
                                     <button
                                       onClick={() => handleDownload(doc.documentId, doc.title)}
                                       style={{
