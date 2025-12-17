@@ -1,0 +1,266 @@
+.quiz-history-container {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* Summary Header */
+.history-summary {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    padding: 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    margin-bottom: 24px;
+    color: white;
+}
+
+.summary-stat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stat-icon {
+    opacity: 0.9;
+}
+
+.stat-icon.trophy {
+    color: #ffd700;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 13px;
+    opacity: 0.85;
+}
+
+/* History List */
+.history-list {
+    margin-bottom: 20px;
+}
+
+.history-list-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.no-attempts {
+    text-align: center;
+    padding: 40px 20px;
+    background: #f9fafb;
+    border-radius: 12px;
+}
+
+.no-attempts p {
+    color: #6b7280;
+    margin-bottom: 16px;
+}
+
+/* Attempts Grid */
+.attempts-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.attempt-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.attempt-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.attempt-card.passed {
+    border-left: 4px solid #10b981;
+}
+
+.attempt-card.failed {
+    border-left: 4px solid #ef4444;
+}
+
+/* Attempt Header */
+.attempt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.attempt-number {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.attempt-status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+.attempt-status.pass {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.attempt-status.fail {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Score */
+.attempt-score {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.score-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.score-detail {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* Meta Info */
+.attempt-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-top: 8px;
+    border-top: 1px dashed #e5e7eb;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+/* View Button */
+.view-attempt-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    background: #f3f4f6;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #4f46e5;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.view-attempt-btn:hover {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+/* Footer */
+.history-footer {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.retake-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.retake-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.retake-btn.primary {
+    padding: 14px 32px;
+    font-size: 15px;
+}
+
+.close-btn {
+    padding: 12px 24px;
+    background: #f3f4f6;
+    color: #374151;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: #e5e7eb;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .attempt-card {
+        background: #1f2937;
+        border-color: #374151;
+    }
+
+    .attempt-number {
+        color: #f9fafb;
+    }
+
+    .score-value {
+        color: #f9fafb;
+    }
+
+    .history-list-title {
+        color: #f9fafb;
+    }
+}
