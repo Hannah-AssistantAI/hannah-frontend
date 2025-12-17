@@ -19,6 +19,7 @@ import { FlagQuizModal } from './components/modals/FlagQuizModal'
 import { RoadmapModal } from './components/modals/RoadmapModal'
 import { RoadmapOptionsModal } from './components/modals/RoadmapOptionsModal'
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal'
+import { QuizAttemptHistory } from './components/QuizModal/QuizAttemptHistory'
 import { BigPictureSidebar } from './components/BigPictureSidebar'
 import { StudioSidebar } from './components/StudioSidebar'
 import { HistorySidebar } from '../../components/HistorySidebar'
@@ -177,6 +178,16 @@ export default function Chat() {
         setFlaggingQuizId(itemId)
         setFlaggingAttemptId(null) // Sidebar flagging doesn't have attemptId
         setShowFlagQuizModal(true)
+        setOpenMenuId(null)
+    }
+
+    // 🆕 Handle View Quiz History from sidebar
+    const handleViewQuizHistory = async (itemId: string) => {
+        const numericId = itemId.replace('quiz-', '')
+        // Load quiz first to set selectedQuizId
+        await quiz.loadQuiz(numericId)
+        // Then load history
+        await quiz.loadAttemptHistory()
         setOpenMenuId(null)
     }
 
@@ -405,6 +416,7 @@ export default function Chat() {
                     onItemClick={handleStudioItemClick}
                     onDeleteItem={handleDeleteItem}
                     onFlagItem={handleFlagQuiz}
+                    onViewHistory={handleViewQuizHistory}
                     openMenuId={openMenuId}
                     onToggleMenu={toggleMenu}
                     language={messages.filter(m => m.type === 'assistant').pop()?.detectedLanguage}
@@ -610,6 +622,27 @@ export default function Chat() {
                 cancelText="Hủy"
                 type="danger"
             />
+
+            {/* 🆕 Quiz Attempt History Modal */}
+            {quiz.showAttemptHistory && quiz.attemptHistory && (
+                <div className="modal-overlay" onClick={quiz.closeHistory}>
+                    <div className="modal-container" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', maxHeight: '80vh', overflow: 'auto' }}>
+                        <QuizAttemptHistory
+                            quizTitle={quiz.attemptHistory.quiz_title || quiz.quizContent?.title || 'Quiz'}
+                            totalAttempts={quiz.attemptHistory.total_attempts}
+                            bestScore={quiz.attemptHistory.best_score}
+                            attempts={quiz.attemptHistory.attempts}
+                            onViewAttempt={quiz.viewAttemptDetail}
+                            onRetakeQuiz={() => {
+                                quiz.closeHistory();
+                                quiz.retryQuiz();
+                                studio.setShowQuizModal(true);
+                            }}
+                            onClose={quiz.closeHistory}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
