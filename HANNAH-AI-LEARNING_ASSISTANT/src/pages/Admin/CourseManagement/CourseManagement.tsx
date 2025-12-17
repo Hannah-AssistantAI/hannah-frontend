@@ -385,8 +385,23 @@ export default function CourseManagement() {
     });
   };
 
+  // Convert semester (can be number or enum string like 'First', 'Second') to number
+  const semesterEnumToNumber: { [key: string]: number } = {
+    'First': 1, 'Second': 2, 'Third': 3, 'Fourth': 4, 'Fifth': 5,
+    'Sixth': 6, 'Seventh': 7, 'Eighth': 8, 'Ninth': 9
+  };
+
+  const getSemesterNumber = (semester: number | string | undefined): number => {
+    if (typeof semester === 'number') return semester;
+    if (typeof semester === 'string') {
+      return semesterEnumToNumber[semester] || parseInt(semester) || 1;
+    }
+    return 1;
+  };
+
   const filteredSubjects = subjects.filter(subject => {
-    const matchSemester = selectedSemester === 'all' || subject.semester === parseInt(selectedSemester);
+    const subjectSemesterNum = getSemesterNumber(subject.semester);
+    const matchSemester = selectedSemester === 'all' || subjectSemesterNum === parseInt(selectedSemester);
     const matchSearch = subject.name.toLowerCase().includes(searchQuery.toLowerCase()) || subject.code.toLowerCase().includes(searchQuery.toLowerCase());
     return matchSemester && matchSearch;
   });
