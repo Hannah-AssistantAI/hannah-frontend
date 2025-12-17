@@ -343,6 +343,9 @@ export default function CourseManagement() {
 
         setFieldErrors(apiErrors);
         toast.error('Please fix the validation errors');
+      } else if (error.response?.data?.message) {
+        // Show backend validation message (e.g., duplicate subject)
+        toast.error(error.response.data.message);
       } else {
         toast.error('Failed to save course. Check fields and try again.');
       }
