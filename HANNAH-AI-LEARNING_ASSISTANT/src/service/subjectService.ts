@@ -46,11 +46,14 @@ export type PaginatedSubjects = {
 
 /**
  * Fetches a list of all subjects.
+ * @param pageSize - Number of subjects to fetch (default: 1000 to load all)
  * @returns A promise that resolves to a PaginatedSubjects object.
  */
-const getAllSubjects = async (): Promise<PaginatedSubjects> => {
+const getAllSubjects = async (pageSize: number = 1000): Promise<PaginatedSubjects> => {
   try {
-    const response = await apiClient.get<PaginatedSubjects>(API_ENDPOINTS.SUBJECT.GET_ALL);
+    const response = await apiClient.get<PaginatedSubjects>(
+      `${API_ENDPOINTS.SUBJECT.GET_ALL}?pageSize=${pageSize}`
+    );
     return response.data;
   } catch (error) {
     console.error('Error fetching subjects:', error);
