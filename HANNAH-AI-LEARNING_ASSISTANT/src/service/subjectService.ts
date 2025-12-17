@@ -32,6 +32,8 @@ export type Subject = {
   sessions?: string;
   syllabusMaterials?: string;
   studentTasks?: string;
+  // Indicates if subject was updated vs created new
+  isUpdated?: boolean;
 }
 
 // Interface for the paginated response of subjects

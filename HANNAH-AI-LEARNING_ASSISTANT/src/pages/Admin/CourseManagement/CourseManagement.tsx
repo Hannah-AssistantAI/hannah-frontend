@@ -318,7 +318,16 @@ export default function CourseManagement() {
       } else {
         const result = await subjectService.createSubject(cleanedData);
         console.log('Create result:', result);
-        toast.success('Course created successfully!');
+
+        // Check if subject was updated (already existed) or created new
+        if (result?.isUpdated) {
+          toast.success(`Course "${formData.code}" already exists and has been updated with new data!`, {
+            duration: 5000,
+            icon: '🔄'
+          });
+        } else {
+          toast.success('Course created successfully!');
+        }
       }
 
       // Fetch updated data
