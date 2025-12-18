@@ -453,7 +453,7 @@ export default function CourseManagement() {
         </div>
         <div className="course-badges">
           <span className="course-code">{subject.code}</span>
-          {selectedSemester === 'all' ? null : <span className="semester-badge">Sem {subject.semester}</span>}
+          {selectedSemester === 'all' ? null : <span className="semester-badge">Sem {getSemesterNumber(subject.semester)}</span>}
           <span className={`status-badge ${subject.isActive ? 'active' : 'inactive'}`}>{subject.isActive ? 'Active' : 'Inactive'}</span>
         </div>
         <p className="course-description">Credits: {subject.credits}</p>

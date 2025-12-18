@@ -298,7 +298,17 @@ export default function CourseDetail() {
                 </h2>
                 {subject && (
                   <p className="course-subtitle" style={{ marginTop: 4, display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <span>Semester: {subject.semester}</span>
+                    <span>Semester: {(() => {
+                      const semesterEnumToNumber: { [key: string]: number } = {
+                        'First': 1, 'Second': 2, 'Third': 3, 'Fourth': 4, 'Fifth': 5,
+                        'Sixth': 6, 'Seventh': 7, 'Eighth': 8, 'Ninth': 9
+                      };
+                      if (typeof subject.semester === 'number') return subject.semester;
+                      if (typeof subject.semester === 'string') {
+                        return semesterEnumToNumber[subject.semester] || parseInt(subject.semester) || subject.semester;
+                      }
+                      return subject.semester;
+                    })()}</span>
                     <span className="dot">•</span>
                     <span className={`chip status ${subject.isActive ? 'published' : 'draft'}`}>{subject.isActive ? 'Active' : 'Inactive'}</span>
                   </p>
