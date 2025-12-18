@@ -17,6 +17,7 @@ const initialFormState: Partial<Subject> = {
 
 export default function CourseManagement() {
   const navigate = useNavigate();
+
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,11 +29,22 @@ export default function CourseManagement() {
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
   const [expandedSyllabus, setExpandedSyllabus] = useState<{ [key: string]: boolean }>({});
 
+  // State for filters - restore from sessionStorage
+  const [searchQuery, setSearchQuery] = useState(() => {
+    return sessionStorage.getItem('courseManagement_search') || '';
+  });
+  const [selectedSemester, setSelectedSemester] = useState(() => {
+    return sessionStorage.getItem('courseManagement_semester') || 'all';
+  });
 
+  // Save filters to sessionStorage when they change
+  useEffect(() => {
+    sessionStorage.setItem('courseManagement_search', searchQuery);
+  }, [searchQuery]);
 
-  // State for filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSemester, setSelectedSemester] = useState('all');
+  useEffect(() => {
+    sessionStorage.setItem('courseManagement_semester', selectedSemester);
+  }, [selectedSemester]);
 
   // State for delete confirmation modal
   const [deleteModal, setDeleteModal] = useState<{
