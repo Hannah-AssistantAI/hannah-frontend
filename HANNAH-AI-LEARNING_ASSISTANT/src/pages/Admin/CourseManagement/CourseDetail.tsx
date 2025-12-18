@@ -9,6 +9,28 @@ import suggestionService, { type Suggestion, SuggestionStatus, SuggestionContent
 import SyllabusImporter from './SyllabusImporter';
 import './CourseManagement.css';
 
+// Semester enum mapping - Backend returns 'First', 'Second', etc. Convert to numbers
+const SEMESTER_ENUM_TO_NUMBER: { [key: string]: number } = {
+  'First': 1,
+  'Second': 2,
+  'Third': 3,
+  'Fourth': 4,
+  'Fifth': 5,
+  'Sixth': 6,
+  'Seventh': 7,
+  'Eighth': 8,
+  'Ninth': 9,
+};
+
+// Helper to convert semester (number or enum string) to display number
+const getSemesterNumber = (semester: number | string | undefined): number | string => {
+  if (typeof semester === 'number') return semester;
+  if (typeof semester === 'string') {
+    return SEMESTER_ENUM_TO_NUMBER[semester] || parseInt(semester) || semester;
+  }
+  return semester ?? '-';
+};
+
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
   const [subject, setSubject] = useState<Subject | null>(null);
@@ -298,17 +320,7 @@ export default function CourseDetail() {
                 </h2>
                 {subject && (
                   <p className="course-subtitle" style={{ marginTop: 4, display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <span>Semester: {(() => {
-                      const semesterEnumToNumber: { [key: string]: number } = {
-                        'First': 1, 'Second': 2, 'Third': 3, 'Fourth': 4, 'Fifth': 5,
-                        'Sixth': 6, 'Seventh': 7, 'Eighth': 8, 'Ninth': 9
-                      };
-                      if (typeof subject.semester === 'number') return subject.semester;
-                      if (typeof subject.semester === 'string') {
-                        return semesterEnumToNumber[subject.semester] || parseInt(subject.semester) || subject.semester;
-                      }
-                      return subject.semester;
-                    })()}</span>
+                    <span>Semester: {getSemesterNumber(subject.semester)}</span>
                     <span className="dot">•</span>
                     <span className={`chip status ${subject.isActive ? 'published' : 'draft'}`}>{subject.isActive ? 'Active' : 'Inactive'}</span>
                   </p>
@@ -1300,7 +1312,7 @@ export default function CourseDetail() {
                 <h3 className="preview-title">Summary</h3>
                 <div className="preview-content">
                   <div className="preview-item"><label className="preview-label">Course Code</label><p className="preview-value">{subject.code}</p></div>
-                  <div className="preview-item"><label className="preview-label">Semester</label><p className="preview-value">Semester {subject.semester}</p></div>
+                  <div className="preview-item"><label className="preview-label">Semester</label><p className="preview-value">Semester {getSemesterNumber(subject.semester)}</p></div>
                   <div className="preview-item"><label className="preview-label">Status</label><span className={`chip status ${subject.isActive ? 'published' : 'draft'}`}>{subject.isActive ? 'Active' : 'Inactive'}</span></div>
                   <div className="preview-item"><label className="preview-label">Credits</label><p className="preview-value">{subject.credits}</p></div>
                   <div className="preview-item"><label className="preview-label">Degree Level</label><p className="preview-value">{subject.degreeLevel || '-'}</p></div>
