@@ -107,7 +107,7 @@
   box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
 }
 
-/* Filters Section - Exact UserManagement Pattern */
+/* Filters Section */
 .cm-filters {
   display: flex;
   gap: 16px;
@@ -116,6 +116,176 @@
   border-radius: 16px;
   margin-bottom: 20px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.cm-search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 280px;
+}
+
+.cm-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.cm-search-input {
+  width: 100%;
+  padding: 12px 16px 12px 44px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #1f2937;
+  background: #f9fafb;
+  transition: all 0.2s ease;
+}
+
+.cm-search-input::placeholder {
+  color: #9ca3af;
+}
+
+.cm-search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.cm-filter-wrapper {
+  position: relative;
+  min-width: 180px;
+}
+
+.cm-filter-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #3b82f6;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cm-filter-select {
+  width: 100%;
+  padding: 12px 40px 12px 44px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #1f2937;
+  background: #f9fafb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+}
+
+.cm-filter-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background-color: white;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* ===== SEMESTER SECTIONS (When All is selected) ===== */
+.semester-sections-view {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.semester-section-block {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Semester Section Header - Simple Divider Style */
+.semester-section-header-simple {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.semester-section-header-simple::before,
+.semester-section-header-simple::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.semester-section-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.semester-section-count {
+  background: #3b82f6;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Current Semester Title */
+.current-semester-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
+  border-radius: 12px;
+  border: 1px solid #bfdbfe;
+}
+
+.current-semester-title svg {
+  color: #3b82f6;
+}
+
+.current-semester-title h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e40af;
+}
+
+.semester-subtitle {
+  background: #3b82f6;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Filters Section - Exact UserManagement Pattern */
+.cm-filters {
+  display: flex;
+  gap: 16px;
+  padding: 16px 20px;
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   border: 1px solid #e5e7eb;
   align-items: center;
   flex-wrap: wrap;
@@ -197,6 +367,187 @@
   border-color: #3b82f6;
   background-color: white;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Section Actions (Expand/Collapse All) */
+.cm-section-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.btn-expand-all,
+.btn-collapse-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+  color: #64748b;
+}
+
+.btn-expand-all:hover {
+  background: #f0fdf4;
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.btn-collapse-all:hover {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+/* Semester Sections Container */
+.semester-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Individual Semester Section */
+.semester-section {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 2px solid #e5e7eb;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.semester-section:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.semester-section.collapsed {
+  border-color: #e5e7eb;
+}
+
+.semester-section.expanded {
+  border-color: #3b82f6;
+}
+
+/* Semester Section Header */
+.semester-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.semester-section.expanded .semester-section-header {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-bottom: 1px solid #bfdbfe;
+}
+
+.semester-section-header:hover {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+}
+
+.semester-section.expanded .semester-section-header:hover {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+}
+
+.semester-section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.semester-section-title svg {
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.semester-section.expanded .semester-section-title svg:first-child {
+  color: #3b82f6;
+}
+
+.semester-icon {
+  color: #3b82f6 !important;
+}
+
+.semester-course-count {
+  background: #e0e7ff;
+  color: #4338ca;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.semester-section.collapsed .semester-course-count {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+/* Semester Section Actions */
+.semester-section-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-view-semester {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-view-semester:hover {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+/* Semester Section Content */
+.semester-section-content {
+  padding: 20px 24px;
+  animation: slideDown 0.25s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.semester-empty {
+  text-align: center;
+  padding: 32px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.semester-empty p {
+  margin: 0;
 }
 
 /* Semester Stats */

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Map, Plus, Search, Filter, Edit, Trash2, Eye, Clock, Loader, X, Save } from 'lucide-react';
+import { Map, Plus, Search, Edit, Trash2, Eye, Clock, Loader, X, Save, BookOpen } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
 import { toast } from 'react-hot-toast';
@@ -27,6 +27,8 @@ export default function CourseManagement() {
   const [inputValue, setInputValue] = useState<{ [key: string]: string }>({});
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
   const [expandedSyllabus, setExpandedSyllabus] = useState<{ [key: string]: boolean }>({});
+
+
 
   // State for filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -415,13 +417,68 @@ export default function CourseManagement() {
     return matchSemester && matchSearch;
   });
 
+  // Get count of subjects per semester (from all subjects, not filtered)
+  const getSemesterCount = (semesterNum: number) => {
+    return subjects.filter(subject => getSemesterNumber(subject.semester) === semesterNum).length;
+  };
+
+  // Render a single course card
+  const renderCourseCard = (subject: Subject) => (
+    <div
+      key={subject.subjectId}
+      className="course-card"
+      onClick={() => navigate(`/admin/course-management/${subject.subjectId}`)}
+      style={{ cursor: 'pointer' }}
+    >
+      <div className="course-card-content">
+        <div className="course-card-header">
+          <h3 className="course-card-title">{subject.name}</h3>
+          <div className="course-card-actions" onClick={(e) => e.stopPropagation()}>
+            <Link to={`/admin/course-management/${subject.subjectId}`} className="btn-view"><Eye size={20} /></Link>
+            <button onClick={() => handleEditClick(subject)} className="btn-edit"><Edit size={20} /></button>
+            <button onClick={() => handleDeleteClick(subject)} className="btn-delete"><Trash2 size={20} /></button>
+          </div>
+        </div>
+        <div className="course-badges">
+          <span className="course-code">{subject.code}</span>
+          {selectedSemester === 'all' ? null : <span className="semester-badge">Sem {subject.semester}</span>}
+          <span className={`status-badge ${subject.isActive ? 'active' : 'inactive'}`}>{subject.isActive ? 'Active' : 'Inactive'}</span>
+        </div>
+        <p className="course-description">Credits: {subject.credits}</p>
+        <div className="course-footer"><div className="course-footer-item"><Clock size={16} />Created: {new Date(subject.createdAt).toLocaleDateString()}</div></div>
+      </div>
+    </div>
+  );
+
+  // Get subjects for a specific semester (apply search filter)
+  const getFilteredSubjectsBySemester = (semesterNum: number) => {
+    return subjects.filter(subject => {
+      const subjectSemesterNum = getSemesterNumber(subject.semester);
+      const matchSemester = subjectSemesterNum === semesterNum;
+      const matchSearch = searchQuery === '' ||
+        subject.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        subject.code.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchSemester && matchSearch;
+    });
+  };
+
   const renderListView = () => (
     <>
+      {/* Header */}
       <div className="course-header">
         <div className="course-header-top">
-          <div><p className="course-subtitle">Manage course information, prerequisites, and learning outcomes.</p></div>
-          <div className="course-actions"><button onClick={handleCreateClick} className="btn-create-course"><Plus size={20} />Create New Course</button></div>
+          <div>
+            <p className="course-subtitle">Manage course information, prerequisites, and learning outcomes.</p>
+          </div>
+          <div className="course-actions">
+            <button onClick={handleCreateClick} className="btn-create-course">
+              <Plus size={20} />
+              Create New Course
+            </button>
+          </div>
         </div>
+
+        {/* Filters */}
         <div className="cm-filters">
           <div className="cm-search-wrapper">
             <Search className="cm-search-icon" size={18} />
@@ -434,7 +491,7 @@ export default function CourseManagement() {
             />
           </div>
           <div className="cm-filter-wrapper">
-            <Filter className="cm-filter-icon" size={18} />
+            <BookOpen className="cm-filter-icon" size={18} />
             <select
               value={selectedSemester}
               onChange={(e) => setSelectedSemester(e.target.value)}
@@ -448,40 +505,58 @@ export default function CourseManagement() {
           </div>
         </div>
       </div>
+
+      {/* Content */}
       {loading ? (
-        <div className="loading-state"><Loader className="animate-spin" size={48} /><p>Loading Courses...</p></div>
-      ) : (
-        <>
-          <div className="courses-grid">
-            {filteredSubjects.map(subject => (
-              <div
-                key={subject.subjectId}
-                className="course-card"
-                onClick={() => navigate(`/admin/course-management/${subject.subjectId}`)}
-                style={{ cursor: 'pointer' }}
-              >
-                <div className="course-card-content">
-                  <div className="course-card-header">
-                    <h3 className="course-card-title">{subject.name}</h3>
-                    <div className="course-card-actions" onClick={(e) => e.stopPropagation()}>
-                      <Link to={`/admin/course-management/${subject.subjectId}`} className="btn-view"><Eye size={20} /></Link>
-                      <button onClick={() => handleEditClick(subject)} className="btn-edit"><Edit size={20} /></button>
-                      <button onClick={() => handleDeleteClick(subject)} className="btn-delete"><Trash2 size={20} /></button>
-                    </div>
-                  </div>
-                  <div className="course-badges">
-                    <span className="course-code">{subject.code}</span>
-                    <span className="semester-badge">Sem {subject.semester}</span>
-                    <span className={`status-badge ${subject.isActive ? 'active' : 'inactive'}`}>{subject.isActive ? 'Active' : 'Inactive'}</span>
-                  </div>
-                  <p className="course-description">Credits: {subject.credits}</p>
-                  <div className="course-footer"><div className="course-footer-item"><Clock size={16} />Created: {new Date(subject.createdAt).toLocaleDateString()}</div></div>
+        <div className="loading-state">
+          <Loader className="animate-spin" size={48} />
+          <p>Loading courses...</p>
+        </div>
+      ) : selectedSemester === 'all' ? (
+        /* ALL SEMESTERS - Grouped by semester */
+        <div className="semester-sections-view">
+          {Array.from({ length: 9 }, (_, i) => i + 1).map(semesterNum => {
+            const semesterSubjects = getFilteredSubjectsBySemester(semesterNum);
+
+            // Skip if no courses in this semester
+            if (semesterSubjects.length === 0) return null;
+
+            return (
+              <div key={semesterNum} className="semester-section-block">
+                {/* Semester Header */}
+                <div className="semester-section-header-simple">
+                  <span className="semester-section-label">Semester {semesterNum}</span>
+                  <span className="semester-section-count">{semesterSubjects.length} {semesterSubjects.length === 1 ? 'course' : 'courses'}</span>
+                </div>
+
+                {/* Courses Grid */}
+                <div className="courses-grid">
+                  {semesterSubjects.map(subject => renderCourseCard(subject))}
                 </div>
               </div>
-            ))}
+            );
+          })}
+
+          {filteredSubjects.length === 0 && (
+            <div className="empty-state">
+              <Map className="empty-icon" size={64} />
+              <p className="empty-title">No courses found</p>
+              <p className="empty-description">Try adjusting your search keywords.</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* SINGLE SEMESTER */
+        <>
+          <div className="courses-grid">
+            {filteredSubjects.map(subject => renderCourseCard(subject))}
           </div>
           {filteredSubjects.length === 0 && (
-            <div className="empty-state"><Map className="empty-icon" size={64} /><p className="empty-title">No courses found</p><p className="empty-description">Try adjusting your filters or create a new course.</p></div>
+            <div className="empty-state">
+              <Map className="empty-icon" size={64} />
+              <p className="empty-title">No courses found</p>
+              <p className="empty-description">No courses available in this semester.</p>
+            </div>
           )}
         </>
       )}
