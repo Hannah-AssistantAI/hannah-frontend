@@ -541,7 +541,7 @@ export default function AcademicDashboard({ userId, profileSemester, onSemesterU
                                 </div>
                                 {strongSubjects.map(s => (
                                     <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(71,85,105,0.2)' }}>
-                                        <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>{s.subjectName}</span>
+                                        <span className="subject-name">{s.subjectName}</span>
                                         <span className={`grade-badge ${getGradeClass(s.grade)}`}>{s.grade}</span>
                                     </div>
                                 ))}
@@ -553,7 +553,7 @@ export default function AcademicDashboard({ userId, profileSemester, onSemesterU
                                 </div>
                                 {weakSubjects.map(s => (
                                     <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(71,85,105,0.2)' }}>
-                                        <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>{s.subjectName}</span>
+                                        <span className="subject-name">{s.subjectName}</span>
                                         <span className={`grade-badge ${getGradeClass(s.grade)}`}>{s.grade}</span>
                                     </div>
                                 ))}
