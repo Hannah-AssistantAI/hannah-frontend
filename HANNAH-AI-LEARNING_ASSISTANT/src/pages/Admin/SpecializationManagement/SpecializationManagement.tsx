@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Users, BookOpen, Plus, Trash2, X, Loader2, ChevronDown, ChevronRight, Search, Edit2 } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import specializationService, { type Specialization, type SpecializationSubject } from '../../../service/specializationService';
@@ -24,7 +24,33 @@ export default function SpecializationManagement() {
         notes: ''
     });
     const [subjectSearch, setSubjectSearch] = useState('');
+    const [dropdownOpen, setDropdownOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [mouseDownOnOverlay, setMouseDownOnOverlay] = useState(false);
+    const searchInputRef = useRef<HTMLInputElement>(null);
+    const comboboxRef = useRef<HTMLDivElement>(null);
+
+    // Auto-focus physical input when dropdown opens
+    useEffect(() => {
+        if (dropdownOpen && searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
+    }, [dropdownOpen]);
+
+    // Handle click outside to close dropdown
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (comboboxRef.current && !comboboxRef.current.contains(event.target as Node)) {
+                setDropdownOpen(false);
+            }
+        }
+        if (dropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [dropdownOpen]);
 
     // Specialization CRUD modal state
     const [showSpecModal, setShowSpecModal] = useState(false);
@@ -359,97 +385,181 @@ export default function SpecializationManagement() {
 
             {/* Add Subject Modal */}
             {showAddModal && (
-                <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3>Add Subject to Specialization</h3>
-                            <button className="modal-close" onClick={() => setShowAddModal(false)}>
-                                <X size={20} />
-                            </button>
+                <div
+                    className="add-sub-overlay"
+                    onMouseDown={(e) => e.target === e.currentTarget && setMouseDownOnOverlay(true)}
+                    onMouseUp={(e) => {
+                        if (e.target === e.currentTarget && mouseDownOnOverlay) {
+                            setShowAddModal(false);
+                        }
+                        setMouseDownOnOverlay(false);
+                    }}
+                >
+                    <div className="add-sub-modal" onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="add-sub-header">
+                            <div className="add-sub-header-top">
+                                <h3 className="add-sub-title">Add Subject</h3>
+                                <button onClick={() => setShowAddModal(false)} className="add-sub-close">
+                                    <X size={18} />
+                                </button>
+                            </div>
+                            <p className="add-sub-subtitle">
+                                Linking to: <span>{specializations.find(s => s.id === selectedSpecId)?.name}</span>
+                            </p>
                         </div>
 
-                        <div className="modal-body">
-                            <div className="form-group">
-                                <label>Search Subject</label>
-                                <div className="search-input-wrapper">
-                                    <Search className="search-icon" size={16} />
+                        {/* Body */}
+                        <div className="add-sub-body">
+                            {/* Searchable Select */}
+                            <div className="add-sub-form-group" ref={comboboxRef}>
+                                <label className="add-sub-label">
+                                    Select Subject <span className="add-sub-required">*</span>
+                                </label>
+
+                                {/* Input that acts as searchable select */}
+                                <div className="add-sub-combobox">
+                                    <div className="add-sub-search-icon">
+                                        <Search size={16} />
+                                    </div>
                                     <input
+                                        ref={searchInputRef}
                                         type="text"
                                         placeholder="Search by code or name..."
-                                        value={subjectSearch}
-                                        onChange={(e) => setSubjectSearch(e.target.value)}
-                                        className="search-input"
+                                        className={`add-sub-input ${dropdownOpen ? 'active' : ''}`}
+                                        value={dropdownOpen
+                                            ? subjectSearch
+                                            : (addFormData.subjectId > 0
+                                                ? `${subjects.find(s => s.subjectId === addFormData.subjectId)?.code} - ${subjects.find(s => s.subjectId === addFormData.subjectId)?.name}`
+                                                : ''
+                                            )
+                                        }
+                                        onChange={(e) => {
+                                            setSubjectSearch(e.target.value);
+                                            if (addFormData.subjectId) {
+                                                setAddFormData(prev => ({ ...prev, subjectId: 0 }));
+                                            }
+                                        }}
+                                        onFocus={() => {
+                                            setDropdownOpen(true);
+                                            if (addFormData.subjectId > 0) {
+                                                setSubjectSearch('');
+                                            }
+                                        }}
                                     />
+                                    {/* Dropdown arrow */}
+                                    <div
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setDropdownOpen(!dropdownOpen);
+                                            // Ensure focus even when clicking the arrow
+                                            if (!dropdownOpen) {
+                                                setTimeout(() => searchInputRef.current?.focus(), 0);
+                                            }
+                                        }}
+                                        className={`add-sub-chevron ${dropdownOpen ? 'open' : ''}`}
+                                    >
+                                        <ChevronDown size={18} />
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="form-group">
-                                <label>Select Subject</label>
-                                <select
-                                    value={addFormData.subjectId}
-                                    onChange={(e) => setAddFormData(prev => ({ ...prev, subjectId: Number(e.target.value) }))}
-                                    className="form-select"
-                                >
-                                    <option value={0}>-- Select a subject --</option>
-                                    {availableSubjects.slice(0, 50).map(sub => (
-                                        <option key={sub.subjectId} value={sub.subjectId}>
-                                            {sub.code} - {sub.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                {availableSubjects.length > 50 && (
-                                    <p className="form-hint">Showing first 50 results. Type to narrow down.</p>
+                                {/* Dropdown - shows only when open */}
+                                {dropdownOpen && (
+                                    <div className="add-sub-dropdown custom-dropdown-scroll">
+                                        {availableSubjects.length === 0 ? (
+                                            <div className="add-sub-empty">
+                                                <div style={{ marginBottom: '8px' }}><Search size={24} style={{ opacity: 0.5 }} /></div>
+                                                {subjectSearch ? `No subjects match "${subjectSearch}"` : "No available subjects found"}
+                                            </div>
+                                        ) : (
+                                            availableSubjects.map(sub => (
+                                                <div
+                                                    key={sub.subjectId}
+                                                    onClick={() => {
+                                                        setAddFormData(prev => ({ ...prev, subjectId: sub.subjectId }));
+                                                        setSubjectSearch('');
+                                                        setDropdownOpen(false);
+                                                    }}
+                                                    className={`add-sub-item ${addFormData.subjectId === sub.subjectId ? 'selected' : ''}`}
+                                                >
+                                                    <span className="add-sub-item-code">{sub.code}</span>
+                                                    <span className="add-sub-item-name">{sub.name}</span>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
                                 )}
                             </div>
 
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Subject Type</label>
-                                    <select
-                                        value={addFormData.subjectType}
-                                        onChange={(e) => setAddFormData(prev => ({ ...prev, subjectType: e.target.value }))}
-                                        className="form-select"
-                                    >
-                                        <option value="required">Required</option>
-                                        <option value="elective">Elective</option>
-                                        <option value="recommended">Recommended</option>
-                                    </select>
+                            {/* Options Grid */}
+                            <div className="add-sub-grid">
+                                <div>
+                                    <label className="add-sub-label">
+                                        Subject Type
+                                    </label>
+                                    <div className="add-sub-select-wrapper">
+                                        <select
+                                            value={addFormData.subjectType}
+                                            onChange={(e) => setAddFormData(prev => ({ ...prev, subjectType: e.target.value }))}
+                                            className="add-sub-select"
+                                        >
+                                            <option value="required">Required</option>
+                                            <option value="elective">Elective</option>
+                                            <option value="recommended">Recommended</option>
+                                        </select>
+                                        <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#64748b' }}>
+                                            <ChevronDown size={16} />
+                                        </div>
+                                    </div>
                                 </div>
-
-                                <div className="form-group">
-                                    <label>Recommended Semester</label>
-                                    <select
-                                        value={addFormData.semesterRecommended}
-                                        onChange={(e) => setAddFormData(prev => ({ ...prev, semesterRecommended: Number(e.target.value) }))}
-                                        className="form-select"
-                                    >
-                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(sem => (
-                                            <option key={sem} value={sem}>Semester {sem}</option>
-                                        ))}
-                                    </select>
+                                <div style={{ overflow: 'visible' }}>
+                                    <label className="add-sub-label">
+                                        Recommended Semester
+                                    </label>
+                                    <div className="add-sub-select-wrapper">
+                                        <select
+                                            value={addFormData.semesterRecommended}
+                                            onChange={(e) => setAddFormData(prev => ({ ...prev, semesterRecommended: Number(e.target.value) }))}
+                                            className="add-sub-select"
+                                        >
+                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(sem => (
+                                                <option key={sem} value={sem}>Semester {sem}</option>
+                                            ))}
+                                        </select>
+                                        <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#64748b' }}>
+                                            <ChevronDown size={16} />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="form-group">
-                                <label>Notes (optional)</label>
+                            {/* Notes */}
+                            <div style={{ marginBottom: '8px' }}>
+                                <label className="add-sub-label">
+                                    Notes (optional)
+                                </label>
                                 <textarea
                                     value={addFormData.notes}
                                     onChange={(e) => setAddFormData(prev => ({ ...prev, notes: e.target.value }))}
-                                    placeholder="Any additional notes..."
-                                    className="form-textarea"
-                                    rows={2}
+                                    placeholder="Enter any additional requirements or notes for this subject..."
+                                    rows={3}
+                                    className="add-sub-textarea"
                                 />
                             </div>
                         </div>
 
-                        <div className="modal-footer">
-                            <button className="btn-cancel" onClick={() => setShowAddModal(false)}>
+                        {/* Footer */}
+                        <div className="add-sub-footer">
+                            <button
+                                onClick={() => setShowAddModal(false)}
+                                className="add-sub-btn-cancel"
+                            >
                                 Cancel
                             </button>
                             <button
-                                className="btn-submit"
                                 onClick={handleAddSubject}
                                 disabled={isSubmitting || !addFormData.subjectId}
+                                className="add-sub-btn-submit"
                             >
                                 {isSubmitting ? (
                                     <>
@@ -457,7 +567,7 @@ export default function SpecializationManagement() {
                                     </>
                                 ) : (
                                     <>
-                                        <Plus size={16} /> Add Subject
+                                        <Plus size={18} /> Add Subject
                                     </>
                                 )}
                             </button>
@@ -468,8 +578,17 @@ export default function SpecializationManagement() {
 
             {/* Create/Edit Specialization Modal */}
             {showSpecModal && (
-                <div className="modal-overlay" onClick={() => setShowSpecModal(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <div
+                    className="modal-overlay"
+                    onMouseDown={(e) => e.target === e.currentTarget && setMouseDownOnOverlay(true)}
+                    onMouseUp={(e) => {
+                        if (e.target === e.currentTarget && mouseDownOnOverlay) {
+                            setShowSpecModal(false);
+                        }
+                        setMouseDownOnOverlay(false);
+                    }}
+                >
+                    <div className="modal-content" onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
                             <h3>{editingSpec ? 'Edit Specialization' : 'Create Specialization'}</h3>
                             <button className="modal-close" onClick={() => setShowSpecModal(false)}>
