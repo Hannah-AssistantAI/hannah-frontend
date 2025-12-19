@@ -192,9 +192,18 @@ export default function AcademicDashboard({ userId, profileSemester, onSemesterU
         semesterFilter === 'all' || g.semesterNumber === semesterFilter
     ) || [];
 
-    // Calculate strengths and weaknesses
+    // Calculate strengths and weaknesses (only subjects that count for GPA)
+    const isGpaCountedSubject = (grade: StudentGrade) => {
+        // Exclude special courses (marked with *)
+        if (grade.isSpecialCourse) return false;
+        // Exclude OJT subjects
+        const code = grade.subjectCode?.toUpperCase() || '';
+        if (code.startsWith('OJT') || code.includes('_OJT')) return false;
+        return true;
+    };
+
     const gradesByScore = [...(transcript?.grades || [])]
-        .filter(g => g.grade !== undefined && g.grade !== null && g.status === 'Passed')
+        .filter(g => g.grade !== undefined && g.grade !== null && g.status === 'Passed' && isGpaCountedSubject(g))
         .sort((a, b) => (b.grade || 0) - (a.grade || 0));
 
     const strongSubjects = gradesByScore.slice(0, 3);
