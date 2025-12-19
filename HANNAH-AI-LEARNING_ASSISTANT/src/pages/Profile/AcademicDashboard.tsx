@@ -45,6 +45,9 @@ export default function AcademicDashboard({ userId, profileSemester, onSemesterU
     const [semesterFilter, setSemesterFilter] = useState<number | 'all'>('all');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Dropdown open state
+    const [isSpecDropdownOpen, setIsSpecDropdownOpen] = useState(false);
+
     // Semester banner state
     const [isEditingSemester, setIsEditingSemester] = useState(false);
     const [editingSemesterValue, setEditingSemesterValue] = useState<string>('');
@@ -447,8 +450,9 @@ export default function AcademicDashboard({ userId, profileSemester, onSemesterU
                 </div>
             ) : (
                 <>
-                    {/* GPA Display */}
-                    <div className="gpa-display">
+                    {/* GPA Display with Actions */}
+                    <div className="gpa-row">
+                        {/* Left: GPA Card */}
                         <div className="gpa-card">
                             <div className="gpa-value">
                                 {transcript.weightedGpa?.toFixed(2) || 'N/A'}
@@ -456,43 +460,66 @@ export default function AcademicDashboard({ userId, profileSemester, onSemesterU
                             <div className="gpa-label">GPA tích lũy (hệ 10)</div>
                         </div>
 
-                        <div className="stats-grid">
-                            <div className="stat-item">
-                                <div className="stat-value info">{transcript.totalCreditsEarned}</div>
-                                <div className="stat-label">Tín chỉ đạt</div>
-                            </div>
-                            <div className="stat-item">
-                                <div className="stat-value success">{transcript.passedSubjects}</div>
-                                <div className="stat-label">Môn đã qua</div>
-                            </div>
-                            <div className="stat-item">
-                                <div className="stat-value warning">{transcript.studyingSubjects}</div>
-                                <div className="stat-label">Đang học</div>
-                            </div>
-                            <div className="stat-item">
-                                <div className="stat-value danger">{transcript.failedSubjects}</div>
-                                <div className="stat-label">Chưa đạt</div>
-                            </div>
+                        {/* Right: Actions Column */}
+                        <div className="gpa-actions-column">
+                            <button
+                                className="update-transcript-btn"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isUploading}
+                            >
+                                {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                                <span>Cập nhật bảng điểm</span>
+                            </button>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".xls,.xlsx,.html,.htm"
+                                onChange={handleFileInputChange}
+                                style={{ display: 'none' }}
+                            />
+
+                            {specializations.length > 0 ? (
+                                <select
+                                    className={`specialization-select-compact ${isSpecDropdownOpen ? 'open' : ''}`}
+                                    value={selectedSpecializationId || ''}
+                                    onChange={(e) => {
+                                        handleSpecializationChange(e);
+                                        setIsSpecDropdownOpen(false);
+                                    }}
+                                    onFocus={() => setIsSpecDropdownOpen(true)}
+                                    onBlur={() => setIsSpecDropdownOpen(false)}
+                                >
+                                    <option value="">-- Chọn chuyên ngành --</option>
+                                    {specializations.map(s => (
+                                        <option key={s.id} value={s.id}>
+                                            {s.code} - {s.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <div className="no-specialization">Chưa có chuyên ngành</div>
+                            )}
                         </div>
                     </div>
 
-                    {/* Re-upload button */}
-                    <div className="transcript-upload" style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
-                        <button
-                            className="pf-btn pf-btn-ghost"
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={isUploading}
-                        >
-                            {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-                            <span>Cập nhật bảng điểm</span>
-                        </button>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept=".xls,.xlsx,.html,.htm"
-                            onChange={handleFileInputChange}
-                            style={{ display: 'none' }}
-                        />
+                    {/* Stats Grid */}
+                    <div className="stats-grid">
+                        <div className="stat-item">
+                            <div className="stat-value info">{transcript.totalCreditsEarned}</div>
+                            <div className="stat-label">Tín chỉ đạt</div>
+                        </div>
+                        <div className="stat-item">
+                            <div className="stat-value success">{transcript.passedSubjects}</div>
+                            <div className="stat-label">Môn đã qua</div>
+                        </div>
+                        <div className="stat-item">
+                            <div className="stat-value warning">{transcript.studyingSubjects}</div>
+                            <div className="stat-label">Đang học</div>
+                        </div>
+                        <div className="stat-item">
+                            <div className="stat-value danger">{transcript.failedSubjects}</div>
+                            <div className="stat-label">Chưa đạt</div>
+                        </div>
                     </div>
 
                     {/* Strong/Weak Subjects */}
@@ -584,34 +611,6 @@ export default function AcademicDashboard({ userId, profileSemester, onSemesterU
                     </div>
                 </>
             )}
-
-            {/* Specialization Section */}
-            <div className="specialization-section">
-                <h4 style={{ color: '#f1f5f9', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Target size={18} />
-                    Chuyên ngành hẹp (Specialization)
-                </h4>
-
-                {specializations.length > 0 ? (
-                    <select
-                        className="specialization-select"
-                        value={selectedSpecializationId || ''}
-                        onChange={handleSpecializationChange}
-                    >
-                        <option value="">-- Chọn chuyên ngành --</option>
-                        {specializations.map(s => (
-                            <option key={s.id} value={s.id}>
-                                {s.code} - {s.name}
-                            </option>
-                        ))}
-                    </select>
-                ) : (
-                    <div style={{ color: '#64748b', fontSize: '0.9rem' }}>
-                        <AlertCircle size={16} style={{ marginRight: 8 }} />
-                        Chưa có dữ liệu chuyên ngành
-                    </div>
-                )}
-            </div>
         </div>
     );
 }
