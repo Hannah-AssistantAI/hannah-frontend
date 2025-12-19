@@ -411,6 +411,19 @@
     padding-right: 36px;
 }
 
+/* Style for dropdown options (dark theme) */
+.specialization-select-compact option {
+    background-color: #1e293b;
+    color: #e2e8f0;
+    padding: 12px;
+}
+
+.specialization-select-compact option:checked {
+    background-color: rgba(99, 102, 241, 0.5);
+    color: #ffffff;
+    font-weight: 600;
+}
+
 .specialization-select:hover {
     border-color: rgba(99, 102, 241, 0.5);
 }
