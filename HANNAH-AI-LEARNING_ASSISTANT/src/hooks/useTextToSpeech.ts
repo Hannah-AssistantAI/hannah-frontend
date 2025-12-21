@@ -94,12 +94,12 @@ export function useTextToSpeech(): TextToSpeechResult {
         console.log(`[TTS] Language detected: ${language}, text: "${voiceText.slice(0, 50)}..."`);
 
         if (language === 'vi') {
-            // 🆕 Use FPT.AI for Vietnamese (high quality)
+            // 🆕 Use FPT.AI for Vietnamese (banmai female voice)
             console.log('[TTS] Using FPT.AI for Vietnamese');
             setIsSpeaking(true);
 
             try {
-                const audioUrl = await fptTextToSpeech(voiceText, { voice: 'banmai' });
+                const audioUrl = await fptTextToSpeech(voiceText);
 
                 if (audioUrl) {
                     audioRef.current = playAudioFromUrl(
