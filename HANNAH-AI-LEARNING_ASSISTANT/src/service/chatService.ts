@@ -133,23 +133,27 @@ class ChatService {
 
     /**
      * Send voice message (ephemeral - no conversation saving)
-     * Returns AI response text for TTS
+     * Returns AI response with text and optional slides for teaching mode
      */
-    async sendVoiceMessage(message: string): Promise<string> {
+    async sendVoiceMessage(message: string): Promise<{
+        response: string;
+        slides?: Array<{ slide_number: number; image_url: string; content?: string }>;
+    }> {
         try {
-            const response = await pythonApiClient.post<BaseResponse<{ response: string }>>('/api/v1/chat/voice', {
+            const response = await pythonApiClient.post<BaseResponse<{
+                response: string;
+                slides?: Array<{ slide_number: number; image_url: string; content?: string }>;
+            }>>('/api/v1/chat/voice', {
                 message,
                 language: 'vi'
             });
-            return response.data.data.response;
+            return {
+                response: response.data.data.response,
+                slides: response.data.data.slides || []
+            };
         } catch (error) {
             console.error('Voice message error:', error);
-            // Fallback: use regular chat but don't persist
-            const fallbackResponse = await pythonApiClient.post<BaseResponse<{ response: string }>>('/api/v1/chat/quick', {
-                message,
-                save_history: false
-            });
-            return fallbackResponse.data.data.response;
+            return { response: 'Xin lỗi, đã có lỗi xảy ra.', slides: [] };
         }
     }
 

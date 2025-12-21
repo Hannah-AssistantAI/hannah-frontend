@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { X, Mic, MicOff, Volume2 } from 'lucide-react';
 import { Experience } from './Experience';
+import { SlideViewer, type Slide } from './SlideViewer';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
 import { chatService } from '../../service/chatService';
@@ -80,6 +81,7 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
     const [displayText, setDisplayText] = useState('');
     const [isAvatarSpeaking, setIsAvatarSpeaking] = useState(false);
     const [showTypewriter, setShowTypewriter] = useState(false);
+    const [slides, setSlides] = useState<Slide[]>([]);  // 🆕 Slides for teaching mode
 
     const { transcript, isListening, startListening, stopListening, error } = useSpeechRecognition();
     const { speak, isSpeaking, stop: stopSpeaking } = useTextToSpeech();
@@ -131,16 +133,22 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
 
         try {
             console.log('[VoiceMode] Calling chatService.sendVoiceMessage...');
-            const response = await chatService.sendVoiceMessage(transcript);
-            console.log('[VoiceMode] Response:', response);
+            const result = await chatService.sendVoiceMessage(transcript);
+            console.log('[VoiceMode] Response:', result);
 
-            if (response) {
-                setDisplayText(response);
-                setShowTypewriter(true); // 🆕 Enable typewriter for response
+            if (result && result.response) {
+                setDisplayText(result.response);
+                setSlides(result.slides || []);  // 🆕 Set slides for display
+                setShowTypewriter(true);
                 setStatus('speaking');
-                speak(response);
+                speak(result.response);
+
+                if (result.slides && result.slides.length > 0) {
+                    console.log('[VoiceMode] Teaching mode with', result.slides.length, 'slides');
+                }
             } else {
                 setDisplayText('Không nhận được phản hồi từ Hannah');
+                setSlides([]);
                 setStatus('idle');
             }
         } catch (err) {
@@ -247,6 +255,13 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
                     />
                 </Canvas>
             </div>
+
+            {/* 🆕 Slide Viewer for Teaching Mode */}
+            {slides.length > 0 && (
+                <div className="voice-mode-slides">
+                    <SlideViewer slides={slides} />
+                </div>
+            )}
 
             {/* Controls */}
             <div className="voice-mode-controls">

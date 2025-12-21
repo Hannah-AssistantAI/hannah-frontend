@@ -498,3 +498,29 @@
     height: 32px;
   }
 }
+
+/* 🆕 Slides container for teaching mode */
+.voice-mode-slides {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto 16px;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* When slides are visible, make avatar smaller */
+.voice-mode-overlay:has(.voice-mode-slides) .voice-mode-canvas-container {
+  height: 35vh;
+  max-height: 280px;
+}
