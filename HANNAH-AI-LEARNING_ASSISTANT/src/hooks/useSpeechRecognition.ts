@@ -21,6 +21,8 @@ export function useSpeechRecognition(): SpeechRecognitionResult {
     const [isListening, setIsListening] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const recognitionRef = useRef<any>(null);
+    // 🆕 Use ref to track actual listening state (avoids stale closure issues)
+    const isListeningRef = useRef(false);
 
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -57,7 +59,6 @@ export function useSpeechRecognition(): SpeechRecognitionResult {
             // Don't show error for no-speech - just let user try again
             if (event.error === 'no-speech') {
                 console.log('No speech detected - waiting for user to speak');
-                // Don't set error, just continue listening or let it timeout gracefully
                 return;
             }
             if (event.error === 'aborted') {
@@ -66,40 +67,59 @@ export function useSpeechRecognition(): SpeechRecognitionResult {
             }
             setError(`Lỗi nhận diện giọng nói: ${event.error}`);
             setIsListening(false);
+            isListeningRef.current = false;
         };
 
         recognition.onend = () => {
             setIsListening(false);
+            isListeningRef.current = false;
         };
 
         recognitionRef.current = recognition;
 
         return () => {
             if (recognitionRef.current) {
-                recognitionRef.current.abort();
+                try {
+                    recognitionRef.current.abort();
+                } catch {
+                    // Ignore abort errors
+                }
             }
         };
     }, []);
 
     const startListening = useCallback(() => {
-        if (recognitionRef.current && !isListening) {
+        // 🆕 Check ref instead of state to avoid stale closure
+        if (recognitionRef.current && !isListeningRef.current) {
             setTranscript('');
             setError(null);
             try {
                 recognitionRef.current.start();
                 setIsListening(true);
-            } catch (err) {
-                console.error('Failed to start recognition:', err);
+                isListeningRef.current = true;
+            } catch (err: any) {
+                // 🆕 Handle "already started" error gracefully
+                if (err.name === 'InvalidStateError') {
+                    console.log('Recognition already running, ignoring start request');
+                } else {
+                    console.error('Failed to start recognition:', err);
+                }
             }
         }
-    }, [isListening]);
+    }, []); // 🆕 No dependencies - uses refs
 
     const stopListening = useCallback(() => {
-        if (recognitionRef.current && isListening) {
-            recognitionRef.current.stop();
+        // 🆕 Check ref instead of state
+        if (recognitionRef.current && isListeningRef.current) {
+            try {
+                recognitionRef.current.stop();
+            } catch {
+                // Ignore stop errors
+            }
             setIsListening(false);
+            isListeningRef.current = false;
         }
-    }, [isListening]);
+    }, []); // 🆕 No dependencies - uses refs
 
     return {
         transcript,
