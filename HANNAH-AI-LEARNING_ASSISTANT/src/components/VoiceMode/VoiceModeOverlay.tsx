@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { X, Mic, MicOff, Volume2 } from 'lucide-react';
 import { Experience } from './Experience';
@@ -13,10 +13,73 @@ interface VoiceModeOverlayProps {
     onClose: () => void;
 }
 
+// 🆕 Waveform Visualizer Component
+function WaveformVisualizer({ status }: { status: VoiceStatus }) {
+    if (status === 'idle' || status === 'processing') return null;
+
+    return (
+        <div className={`voice-waveform ${status}`}>
+            {[...Array(10)].map((_, i) => (
+                <div key={i} className="voice-waveform-bar" />
+            ))}
+        </div>
+    );
+}
+
+// 🆕 Typewriter Text Component
+function TypewriterText({ text, isActive }: { text: string; isActive: boolean }) {
+    const [displayText, setDisplayText] = useState('');
+    const indexRef = useRef(0);
+
+    useEffect(() => {
+        if (!isActive || !text) {
+            setDisplayText(text);
+            indexRef.current = text.length;
+            return;
+        }
+
+        // Reset and start typewriter
+        setDisplayText('');
+        indexRef.current = 0;
+
+        const interval = setInterval(() => {
+            if (indexRef.current < text.length) {
+                setDisplayText(text.slice(0, indexRef.current + 1));
+                indexRef.current++;
+            } else {
+                clearInterval(interval);
+            }
+        }, 30); // 30ms per character
+
+        return () => clearInterval(interval);
+    }, [text, isActive]);
+
+    return (
+        <>
+            {displayText}
+            {isActive && indexRef.current < text.length && (
+                <span className="typewriter-cursor" />
+            )}
+        </>
+    );
+}
+
+// 🆕 Floating Particles Background
+function ParticlesBackground() {
+    return (
+        <div className="voice-mode-particles">
+            {[...Array(6)].map((_, i) => (
+                <div key={i} className="particle" />
+            ))}
+        </div>
+    );
+}
+
 export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
     const [status, setStatus] = useState<VoiceStatus>('idle');
     const [displayText, setDisplayText] = useState('');
     const [isAvatarSpeaking, setIsAvatarSpeaking] = useState(false);
+    const [showTypewriter, setShowTypewriter] = useState(false);
 
     const { transcript, isListening, startListening, stopListening, error } = useSpeechRecognition();
     const { speak, isSpeaking, stop: stopSpeaking } = useTextToSpeech();
@@ -24,10 +87,11 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
     // 🆕 CRITICAL: Stop all audio when Voice Mode closes
     useEffect(() => {
         if (!isOpen) {
-            // Force stop all audio immediately when modal closes
             stopSpeaking();
             stopListening();
-            window.speechSynthesis.cancel(); // Extra safety: cancel browser TTS directly
+            window.speechSynthesis.cancel();
+            setDisplayText('');
+            setStatus('idle');
         }
     }, [isOpen, stopSpeaking, stopListening]);
 
@@ -35,6 +99,7 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
     useEffect(() => {
         if (transcript) {
             setDisplayText(transcript);
+            setShowTypewriter(false);
         }
     }, [transcript]);
 
@@ -42,6 +107,7 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
     useEffect(() => {
         if (isListening) {
             setStatus('listening');
+            setIsAvatarSpeaking(false);
         } else if (isSpeaking) {
             setStatus('speaking');
             setIsAvatarSpeaking(true);
@@ -61,15 +127,16 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
 
         setStatus('processing');
         setDisplayText('Đang xử lý...');
+        setShowTypewriter(false);
 
         try {
             console.log('[VoiceMode] Calling chatService.sendVoiceMessage...');
-            // Send message to backend (ephemeral - no conversation saving)
             const response = await chatService.sendVoiceMessage(transcript);
             console.log('[VoiceMode] Response:', response);
 
             if (response) {
                 setDisplayText(response);
+                setShowTypewriter(true); // 🆕 Enable typewriter for response
                 setStatus('speaking');
                 speak(response);
             } else {
@@ -78,49 +145,51 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
             }
         } catch (err) {
             console.error('[VoiceMode] Voice message error:', err);
-            setDisplayText('Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.');
+            setDisplayText('Đã xảy ra lỗi. Vui lòng thử lại.');
             setStatus('idle');
         }
     }, [transcript, speak]);
 
-    // Auto-send after 2 seconds of silence when transcript is available
+    // Auto-send after silence
     useEffect(() => {
-        if (isListening && transcript.trim()) {
+        if (!isListening && transcript.trim() && status === 'listening') {
+            console.log('[VoiceMode] Auto-sending after silence...');
             const timer = setTimeout(() => {
-                console.log('[VoiceMode] Auto-sending after silence...');
-                stopListening();
-                setTimeout(() => handleSendVoiceMessage(), VOICE_CONFIG.SPEECH.PROCESSING_DELAY_MS);
+                handleSendVoiceMessage();
             }, VOICE_CONFIG.SPEECH.SILENCE_TIMEOUT_MS);
             return () => clearTimeout(timer);
         }
-    }, [transcript, isListening, stopListening, handleSendVoiceMessage]);
+    }, [isListening, transcript, status, handleSendVoiceMessage]);
 
     // Handle mic button click
     const handleMicClick = useCallback(() => {
         console.log('[VoiceMode] Mic clicked, isListening:', isListening, 'isSpeaking:', isSpeaking);
+
+        if (isSpeaking) {
+            stopSpeaking();
+            setStatus('idle');
+            return;
+        }
+
         if (isListening) {
             stopListening();
-            // Wait a bit then send message
-            setTimeout(() => {
+            if (transcript.trim()) {
                 handleSendVoiceMessage();
-            }, 500);
-        } else if (isSpeaking) {
-            stopSpeaking();
-            setIsAvatarSpeaking(false);
-            setStatus('idle');
+            } else {
+                setStatus('idle');
+            }
         } else {
             setDisplayText('');
             startListening();
         }
-    }, [isListening, isSpeaking, startListening, stopListening, stopSpeaking, handleSendVoiceMessage]);
+    }, [isListening, isSpeaking, transcript, startListening, stopListening, stopSpeaking, handleSendVoiceMessage]);
 
-    // Handle audio end from avatar
     const handleAudioEnd = useCallback(() => {
         setIsAvatarSpeaking(false);
         setStatus('idle');
+        setShowTypewriter(false);
     }, []);
 
-    // 🆕 Handle close - properly stop all audio before closing
     const handleClose = useCallback(() => {
         stopSpeaking();
         stopListening();
@@ -129,24 +198,24 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
         onClose();
     }, [stopSpeaking, stopListening, onClose]);
 
-    // Get status text
+    // Get status text with emoji
     const getStatusText = () => {
         switch (status) {
             case 'listening':
-                return '🎤 Đang nghe... (nhấn mic hoặc đợi 2s để gửi)';
+                return '🎤 Đang nghe...';
             case 'processing':
                 return '⏳ Đang xử lý...';
             case 'speaking':
                 return '🔊 Hannah đang nói...';
             default:
-                return 'Nhấn nút mic để bắt đầu';
+                return '💬 Nhấn mic để bắt đầu';
         }
     };
 
-    // Get button icon
+    // Get mic icon
     const getMicIcon = () => {
-        if (isListening) return <MicOff />;
         if (isSpeaking) return <Volume2 />;
+        if (isListening) return <MicOff />;
         return <Mic />;
     };
 
@@ -154,10 +223,13 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
 
     return (
         <div className="voice-mode-overlay">
+            {/* 🆕 Particle background */}
+            <ParticlesBackground />
+
             {/* Header */}
             <div className="voice-mode-header">
                 <h2 className="voice-mode-title">Hannah AI</h2>
-                <span className="voice-mode-badge">Voice Mode</span>
+                <span className="voice-mode-badge">✨ Voice Mode</span>
             </div>
 
             {/* Close button */}
@@ -168,7 +240,7 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
             {/* 3D Canvas */}
             <div className="voice-mode-canvas-container">
                 <Canvas shadows camera={{ position: [0, 0, 8], fov: 42 }}>
-                    <color attach="background" args={['#1a1a2e']} />
+                    <color attach="background" args={['#0a0a1a']} />
                     <Experience
                         isPlaying={isAvatarSpeaking}
                         onAudioEnd={handleAudioEnd}
@@ -178,22 +250,25 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
 
             {/* Controls */}
             <div className="voice-mode-controls">
-                <p className={`voice-mode-status ${status}`}>
+                {/* 🆕 Waveform Visualizer */}
+                <WaveformVisualizer status={status} />
+
+                {/* Status */}
+                <div className={`voice-mode-status ${status}`}>
                     {getStatusText()}
-                </p>
+                </div>
 
+                {/* Transcript with Typewriter */}
                 {displayText && (
-                    <p className="voice-mode-transcript">
-                        {displayText}
-                    </p>
+                    <div className={`voice-mode-transcript ${status} ${showTypewriter ? 'typewriter' : ''}`}>
+                        <TypewriterText
+                            text={displayText}
+                            isActive={showTypewriter && status === 'speaking'}
+                        />
+                    </div>
                 )}
 
-                {error && (
-                    <p className="voice-mode-transcript" style={{ color: '#ef4444' }}>
-                        {error}
-                    </p>
-                )}
-
+                {/* Mic button */}
                 <button
                     className={`voice-mode-mic-btn ${status}`}
                     onClick={handleMicClick}
@@ -202,9 +277,13 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
                     {getMicIcon()}
                 </button>
 
-                <p className="voice-mode-hint">
-                    {isListening ? 'Nhấn lại để gửi' : 'Nhấn để nói chuyện với Hannah'}
-                </p>
+                {/* Hint */}
+                <div className="voice-mode-hint">
+                    {status === 'idle' && 'Nhấn vào mic để nói chuyện với Hannah'}
+                    {status === 'listening' && 'Nhấn lần nữa để gửi hoặc đợi 2 giây'}
+                    {status === 'speaking' && 'Nhấn để dừng Hannah nói'}
+                    {error && <span style={{ color: '#ef4444' }}>{error}</span>}
+                </div>
             </div>
         </div>
     );

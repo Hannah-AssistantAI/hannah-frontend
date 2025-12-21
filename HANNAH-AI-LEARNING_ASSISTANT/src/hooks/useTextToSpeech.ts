@@ -65,13 +65,9 @@ function prepareTextForVoice(text: string, maxLength: number = 400): string {
  * Detect if text is English or Vietnamese
  */
 function detectLanguage(text: string): 'en' | 'vi' {
-    // Check first 100 chars for pattern matching
     const sample = text.slice(0, 100);
-
-    // English indicators
     const isEnglish = /^[a-zA-Z\s\d.,!?'"-]+$/.test(sample) ||
         /^(Hi|Hello|I'm|I am|How|What|Why|Yes|No|Thank|The|This|That|It|Is)/i.test(sample);
-
     return isEnglish ? 'en' : 'vi';
 }
 
@@ -79,54 +75,8 @@ export function useTextToSpeech(): TextToSpeechResult {
     const [isSpeaking, setIsSpeaking] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    const speak = useCallback(async (text: string) => {
-        // Cancel any ongoing speech
-        window.speechSynthesis.cancel();
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current = null;
-        }
-
-        // Prepare text for voice (truncate + clean markdown)
-        const voiceText = prepareTextForVoice(text);
-        const language = detectLanguage(voiceText);
-
-        console.log(`[TTS] Language detected: ${language}, text: "${voiceText.slice(0, 50)}..."`);
-
-        if (language === 'vi') {
-            // 🆕 Use FPT.AI for Vietnamese (banmai female voice)
-            console.log('[TTS] Using FPT.AI for Vietnamese');
-            setIsSpeaking(true);
-
-            try {
-                const audioUrl = await fptTextToSpeech(voiceText);
-
-                if (audioUrl) {
-                    audioRef.current = playAudioFromUrl(
-                        audioUrl,
-                        () => setIsSpeaking(false),  // onEnd
-                        () => {
-                            // onError - fallback to browser TTS
-                            console.log('[TTS] FPT.AI failed, fallback to browser');
-                            speakWithBrowserTTS(voiceText, 'vi-VN');
-                        }
-                    );
-                } else {
-                    // Fallback to browser TTS if FPT.AI fails
-                    console.log('[TTS] FPT.AI returned null, fallback to browser');
-                    speakWithBrowserTTS(voiceText, 'vi-VN');
-                }
-            } catch (error) {
-                console.error('[TTS] FPT.AI error:', error);
-                speakWithBrowserTTS(voiceText, 'vi-VN');
-            }
-        } else {
-            // Use browser TTS for English (already good quality)
-            speakWithBrowserTTS(voiceText, 'en-US');
-        }
-    }, []);
-
-    const speakWithBrowserTTS = (text: string, lang: string) => {
+    // Browser TTS with proper state management
+    const speakWithBrowserTTS = useCallback((text: string, lang: string) => {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = lang;
 
@@ -139,32 +89,17 @@ export function useTextToSpeech(): TextToSpeechResult {
         }
         utterance.volume = VOICE_CONFIG.TTS.VOLUME;
 
-        // Find appropriate voice - prefer FEMALE for Hannah
+        // Find FEMALE voice for Hannah
         const voices = window.speechSynthesis.getVoices();
-
-        // For English: prefer female voices
         if (lang === 'en-US') {
-            // 🆕 Enhanced female voice detection for Hannah
             const femaleVoiceKeywords = [
-                'female',
-                'samantha',  // macOS US
-                'karen',     // macOS AU
-                'victoria',  // macOS UK
-                'fiona',     // macOS Scottish
-                'moira',     // macOS Irish
-                'tessa',     // macOS South African
-                'zira',      // Windows US
-                'hazel',     // Windows UK
-                'susan',     // Windows UK
-                'heera',     // Windows India
-                'jenny',     // Edge/Azure
+                'female', 'samantha', 'karen', 'victoria', 'fiona',
+                'moira', 'tessa', 'zira', 'hazel', 'susan', 'heera', 'jenny',
             ];
-
             const femaleVoice = voices.find(v =>
                 v.lang.includes('en') &&
                 femaleVoiceKeywords.some(kw => v.name.toLowerCase().includes(kw))
             ) || voices.find(v => v.lang.startsWith('en-'));
-
             if (femaleVoice) {
                 utterance.voice = femaleVoice;
                 console.log('[TTS] Using female English voice:', femaleVoice.name);
@@ -176,14 +111,76 @@ export function useTextToSpeech(): TextToSpeechResult {
             }
         }
 
-        utterance.onstart = () => setIsSpeaking(true);
-        utterance.onend = () => setIsSpeaking(false);
-        utterance.onerror = () => setIsSpeaking(false);
+        // 🆕 CRITICAL: Set isSpeaking BEFORE speaking starts
+        setIsSpeaking(true);
+
+        utterance.onend = () => {
+            console.log('[TTS] Browser TTS ended');
+            setIsSpeaking(false);
+        };
+        utterance.onerror = (e) => {
+            console.error('[TTS] Browser TTS error:', e);
+            setIsSpeaking(false);
+        };
 
         window.speechSynthesis.speak(utterance);
-    };
+    }, []);
+
+    const speak = useCallback(async (text: string) => {
+        console.log('[TTS] speak() called');
+
+        // Cancel any ongoing speech
+        window.speechSynthesis.cancel();
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current = null;
+        }
+
+        // Prepare text for voice
+        const voiceText = prepareTextForVoice(text);
+        const language = detectLanguage(voiceText);
+
+        console.log(`[TTS] Language: ${language}, text: "${voiceText.slice(0, 50)}..."`);
+
+        // 🆕 Set isSpeaking TRUE immediately for avatar lip-sync
+        setIsSpeaking(true);
+
+        if (language === 'vi') {
+            console.log('[TTS] Using FPT.AI for Vietnamese');
+
+            try {
+                const audioUrl = await fptTextToSpeech(voiceText);
+
+                if (audioUrl) {
+                    console.log('[TTS] FPT.AI audio URL ready, playing...');
+                    audioRef.current = playAudioFromUrl(
+                        audioUrl,
+                        () => {
+                            console.log('[TTS] FPT.AI audio ended');
+                            setIsSpeaking(false);
+                        },
+                        (error) => {
+                            console.error('[TTS] FPT.AI playback failed:', error);
+                            // Fallback to browser TTS (will manage its own state)
+                            speakWithBrowserTTS(voiceText, 'vi-VN');
+                        }
+                    );
+                } else {
+                    console.log('[TTS] FPT.AI returned null, using browser TTS');
+                    speakWithBrowserTTS(voiceText, 'vi-VN');
+                }
+            } catch (error) {
+                console.error('[TTS] FPT.AI error:', error);
+                speakWithBrowserTTS(voiceText, 'vi-VN');
+            }
+        } else {
+            // English - use browser TTS
+            speakWithBrowserTTS(voiceText, 'en-US');
+        }
+    }, [speakWithBrowserTTS]);
 
     const stop = useCallback(() => {
+        console.log('[TTS] stop() called');
         window.speechSynthesis.cancel();
         if (audioRef.current) {
             audioRef.current.pause();
