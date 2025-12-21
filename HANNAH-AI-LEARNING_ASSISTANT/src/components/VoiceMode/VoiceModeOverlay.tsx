@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { X, Mic, MicOff, Volume2 } from 'lucide-react';
+import { X, Mic, MicOff, Volume2, Send } from 'lucide-react';
 import { Experience } from './Experience';
 import { SlideViewer, type Slide } from './SlideViewer';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
@@ -81,7 +81,8 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
     const [displayText, setDisplayText] = useState('');
     const [isAvatarSpeaking, setIsAvatarSpeaking] = useState(false);
     const [showTypewriter, setShowTypewriter] = useState(false);
-    const [slides, setSlides] = useState<Slide[]>([]);  // 🆕 Slides for teaching mode
+    const [slides, setSlides] = useState<Slide[]>([]);  // Slides for teaching mode
+    const [textInput, setTextInput] = useState('');  // 🆕 Text input for manual typing
 
     const { transcript, isListening, startListening, stopListening, error } = useSpeechRecognition();
     const { speak, isSpeaking, stop: stopSpeaking } = useTextToSpeech();
@@ -157,6 +158,39 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
             setStatus('idle');
         }
     }, [transcript, speak]);
+
+    // 🆕 Handle text input submit
+    const handleTextSubmit = useCallback(async () => {
+        if (!textInput.trim() || status === 'processing') return;
+
+        console.log('[VoiceMode] Sending text input:', textInput);
+
+        const message = textInput.trim();
+        setTextInput('');
+        setStatus('processing');
+        setDisplayText('Đang xử lý...');
+        setShowTypewriter(false);
+
+        try {
+            const result = await chatService.sendVoiceMessage(message);
+
+            if (result && result.response) {
+                setDisplayText(result.response);
+                setSlides(result.slides || []);
+                setShowTypewriter(true);
+                setStatus('speaking');
+                speak(result.response);
+            } else {
+                setDisplayText('Không nhận được phản hồi từ Hannah');
+                setSlides([]);
+                setStatus('idle');
+            }
+        } catch (err) {
+            console.error('[VoiceMode] Text message error:', err);
+            setDisplayText('Đã xảy ra lỗi. Vui lòng thử lại.');
+            setStatus('idle');
+        }
+    }, [textInput, status, speak]);
 
     // Auto-send after silence
     useEffect(() => {
@@ -294,10 +328,28 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
 
                 {/* Hint */}
                 <div className="voice-mode-hint">
-                    {status === 'idle' && 'Nhấn vào mic để nói chuyện với Hannah'}
+                    {status === 'idle' && 'Nhấn vào mic để nói hoặc gõ bên dưới'}
                     {status === 'listening' && 'Nhấn lần nữa để gửi hoặc đợi 2 giây'}
                     {status === 'speaking' && 'Nhấn để dừng Hannah nói'}
                     {error && <span style={{ color: '#ef4444' }}>{error}</span>}
+                </div>
+
+                {/* 🆕 Text Input for manual typing */}
+                <div className="voice-mode-text-input">
+                    <input
+                        type="text"
+                        placeholder="Hoặc gõ câu hỏi tại đây..."
+                        value={textInput}
+                        onChange={(e) => setTextInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleTextSubmit()}
+                        disabled={status === 'processing' || status === 'speaking'}
+                    />
+                    <button
+                        onClick={handleTextSubmit}
+                        disabled={!textInput.trim() || status === 'processing' || status === 'speaking'}
+                    >
+                        <Send size={18} />
+                    </button>
                 </div>
             </div>
         </div>

@@ -524,3 +524,61 @@
   height: 35vh;
   max-height: 280px;
 }
+
+/* 🆕 Text Input for manual typing */
+.voice-mode-text-input {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 400px;
+  margin-top: 16px;
+}
+
+.voice-mode-text-input input {
+  flex: 1;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  color: white;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.voice-mode-text-input input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.voice-mode-text-input input:focus {
+  border-color: var(--primary-glow, #06b6d4);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.voice-mode-text-input input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.voice-mode-text-input button {
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.voice-mode-text-input button:hover:not(:disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+}
+
+.voice-mode-text-input button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
