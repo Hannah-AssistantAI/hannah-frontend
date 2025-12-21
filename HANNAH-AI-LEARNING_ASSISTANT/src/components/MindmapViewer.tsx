@@ -64,6 +64,13 @@ const buildTreeFromFlat = (nodes: MindmapNodeData[], edges: MindmapEdge[]): Mind
     edges.forEach(edge => {
         const source = edge.from || edge.from_node || edge.source || '';
         const target = edge.to || edge.to_node || edge.target || '';
+
+        // Skip self-referencing edges to prevent infinite loops
+        if (source === target || !source || !target) {
+            console.warn(`Skipping invalid edge: ${source} -> ${target}`);
+            return;
+        }
+
         parentMap.set(target, source);
         if (!childrenMap.has(source)) {
             childrenMap.set(source, []);
@@ -76,7 +83,17 @@ const buildTreeFromFlat = (nodes: MindmapNodeData[], edges: MindmapEdge[]): Mind
 
     const nodeMap = new Map(nodes.map(n => [n.id, n]));
 
+    // Track visited nodes to prevent cycles
+    const visited = new Set<string>();
+
     const buildSubtree = (nodeId: string): MindMapNode | null => {
+        // Cycle detection
+        if (visited.has(nodeId)) {
+            console.warn(`Cycle detected at node: ${nodeId}`);
+            return null;
+        }
+        visited.add(nodeId);
+
         const node = nodeMap.get(nodeId);
         if (!node) return null;
 

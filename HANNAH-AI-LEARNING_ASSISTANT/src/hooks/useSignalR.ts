@@ -7,7 +7,7 @@ export const useSignalR = (onNotification: (notification: any) => void) => {
     const connectionRef = useRef<signalR.HubConnection | null>(null);
 
     const connect = useCallback(async () => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('access_token');
 
         if (!token) {
             console.warn('No auth token found, skipping SignalR connection');

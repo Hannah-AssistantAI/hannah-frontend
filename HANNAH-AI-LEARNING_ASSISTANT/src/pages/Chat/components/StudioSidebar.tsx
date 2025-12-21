@@ -1,5 +1,5 @@
 import React from 'react'
-import { Wand2, PanelRight, PanelRightClose, Pencil, Loader2, MoreVertical, Trash2, GitBranch, FileText, StickyNote, ClipboardCheck, Flag, Map } from 'lucide-react'
+import { Wand2, PanelRight, PanelRightClose, Pencil, Loader2, MoreVertical, Trash2, GitBranch, FileText, StickyNote, ClipboardCheck, Flag, Map, History } from 'lucide-react'
 import type { StudioItem, StudioFeature } from '../types'
 import { getLabels, type SupportedLanguage } from '../../../utils/translations'
 
@@ -13,6 +13,7 @@ interface StudioSidebarProps {
     onItemClick: (item: StudioItem) => void
     onDeleteItem: (itemId: string) => void
     onFlagItem: (itemId: string) => void
+    onViewHistory?: (itemId: string) => void  // 🆕 View quiz attempt history
     openMenuId: string | null
     onToggleMenu: (itemId: string) => void
     language?: SupportedLanguage | string | null
@@ -28,6 +29,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
     onItemClick,
     onDeleteItem,
     onFlagItem,
+    onViewHistory,
     openMenuId,
     onToggleMenu,
     language = 'vi'
@@ -150,13 +152,24 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                                         {openMenuId === item.id && (
                                             <div className="studio-item-dropdown">
                                                 {item.type === 'quiz' && (
-                                                    <button
-                                                        className="dropdown-item flag-item"
-                                                        onClick={() => onFlagItem(item.id)}
-                                                    >
-                                                        <Flag size={16} />
-                                                        <span>{t.report}</span>
-                                                    </button>
+                                                    <>
+                                                        <button
+                                                            className="dropdown-item flag-item"
+                                                            onClick={() => onFlagItem(item.id)}
+                                                        >
+                                                            <Flag size={16} />
+                                                            <span>{t.report}</span>
+                                                        </button>
+                                                        {onViewHistory && (
+                                                            <button
+                                                                className="dropdown-item history-item"
+                                                                onClick={() => onViewHistory(item.id)}
+                                                            >
+                                                                <History size={16} />
+                                                                <span>{language === 'en' ? 'History' : 'Lịch sử'}</span>
+                                                            </button>
+                                                        )}
+                                                    </>
                                                 )}
                                                 <button
                                                     className="dropdown-item delete-item"

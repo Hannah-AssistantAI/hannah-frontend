@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import './Modal.css';
 
@@ -8,6 +8,8 @@ interface ModalProps {
   children: React.ReactNode;
   title?: string;
   maxWidth?: string;
+  closeOnOverlayClick?: boolean;  // New prop to control overlay click behavior
+  closeOnEscape?: boolean;        // New prop to control Escape key behavior
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -15,8 +17,13 @@ const Modal: React.FC<ModalProps> = ({
   onClose,
   children,
   title,
-  maxWidth = '400px'
+  maxWidth = '400px',
+  closeOnOverlayClick = true,  // Default: close on overlay click
+  closeOnEscape = true         // Default: close on Escape key
 }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartedInsideRef = useRef(false);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -31,7 +38,7 @@ const Modal: React.FC<ModalProps> = ({
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && closeOnEscape) {
         onClose();
       }
     };
@@ -43,15 +50,49 @@ const Modal: React.FC<ModalProps> = ({
     return () => {
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, closeOnEscape]);
+
+  // Track if mouse down started inside the modal content
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Check if the mousedown is on the modal content (not overlay)
+    const target = e.target as HTMLElement;
+    const isInsideContent = target.closest('.modal-content');
+    dragStartedInsideRef.current = !!isInsideContent;
+    setIsDragging(true);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    // Reset after a short delay to allow click event to fire
+    setTimeout(() => {
+      dragStartedInsideRef.current = false;
+    }, 100);
+  };
+
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    // Don't close if:
+    // 1. closeOnOverlayClick is false
+    // 2. User was dragging (selecting text, etc.)
+    // 3. Drag started inside the modal content
+    if (!closeOnOverlayClick || isDragging || dragStartedInsideRef.current) {
+      return;
+    }
+    onClose();
+  };
 
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div
+      className="modal-overlay"
+      onClick={handleOverlayClick}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+    >
       <div
         className="modal-content"
         onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
         style={{ maxWidth }}
       >
         {title && (
@@ -74,3 +115,4 @@ const Modal: React.FC<ModalProps> = ({
 };
 
 export default Modal;
+

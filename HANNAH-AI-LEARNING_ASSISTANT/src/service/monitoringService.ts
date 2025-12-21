@@ -201,7 +201,7 @@ class MonitoringService {
         const timeoutId = setTimeout(() => controller.abort(), timeout);
 
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {

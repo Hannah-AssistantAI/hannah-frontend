@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Send, Upload, GitBranch, FileText, ClipboardCheck, StickyNote, Map, Mic } from 'lucide-react'
@@ -19,6 +19,7 @@ import { FlagQuizModal } from './components/modals/FlagQuizModal'
 import { RoadmapModal } from './components/modals/RoadmapModal'
 import { RoadmapOptionsModal } from './components/modals/RoadmapOptionsModal'
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal'
+import { QuizAttemptHistory } from './components/QuizModal/QuizAttemptHistory'
 import { BigPictureSidebar } from './components/BigPictureSidebar'
 import { StudioSidebar } from './components/StudioSidebar'
 import { HistorySidebar } from '../../components/HistorySidebar'
@@ -57,7 +58,8 @@ export default function Chat() {
     const [flaggingQuizId, setFlaggingQuizId] = useState<string | null>(null)
     const [flaggingAttemptId, setFlaggingAttemptId] = useState<number | null>(null)
     const [isFlaggingQuiz, setIsFlaggingQuiz] = useState(false)
-    const [bigPictureData, setBigPictureData] = useState<BigPictureTopic[]>([])
+    const [bigPictureData, setBigPictureData] = useState<BigPictureTopic[]>([]);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Use custom hook for message management
     const {
@@ -181,6 +183,16 @@ export default function Chat() {
         setOpenMenuId(null)
     }
 
+    // 🆕 Handle View Quiz History from sidebar
+    const handleViewQuizHistory = async (itemId: string) => {
+        const numericId = itemId.replace('quiz-', '')
+        // Load quiz first to set selectedQuizId
+        await quiz.loadQuiz(numericId)
+        // Then load history
+        await quiz.loadAttemptHistory()
+        setOpenMenuId(null)
+    }
+
     // Custom handler for studio item clicks to integrate with useQuiz hook
     const handleStudioItemClick = async (item: any) => {
         if (item.type === 'quiz') {
@@ -274,6 +286,13 @@ export default function Chat() {
         setExpandedSources(newExpandedState)
     }, [messages])
 
+    // Auto-scroll to bottom when messages change
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages, isSendingMessage]);
+
 
 
     return (
@@ -351,6 +370,8 @@ export default function Chat() {
                                     language={message.detectedLanguage}
                                 />
                             ))}
+                            {/* Auto-scroll anchor */}
+                            <div ref={messagesEndRef} />
                         </div>
                     </div>
 
@@ -405,6 +426,7 @@ export default function Chat() {
                     onItemClick={handleStudioItemClick}
                     onDeleteItem={handleDeleteItem}
                     onFlagItem={handleFlagQuiz}
+                    onViewHistory={handleViewQuizHistory}
                     openMenuId={openMenuId}
                     onToggleMenu={toggleMenu}
                     language={messages.filter(m => m.type === 'assistant').pop()?.detectedLanguage}
@@ -616,6 +638,27 @@ export default function Chat() {
                 isOpen={isVoiceModeOpen}
                 onClose={() => setIsVoiceModeOpen(false)}
             />
+
+            {/* 🆕 Quiz Attempt History Modal */}
+            {quiz.showAttemptHistory && quiz.attemptHistory && (
+                <div className="modal-overlay" onClick={quiz.closeHistory}>
+                    <div className="modal-container" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', maxHeight: '80vh', overflow: 'auto' }}>
+                        <QuizAttemptHistory
+                            quizTitle={quiz.attemptHistory.quiz_title || quiz.quizContent?.title || 'Quiz'}
+                            totalAttempts={quiz.attemptHistory.total_attempts}
+                            bestScore={quiz.attemptHistory.best_score}
+                            attempts={quiz.attemptHistory.attempts}
+                            onViewAttempt={quiz.viewAttemptDetail}
+                            onRetakeQuiz={() => {
+                                quiz.closeHistory();
+                                quiz.retryQuiz();
+                                studio.setShowQuizModal(true);
+                            }}
+                            onClose={quiz.closeHistory}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

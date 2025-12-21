@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AlertCircle, ChevronDown, Plus, X, Check, ChevronRight, Loader2 } from 'lucide-react';
 import subjectService, { type Subject } from '../../../service/subjectService';
 import suggestionService, { SuggestionContentType, SuggestionStatus, type Suggestion } from '../../../service/suggestionService';
@@ -13,6 +14,11 @@ interface Course {
 }
 
 const ChallengesManagement: React.FC = () => {
+  // URL params for state persistence
+  const [searchParams, setSearchParams] = useSearchParams();
+  const courseIdFromUrl = searchParams.get('courseId');
+  const semesterFromUrl = searchParams.get('semester');
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
@@ -23,9 +29,9 @@ const ChallengesManagement: React.FC = () => {
   const semesters = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8', 'Semester 9'];
 
   // View state
-  const [view, setView] = useState<'courses' | 'challenges'>('courses');
+  const [view, setView] = useState<'courses' | 'challenges'>(courseIdFromUrl ? 'challenges' : 'courses');
 
-  const [selectedSemester, setSelectedSemester] = useState<string>('Semester 1');
+  const [selectedSemester, setSelectedSemester] = useState<string>(semesterFromUrl || 'Semester 1');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [showSemesterDropdown, setShowSemesterDropdown] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -59,6 +65,26 @@ const ChallengesManagement: React.FC = () => {
   useEffect(() => {
     fetchSubjects();
   }, []);
+
+  // Restore course selection from URL after courses are loaded
+  useEffect(() => {
+    if (courses.length > 0 && courseIdFromUrl) {
+      const courseId = parseInt(courseIdFromUrl);
+      const course = courses.find(c => c.id === courseId);
+      if (course && !selectedCourse) {
+        setSelectedCourse(course);
+        setSelectedSemester(course.semester);
+        setView('challenges');
+        setChallengesLoading(true);
+        Promise.all([
+          fetchChallenges(course.id),
+          fetchSubjectChallenges(course.id)
+        ]).then(() => setChallengesLoading(false));
+      }
+    }
+  }, [courses, courseIdFromUrl]);
+
+
 
   // Get courses for selected semester
   const coursesForSemester = useMemo(() => {
@@ -94,6 +120,8 @@ const ChallengesManagement: React.FC = () => {
   const handleCourseSelect = async (course: Course) => {
     setSelectedCourse(course);
     setView('challenges');
+    // Save to URL for persistence on reload
+    setSearchParams({ courseId: course.id.toString(), semester: course.semester });
     setChallengesLoading(true);
     await Promise.all([
       fetchChallenges(course.id),
@@ -329,7 +357,7 @@ const ChallengesManagement: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className='max-w-9/12'>
                     <button
-                      onClick={() => { setView('courses'); setSelectedCourse(null); }}
+                      onClick={() => { setView('courses'); setSelectedCourse(null); setSearchParams({}); }}
                       className="mb-3 flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold transition-colors"
                     >
                       <ChevronRight className="w-4 h-4 rotate-180" />

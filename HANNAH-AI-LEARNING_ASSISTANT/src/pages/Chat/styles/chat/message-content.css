@@ -1,98 +1,98 @@
 /* Message Content - Clean Flowing Design */
 .message-text {
-    color: #0f172a;
-    font-size: 15px;
-    line-height: 1.8;
-    width: 100%;
+  color: #0f172a;
+  font-size: 15px;
+  line-height: 1.8;
+  width: 100%;
 }
 
 /* Clean paragraphs with good spacing */
 .message-text p {
-    margin: 10px 0;
+  margin: 10px 0;
 }
 
 /* Paragraphs that start with bold (section headers) get subtle accent */
 .message-text p:has(strong:first-child) {
-    margin-top: 14px;
-    padding-left: 12px;
-    border-left: 3px solid #3b82f6;
+  margin-top: 14px;
+  padding-left: 12px;
+  border-left: 3px solid #3b82f6;
 }
 
 .message-text p:first-child {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 .message-text p:last-child {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 /* Headings with accent border for section clarity */
 .message-text h2 {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 24px 0 12px 0;
-    color: #0f172a;
-    padding-bottom: 8px;
-    border-bottom: 2px solid #e2e8f0;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 24px 0 12px 0;
+  color: #1e3a8a !important; /* Deep blue - high contrast for light theme */
+  padding-bottom: 8px;
+  border-bottom: 2px solid #3b82f6;
 }
 
 .message-text h3 {
-    font-size: 17px;
-    font-weight: 600;
-    margin: 20px 0 10px 0;
-    color: #1e293b;
-    padding-left: 12px;
-    border-left: 3px solid #3b82f6;
+  font-size: 17px;
+  font-weight: 600;
+  margin: 20px 0 10px 0;
+  color: #1e293b;
+  padding-left: 12px;
+  border-left: 3px solid #3b82f6;
 }
 
 .message-text h4 {
-    font-size: 15px;
-    font-weight: 600;
-    margin: 16px 0 8px 0;
-    color: #334155;
-    padding-left: 10px;
-    border-left: 2px solid #94a3b8;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 16px 0 8px 0;
+  color: #334155;
+  padding-left: 10px;
+  border-left: 2px solid #94a3b8;
 }
 
 /* Lists with card styling for better visual distinction */
 .message-text ul,
 .message-text ol {
-    margin: 10px 0;
-    padding: 10px 10px 10px 32px;
-    background-color: var(--subtopic-btn-bg, #e2e8f0);
+  margin: 10px 0;
+  padding: 10px 10px 10px 32px;
+  background-color: var(--subtopic-btn-bg, #e2e8f0);
 
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
 }
 
 .message-text li {
-    margin-bottom: 6px;
-    padding-left: 4px;
-    line-height: 1.5;
+  margin-bottom: 6px;
+  padding-left: 4px;
+  line-height: 1.5;
 }
 
 .message-text li:last-child {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 .message-text li::marker {
-    color: #3b82f6;
-    font-weight: 600;
+  color: #3b82f6;
+  font-weight: 600;
 }
 
 /* Bold text - section header styling */
 .message-text strong {
-    font-weight: 700;
-    color: #1e40af;
-    font-size: 16px;
+  font-weight: 700;
+  color: #1e40af;
+  font-size: 16px;
 }
 
 /* When strong is first child of paragraph, treat as section title */
 .message-text p > strong:first-child {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 17px;
-    color: #1e3a8a;
+  display: block;
+  margin-bottom: 8px;
+  font-size: 17px;
+  color: #1e3a8a;
 }
 
 /* Code styles are in code-blocks.css */
@@ -100,55 +100,54 @@
 /* Inline code */
 .message-text p code,
 .message-text li code {
-    background: #f1f5f9;
-    color: #0369a1;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 13px;
+  background: #f1f5f9;
+  color: #0369a1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
 }
 
 /* Blockquotes - highlighted section */
 .message-text blockquote {
-    margin: 16px 0;
-    padding: 12px 16px;
-    background: #eff6ff;
-    border-left: 4px solid #3b82f6;
-    border-radius: 0 8px 8px 0;
-    color: #1e40af;
-    font-style: italic;
+  margin: 16px 0;
+  padding: 12px 16px;
+  background: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  border-radius: 0 8px 8px 0;
+  color: #1e40af;
+  font-style: italic;
 }
 
 /* Horizontal rule - section divider */
 .message-text hr {
-    border: none;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, #cbd5e1, transparent);
-    margin: 24px 0;
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #cbd5e1, transparent);
+  margin: 24px 0;
 }
 
 /* Tables */
 .message-text table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 16px 0;
-    font-size: 14px;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
 }
 
 .message-text th {
-    background: #f1f5f9;
-    padding: 10px 12px;
-    text-align: left;
-    font-weight: 600;
-    color: #334155;
-    border-bottom: 2px solid #e2e8f0;
+  background: #f1f5f9;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #334155;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .message-text td {
-    padding: 10px 12px;
-    border-bottom: 1px solid #e2e8f0;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .message-text tr:hover td {
-    background: #f8fafc;
+  background: #f8fafc;
 }
-

@@ -1,0 +1,1017 @@
+/* Academic Dashboard Styles - Transcript and Specialization UI */
+
+/* Academic Section Card */
+.academic-section {
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+    border-radius: 16px;
+    padding: 24px;
+    margin-top: 24px;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.academic-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.academic-section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #f1f5f9;
+}
+
+.academic-section-title svg {
+    color: #818cf8;
+}
+
+/* Current Semester Banner */
+.semester-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.08));
+    border-radius: 12px;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.semester-banner.warning {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.08));
+    border-color: rgba(251, 191, 36, 0.4);
+}
+
+.semester-banner-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
+    border-radius: 10px;
+    color: #818cf8;
+    flex-shrink: 0;
+}
+
+.semester-banner.warning .semester-banner-icon {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.15));
+    color: #fbbf24;
+}
+
+.semester-banner-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.semester-banner-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #f1f5f9;
+}
+
+.semester-banner-title strong {
+    color: #818cf8;
+}
+
+.semester-banner.warning .semester-banner-title strong {
+    color: #fbbf24;
+}
+
+.semester-banner-title .warning-icon {
+    color: #fbbf24;
+}
+
+.semester-banner-subtitle {
+    margin-top: 4px;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.semester-banner-subtitle strong {
+    color: #e2e8f0;
+}
+
+.semester-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.semester-sync-btn,
+.semester-edit-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.semester-sync-btn {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+}
+
+.semester-sync-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    transform: translateY(-1px);
+}
+
+.semester-edit-btn {
+    background: rgba(71, 85, 105, 0.3);
+    color: #cbd5e1;
+    border: 1px solid rgba(71, 85, 105, 0.5);
+}
+
+.semester-edit-btn:hover:not(:disabled) {
+    background: rgba(71, 85, 105, 0.5);
+    border-color: rgba(99, 102, 241, 0.4);
+    color: #f1f5f9;
+}
+
+.semester-sync-btn:disabled,
+.semester-edit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.semester-edit-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.semester-select {
+    padding: 6px 10px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    border-radius: 6px;
+    color: #f1f5f9;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.semester-select:focus {
+    outline: none;
+    border-color: #6366f1;
+}
+
+.semester-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.semester-action-btn.save {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.semester-action-btn.save:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+.semester-action-btn.cancel {
+    background: rgba(71, 85, 105, 0.4);
+    color: #94a3b8;
+}
+
+.semester-action-btn.cancel:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.semester-action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* GPA Row - GPA Card left | Actions column right */
+.gpa-row {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 20px;
+}
+
+.gpa-card {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
+    border-radius: 16px;
+    padding: 28px 48px;
+    text-align: center;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    flex-shrink: 0;
+}
+
+.gpa-actions-column {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    max-width: 280px;
+    justify-content: center;
+}
+
+.gpa-value {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #818cf8, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.gpa-label {
+    font-size: 0.8rem;
+    color: #a5b4fc;
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Stats Grid - 2x2 layout */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    width: 100%;
+}
+
+.stat-item {
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 12px;
+    padding: 20px 16px;
+    text-align: center;
+    border: 1px solid rgba(71, 85, 105, 0.3);
+    transition: all 0.2s ease;
+}
+
+.stat-item:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateY(-2px);
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #f1f5f9;
+}
+
+.stat-value.success {
+    color: #4ade80;
+}
+
+.stat-value.warning {
+    color: #fbbf24;
+}
+
+.stat-value.danger {
+    color: #f87171;
+}
+
+.stat-value.info {
+    color: #60a5fa;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #d7dce4 !important;
+    margin-top: 6px;
+}
+
+/* Actions Row - Upload button + Specialization side by side */
+.academic-actions-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.upload-section {
+    display: flex;
+    align-items: center;
+}
+
+.update-transcript-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    width: 100%;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 10px;
+    color: #a5b4fc;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.update-transcript-btn:hover:not(:disabled) {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+.update-transcript-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.update-transcript-btn svg {
+    flex-shrink: 0;
+}
+
+/* Specialization Selector */
+.specialization-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.specialization-inline {
+    display: flex;
+    align-items: center;
+}
+
+.specialization-current {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 10px;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.specialization-badge {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.specialization-name {
+    color: #f1f5f9;
+    font-weight: 500;
+}
+
+.specialization-select,
+.specialization-select-compact {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    border-radius: 10px;
+    color: #f1f5f9;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.specialization-select-compact {
+    width: 100%;
+    padding: 12px 20px;
+    background-color: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 10px;
+    color: #a5b4fc;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a5b4fc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+    text-align: center;
+    text-align-last: center;
+}
+
+/* Style for dropdown options (dark theme) */
+.specialization-select-compact option {
+    background-color: #1e293b;
+    color: #e2e8f0;
+    padding: 12px;
+    text-align: left;
+}
+
+.specialization-select-compact option:checked {
+    background-color: rgba(99, 102, 241, 0.5);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.specialization-select:hover {
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+.specialization-select-compact:hover {
+    background-color: rgba(99, 102, 241, 0.2);
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+.specialization-select:focus,
+.specialization-select-compact:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Rotate arrow icon when dropdown is open */
+.specialization-select-compact {
+    background-size: 16px 16px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.specialization-select-compact.open {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a5b4fc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m18 15-6-6-6 6'/%3E%3C/svg%3E");
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.no-specialization {
+    color: #a5b4fc;
+    font-size: 0.9rem;
+    padding: 12px 20px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 10px;
+    border: 1px dashed rgba(99, 102, 241, 0.3);
+    text-align: center;
+}
+
+/* Transcript Upload */
+.transcript-upload {
+    margin-top: 20px;
+}
+
+.upload-dropzone {
+    border: 2px dashed rgba(99, 102, 241, 0.4);
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.upload-dropzone:hover {
+    border-color: rgba(99, 102, 241, 0.7);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.upload-dropzone.dragging {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.15);
+}
+
+.upload-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 12px;
+    color: #818cf8;
+}
+
+.upload-text {
+    color: #94a3b8;
+    font-size: 0.95rem;
+}
+
+.upload-text strong {
+    color: #818cf8;
+}
+
+.upload-hint {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 8px;
+}
+
+.upload-progress {
+    margin-top: 16px;
+}
+
+.progress-bar {
+    height: 6px;
+    background: rgba(71, 85, 105, 0.3);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* Grades Table */
+.grades-section {
+    margin-top: 24px;
+}
+
+.grades-filter {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid rgba(71, 85, 105, 0.5);
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+}
+
+.filter-btn:hover {
+    border-color: rgba(99, 102, 241, 0.5);
+    color: #f1f5f9;
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-color: transparent;
+    color: white;
+}
+
+.grades-table-container {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.grades-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.grades-table th,
+.grades-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.2);
+}
+
+.grades-table th {
+    background: rgba(15, 23, 42, 0.8);
+    color: #94a3b8;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+.grades-table td {
+    color: #f1f5f9;
+}
+
+.grades-table tr:hover {
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.grade-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.grade-badge.excellent {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+
+.grade-badge.good {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.grade-badge.average {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+}
+
+.grade-badge.poor {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.grade-badge.studying {
+    background: rgba(139, 92, 246, 0.2);
+    color: #a78bfa;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+}
+
+.status-badge.passed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+}
+
+.status-badge.failed {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}
+
+.status-badge.studying {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+}
+
+/* No transcript state */
+.no-transcript {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.no-transcript-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    color: #64748b;
+}
+
+.no-transcript-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin-bottom: 8px;
+}
+
+.no-transcript-text {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+/* Loading skeleton */
+.skeleton {
+    background: linear-gradient(90deg, rgba(71, 85, 105, 0.2) 25%, rgba(71, 85, 105, 0.4) 50%, rgba(71, 85, 105, 0.2) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 8px;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .gpa-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .gpa-actions-column {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .gpa-card {
+        padding: 20px 32px;
+    }
+
+    .gpa-value {
+        font-size: 2.5rem;
+    }
+
+    .stats-grid {
+        gap: 10px;
+    }
+
+    .stat-item {
+        padding: 16px 12px;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .update-transcript-btn {
+        width: 100%;
+    }
+
+    .specialization-select-compact {
+        width: 100%;
+    }
+
+    .grades-table {
+        font-size: 0.8rem;
+    }
+
+    .grades-table th,
+    .grades-table td {
+        padding: 8px 10px;
+    }
+}
+
+/* ============================================
+   LIGHT THEME OVERRIDES
+   ============================================ */
+
+/* Light theme - when NOT dark (default is light) */
+:root:not([data-theme="dark"]) .academic-section,
+[data-theme="light"] .academic-section {
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
+    border-color: rgba(99, 102, 241, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+:root:not([data-theme="dark"]) .academic-section-title,
+[data-theme="light"] .academic-section-title {
+    color: #1e293b;
+}
+
+:root:not([data-theme="dark"]) .semester-banner,
+[data-theme="light"] .semester-banner {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.05));
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+:root:not([data-theme="dark"]) .semester-banner-title,
+[data-theme="light"] .semester-banner-title {
+    color: #1e293b;
+}
+
+:root:not([data-theme="dark"]) .semester-banner-subtitle,
+[data-theme="light"] .semester-banner-subtitle {
+    color: #64748b;
+}
+
+:root:not([data-theme="dark"]) .gpa-card,
+[data-theme="light"] .gpa-card {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.08));
+    border-color: rgba(99, 102, 241, 0.25);
+}
+
+:root:not([data-theme="dark"]) .gpa-value,
+[data-theme="light"] .gpa-value {
+    color: #6366f1;
+}
+
+:root:not([data-theme="dark"]) .gpa-label,
+[data-theme="light"] .gpa-label {
+    color: #64748b;
+}
+
+:root:not([data-theme="dark"]) .stat-item,
+[data-theme="light"] .stat-item {
+    background: #f8fafc;
+}
+
+:root:not([data-theme="dark"]) .stat-label,
+[data-theme="light"] .stat-label {
+    color: #64748b !important;
+}
+
+:root:not([data-theme="dark"]) .update-transcript-btn,
+[data-theme="light"] .update-transcript-btn {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: rgba(99, 102, 241, 0.25);
+    color: #6366f1;
+}
+
+:root:not([data-theme="dark"]) .update-transcript-btn:hover:not(:disabled),
+[data-theme="light"] .update-transcript-btn:hover:not(:disabled) {
+    background: rgba(99, 102, 241, 0.15);
+}
+
+:root:not([data-theme="dark"]) .specialization-select-compact,
+[data-theme="light"] .specialization-select-compact {
+    background-color: rgba(99, 102, 241, 0.08);
+    border-color: rgba(99, 102, 241, 0.25);
+    color: #6366f1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+:root:not([data-theme="dark"]) .specialization-select-compact.open,
+[data-theme="light"] .specialization-select-compact.open {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m18 15-6-6-6 6'/%3E%3C/svg%3E");
+}
+
+:root:not([data-theme="dark"]) .specialization-select-compact option,
+[data-theme="light"] .specialization-select-compact option {
+    background-color: #ffffff;
+    color: #1e293b;
+    text-align: left;
+}
+
+:root:not([data-theme="dark"]) .specialization-select-compact option:checked,
+[data-theme="light"] .specialization-select-compact option:checked {
+    background-color: rgba(99, 102, 241, 0.15);
+    color: #4f46e5;
+}
+
+:root:not([data-theme="dark"]) .no-specialization,
+[data-theme="light"] .no-specialization {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: rgba(99, 102, 241, 0.2);
+    color: #6366f1;
+}
+
+:root:not([data-theme="dark"]) .transcript-upload,
+[data-theme="light"] .transcript-upload {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.03));
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+:root:not([data-theme="dark"]) .upload-icon-circle,
+[data-theme="light"] .upload-icon-circle {
+    background: rgba(99, 102, 241, 0.1);
+}
+
+:root:not([data-theme="dark"]) .upload-title,
+[data-theme="light"] .upload-title {
+    color: #1e293b;
+}
+
+:root:not([data-theme="dark"]) .upload-subtitle,
+[data-theme="light"] .upload-subtitle {
+    color: #64748b;
+}
+
+:root:not([data-theme="dark"]) .grades-section-title,
+[data-theme="light"] .grades-section-title {
+    color: #1e293b;
+}
+
+:root:not([data-theme="dark"]) .grades-table-wrapper,
+[data-theme="light"] .grades-table-wrapper {
+    background: #ffffff;
+    border-color: rgba(148, 163, 184, 0.2);
+}
+
+:root:not([data-theme="dark"]) .grades-table th,
+[data-theme="light"] .grades-table th {
+    background: #f8fafc;
+    color: #64748b;
+    border-color: rgba(148, 163, 184, 0.2);
+}
+
+:root:not([data-theme="dark"]) .grades-table td,
+[data-theme="light"] .grades-table td {
+    color: #1e293b;
+    border-color: rgba(148, 163, 184, 0.15);
+}
+
+:root:not([data-theme="dark"]) .grades-table tbody tr:hover,
+[data-theme="light"] .grades-table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.04);
+}
+
+:root:not([data-theme="dark"]) .semester-filter select,
+[data-theme="light"] .semester-filter select {
+    background: #ffffff;
+    border-color: rgba(148, 163, 184, 0.3);
+    color: #1e293b;
+}
+
+/* Semester Banner Buttons - Light Theme */
+:root:not([data-theme="dark"]) .semester-edit-btn,
+[data-theme="light"] .semester-edit-btn {
+    background: rgba(99, 102, 241, 0.08);
+    color: #6366f1;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+:root:not([data-theme="dark"]) .semester-edit-btn:hover:not(:disabled),
+[data-theme="light"] .semester-edit-btn:hover:not(:disabled) {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.4);
+    color: #4f46e5;
+}
+
+:root:not([data-theme="dark"]) .semester-select,
+[data-theme="light"] .semester-select {
+    background: #ffffff;
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #1e293b;
+}
+
+:root:not([data-theme="dark"]) .semester-action-btn,
+[data-theme="light"] .semester-action-btn {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.25);
+}
+
+:root:not([data-theme="dark"]) .semester-action-btn.save,
+[data-theme="light"] .semester-action-btn.save {
+    background: rgba(34, 197, 94, 0.1);
+    color: #16a34a;
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+:root:not([data-theme="dark"]) .semester-action-btn.cancel,
+[data-theme="light"] .semester-action-btn.cancel {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Semester Filter Buttons - Light Theme */
+:root:not([data-theme="dark"]) .filter-btn,
+[data-theme="light"] .filter-btn {
+    background: #ffffff;
+    border-color: rgba(148, 163, 184, 0.3);
+    color: #475569;
+}
+
+:root:not([data-theme="dark"]) .filter-btn:hover,
+[data-theme="light"] .filter-btn:hover {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #6366f1 !important;
+}
+
+:root:not([data-theme="dark"]) .filter-btn.active,
+[data-theme="light"] .filter-btn.active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-color: transparent;
+    color: #ffffff !important;
+}
+
+/* Strong/Weak Subjects - Light Theme */
+:root:not([data-theme="dark"]) .stat-item h4,
+[data-theme="light"] .stat-item h4 {
+    color: #1e293b;
+}
+
+
+/* Fix text visibility for inline styles */
+:root:not([data-theme="dark"]) [style*="color: #f1f5f9"],
+[data-theme="light"] [style*="color: #f1f5f9"] {
+    color: #1e293b !important;
+}
+
+:root:not([data-theme="dark"]) [style*="color: #e2e8f0"],
+[data-theme="light"] [style*="color: #e2e8f0"] {
+    color: #334155 !important;
+}
+
+:root:not([data-theme="dark"]) [style*="color: #cbd5e1"],
+[data-theme="light"] [style*="color: #cbd5e1"] {
+    color: #475569 !important;
+}
+
+:root:not([data-theme="dark"]) [style*="color: #94a3b8"],
+[data-theme="light"] [style*="color: #94a3b8"] {
+    color: #64748b !important;
+}
+
+/* Subject Names in Strength/Weakness sections */
+.subject-name {
+    color: #d7dce4 !important;
+    font-size: 0.85rem;
+}
+
+:root:not([data-theme="dark"]) .subject-name,
+[data-theme="light"] .subject-name {
+color: #64748b !important;
+}

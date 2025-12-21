@@ -274,8 +274,8 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
 
                 try {
                   const quizApiService = (await import('../../service/quizApi')).default;
-                  // Get all attempts for this quiz
-                  const attempts = await quizApiService.getQuizAttempts(quizId);
+                  // Get all attempts for this quiz from Python API (where they are stored)
+                  const attempts = await quizApiService.getQuizAttemptsFromPython(quizId);
                   console.log('📋 All quiz attempts:', attempts);
                   console.log('📋 Attempts type:', typeof attempts, 'isArray:', Array.isArray(attempts), 'length:', attempts?.length);
 
@@ -304,26 +304,36 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
                         studentAttempt.attemptId
                       );
                       console.log('✅ Fetched attempt detail:', attemptData);
+                      console.log('🔍 attemptData.questions sample:', JSON.stringify(attemptData.questions?.[0], null, 2));
+                      console.log('🔍 attemptData.questions length:', attemptData.questions?.length);
 
-                      // Map attempt data to quiz questions
+                      // Map attempt data to quiz questions - use INDEX BASED matching since questionIds may not match
                       metadata.questions = metadata.questions?.map((q, index) => {
-                        let attemptQuestion = attemptData.questions.find(
-                          (aq: any) => String(aq.questionId) === String(q.questionId)
-                        );
-
-                        if (!attemptQuestion && attemptData.questions[index]) {
-                          attemptQuestion = attemptData.questions[index];
-                        }
+                        // Use index-based matching as primary method (most reliable)
+                        const attemptQuestion = attemptData.questions?.[index];
 
                         if (attemptQuestion) {
+                          // Try multiple possible property names for selectedOptionIndex
+                          const aq = attemptQuestion as any;
+                          const selectedIdx = aq.selectedOptionIndex ??
+                            aq.SelectedOptionIndex ??
+                            aq.selected_option_index;
+
+                          console.log(`🎯 Q${index}: selectedIdx=${selectedIdx}, attemptQuestion keys=`, Object.keys(attemptQuestion));
+
                           return {
                             ...q,
-                            studentAnswer: attemptQuestion.selectedOptionIndex
+                            studentAnswer: selectedIdx
                           };
                         }
+                        console.log(`⚠️ Q${index}: No attemptQuestion found`);
                         return q;
                       });
-                      console.log('📊 Final merged questions:', metadata.questions);
+                      console.log('📊 Final merged questions:', metadata.questions?.map(q => ({
+                        questionId: q.questionId,
+                        studentAnswer: q.studentAnswer,
+                        correctAnswer: q.correctAnswer
+                      })));
                     }
                   }
                 } catch (attemptErr) {
@@ -595,8 +605,10 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
                         <div className="p-5 space-y-4">
                           {questions.map((q: QuizQuestion, qi: number) => {
                             const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-                            const isStudentCorrect = q.studentAnswer !== undefined && q.studentAnswer !== null && q.studentAnswer === q.correctAnswer;
-                            const hasStudentAnswer = q.studentAnswer !== undefined && q.studentAnswer !== null;
+                            // -1 or undefined/null means skipped
+                            const wasSkipped = q.studentAnswer === undefined || q.studentAnswer === null || q.studentAnswer === -1;
+                            const hasStudentAnswer = !wasSkipped && typeof q.studentAnswer === 'number' && q.studentAnswer >= 0;
+                            const isStudentCorrect = hasStudentAnswer && q.studentAnswer === q.correctAnswer;
 
                             return (
                               <div key={qi} className="rounded-xl border-2 border-gray-100 overflow-hidden hover:border-gray-200 transition-colors">

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Map, Plus, Search, Filter, Edit, Trash2, Eye, Clock, Loader, X, Save } from 'lucide-react';
+import { Map, Plus, Search, Edit, Trash2, Eye, Clock, Loader, X, Save, BookOpen } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
 import { toast } from 'react-hot-toast';
 import ConfirmModal from '../../../components/ConfirmModal/ConfirmModal';
+import SyllabusImportButton from './SyllabusImportButton';
 import './CourseManagement.css';
 
 const initialFormState: Partial<Subject> = {
@@ -16,6 +17,7 @@ const initialFormState: Partial<Subject> = {
 
 export default function CourseManagement() {
   const navigate = useNavigate();
+
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,10 +27,24 @@ export default function CourseManagement() {
   const [showInput, setShowInput] = useState<{ [key: string]: boolean }>({});
   const [inputValue, setInputValue] = useState<{ [key: string]: string }>({});
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
+  const [expandedSyllabus, setExpandedSyllabus] = useState<{ [key: string]: boolean }>({});
 
-  // State for filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSemester, setSelectedSemester] = useState('all');
+  // State for filters - restore from sessionStorage
+  const [searchQuery, setSearchQuery] = useState(() => {
+    return sessionStorage.getItem('courseManagement_search') || '';
+  });
+  const [selectedSemester, setSelectedSemester] = useState(() => {
+    return sessionStorage.getItem('courseManagement_semester') || 'all';
+  });
+
+  // Save filters to sessionStorage when they change
+  useEffect(() => {
+    sessionStorage.setItem('courseManagement_search', searchQuery);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    sessionStorage.setItem('courseManagement_semester', selectedSemester);
+  }, [selectedSemester]);
 
   // State for delete confirmation modal
   const [deleteModal, setDeleteModal] = useState<{
@@ -163,6 +179,71 @@ export default function CourseManagement() {
     });
   };
 
+  /**
+   * Handle syllabus import from HTML file
+   * Auto-fills the form with parsed data from FLM syllabus
+   * Note: Semester is NOT imported - admin already selected it before creating subject
+   */
+  const handleSyllabusImport = (importedData: {
+    code: string;
+    name: string;
+    credits: number;
+    description: string;
+    prerequisites: string[];
+    learningOutcomes?: string; // JSON string with full CLO data [{number, name, details}]
+    degreeLevel: string;
+    timeAllocation: string;
+    tools: string;
+    scoringScale: string;
+    decisionNo: string;
+    minAvgMarkToPass: number;
+    // Syllabus JSON fields
+    assessments?: string;
+    sessions?: string;
+    syllabusMaterials?: string;
+    studentTasks?: string;
+  }) => {
+    console.log('📥 Syllabus data imported:', importedData);
+
+    // Parse learningOutcomes JSON to create display-friendly array
+    let parsedLOs: string[] = [];
+    if (importedData.learningOutcomes) {
+      try {
+        const cloData = JSON.parse(importedData.learningOutcomes) as Array<{ number: string; name: string; details: string }>;
+        // Create display format: "CLO1: Full description"
+        parsedLOs = cloData.map(clo => `${clo.name}: ${clo.details || clo.name}`);
+        console.log('📚 Parsed Learning Outcomes:', parsedLOs);
+      } catch (e) {
+        console.warn('Failed to parse learningOutcomes JSON:', e);
+      }
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      code: importedData.code || prev.code,
+      name: importedData.name || prev.name,
+      credits: importedData.credits || prev.credits,
+      description: importedData.description || prev.description,
+      degreeLevel: importedData.degreeLevel || prev.degreeLevel,
+      timeAllocation: importedData.timeAllocation || prev.timeAllocation,
+      tools: importedData.tools || prev.tools,
+      scoringScale: importedData.scoringScale || prev.scoringScale,
+      decisionNo: importedData.decisionNo || prev.decisionNo,
+      minAvgMarkToPass: importedData.minAvgMarkToPass || prev.minAvgMarkToPass,
+      // Note: Keep existing semester - admin already selected it
+      prerequisites: importedData.prerequisites?.length ? importedData.prerequisites : prev.prerequisites,
+      learningOutcomes: parsedLOs.length ? parsedLOs : prev.learningOutcomes,
+      // Syllabus JSON data (store raw JSON for backend)
+      assessments: importedData.assessments || prev.assessments,
+      sessions: importedData.sessions || prev.sessions,
+      syllabusMaterials: importedData.syllabusMaterials || prev.syllabusMaterials,
+      studentTasks: importedData.studentTasks || prev.studentTasks,
+    }));
+
+    // Clear any previous validation errors since we have new data
+    setFieldErrors({});
+  };
+
   const validateForm = (): boolean => {
     const errors: { [key: string]: string } = {};
 
@@ -222,6 +303,11 @@ export default function CourseManagement() {
       scoringScale: formData.scoringScale,
       decisionNo: formData.decisionNo,
       minAvgMarkToPass: formData.minAvgMarkToPass,
+      // Syllabus import fields (JSON strings from HTML import)
+      assessments: formData.assessments,
+      sessions: formData.sessions,
+      syllabusMaterials: formData.syllabusMaterials,
+      studentTasks: formData.studentTasks,
     };
 
     // Remove empty string fields (but keep empty arrays)
@@ -246,7 +332,16 @@ export default function CourseManagement() {
       } else {
         const result = await subjectService.createSubject(cleanedData);
         console.log('Create result:', result);
-        toast.success('Course created successfully!');
+
+        // Check if subject was updated (already existed) or created new
+        if (result?.isUpdated) {
+          toast.success(`Course "${formData.code}" already exists and has been updated with new data!`, {
+            duration: 5000,
+            icon: '🔄'
+          });
+        } else {
+          toast.success('Course created successfully!');
+        }
       }
 
       // Fetch updated data
@@ -271,6 +366,9 @@ export default function CourseManagement() {
 
         setFieldErrors(apiErrors);
         toast.error('Please fix the validation errors');
+      } else if (error.response?.data?.message) {
+        // Show backend validation message (e.g., duplicate subject)
+        toast.error(error.response.data.message);
       } else {
         toast.error('Failed to save course. Check fields and try again.');
       }
@@ -310,19 +408,89 @@ export default function CourseManagement() {
     });
   };
 
+  // Convert semester (can be number or enum string like 'First', 'Second') to number
+  const semesterEnumToNumber: { [key: string]: number } = {
+    'First': 1, 'Second': 2, 'Third': 3, 'Fourth': 4, 'Fifth': 5,
+    'Sixth': 6, 'Seventh': 7, 'Eighth': 8, 'Ninth': 9
+  };
+
+  const getSemesterNumber = (semester: number | string | undefined): number => {
+    if (typeof semester === 'number') return semester;
+    if (typeof semester === 'string') {
+      return semesterEnumToNumber[semester] || parseInt(semester) || 1;
+    }
+    return 1;
+  };
+
   const filteredSubjects = subjects.filter(subject => {
-    const matchSemester = selectedSemester === 'all' || subject.semester === parseInt(selectedSemester);
+    const subjectSemesterNum = getSemesterNumber(subject.semester);
+    const matchSemester = selectedSemester === 'all' || subjectSemesterNum === parseInt(selectedSemester);
     const matchSearch = subject.name.toLowerCase().includes(searchQuery.toLowerCase()) || subject.code.toLowerCase().includes(searchQuery.toLowerCase());
     return matchSemester && matchSearch;
   });
 
+  // Get count of subjects per semester (from all subjects, not filtered)
+  const getSemesterCount = (semesterNum: number) => {
+    return subjects.filter(subject => getSemesterNumber(subject.semester) === semesterNum).length;
+  };
+
+  // Render a single course card
+  const renderCourseCard = (subject: Subject) => (
+    <div
+      key={subject.subjectId}
+      className="course-card"
+      onClick={() => navigate(`/admin/course-management/${subject.subjectId}`)}
+      style={{ cursor: 'pointer' }}
+    >
+      <div className="course-card-content">
+        <div className="course-card-header">
+          <h3 className="course-card-title">{subject.name}</h3>
+          <div className="course-card-actions" onClick={(e) => e.stopPropagation()}>
+            <Link to={`/admin/course-management/${subject.subjectId}`} className="btn-view"><Eye size={20} /></Link>
+            <button onClick={() => handleEditClick(subject)} className="btn-edit"><Edit size={20} /></button>
+            <button onClick={() => handleDeleteClick(subject)} className="btn-delete"><Trash2 size={20} /></button>
+          </div>
+        </div>
+        <div className="course-badges">
+          <span className="course-code">{subject.code}</span>
+          {selectedSemester === 'all' ? null : <span className="semester-badge">Sem {getSemesterNumber(subject.semester)}</span>}
+          <span className={`status-badge ${subject.isActive ? 'active' : 'inactive'}`}>{subject.isActive ? 'Active' : 'Inactive'}</span>
+        </div>
+        <p className="course-description">Credits: {subject.credits}</p>
+        <div className="course-footer"><div className="course-footer-item"><Clock size={16} />Created: {new Date(subject.createdAt).toLocaleDateString()}</div></div>
+      </div>
+    </div>
+  );
+
+  // Get subjects for a specific semester (apply search filter)
+  const getFilteredSubjectsBySemester = (semesterNum: number) => {
+    return subjects.filter(subject => {
+      const subjectSemesterNum = getSemesterNumber(subject.semester);
+      const matchSemester = subjectSemesterNum === semesterNum;
+      const matchSearch = searchQuery === '' ||
+        subject.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        subject.code.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchSemester && matchSearch;
+    });
+  };
+
   const renderListView = () => (
     <>
+      {/* Header */}
       <div className="course-header">
         <div className="course-header-top">
-          <div><p className="course-subtitle">Manage course information, prerequisites, and learning outcomes.</p></div>
-          <div className="course-actions"><button onClick={handleCreateClick} className="btn-create-course"><Plus size={20} />Create New Course</button></div>
+          <div>
+            <p className="course-subtitle">Manage course information, prerequisites, and learning outcomes.</p>
+          </div>
+          <div className="course-actions">
+            <button onClick={handleCreateClick} className="btn-create-course">
+              <Plus size={20} />
+              Create New Course
+            </button>
+          </div>
         </div>
+
+        {/* Filters */}
         <div className="cm-filters">
           <div className="cm-search-wrapper">
             <Search className="cm-search-icon" size={18} />
@@ -335,7 +503,7 @@ export default function CourseManagement() {
             />
           </div>
           <div className="cm-filter-wrapper">
-            <Filter className="cm-filter-icon" size={18} />
+            <BookOpen className="cm-filter-icon" size={18} />
             <select
               value={selectedSemester}
               onChange={(e) => setSelectedSemester(e.target.value)}
@@ -349,40 +517,58 @@ export default function CourseManagement() {
           </div>
         </div>
       </div>
+
+      {/* Content */}
       {loading ? (
-        <div className="loading-state"><Loader className="animate-spin" size={48} /><p>Loading Courses...</p></div>
-      ) : (
-        <>
-          <div className="courses-grid">
-            {filteredSubjects.map(subject => (
-              <div
-                key={subject.subjectId}
-                className="course-card"
-                onClick={() => navigate(`/admin/course-management/${subject.subjectId}`)}
-                style={{ cursor: 'pointer' }}
-              >
-                <div className="course-card-content">
-                  <div className="course-card-header">
-                    <h3 className="course-card-title">{subject.name}</h3>
-                    <div className="course-card-actions" onClick={(e) => e.stopPropagation()}>
-                      <Link to={`/admin/course-management/${subject.subjectId}`} className="btn-view"><Eye size={20} /></Link>
-                      <button onClick={() => handleEditClick(subject)} className="btn-edit"><Edit size={20} /></button>
-                      <button onClick={() => handleDeleteClick(subject)} className="btn-delete"><Trash2 size={20} /></button>
-                    </div>
-                  </div>
-                  <div className="course-badges">
-                    <span className="course-code">{subject.code}</span>
-                    <span className="semester-badge">Sem {subject.semester}</span>
-                    <span className={`status-badge ${subject.isActive ? 'active' : 'inactive'}`}>{subject.isActive ? 'Active' : 'Inactive'}</span>
-                  </div>
-                  <p className="course-description">Credits: {subject.credits}</p>
-                  <div className="course-footer"><div className="course-footer-item"><Clock size={16} />Created: {new Date(subject.createdAt).toLocaleDateString()}</div></div>
+        <div className="loading-state">
+          <Loader className="animate-spin" size={48} />
+          <p>Loading courses...</p>
+        </div>
+      ) : selectedSemester === 'all' ? (
+        /* ALL SEMESTERS - Grouped by semester */
+        <div className="semester-sections-view">
+          {Array.from({ length: 9 }, (_, i) => i + 1).map(semesterNum => {
+            const semesterSubjects = getFilteredSubjectsBySemester(semesterNum);
+
+            // Skip if no courses in this semester
+            if (semesterSubjects.length === 0) return null;
+
+            return (
+              <div key={semesterNum} className="semester-section-block">
+                {/* Semester Header */}
+                <div className="semester-section-header-simple">
+                  <span className="semester-section-label">Semester {semesterNum}</span>
+                  <span className="semester-section-count">{semesterSubjects.length} {semesterSubjects.length === 1 ? 'course' : 'courses'}</span>
+                </div>
+
+                {/* Courses Grid */}
+                <div className="courses-grid">
+                  {semesterSubjects.map(subject => renderCourseCard(subject))}
                 </div>
               </div>
-            ))}
+            );
+          })}
+
+          {filteredSubjects.length === 0 && (
+            <div className="empty-state">
+              <Map className="empty-icon" size={64} />
+              <p className="empty-title">No courses found</p>
+              <p className="empty-description">Try adjusting your search keywords.</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* SINGLE SEMESTER */
+        <>
+          <div className="courses-grid">
+            {filteredSubjects.map(subject => renderCourseCard(subject))}
           </div>
           {filteredSubjects.length === 0 && (
-            <div className="empty-state"><Map className="empty-icon" size={64} /><p className="empty-title">No courses found</p><p className="empty-description">Try adjusting your filters or create a new course.</p></div>
+            <div className="empty-state">
+              <Map className="empty-icon" size={64} />
+              <p className="empty-title">No courses found</p>
+              <p className="empty-description">No courses available in this semester.</p>
+            </div>
           )}
         </>
       )}
@@ -392,8 +578,15 @@ export default function CourseManagement() {
   const renderCreateEditView = () => (
     <div className="create-view">
       <div className="create-header">
-        <div><h1 className="create-title"><Map size={32} />{view === 'create' ? 'Create New Course' : 'Edit Course'}</h1><p className="create-subtitle">Define course information and learning outcomes</p></div>
-        <button onClick={handleCancel} className="btn-cancel"><X size={16} />Cancel</button>
+        <div>
+          <h1 className="create-title"><Map size={32} />{view === 'create' ? 'Create New Course' : 'Edit Course'}</h1>
+          <p className="create-subtitle">Define course information and learning outcomes</p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {/* Import from HTML - available in both create and edit modes */}
+          <SyllabusImportButton onImport={handleSyllabusImport} disabled={isSubmitting} />
+          <button onClick={handleCancel} className="btn-cancel"><X size={16} />Cancel</button>
+        </div>
       </div>
       <div className="create-layout">
         <div className="create-main">
@@ -557,6 +750,149 @@ export default function CourseManagement() {
                 />
                 {fieldErrors.decisionNo && <span className="error-message">{fieldErrors.decisionNo}</span>}
               </div>
+
+              {/* Syllabus Import Summary - show only if data was imported */}
+              {(formData.sessions || formData.assessments || formData.syllabusMaterials || formData.studentTasks) && (
+                <div className="form-group" style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '8px', border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+                  <label className="form-label" style={{ color: '#6366f1', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    📚 Imported Syllabus Data (Click to expand)
+                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: expandedSyllabus.sessions || expandedSyllabus.assessments || expandedSyllabus.materials || expandedSyllabus.studentTasks ? '1rem' : 0 }}>
+                    {formData.sessions && (() => {
+                      try {
+                        const sessions = JSON.parse(formData.sessions);
+                        return (
+                          <button type="button" onClick={() => setExpandedSyllabus(prev => ({ ...prev, sessions: !prev.sessions }))}
+                            style={{ padding: '0.5rem 1rem', background: expandedSyllabus.sessions ? '#059669' : '#10b981', color: 'white', borderRadius: '20px', fontSize: '0.875rem', border: 'none', cursor: 'pointer' }}>
+                            {expandedSyllabus.sessions ? '▼' : '▶'} {sessions.length} Sessions
+                          </button>
+                        );
+                      } catch { return null; }
+                    })()}
+                    {formData.assessments && (() => {
+                      try {
+                        const assessments = JSON.parse(formData.assessments);
+                        return (
+                          <button type="button" onClick={() => setExpandedSyllabus(prev => ({ ...prev, assessments: !prev.assessments }))}
+                            style={{ padding: '0.5rem 1rem', background: expandedSyllabus.assessments ? '#d97706' : '#f59e0b', color: 'white', borderRadius: '20px', fontSize: '0.875rem', border: 'none', cursor: 'pointer' }}>
+                            {expandedSyllabus.assessments ? '▼' : '▶'} {assessments.length} Assessments
+                          </button>
+                        );
+                      } catch { return null; }
+                    })()}
+                    {formData.syllabusMaterials && (() => {
+                      try {
+                        const materials = JSON.parse(formData.syllabusMaterials);
+                        return (
+                          <button type="button" onClick={() => setExpandedSyllabus(prev => ({ ...prev, materials: !prev.materials }))}
+                            style={{ padding: '0.5rem 1rem', background: expandedSyllabus.materials ? '#2563eb' : '#3b82f6', color: 'white', borderRadius: '20px', fontSize: '0.875rem', border: 'none', cursor: 'pointer' }}>
+                            {expandedSyllabus.materials ? '▼' : '▶'} {materials.length} Materials
+                          </button>
+                        );
+                      } catch { return null; }
+                    })()}
+                    {formData.studentTasks && (
+                      <button type="button" onClick={() => setExpandedSyllabus(prev => ({ ...prev, studentTasks: !prev.studentTasks }))}
+                        style={{ padding: '0.5rem 1rem', background: expandedSyllabus.studentTasks ? '#7c3aed' : '#8b5cf6', color: 'white', borderRadius: '20px', fontSize: '0.875rem', border: 'none', cursor: 'pointer' }}>
+                        {expandedSyllabus.studentTasks ? '▼' : '▶'} Student Tasks
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Expanded Sessions Table */}
+                  {expandedSyllabus.sessions && formData.sessions && (() => {
+                    try {
+                      const sessions = JSON.parse(formData.sessions) as Array<{ session?: string; topic?: string; type?: string; lo?: string; materials?: string; studentTasks?: string }>;
+                      return (
+                        <div style={{ marginBottom: '1rem', maxHeight: '300px', overflowY: 'auto', background: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                            <thead style={{ background: '#10b981', color: 'white', position: 'sticky', top: 0 }}>
+                              <tr>
+                                <th style={{ padding: '0.5rem', textAlign: 'left', width: '50px' }}>#</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'left' }}>Topic</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'left', width: '80px' }}>Type</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'left', width: '80px' }}>LO</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {sessions.map((s, i) => (
+                                <tr key={i} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                                  <td style={{ padding: '0.5rem', color: '#6b7280' }}>{s.session || i + 1}</td>
+                                  <td style={{ padding: '0.5rem' }}>{s.topic || '-'}</td>
+                                  <td style={{ padding: '0.5rem', color: '#6b7280' }}>{s.type || '-'}</td>
+                                  <td style={{ padding: '0.5rem', color: '#6b7280' }}>{s.lo || '-'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    } catch { return null; }
+                  })()}
+
+                  {/* Expanded Assessments Table */}
+                  {expandedSyllabus.assessments && formData.assessments && (() => {
+                    try {
+                      const assessments = JSON.parse(formData.assessments) as Array<{ type?: string; category?: string; weight?: string; duration?: string; clo?: string; passCondition?: string }>;
+                      return (
+                        <div style={{ marginBottom: '1rem', background: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                            <thead style={{ background: '#f59e0b', color: 'white' }}>
+                              <tr>
+                                <th style={{ padding: '0.5rem', textAlign: 'left' }}>Type</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'left' }}>Category</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'left' }}>Weight</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'left' }}>Duration</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'left' }}>CLO</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {assessments.map((a, i) => (
+                                <tr key={i} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                                  <td style={{ padding: '0.5rem', fontWeight: 500 }}>{a.type || '-'}</td>
+                                  <td style={{ padding: '0.5rem' }}>{a.category || '-'}</td>
+                                  <td style={{ padding: '0.5rem', color: '#10b981', fontWeight: 600 }}>{a.weight || '-'}</td>
+                                  <td style={{ padding: '0.5rem', color: '#6b7280' }}>{a.duration || '-'}</td>
+                                  <td style={{ padding: '0.5rem', color: '#6366f1' }}>{a.clo || '-'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    } catch { return null; }
+                  })()}
+
+                  {/* Expanded Materials List */}
+                  {expandedSyllabus.materials && formData.syllabusMaterials && (() => {
+                    try {
+                      const materials = JSON.parse(formData.syllabusMaterials) as Array<{ description?: string; author?: string; isMain?: boolean }>;
+                      return (
+                        <div style={{ marginBottom: '1rem', background: 'white', borderRadius: '8px', border: '1px solid #e5e7eb', padding: '0.75rem' }}>
+                          <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
+                            {materials.map((m, i) => (
+                              <li key={i} style={{ marginBottom: '0.5rem', fontSize: '0.8rem' }}>
+                                <a href={m.description} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6' }}>
+                                  {m.description}
+                                </a>
+                                {m.author && <span style={{ color: '#6b7280' }}> - {m.author}</span>}
+                                {m.isMain && <span style={{ background: '#3b82f6', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', marginLeft: '0.5rem' }}>Main</span>}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    } catch { return null; }
+                  })()}
+
+                  {/* Expanded Student Tasks */}
+                  {expandedSyllabus.studentTasks && formData.studentTasks && (
+                    <div style={{ background: 'white', borderRadius: '8px', border: '1px solid #e5e7eb', padding: '0.75rem', fontSize: '0.8rem', whiteSpace: 'pre-wrap' }}>
+                      {formData.studentTasks}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           {['prerequisites', 'learningOutcomes', 'commonChallenges'].map(field => {

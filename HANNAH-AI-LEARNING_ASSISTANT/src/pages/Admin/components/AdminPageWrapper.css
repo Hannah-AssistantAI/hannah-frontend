@@ -1,5 +1,5 @@
 .admin-page-wrapper {
-  min-height: calc(100vh - 88px); /* Adjust for admin layout padding */
+  min-height: calc(100vh - 18px); /* Adjust for admin layout padding */
 }
 
 /* Classic variant - White background with box shadow */

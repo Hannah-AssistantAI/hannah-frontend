@@ -29,7 +29,7 @@ const FlagButton: React.FC<FlagButtonProps> = ({
         setIsSubmitting(true);
 
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             await axios.post(
                 'http://localhost:5000/api/flagging/content/flag',
                 {

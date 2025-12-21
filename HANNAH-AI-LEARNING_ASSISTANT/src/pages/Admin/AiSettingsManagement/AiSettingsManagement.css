@@ -1,0 +1,593 @@
+/**
+ * AI Settings Management Styles - Premium Dark Theme
+ * Modern glassmorphism with vibrant gradients
+ */
+
+/* ============================================================================
+   CSS VARIABLES - Vibrant Color Palette
+   ============================================================================ */
+.ai-settings-container {
+    /* Base colors */
+    --ai-bg-primary: #0f0f1a;
+    --ai-bg-secondary: #16162a;
+    --ai-bg-card: #1e1e35;
+    --ai-bg-card-hover: #252545;
+
+    /* Accent colors */
+    --ai-primary: #6366f1;
+    --ai-primary-light: #818cf8;
+    --ai-primary-glow: rgba(99, 102, 241, 0.3);
+
+    /* Text colors */
+    --ai-text-primary: #f1f5f9;
+    --ai-text-secondary: #94a3b8;
+    --ai-text-muted: #64748b;
+
+    /* Border & effects */
+    --ai-border: rgba(99, 102, 241, 0.2);
+    --ai-border-hover: rgba(99, 102, 241, 0.4);
+
+    /* Status colors */
+    --ai-success: #10b981;
+    --ai-warning: #f59e0b;
+    --ai-error: #ef4444;
+
+    /* Gradients */
+    --ai-gradient-primary: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+    --ai-gradient-card: linear-gradient(135deg, #1e1e35 0%, #252550 100%);
+    --ai-gradient-header: linear-gradient(135deg, #1a1a30 0%, #2a2a50 100%);
+
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: var(--ai-bg-primary);
+    min-height: 100vh;
+}
+
+/* ============================================================================
+   HEADER - Glassmorphism Effect
+   ============================================================================ */
+.ai-settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    padding: 24px;
+    background: var(--ai-gradient-header);
+    border: 1px solid var(--ai-border);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.ai-settings-title-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.ai-settings-title-section svg {
+    color: var(--ai-primary-light);
+    filter: drop-shadow(0 0 8px var(--ai-primary-glow));
+}
+
+.ai-settings-title-section h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    background: var(--ai-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+}
+
+.ai-settings-title-section p {
+    color: var(--ai-text-secondary);
+    margin: 4px 0 0 0;
+    font-size: 0.9rem;
+}
+
+.ai-settings-refresh-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: var(--ai-bg-card);
+    border: 1px solid var(--ai-border);
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--ai-text-secondary);
+    transition: all 0.3s ease;
+}
+
+.ai-settings-refresh-btn:hover {
+    background: var(--ai-bg-card-hover);
+    border-color: var(--ai-primary);
+    color: var(--ai-primary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px var(--ai-primary-glow);
+}
+
+/* ============================================================================
+   LOADING & EMPTY STATES
+   ============================================================================ */
+.ai-settings-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    color: var(--ai-text-secondary);
+}
+
+.ai-settings-loading svg {
+    color: var(--ai-primary);
+}
+
+.ai-settings-loading p {
+    margin-top: 16px;
+}
+
+.ai-settings-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--ai-text-secondary);
+    text-align: center;
+    background: var(--ai-gradient-card);
+    border-radius: 20px;
+    border: 1px solid var(--ai-border);
+}
+
+.ai-settings-empty svg {
+    color: var(--ai-warning);
+    margin-bottom: 16px;
+}
+
+.ai-settings-empty code {
+    margin-top: 8px;
+    padding: 8px 16px;
+    background: var(--ai-bg-secondary);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--ai-primary-light);
+}
+
+/* ============================================================================
+   GROUPS CONTAINER
+   ============================================================================ */
+.ai-settings-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* ============================================================================
+   COLLAPSIBLE GROUP - Glass Cards
+   ============================================================================ */
+.ai-settings-group {
+    background: var(--ai-gradient-card);
+    border: 1px solid var(--ai-border);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.ai-settings-group:hover {
+    border-color: var(--ai-border-hover);
+    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1);
+}
+
+.ai-settings-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05));
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: all 0.3s ease;
+}
+
+.ai-settings-group-header:hover {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
+}
+
+.group-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.group-header-left svg {
+    color: var(--ai-primary-light);
+    filter: drop-shadow(0 0 4px var(--ai-primary-glow));
+}
+
+.group-header-text h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ai-text-primary);
+    margin: 0;
+}
+
+.group-description {
+    font-size: 0.8rem;
+    color: var(--ai-text-secondary);
+    margin-top: 2px;
+}
+
+.group-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.group-count {
+    font-size: 0.75rem;
+    color: var(--ai-primary-light);
+    background: rgba(99, 102, 241, 0.15);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.group-header-right>svg {
+    color: var(--ai-text-secondary);
+}
+
+.ai-settings-group-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 24px;
+}
+
+.ai-settings-group.collapsed .ai-settings-group-content {
+    display: none;
+}
+
+/* ============================================================================
+   SETTING CARDS - Glassmorphism
+   ============================================================================ */
+.ai-setting-card {
+    background: var(--ai-bg-card);
+    border: 1px solid var(--ai-border);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.ai-setting-card:hover {
+    border-color: var(--ai-border-hover);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
+}
+
+.ai-setting-card.has-changes {
+    border-color: var(--ai-primary);
+    box-shadow: 0 0 0 3px var(--ai-primary-glow);
+    background: linear-gradient(135deg, var(--ai-bg-card), rgba(99, 102, 241, 0.05));
+}
+
+.ai-setting-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.ai-setting-info {
+    flex: 1;
+}
+
+.ai-setting-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ai-text-primary);
+    margin: 0 0 4px 0;
+}
+
+.ai-setting-description {
+    font-size: 0.85rem;
+    color: var(--ai-text-secondary);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* ============================================================================
+   ACTION BUTTONS - Gradient Buttons
+   ============================================================================ */
+.ai-setting-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.ai-setting-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.ai-setting-btn.primary {
+    background: var(--ai-gradient-primary);
+    color: white;
+    box-shadow: 0 4px 16px var(--ai-primary-glow);
+}
+
+.ai-setting-btn.primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px var(--ai-primary-glow);
+}
+
+.ai-setting-btn.secondary {
+    background: var(--ai-bg-secondary);
+    color: var(--ai-text-secondary);
+    border: 1px solid var(--ai-border);
+}
+
+.ai-setting-btn.secondary:hover {
+    background: var(--ai-bg-card-hover);
+    color: var(--ai-text-primary);
+    border-color: var(--ai-border-hover);
+}
+
+.ai-setting-btn.ghost {
+    background: transparent;
+    color: var(--ai-text-muted);
+    padding: 10px;
+}
+
+.ai-setting-btn.ghost:hover {
+    background: var(--ai-bg-secondary);
+    color: var(--ai-primary-light);
+}
+
+.ai-setting-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ============================================================================
+   PLACEHOLDER HELPER - Cyan Accent
+   ============================================================================ */
+.placeholder-helper {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(20, 184, 166, 0.05));
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 14px;
+}
+
+.placeholder-helper-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: #22d3ee;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.placeholder-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.placeholder-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(6, 182, 212, 0.1);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: #67e8f9;
+    transition: all 0.3s ease;
+}
+
+.placeholder-chip:hover {
+    background: rgba(6, 182, 212, 0.2);
+    border-color: #22d3ee;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+}
+
+.placeholder-chip code {
+    font-family: 'Fira Code', 'JetBrains Mono', monospace;
+    background: transparent;
+}
+
+.placeholder-chip svg {
+    opacity: 0.6;
+}
+
+/* ============================================================================
+   TEXTAREA - Dark Theme Input
+   ============================================================================ */
+.ai-setting-textarea {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid var(--ai-border);
+    border-radius: 12px;
+    font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    resize: vertical;
+    transition: all 0.3s ease;
+    background: var(--ai-bg-secondary);
+    color: var(--ai-text-primary);
+}
+
+.ai-setting-textarea::placeholder {
+    color: var(--ai-text-muted);
+}
+
+.ai-setting-textarea:focus {
+    outline: none;
+    border-color: var(--ai-primary);
+    background: var(--ai-bg-card);
+    box-shadow: 0 0 0 3px var(--ai-primary-glow);
+}
+
+/* ============================================================================
+   META INFO - Subtle Details
+   ============================================================================ */
+.ai-setting-meta {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 16px;
+    margin-top: 14px;
+    font-size: 0.75rem;
+    color: var(--ai-text-muted);
+    flex-wrap: wrap;
+}
+
+.ai-setting-key {
+    font-family: 'Fira Code', 'JetBrains Mono', monospace;
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--ai-primary-light);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+}
+
+.ai-setting-char-count {
+    color: var(--ai-text-muted);
+}
+
+.ai-setting-updated {
+    margin-left: auto;
+    color: var(--ai-text-muted);
+}
+
+/* ============================================================================
+   TOGGLE CARD - Fancy Toggle
+   ============================================================================ */
+.ai-setting-toggle-card {
+    padding: 18px 22px;
+}
+
+.ai-setting-toggle-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ai-setting-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ai-text-muted);
+    transition: all 0.3s ease;
+    padding: 4px;
+}
+
+.ai-setting-toggle:hover {
+    transform: scale(1.15);
+}
+
+.ai-setting-toggle.enabled {
+    color: var(--ai-success);
+    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
+}
+
+.ai-setting-toggle:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ai-setting-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.ai-setting-status.enabled {
+    color: var(--ai-success);
+}
+
+.ai-setting-status.disabled {
+    color: var(--ai-text-muted);
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+@media (max-width: 768px) {
+    .ai-settings-container {
+        padding: 16px;
+    }
+
+    .ai-settings-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 20px;
+    }
+
+    .ai-setting-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .ai-setting-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .placeholder-list {
+        gap: 6px;
+    }
+
+    .placeholder-chip {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+}

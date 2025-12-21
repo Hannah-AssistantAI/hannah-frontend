@@ -45,6 +45,89 @@ export interface FullRoadmapResponse {
     semesters: SemesterGroup[];
 }
 
+// =============================================
+// Types for Specialization
+// =============================================
+export interface Specialization {
+    id: number;
+    code: string;
+    name: string;
+    nameEn?: string;
+    description?: string;
+    majorCode: string;
+    requiredCredits: number;
+    isActive: boolean;
+    totalSubjects: number;
+    requiredSubjects: number;
+    electiveSubjects: number;
+}
+
+export interface SetSpecializationRequest {
+    specializationId: number;
+}
+
+export interface SetSpecializationResponse {
+    success: boolean;
+    message: string;
+    specialization?: Specialization;
+}
+
+// =============================================
+// Types for Student Transcript
+// =============================================
+export interface StudentGrade {
+    id: number;
+    subjectCode: string;
+    subjectName: string;
+    semesterNumber: number;
+    semesterPeriod?: string;
+    credits: number;
+    grade?: number;
+    status: 'Passed' | 'Failed' | 'Studying';
+    isSpecialCourse: boolean;
+    prerequisites?: string;
+    linkedSubjectId?: number;
+}
+
+export interface SemesterSummary {
+    semesterNumber: number;
+    semesterLabel: string;
+    totalSubjects: number;
+    passedSubjects: number;
+    totalCredits: number;
+    earnedCredits: number;
+    semesterGpa?: number;
+    isCurrent: boolean;
+    isCompleted: boolean;
+}
+
+export interface TranscriptSummary {
+    id: number;
+    studentIdFromFile?: string;
+    totalSubjects: number;
+    totalCreditsEarned: number;
+    totalCreditsStudying: number;
+    weightedGpa?: number;
+    passedSubjects: number;
+    failedSubjects: number;
+    studyingSubjects: number;
+    currentSemesterNumber: number;
+    importedAt: string;
+    fileName?: string;
+}
+
+export interface TranscriptDetail extends TranscriptSummary {
+    grades: StudentGrade[];
+    semesterSummaries: SemesterSummary[];
+}
+
+export interface UploadTranscriptResponse {
+    success: boolean;
+    message: string;
+    transcript?: TranscriptSummary;
+    warnings?: string[];
+}
+
 // Helper function to format roadmap as markdown
 export const formatRoadmapAsMarkdown = (data: FullRoadmapResponse): string => {
     let content = `# 🎓 Lộ trình học tập\n\n`;
@@ -130,7 +213,96 @@ const studentService = {
             { currentSemester }
         );
         return response.data;
-    }
+    },
+
+    // =============================================
+    // Specialization APIs
+    // =============================================
+
+    /**
+     * Get all available specializations
+     */
+    getSpecializations: async (): Promise<Specialization[]> => {
+        const response = await apiClient.get<Specialization[]>('/api/specializations');
+        return response.data;
+    },
+
+    /**
+     * Set student's specialization
+     */
+    setSpecialization: async (specializationId: number): Promise<SetSpecializationResponse> => {
+        const response = await apiClient.put<SetSpecializationResponse>(
+            '/api/v1/students/me/specialization',
+            { specializationId }
+        );
+        return response.data;
+    },
+
+    /**
+     * Get current student's specialization
+     */
+    getMySpecialization: async (): Promise<Specialization | null> => {
+        try {
+            const response = await apiClient.get<{ specialization: Specialization | null }>('/api/v1/students/me/specialization');
+            return response.data.specialization;
+        } catch (error: any) {
+            if (error.response?.status === 404) {
+                return null;
+            }
+            throw error;
+        }
+    },
+
+    // =============================================
+    // Transcript APIs
+    // =============================================
+
+    /**
+     * Upload and parse a student transcript file
+     * @param file - The .xls file from FAP
+     */
+    uploadTranscript: async (file: File): Promise<UploadTranscriptResponse> => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await apiClient.postFormData<UploadTranscriptResponse>(
+            '/api/students/me/transcript/upload',
+            formData
+        );
+        return response.data;
+    },
+
+    /**
+     * Get the latest transcript for the current user
+     */
+    getTranscript: async (): Promise<TranscriptDetail | null> => {
+        try {
+            const response = await apiClient.get<TranscriptDetail>('/api/students/me/transcript');
+            return response.data;
+        } catch (error: any) {
+            if (error.response?.status === 404) {
+                return null; // No transcript yet
+            }
+            throw error;
+        }
+    },
+
+    /**
+     * Get all grades from the latest transcript
+     */
+    getGrades: async (): Promise<StudentGrade[]> => {
+        const response = await apiClient.get<StudentGrade[]>('/api/students/me/transcript/grades');
+        return response.data;
+    },
+
+    /**
+     * Get semester summaries from the latest transcript
+     */
+    getSemesterSummaries: async (): Promise<SemesterSummary[]> => {
+        const response = await apiClient.get<SemesterSummary[]>('/api/students/me/transcript/semesters');
+        return response.data;
+    },
 };
 
 export default studentService;
+

@@ -247,15 +247,93 @@ class QuizApiService {
 
     /**
      * Get quiz attempt details including questions and answers
-     * GET /api/Quizzes/{quizId}/attempts/{attemptId}
+     * First tries Python API (where attempts are stored), then falls back to .NET API
      */
     async getQuizAttemptDetail(quizId: number, attemptId: number): Promise<QuizAttemptDetailDto> {
+        // Try Python API first (attempts are stored in MongoDB)
         try {
-            const response = await apiClient.get<BackendApiResponse<QuizAttemptDetailDto>>(`/api/Quizzes/${quizId}/attempts/${attemptId}`);
-            return response.data.data;
+            const response = await pythonApiClient.get<any>(`/api/v1/studio/quiz/${quizId}/attempts/${attemptId}`);
+            const data = response.data.data || response.data;
+
+            // Map Python API response to our expected format
+            return {
+                attemptId: data.attempt_id || data.attemptId,
+                quizId: data.quiz_id || data.quizId,
+                quizTitle: data.quiz_title || data.quizTitle || '',
+                userId: data.user_id || data.userId,
+                userName: data.user_name || data.userName || '',
+                score: data.score || 0,
+                maxScore: data.total_questions || data.totalQuestions || 0,
+                percentage: data.total_questions ? (data.score / data.total_questions * 100) : 0,
+                startedAt: data.started_at || data.startedAt || '',
+                completedAt: data.completed_at || data.completedAt,
+                timeTaken: data.time_taken_seconds || data.timeTaken,
+                isCompleted: true,
+                isFlagged: false,
+                totalQuestions: data.total_questions || data.totalQuestions || 0,
+                questions: (data.results || data.questions || []).map((q: any, idx: number) => ({
+                    questionId: q.question_id || q.questionId || idx + 1,
+                    content: q.question_text || q.questionText || q.content || '',
+                    options: q.options || [],
+                    correctOptionIndex: this.letterToIndex(q.correct_answer || q.correctAnswer),
+                    selectedOptionIndex: this.letterToIndex(q.student_answer || q.studentAnswer || q.selected_answer || q.selectedAnswer),
+                    explanation: q.explanation || '',
+                    isCorrect: q.is_correct ?? q.isCorrect ?? false
+                }))
+            };
+        } catch (pythonError) {
+            console.warn(`Python API failed for attempt ${attemptId}, trying .NET API...`, pythonError);
+
+            // Fall back to .NET API
+            try {
+                const response = await apiClient.get<BackendApiResponse<QuizAttemptDetailDto>>(`/api/Quizzes/${quizId}/attempts/${attemptId}`);
+                return response.data.data;
+            } catch (error) {
+                console.error(`Error fetching quiz attempt ${attemptId} for quiz ${quizId}:`, error);
+                throw error;
+            }
+        }
+    }
+
+    /**
+     * Convert letter answer (A, B, C, D) to index (0, 1, 2, 3)
+     */
+    private letterToIndex(answer: string | number | undefined | null): number {
+        if (answer === undefined || answer === null) return -1;
+        if (typeof answer === 'number') return answer;
+
+        const upper = String(answer).trim().toUpperCase();
+        if (upper.length === 1 && upper >= 'A' && upper <= 'Z') {
+            return upper.charCodeAt(0) - 'A'.charCodeAt(0);
+        }
+        const parsed = parseInt(answer);
+        return isNaN(parsed) ? -1 : parsed;
+    }
+
+    /**
+     * Get quiz attempts from Python API
+     * GET /api/v1/studio/quiz/{quizId}/attempts
+     */
+    async getQuizAttemptsFromPython(quizId: number): Promise<QuizAttemptDto[]> {
+        try {
+            const response = await pythonApiClient.get<any>(`/api/v1/studio/quiz/${quizId}/attempts`);
+            const data = response.data.data || response.data || [];
+
+            if (!Array.isArray(data)) return [];
+
+            return data.map((a: any) => ({
+                attemptId: a.attempt_id || a.attemptId,
+                userId: a.user_id || a.userId,
+                userName: a.user_name || a.userName,
+                score: a.score,
+                startedAt: a.started_at || a.startedAt,
+                submittedAt: a.completed_at || a.completedAt,
+                timeTaken: a.time_taken_seconds || a.timeTaken,
+                isCompleted: a.is_completed ?? a.isCompleted ?? true
+            }));
         } catch (error) {
-            console.error(`Error fetching quiz attempt ${attemptId} for quiz ${quizId}:`, error);
-            throw error;
+            console.error(`Error fetching quiz attempts from Python API for ${quizId}:`, error);
+            return [];
         }
     }
 

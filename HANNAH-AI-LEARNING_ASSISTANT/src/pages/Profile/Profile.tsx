@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import ChangePasswordForm from './ChangePasswordForm';
+import AcademicDashboard from './AcademicDashboard';
 import { useAuth } from '../../contexts/AuthContext';
 import authService from '../../service/authService';
 import userService from '../../service/userService';
@@ -27,7 +28,8 @@ import {
     ChevronRight,
     Clock,
     Loader2,
-    ArrowLeft
+    ArrowLeft,
+    GraduationCap
 } from 'lucide-react'
 import './Profile.css'
 
@@ -60,7 +62,7 @@ interface ProfileProps {
 export default function Profile({ embedded = false }: ProfileProps) {
     const navigate = useNavigate();
     const { user, updateUser } = useAuth();
-    const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'security'>('profile');
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -310,6 +312,18 @@ export default function Profile({ embedded = false }: ProfileProps) {
                                 <ChevronRight size={18} className="pf-nav-arrow" />
                             </button>
 
+                            {/* Academic tab - only for students */}
+                            {userProfile?.role.toLowerCase() === 'student' && (
+                                <button
+                                    className={`pf-nav-item ${activeTab === 'academic' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('academic')}
+                                >
+                                    <GraduationCap size={20} />
+                                    <span>Kết quả học tập</span>
+                                    <ChevronRight size={18} className="pf-nav-arrow" />
+                                </button>
+                            )}
+
                             <button
                                 className={`pf-nav-item ${activeTab === 'security' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('security')}
@@ -481,9 +495,6 @@ export default function Profile({ embedded = false }: ProfileProps) {
                                                         >
                                                             <option value="">Chọn chuyên ngành</option>
                                                             <option value="SE">Kỹ thuật phần mềm (SE)</option>
-                                                            <option value="IS">An toàn thông tin (IS)</option>
-                                                            <option value="AI">Trí tuệ nhân tạo (AI)</option>
-                                                            <option value="DS">Khoa học dữ liệu (DS)</option>
                                                         </select>
                                                     ) : (
                                                         <p className="pf-value">{userProfile.student_specialty || 'Chưa cập nhật'}</p>
@@ -562,6 +573,20 @@ export default function Profile({ embedded = false }: ProfileProps) {
                                 </div>
                             </div>
                         </div>
+                    )}
+
+                    {activeTab === 'academic' && user && (
+                        <AcademicDashboard
+                            userId={user.userId}
+                            profileSemester={userProfile?.current_semester}
+                            onSemesterUpdate={(newSemester) => {
+                                setUserProfile(prev => prev ? { ...prev, current_semester: newSemester } : prev);
+                                setEditedProfile(prev => prev ? { ...prev, current_semester: newSemester } : prev);
+                                if (updateUser && user) {
+                                    updateUser({ ...user, currentSemester: newSemester });
+                                }
+                            }}
+                        />
                     )}
 
                     {activeTab === 'security' && (

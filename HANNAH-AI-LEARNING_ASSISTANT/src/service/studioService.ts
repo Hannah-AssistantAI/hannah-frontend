@@ -222,7 +222,75 @@ class StudioService {
     async getMindMapNodeDetails(data: GetMindMapNodeDetailsRequest) {
         return pythonApiClient.post<GetMindMapNodeDetailsResponse>('/api/v1/studio/mindmap/node-details', data);
     }
+
+    // --- Quiz Attempt History ---
+
+    /**
+     * Get current user's attempt history for a specific quiz
+     */
+    async getMyQuizAttempts(quizId: number): Promise<MyQuizAttemptsResponse> {
+        const response = await pythonApiClient.get<any>(`/api/v1/studio/quiz/${quizId}/my-attempts`);
+        return response.data.data || response.data;
+    }
+
+    /**
+     * Get detailed results of a specific quiz attempt
+     */
+    async getQuizAttemptDetails(quizId: number, attemptId: number): Promise<QuizAttemptDetails> {
+        const response = await pythonApiClient.get<any>(`/api/v1/studio/quiz/${quizId}/attempts/${attemptId}`);
+        return response.data.data || response.data;
+    }
 }
+
+// Quiz Attempt History Interfaces
+export interface QuizAttemptSummary {
+    attempt_id: number;
+    attempt_number: number;
+    score: number | null;
+    correct_answers: number | null;
+    total_questions: number;
+    time_taken_seconds: number | null;
+    started_at: string | null;
+    completed_at: string | null;
+    is_completed: boolean;
+    percentage: number;
+    passed: boolean;
+}
+
+export interface MyQuizAttemptsResponse {
+    quiz_id: number;
+    quiz_title: string;
+    total_attempts: number;
+    best_score: number;
+    attempts: QuizAttemptSummary[];
+}
+
+export interface QuizAttemptDetails {
+    attemptId: number;
+    quizId: number;
+    quizTitle: string;
+    userId: number;
+    score: number;
+    correctAnswers: number;
+    totalQuestions: number;
+    timeTakenSeconds: number | null;
+    completedAt: string;
+    attemptNumber: number;
+    previousScore: number | null;
+    results: QuizAnswerResult[];
+}
+
+export interface QuizAnswerResult {
+    questionId: number;
+    questionText: string;
+    options: string[];
+    selectedAnswer: string;
+    correctAnswer: string;
+    isCorrect: boolean;
+    explanation: string | null;
+    topic: string | null;
+}
+
 
 export interface GetMindMapNodeDetailsRequest {
     conversationId: number;
