@@ -132,6 +132,28 @@ class ChatService {
     }
 
     /**
+     * Send voice message (ephemeral - no conversation saving)
+     * Returns AI response text for TTS
+     */
+    async sendVoiceMessage(message: string): Promise<string> {
+        try {
+            const response = await pythonApiClient.post<BaseResponse<{ response: string }>>('/api/v1/chat/voice', {
+                message,
+                language: 'vi'
+            });
+            return response.data.data.response;
+        } catch (error) {
+            console.error('Voice message error:', error);
+            // Fallback: use regular chat but don't persist
+            const fallbackResponse = await pythonApiClient.post<BaseResponse<{ response: string }>>('/api/v1/chat/quick', {
+                message,
+                save_history: false
+            });
+            return fallbackResponse.data.data.response;
+        }
+    }
+
+    /**
      * Send mindmap chat with streaming (real-time response)
      */
     async sendMindmapChatStream(

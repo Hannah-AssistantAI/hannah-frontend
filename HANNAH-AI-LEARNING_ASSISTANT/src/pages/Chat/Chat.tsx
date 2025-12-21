@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Send, Upload, GitBranch, FileText, ClipboardCheck, StickyNote, Map } from 'lucide-react'
+import { Send, Upload, GitBranch, FileText, ClipboardCheck, StickyNote, Map, Mic } from 'lucide-react'
 import subjectService, { type Subject } from '../../service/subjectService'
 import flaggingService from '../../service/flaggingService'
 import { useStudio } from './hooks/useStudio'
@@ -29,6 +29,7 @@ import type { Message, BigPictureTopic } from './types'
 import { parseInteractiveList } from './utils/messageHelpers'
 import { MessageDisplay } from './components/MessageDisplay/MessageDisplay'
 import { useChatMessages } from './hooks/useChatMessages'
+import { VoiceModeOverlay } from '../../components/VoiceMode'
 import './Chat.css'
 import './css/youtube-resources.css'
 
@@ -42,6 +43,7 @@ export default function Chat() {
 
     const [inputValue, setInputValue] = useState('')
     const [isBigPictureOpen, setIsBigPictureOpen] = useState(true)
+    const [isVoiceModeOpen, setIsVoiceModeOpen] = useState(false)
     const [subjects, setSubjects] = useState<Subject[]>([])
     const [currentCardIndex, setCurrentCardIndex] = useState(0)
     const [isCardFlipped, setIsCardFlipped] = useState(false)
@@ -388,6 +390,14 @@ export default function Chat() {
                                 <Upload size={20} />
                             </button>
                             <button
+                                className="voice-mode-btn"
+                                onClick={() => setIsVoiceModeOpen(true)}
+                                aria-label="Voice Mode"
+                                title="Nói chuyện với Hannah"
+                            >
+                                <Mic size={20} />
+                            </button>
+                            <button
                                 className={`send-btn ${inputValue.trim() ? 'active' : ''}`}
                                 onClick={handleSend}
                                 disabled={!inputValue.trim() || isSendingMessage}
@@ -621,6 +631,12 @@ export default function Chat() {
                 confirmText="Xóa"
                 cancelText="Hủy"
                 type="danger"
+            />
+
+            {/* Voice Mode Overlay */}
+            <VoiceModeOverlay
+                isOpen={isVoiceModeOpen}
+                onClose={() => setIsVoiceModeOpen(false)}
             />
 
             {/* 🆕 Quiz Attempt History Modal */}
