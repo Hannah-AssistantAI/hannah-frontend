@@ -9,33 +9,51 @@ interface TextToSpeechResult {
 
 /**
  * Prepare text for voice output:
- * - Remove markdown formatting
+ * - Remove ALL markdown formatting
+ * - Remove emojis and special symbols
  * - Truncate long responses
  * - Clean up for natural speech
  */
-function prepareTextForVoice(text: string, maxLength: number = 500): string {
-    // Remove markdown formatting
+function prepareTextForVoice(text: string, maxLength: number = 400): string {
     let cleaned = text
-        .replace(/#{1,6}\s/g, '')           // Headers
-        .replace(/\*\*([^*]+)\*\*/g, '$1')  // Bold
-        .replace(/\*([^*]+)\*/g, '$1')      // Italic
-        .replace(/`([^`]+)`/g, '$1')        // Inline code
-        .replace(/```[\s\S]*?```/g, '')     // Code blocks
-        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')  // Links
-        .replace(/\n{2,}/g, '. ')           // Multiple newlines → pause
-        .replace(/\n/g, ' ')                // Single newlines → space
-        .replace(/[-•]/g, ',')              // Bullets → comma for pause
+        // Remove markdown formatting
+        .replace(/#{1,6}\s/g, '')               // Headers
+        .replace(/\*\*([^*]+)\*\*/g, '$1')      // Bold **text**
+        .replace(/\*([^*]+)\*/g, '$1')          // Italic *text*
+        .replace(/__([^_]+)__/g, '$1')          // Bold __text__
+        .replace(/_([^_]+)_/g, '$1')            // Italic _text_
+        .replace(/`{3}[\s\S]*?`{3}/g, '')       // Code blocks ```code```
+        .replace(/`([^`]+)`/g, '$1')            // Inline code `code`
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Links [text](url)
+        .replace(/!\[[^\]]*\]\([^)]+\)/g, '')   // Images ![alt](url)
+
+        // Remove special symbols that TTS reads literally
+        .replace(/[*+•→←↑↓◆◇○●■□▪▫]/g, '')     // Bullets and arrows
+        .replace(/[🔥💡✅❌⭐🎯📌🚀💻📚🎓]/g, '')  // Common emojis
+        .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // Emoticons
+        .replace(/[\u{1F300}-\u{1F5FF}]/gu, '') // Misc symbols
+        .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // Transport symbols
+        .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Misc symbols
+        .replace(/[\u{2700}-\u{27BF}]/gu, '')   // Dingbats
+
+        // Clean up structure
+        .replace(/\n{2,}/g, '. ')               // Multiple newlines → pause
+        .replace(/\n/g, ' ')                    // Single newlines → space
+        .replace(/[-–—]/g, ', ')                // Dashes → comma pause
+        .replace(/[:;]/g, ', ')                 // Colons/semicolons → comma
+        .replace(/\s{2,}/g, ' ')                // Multiple spaces → single
+        .replace(/\(\)/g, '')                   // Empty parentheses
+        .replace(/\[\]/g, '')                   // Empty brackets
         .trim();
 
-    // Truncate if too long
+    // Truncate if too long (shorter for voice)
     if (cleaned.length > maxLength) {
-        // Try to cut at sentence boundary
         const truncated = cleaned.slice(0, maxLength);
         const lastSentence = truncated.lastIndexOf('.');
-        if (lastSentence > maxLength * 0.7) {
+        if (lastSentence > maxLength * 0.6) {
             cleaned = truncated.slice(0, lastSentence + 1);
         } else {
-            cleaned = truncated + '...';
+            cleaned = truncated.trim();
         }
     }
 
