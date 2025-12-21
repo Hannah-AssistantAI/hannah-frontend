@@ -1,59 +1,54 @@
 /**
  * FPT.AI Text-to-Speech Service
- * High-quality Vietnamese voice synthesis
- * 
- * API: https://api.fpt.ai/hmi/tts/v5
- * Voice: banmai (female) - ONLY voice used for Hannah
+ * Uses backend proxy to bypass CORS issues
  */
 
-// FPT.AI API Key
-const FPT_API_KEY = '6zUn1noE8WJPxhm8AE7qrZwI6aFTBVLX';
-const FPT_TTS_ENDPOINT = 'https://api.fpt.ai/hmi/tts/v5';
-
-export interface FptTtsResponse {
-    async: string;  // Async URL to the audio file
-    error?: number;
-    message?: string;
-}
+// Backend proxy URL
+const TTS_PROXY_URL = import.meta.env.VITE_PYTHON_API_URL || 'https://hannahai.online';
 
 /**
- * Convert text to speech using FPT.AI
- * Returns audio URL that can be played
+ * Convert text to speech using FPT.AI via backend proxy
+ * Returns proxied audio URL that can be played without CORS issues
  */
 export async function fptTextToSpeech(text: string): Promise<string | null> {
     try {
-        console.log('[FPT.AI TTS] Converting:', text.slice(0, 50) + '...');
+        console.log('[FPT.AI TTS] Converting via proxy:', text.slice(0, 50) + '...');
 
-        const response = await fetch(FPT_TTS_ENDPOINT, {
+        // Get auth token
+        const token = localStorage.getItem('access_token');
+
+        const response = await fetch(`${TTS_PROXY_URL}/api/v1/tts/synthesize`, {
             method: 'POST',
             headers: {
-                'api-key': FPT_API_KEY,
                 'Content-Type': 'application/json',
-                'voice': 'banmai',  // Female voice - ONLY option
-                'speed': '0',
+                'Authorization': token ? `Bearer ${token}` : '',
             },
-            body: text,
+            body: JSON.stringify({
+                text: text,
+                voice: 'banmai'
+            }),
         });
 
         if (!response.ok) {
-            console.error('[FPT.AI TTS] API error:', response.status);
+            console.error('[FPT.AI TTS] Proxy API error:', response.status);
             return null;
         }
 
-        const data: FptTtsResponse = await response.json();
+        const data = await response.json();
+        const audioUrl = data.audio_url;
 
-        if (data.error) {
-            console.error('[FPT.AI TTS] Error:', data.message);
+        if (!audioUrl) {
+            console.error('[FPT.AI TTS] No audio URL returned');
             return null;
         }
 
-        console.log('[FPT.AI TTS] Async URL:', data.async);
+        console.log('[FPT.AI TTS] Original URL:', audioUrl);
 
-        // Wait for FPT.AI to process audio
-        // FPT.AI needs time to generate the audio file
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Return proxied URL to avoid CORS
+        const proxiedUrl = `${TTS_PROXY_URL}/api/v1/tts/proxy?url=${encodeURIComponent(audioUrl)}`;
+        console.log('[FPT.AI TTS] Proxied URL:', proxiedUrl);
 
-        return data.async;
+        return proxiedUrl;
     } catch (error) {
         console.error('[FPT.AI TTS] Error:', error);
         return null;
@@ -62,7 +57,6 @@ export async function fptTextToSpeech(text: string): Promise<string | null> {
 
 /**
  * Play audio from URL
- * NOTE: Do NOT set crossOrigin as FPT.AI doesn't support CORS headers
  */
 export function playAudioFromUrl(
     url: string,
@@ -70,9 +64,6 @@ export function playAudioFromUrl(
     onError?: (error: Error) => void
 ): HTMLAudioElement {
     const audio = new Audio();
-
-    // DO NOT set crossOrigin - FPT.AI doesn't support CORS
-    // audio.crossOrigin = 'anonymous'; // REMOVED - causes CORS error
 
     audio.onended = () => {
         console.log('[FPT.AI TTS] Audio playback ended');
@@ -84,13 +75,36 @@ export function playAudioFromUrl(
         onError?.(new Error('Audio playback failed'));
     };
 
-    // Set src and play
-    audio.src = url;
-
-    audio.play().catch(err => {
-        console.error('[FPT.AI TTS] Failed to play:', err);
-        onError?.(err);
-    });
+    // Add auth header for proxied requests
+    const token = localStorage.getItem('access_token');
+    if (token && url.includes('/api/v1/tts/proxy')) {
+        // For proxied URLs, we need to use fetch + blob approach
+        fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+            .then(response => response.blob())
+            .then(blob => {
+                const blobUrl = URL.createObjectURL(blob);
+                audio.src = blobUrl;
+                audio.play().catch(err => {
+                    console.error('[FPT.AI TTS] Failed to play:', err);
+                    onError?.(err);
+                });
+            })
+            .catch(err => {
+                console.error('[FPT.AI TTS] Failed to fetch audio:', err);
+                onError?.(err);
+            });
+    } else {
+        // Direct URL
+        audio.src = url;
+        audio.play().catch(err => {
+            console.error('[FPT.AI TTS] Failed to play:', err);
+            onError?.(err);
+        });
+    }
 
     return audio;
 }
