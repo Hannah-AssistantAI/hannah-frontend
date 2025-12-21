@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { VOICE_CONFIG } from '../config/voiceConfig';
+import { fptTextToSpeech, playAudioFromUrl } from '../service/fptTtsService';
 
 interface TextToSpeechResult {
     speak: (text: string) => void;
@@ -29,7 +30,7 @@ function prepareTextForVoice(text: string, maxLength: number = 400): string {
 
         // Remove special symbols that TTS reads literally
         .replace(/[*+•→←↑↓◆◇○●■□▪▫]/g, '')     // Bullets and arrows
-        .replace(/[🔥💡✅❌⭐🎯📌🚀💻📚🎓]/g, '')  // Common emojis
+        .replace(/[🔥💡✅❌⭐🎯📌🚀💻📚🎓🎤]/g, '')  // Common emojis
         .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // Emoticons
         .replace(/[\u{1F300}-\u{1F5FF}]/gu, '') // Misc symbols
         .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // Transport symbols
@@ -60,81 +61,104 @@ function prepareTextForVoice(text: string, maxLength: number = 400): string {
     return cleaned;
 }
 
+/**
+ * Detect if text is English or Vietnamese
+ */
+function detectLanguage(text: string): 'en' | 'vi' {
+    // Check first 100 chars for pattern matching
+    const sample = text.slice(0, 100);
+
+    // English indicators
+    const isEnglish = /^[a-zA-Z\s\d.,!?'"-]+$/.test(sample) ||
+        /^(Hi|Hello|I'm|I am|How|What|Why|Yes|No|Thank|The|This|That|It|Is)/i.test(sample);
+
+    return isEnglish ? 'en' : 'vi';
+}
+
 export function useTextToSpeech(): TextToSpeechResult {
     const [isSpeaking, setIsSpeaking] = useState(false);
-    const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    const speak = useCallback((text: string) => {
+    const speak = useCallback(async (text: string) => {
         // Cancel any ongoing speech
         window.speechSynthesis.cancel();
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current = null;
+        }
 
         // Prepare text for voice (truncate + clean markdown)
         const voiceText = prepareTextForVoice(text);
+        const language = detectLanguage(voiceText);
 
-        // Detect language - if mostly ASCII letters, it's likely English
-        const isEnglish = /^[a-zA-Z\s\d.,!?'"-]+$/.test(voiceText.slice(0, 100)) ||
-            voiceText.match(/^(Hi|Hello|I'm|I am|How|What|Why|Yes|No|Thank)/i);
+        console.log(`[TTS] Language detected: ${language}, text: "${voiceText.slice(0, 50)}..."`);
 
-        const utterance = new SpeechSynthesisUtterance(voiceText);
-        utterance.lang = isEnglish ? 'en-US' : 'vi-VN';
+        if (language === 'vi') {
+            // 🆕 Use FPT.AI for Vietnamese (high quality)
+            console.log('[TTS] Using FPT.AI for Vietnamese');
+            setIsSpeaking(true);
 
-        // 🆕 Optimized settings for clearer Vietnamese
-        if (isEnglish) {
+            try {
+                const audioUrl = await fptTextToSpeech(voiceText, { voice: 'banmai' });
+
+                if (audioUrl) {
+                    audioRef.current = playAudioFromUrl(
+                        audioUrl,
+                        () => setIsSpeaking(false),  // onEnd
+                        () => {
+                            // onError - fallback to browser TTS
+                            console.log('[TTS] FPT.AI failed, fallback to browser');
+                            speakWithBrowserTTS(voiceText, 'vi-VN');
+                        }
+                    );
+                } else {
+                    // Fallback to browser TTS if FPT.AI fails
+                    console.log('[TTS] FPT.AI returned null, fallback to browser');
+                    speakWithBrowserTTS(voiceText, 'vi-VN');
+                }
+            } catch (error) {
+                console.error('[TTS] FPT.AI error:', error);
+                speakWithBrowserTTS(voiceText, 'vi-VN');
+            }
+        } else {
+            // Use browser TTS for English (already good quality)
+            speakWithBrowserTTS(voiceText, 'en-US');
+        }
+    }, []);
+
+    const speakWithBrowserTTS = (text: string, lang: string) => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+
+        if (lang === 'en-US') {
             utterance.rate = VOICE_CONFIG.TTS.RATE;
             utterance.pitch = VOICE_CONFIG.TTS.PITCH;
         } else {
-            // Vietnamese: slower rate, higher pitch for clarity
-            utterance.rate = 0.85;   // Slower = clearer pronunciation
-            utterance.pitch = 1.15;  // Slightly higher = more natural
+            utterance.rate = 0.85;
+            utterance.pitch = 1.15;
         }
         utterance.volume = VOICE_CONFIG.TTS.VOLUME;
 
-        // Try to find appropriate voice
+        // Find appropriate voice
         const voices = window.speechSynthesis.getVoices();
-
-        if (isEnglish) {
-            // Find English voice (preferably US)
-            const englishVoice = voices.find(
-                (voice) => voice.lang.includes('en-US')
-            ) || voices.find(
-                (voice) => voice.lang.includes('en')
-            );
-            if (englishVoice) {
-                utterance.voice = englishVoice;
-            }
-            console.log('[TTS] English voice, rate:', utterance.rate);
-        } else {
-            // Find Vietnamese voice - prefer Google or "natural" voices
-            const vietnameseVoice = voices.find(
-                (voice) => voice.lang.includes('vi') && voice.name.includes('Google')
-            ) || voices.find(
-                (voice) => voice.lang.includes('vi') || voice.lang.includes('VI')
-            );
-            if (vietnameseVoice) {
-                utterance.voice = vietnameseVoice;
-                console.log('[TTS] Vietnamese voice:', vietnameseVoice.name);
-            }
+        const matchingVoice = voices.find(v => v.lang.includes(lang.split('-')[0]));
+        if (matchingVoice) {
+            utterance.voice = matchingVoice;
         }
 
-        utterance.onstart = () => {
-            setIsSpeaking(true);
-        };
+        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onend = () => setIsSpeaking(false);
+        utterance.onerror = () => setIsSpeaking(false);
 
-        utterance.onend = () => {
-            setIsSpeaking(false);
-        };
-
-        utterance.onerror = (event) => {
-            console.error('Speech synthesis error:', event);
-            setIsSpeaking(false);
-        };
-
-        utteranceRef.current = utterance;
         window.speechSynthesis.speak(utterance);
-    }, []);
+    };
 
     const stop = useCallback(() => {
         window.speechSynthesis.cancel();
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current = null;
+        }
         setIsSpeaking(false);
     }, []);
 
