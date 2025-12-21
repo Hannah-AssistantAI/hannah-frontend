@@ -21,6 +21,16 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
     const { transcript, isListening, startListening, stopListening, error } = useSpeechRecognition();
     const { speak, isSpeaking, stop: stopSpeaking } = useTextToSpeech();
 
+    // 🆕 CRITICAL: Stop all audio when Voice Mode closes
+    useEffect(() => {
+        if (!isOpen) {
+            // Force stop all audio immediately when modal closes
+            stopSpeaking();
+            stopListening();
+            window.speechSynthesis.cancel(); // Extra safety: cancel browser TTS directly
+        }
+    }, [isOpen, stopSpeaking, stopListening]);
+
     // Handle transcript updates
     useEffect(() => {
         if (transcript) {
