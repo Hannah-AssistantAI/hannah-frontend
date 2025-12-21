@@ -49,20 +49,9 @@ export async function fptTextToSpeech(text: string): Promise<string | null> {
 
         console.log('[FPT.AI TTS] Async URL:', data.async);
 
-        // Wait for FPT.AI to process audio (increased from 1.5s to 2.5s)
-        await new Promise(resolve => setTimeout(resolve, 2500));
-
-        // Verify the URL is accessible before returning
-        try {
-            const headCheck = await fetch(data.async, { method: 'HEAD' });
-            if (!headCheck.ok) {
-                console.warn('[FPT.AI TTS] Audio file not ready, waiting more...');
-                await new Promise(resolve => setTimeout(resolve, 1500));
-            }
-        } catch {
-            // HEAD check failed, still try to use the URL
-            console.warn('[FPT.AI TTS] HEAD check failed, proceeding anyway');
-        }
+        // Wait for FPT.AI to process audio
+        // FPT.AI needs time to generate the audio file
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         return data.async;
     } catch (error) {
@@ -72,7 +61,8 @@ export async function fptTextToSpeech(text: string): Promise<string | null> {
 }
 
 /**
- * Play audio from URL with better error handling
+ * Play audio from URL
+ * NOTE: Do NOT set crossOrigin as FPT.AI doesn't support CORS headers
  */
 export function playAudioFromUrl(
     url: string,
@@ -81,8 +71,8 @@ export function playAudioFromUrl(
 ): HTMLAudioElement {
     const audio = new Audio();
 
-    // Set crossOrigin to handle CORS
-    audio.crossOrigin = 'anonymous';
+    // DO NOT set crossOrigin - FPT.AI doesn't support CORS
+    // audio.crossOrigin = 'anonymous'; // REMOVED - causes CORS error
 
     audio.onended = () => {
         console.log('[FPT.AI TTS] Audio playback ended');
@@ -94,9 +84,8 @@ export function playAudioFromUrl(
         onError?.(new Error('Audio playback failed'));
     };
 
-    // Use load() before play() for better compatibility
+    // Set src and play
     audio.src = url;
-    audio.load();
 
     audio.play().catch(err => {
         console.error('[FPT.AI TTS] Failed to play:', err);
