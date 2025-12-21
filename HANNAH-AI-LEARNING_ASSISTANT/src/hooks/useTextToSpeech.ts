@@ -142,8 +142,7 @@ export function useTextToSpeech(): TextToSpeechResult {
 
         console.log(`[TTS] Language: ${language}, text: "${voiceText.slice(0, 50)}..."`);
 
-        // 🆕 Set isSpeaking TRUE immediately for avatar lip-sync
-        setIsSpeaking(true);
+        // 🆕 DON'T set isSpeaking here - wait until audio actually plays
 
         if (language === 'vi') {
             // Try FPT.AI for Vietnamese (better voice quality)
@@ -164,6 +163,11 @@ export function useTextToSpeech(): TextToSpeechResult {
                             console.error('[TTS] FPT.AI playback failed:', error);
                             // Fallback to browser TTS
                             speakWithBrowserTTS(voiceText, 'vi-VN');
+                        },
+                        () => {
+                            // 🆕 onPlay callback - audio actually started!
+                            console.log('[TTS] FPT.AI audio started playing');
+                            setIsSpeaking(true);
                         }
                     );
                 } else {

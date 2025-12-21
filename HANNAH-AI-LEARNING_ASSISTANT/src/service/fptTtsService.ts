@@ -94,7 +94,8 @@ export async function fptTextToSpeech(text: string): Promise<string | null> {
 export function playAudioFromUrl(
     url: string,
     onEnd?: () => void,
-    onError?: (error: Error) => void
+    onError?: (error: Error) => void,
+    onPlay?: () => void  // 🆕 Callback when audio actually starts
 ): HTMLAudioElement {
     const audio = new Audio();
 
@@ -106,6 +107,12 @@ export function playAudioFromUrl(
     audio.onerror = (e) => {
         console.error('[FPT.AI TTS] Audio error:', e);
         onError?.(new Error('Audio playback failed'));
+    };
+
+    // 🆕 onplay event - audio actually started!
+    audio.onplay = () => {
+        console.log('[FPT.AI TTS] Audio started');
+        onPlay?.();
     };
 
     const token = localStorage.getItem('access_token');
