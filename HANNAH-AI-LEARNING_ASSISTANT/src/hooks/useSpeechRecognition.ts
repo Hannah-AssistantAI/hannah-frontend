@@ -21,8 +21,9 @@ export function useSpeechRecognition(): SpeechRecognitionResult {
     const [isListening, setIsListening] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const recognitionRef = useRef<any>(null);
-    // 🆕 Use ref to track actual listening state (avoids stale closure issues)
     const isListeningRef = useRef(false);
+    // 🆕 Accumulate all final transcripts across multiple speech segments
+    const accumulatedTranscriptRef = useRef('');
 
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -39,30 +40,38 @@ export function useSpeechRecognition(): SpeechRecognitionResult {
         recognition.maxAlternatives = 1;
 
         recognition.onresult = (event: any) => {
-            let finalTranscript = '';
+            let newFinalTranscript = '';
             let interimTranscript = '';
 
+            // 🆕 Only process new results from resultIndex onwards
             for (let i = event.resultIndex; i < event.results.length; i++) {
                 const result = event.results[i];
                 if (result.isFinal) {
-                    finalTranscript += result[0].transcript;
+                    newFinalTranscript += result[0].transcript;
                 } else {
                     interimTranscript += result[0].transcript;
                 }
             }
 
-            setTranscript(finalTranscript || interimTranscript);
+            // 🆕 Accumulate final transcripts (don't reset on pauses)
+            if (newFinalTranscript) {
+                accumulatedTranscriptRef.current += ' ' + newFinalTranscript;
+                accumulatedTranscriptRef.current = accumulatedTranscriptRef.current.trim();
+            }
+
+            // 🆕 Display accumulated + current interim
+            const displayText = accumulatedTranscriptRef.current +
+                (interimTranscript ? ' ' + interimTranscript : '');
+            setTranscript(displayText.trim());
         };
 
         recognition.onerror = (event: any) => {
             console.error('Speech recognition error:', event.error);
-            // Don't show error for no-speech - just let user try again
             if (event.error === 'no-speech') {
                 console.log('No speech detected - waiting for user to speak');
                 return;
             }
             if (event.error === 'aborted') {
-                // User cancelled, not an error
                 return;
             }
             setError(`Lỗi nhận diện giọng nói: ${event.error}`);
@@ -89,8 +98,9 @@ export function useSpeechRecognition(): SpeechRecognitionResult {
     }, []);
 
     const startListening = useCallback(() => {
-        // 🆕 Check ref instead of state to avoid stale closure
         if (recognitionRef.current && !isListeningRef.current) {
+            // 🆕 Reset accumulated transcript when starting fresh
+            accumulatedTranscriptRef.current = '';
             setTranscript('');
             setError(null);
             try {
@@ -98,7 +108,6 @@ export function useSpeechRecognition(): SpeechRecognitionResult {
                 setIsListening(true);
                 isListeningRef.current = true;
             } catch (err: any) {
-                // 🆕 Handle "already started" error gracefully
                 if (err.name === 'InvalidStateError') {
                     console.log('Recognition already running, ignoring start request');
                 } else {
@@ -106,10 +115,9 @@ export function useSpeechRecognition(): SpeechRecognitionResult {
                 }
             }
         }
-    }, []); // 🆕 No dependencies - uses refs
+    }, []);
 
     const stopListening = useCallback(() => {
-        // 🆕 Check ref instead of state
         if (recognitionRef.current && isListeningRef.current) {
             try {
                 recognitionRef.current.stop();
@@ -119,7 +127,7 @@ export function useSpeechRecognition(): SpeechRecognitionResult {
             setIsListening(false);
             isListeningRef.current = false;
         }
-    }, []); // 🆕 No dependencies - uses refs
+    }, []);
 
     return {
         transcript,
