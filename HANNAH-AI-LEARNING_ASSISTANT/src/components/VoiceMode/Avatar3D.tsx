@@ -25,8 +25,8 @@ export function Avatar3D({
     const group = useRef<THREE.Group>(null);
     const [animation, setAnimation] = useState('Idle');
 
-    // Load 3D model
-    const { nodes, materials } = useGLTF('/models/646d9dcdc8a5f5bddbfac913.glb') as any;
+    // Load 3D model - HANNAH female avatar
+    const { nodes, materials } = useGLTF('/models/hannah.glb') as any;
 
     // Load animations
     const { animations: idleAnimation } = useFBX('/animations/Idle.fbx');
