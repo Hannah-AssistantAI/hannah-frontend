@@ -5,7 +5,7 @@ import { Experience } from './Experience';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
 import { chatService } from '../../service/chatService';
-import type { VoiceStatus } from './types';
+import { VOICE_CONFIG, type VoiceStatus } from '../../config/voiceConfig';
 import './VoiceModeOverlay.css';
 
 interface VoiceModeOverlayProps {
@@ -79,8 +79,8 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
             const timer = setTimeout(() => {
                 console.log('[VoiceMode] Auto-sending after silence...');
                 stopListening();
-                setTimeout(() => handleSendVoiceMessage(), 300);
-            }, 2000); // 2 seconds of silence
+                setTimeout(() => handleSendVoiceMessage(), VOICE_CONFIG.SPEECH.PROCESSING_DELAY_MS);
+            }, VOICE_CONFIG.SPEECH.SILENCE_TIMEOUT_MS);
             return () => clearTimeout(timer);
         }
     }, [transcript, isListening, stopListening, handleSendVoiceMessage]);
