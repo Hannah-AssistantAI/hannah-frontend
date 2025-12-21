@@ -33,8 +33,8 @@ export const VOICE_CONFIG = {
 
     // 3D Avatar
     AVATAR: {
-        /** Path to 3D model */
-        MODEL_PATH: '/models/646d9dcdc8a5f5bddbfac913.glb',
+        /** Path to 3D model - Female Hannah avatar */
+        MODEL_PATH: '/models/hannah-female.glb',
         /** Animation paths */
         ANIMATIONS: {
             IDLE: '/animations/Idle.fbx',

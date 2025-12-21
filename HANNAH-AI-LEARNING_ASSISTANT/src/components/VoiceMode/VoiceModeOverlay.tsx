@@ -110,6 +110,15 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
         setStatus('idle');
     }, []);
 
+    // 🆕 Handle close - properly stop all audio before closing
+    const handleClose = useCallback(() => {
+        stopSpeaking();
+        stopListening();
+        setStatus('idle');
+        setIsAvatarSpeaking(false);
+        onClose();
+    }, [stopSpeaking, stopListening, onClose]);
+
     // Get status text
     const getStatusText = () => {
         switch (status) {
@@ -142,7 +151,7 @@ export function VoiceModeOverlay({ isOpen, onClose }: VoiceModeOverlayProps) {
             </div>
 
             {/* Close button */}
-            <button className="voice-mode-close-btn" onClick={onClose}>
+            <button className="voice-mode-close-btn" onClick={handleClose}>
                 <X size={24} />
             </button>
 

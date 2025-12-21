@@ -36,7 +36,7 @@ export function useSpeechRecognition(): SpeechRecognitionResult {
         const recognition = new SpeechRecognition();
         recognition.continuous = true; // Keep listening until manually stopped
         recognition.interimResults = true;
-        recognition.lang = 'vi-VN'; // Vietnamese language
+        recognition.lang = navigator.language || 'en-US'; // Auto-detect browser language (supports EN & VI)
         recognition.maxAlternatives = 1;
 
         recognition.onresult = (event: any) => {

@@ -144,15 +144,26 @@ export function useTextToSpeech(): TextToSpeechResult {
 
         // For English: prefer female voices
         if (lang === 'en-US') {
+            // 🆕 Enhanced female voice detection for Hannah
+            const femaleVoiceKeywords = [
+                'female',
+                'samantha',  // macOS US
+                'karen',     // macOS AU
+                'victoria',  // macOS UK
+                'fiona',     // macOS Scottish
+                'moira',     // macOS Irish
+                'tessa',     // macOS South African
+                'zira',      // Windows US
+                'hazel',     // Windows UK
+                'susan',     // Windows UK
+                'heera',     // Windows India
+                'jenny',     // Edge/Azure
+            ];
+
             const femaleVoice = voices.find(v =>
                 v.lang.includes('en') &&
-                (v.name.toLowerCase().includes('female') ||
-                    v.name.toLowerCase().includes('samantha') ||  // macOS
-                    v.name.toLowerCase().includes('karen') ||     // macOS
-                    v.name.toLowerCase().includes('victoria') ||  // macOS
-                    v.name.toLowerCase().includes('zira') ||      // Windows
-                    v.name.toLowerCase().includes('hazel'))       // Windows
-            ) || voices.find(v => v.lang.includes('en'));
+                femaleVoiceKeywords.some(kw => v.name.toLowerCase().includes(kw))
+            ) || voices.find(v => v.lang.startsWith('en-'));
 
             if (femaleVoice) {
                 utterance.voice = femaleVoice;

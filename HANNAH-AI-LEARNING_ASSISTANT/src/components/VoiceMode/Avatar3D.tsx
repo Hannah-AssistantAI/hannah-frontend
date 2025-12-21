@@ -2,6 +2,7 @@ import { useAnimations, useFBX, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { VOICE_CONFIG } from '../../config/voiceConfig';
 import { VISEME_MAP, type LipSyncData } from './types';
 
 interface Avatar3DProps {
@@ -25,9 +26,8 @@ export function Avatar3D({
     const group = useRef<THREE.Group>(null);
     const [animation, setAnimation] = useState('Idle');
 
-    // Load 3D model - using original Wolf3D avatar (compatible with component structure)
-    // TODO: Need custom Wolf3D female avatar created via ReadyPlayerMe with exact same node structure
-    const { nodes, materials } = useGLTF('/models/646d9dcdc8a5f5bddbfac913.glb') as any;
+    // Load 3D model - Female Hannah avatar
+    const { nodes, materials } = useGLTF(VOICE_CONFIG.AVATAR.MODEL_PATH) as any;
 
     // Load animations
     const { animations: idleAnimation } = useFBX('/animations/Idle.fbx');
@@ -228,4 +228,4 @@ export function Avatar3D({
     );
 }
 
-useGLTF.preload('/models/646d9dcdc8a5f5bddbfac913.glb');
+useGLTF.preload('/models/hannah-female.glb');
