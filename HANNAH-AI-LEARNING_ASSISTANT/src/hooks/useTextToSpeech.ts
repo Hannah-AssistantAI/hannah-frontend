@@ -146,35 +146,12 @@ export function useTextToSpeech(): TextToSpeechResult {
         setIsSpeaking(true);
 
         if (language === 'vi') {
-            console.log('[TTS] Using FPT.AI for Vietnamese');
-
-            try {
-                const audioUrl = await fptTextToSpeech(voiceText);
-
-                if (audioUrl) {
-                    console.log('[TTS] FPT.AI audio URL ready, playing...');
-                    audioRef.current = playAudioFromUrl(
-                        audioUrl,
-                        () => {
-                            console.log('[TTS] FPT.AI audio ended');
-                            setIsSpeaking(false);
-                        },
-                        (error) => {
-                            console.error('[TTS] FPT.AI playback failed:', error);
-                            // Fallback to browser TTS (will manage its own state)
-                            speakWithBrowserTTS(voiceText, 'vi-VN');
-                        }
-                    );
-                } else {
-                    console.log('[TTS] FPT.AI returned null, using browser TTS');
-                    speakWithBrowserTTS(voiceText, 'vi-VN');
-                }
-            } catch (error) {
-                console.error('[TTS] FPT.AI error:', error);
-                speakWithBrowserTTS(voiceText, 'vi-VN');
-            }
+            // Use browser TTS for Vietnamese (FPT.AI proxy is unreliable)
+            console.log('[TTS] Using browser TTS for Vietnamese');
+            speakWithBrowserTTS(voiceText, 'vi-VN');
         } else {
             // English - use browser TTS
+            console.log('[TTS] Using browser TTS for English');
             speakWithBrowserTTS(voiceText, 'en-US');
         }
     }, [speakWithBrowserTTS]);
