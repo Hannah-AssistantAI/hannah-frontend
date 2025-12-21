@@ -1,17 +1,12 @@
 import { Environment, OrbitControls } from '@react-three/drei';
 import { Avatar3D } from './Avatar3D';
-import type { LipSyncData } from './types';
 
 interface ExperienceProps {
-    audioUrl?: string;
-    lipSyncData?: LipSyncData;
     isPlaying?: boolean;
     onAudioEnd?: () => void;
 }
 
 export function Experience({
-    audioUrl,
-    lipSyncData,
     isPlaying,
     onAudioEnd,
 }: ExperienceProps) {
@@ -26,8 +21,6 @@ export function Experience({
             <Avatar3D
                 position={[0, -3, 5]}
                 scale={2}
-                audioUrl={audioUrl}
-                lipSyncData={lipSyncData}
                 isPlaying={isPlaying}
                 onAudioEnd={onAudioEnd}
             />
