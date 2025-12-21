@@ -139,11 +139,30 @@ export function useTextToSpeech(): TextToSpeechResult {
         }
         utterance.volume = VOICE_CONFIG.TTS.VOLUME;
 
-        // Find appropriate voice
+        // Find appropriate voice - prefer FEMALE for Hannah
         const voices = window.speechSynthesis.getVoices();
-        const matchingVoice = voices.find(v => v.lang.includes(lang.split('-')[0]));
-        if (matchingVoice) {
-            utterance.voice = matchingVoice;
+
+        // For English: prefer female voices
+        if (lang === 'en-US') {
+            const femaleVoice = voices.find(v =>
+                v.lang.includes('en') &&
+                (v.name.toLowerCase().includes('female') ||
+                    v.name.toLowerCase().includes('samantha') ||  // macOS
+                    v.name.toLowerCase().includes('karen') ||     // macOS
+                    v.name.toLowerCase().includes('victoria') ||  // macOS
+                    v.name.toLowerCase().includes('zira') ||      // Windows
+                    v.name.toLowerCase().includes('hazel'))       // Windows
+            ) || voices.find(v => v.lang.includes('en'));
+
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+                console.log('[TTS] Using female English voice:', femaleVoice.name);
+            }
+        } else {
+            const matchingVoice = voices.find(v => v.lang.includes(lang.split('-')[0]));
+            if (matchingVoice) {
+                utterance.voice = matchingVoice;
+            }
         }
 
         utterance.onstart = () => setIsSpeaking(true);
