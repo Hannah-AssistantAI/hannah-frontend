@@ -1,6 +1,6 @@
 import { useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { VOICE_CONFIG } from '../../config/voiceConfig';
 
@@ -44,7 +44,28 @@ export function Avatar3D({
     const { nodes, materials, scene } = useGLTF(VOICE_CONFIG.AVATAR.MODEL_PATH) as any;
 
     // Load animations bundle
-    const { animations } = useGLTF('/models/animations.glb');
+    const { animations: rawAnimations } = useGLTF('/models/animations.glb');
+
+    // 🆕 Filter animation tracks to only include bones that exist in our model
+    // This prevents console warnings about missing target nodes
+    const animations = useMemo(() => {
+        if (!rawAnimations || !scene) return rawAnimations;
+
+        // Get all bone names from the model
+        const boneNames = new Set<string>();
+        scene.traverse((node: any) => {
+            if (node.name) boneNames.add(node.name);
+        });
+
+        // Filter each animation's tracks
+        return rawAnimations.map((clip: any) => {
+            const filteredTracks = clip.tracks.filter((track: any) => {
+                const boneName = track.name.split('.')[0];
+                return boneNames.has(boneName);
+            });
+            return new THREE.AnimationClip(clip.name, clip.duration, filteredTracks);
+        });
+    }, [rawAnimations, scene]);
 
     // Setup animations
     const { actions } = useAnimations(animations, group);
