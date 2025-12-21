@@ -25,8 +25,8 @@ export function Avatar3D({
     const group = useRef<THREE.Group>(null);
     const [animation, setAnimation] = useState('Idle');
 
-    // Load 3D model - using Wolf3D avatar (Mixamo model has different structure)
-    const { nodes, materials } = useGLTF('/models/646d9dcdc8a5f5bddbfac913.glb') as any;
+    // Load 3D model - Hannah female avatar (Wolf3D format with visemes)
+    const { nodes, materials } = useGLTF('/models/hannah-female.glb') as any;
 
     // Load animations
     const { animations: idleAnimation } = useFBX('/animations/Idle.fbx');
@@ -227,4 +227,4 @@ export function Avatar3D({
     );
 }
 
-useGLTF.preload('/models/646d9dcdc8a5f5bddbfac913.glb');
+useGLTF.preload('/models/hannah-female.glb');
