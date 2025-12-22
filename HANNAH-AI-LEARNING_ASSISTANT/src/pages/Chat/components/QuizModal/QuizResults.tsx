@@ -1,4 +1,5 @@
 import './QuizResults.css';
+import { RefreshCw, Trophy, ThumbsUp, BookOpen, TrendingUp, Pin, CheckCircle, XCircle, Lightbulb } from 'lucide-react';
 
 interface QuizAnswer {
     questionId: number;
@@ -20,15 +21,29 @@ interface QuizResultsProps {
     };
     onRetry: () => void;
     onFlag?: () => void;
-    onViewHistory?: () => void;  // 🆕 View attempt history
 }
 
-export function QuizResults({ results, onRetry, onFlag, onViewHistory }: QuizResultsProps) {
+export function QuizResults({ results, onRetry, onFlag }: QuizResultsProps) {
     if (!results) return null;
 
     const getOptionLabel = (index: number) => String.fromCharCode(65 + index); // A, B, C, D...
 
     console.log('QuizResults data:', results); // Debug log
+
+    // Get score icon and message based on score
+    const getScoreInfo = () => {
+        if (results.score >= 80) {
+            return { icon: <Trophy size={20} className="score-icon" />, text: 'Xuất sắc!' };
+        } else if (results.score >= 60) {
+            return { icon: <ThumbsUp size={20} className="score-icon" />, text: 'Tốt!' };
+        } else if (results.score >= 40) {
+            return { icon: <BookOpen size={20} className="score-icon" />, text: 'Khá!' };
+        } else {
+            return { icon: <TrendingUp size={20} className="score-icon" />, text: 'Cần cố gắng thêm!' };
+        }
+    };
+
+    const scoreInfo = getScoreInfo();
 
     return (
         <div className="quiz-results-container">
@@ -37,9 +52,8 @@ export function QuizResults({ results, onRetry, onFlag, onViewHistory }: QuizRes
                     <span className="score-number">{results.score.toFixed(0)}%</span>
                 </div>
                 <h3 className="score-title">
-                    {results.score >= 80 ? 'Xuất sắc! 🎉' :
-                        results.score >= 60 ? 'Tốt! 👍' :
-                            results.score >= 40 ? 'Khá! 📚' : 'Cần cố gắng thêm! 💪'}
+                    {scoreInfo.icon}
+                    <span>{scoreInfo.text}</span>
                 </h3>
                 <p className="score-details">
                     {results.correctAnswers} / {results.totalQuestions} câu đúng
@@ -118,17 +132,17 @@ export function QuizResults({ results, onRetry, onFlag, onViewHistory }: QuizRes
                                             <div className="option-indicators">
                                                 {isSelected && (
                                                     <span className="indicator indicator-selected">
-                                                        📌 Bạn chọn
+                                                        <Pin size={12} /> Bạn chọn
                                                     </span>
                                                 )}
                                                 {isCorrect && (
                                                     <span className="indicator indicator-correct">
-                                                        ✓ Đáp án đúng
+                                                        <CheckCircle size={12} /> Đáp án đúng
                                                     </span>
                                                 )}
                                                 {isSelected && !isCorrect && (
                                                     <span className="indicator indicator-wrong">
-                                                        ✗ Sai
+                                                        <XCircle size={12} /> Sai
                                                     </span>
                                                 )}
                                             </div>
@@ -142,7 +156,7 @@ export function QuizResults({ results, onRetry, onFlag, onViewHistory }: QuizRes
                             {/* Explanation */}
                             <div className="result-explanation">
                                 <div className="explanation-header">
-                                    <span className="explanation-icon">💡</span>
+                                    <Lightbulb size={16} className="explanation-icon" />
                                     <strong>Giải thích:</strong>
                                 </div>
                                 <p className="explanation-text">{answer.explanation}</p>
@@ -156,28 +170,12 @@ export function QuizResults({ results, onRetry, onFlag, onViewHistory }: QuizRes
                 <button
                     className="quiz-retry-btn"
                     onClick={onRetry}
-                    style={{ marginRight: '10px' }}
                 >
-                    🔄 Làm lại
+                    <RefreshCw size={14} />
+                    Làm lại
                 </button>
-                {onViewHistory && (
-                    <button
-                        className="quiz-history-btn"
-                        onClick={onViewHistory}
-                        style={{
-                            padding: '10px 20px',
-                            background: '#f3f4f6',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: 500,
-                            color: '#4f46e5'
-                        }}
-                    >
-                        📋 Xem lịch sử
-                    </button>
-                )}
             </div>
         </div>
     );
 }
+

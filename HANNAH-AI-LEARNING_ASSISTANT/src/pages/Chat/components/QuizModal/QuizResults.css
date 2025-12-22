@@ -36,10 +36,18 @@
 }
 
 .score-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     font-size: 28px;
     font-weight: 600;
     margin: 0 0 10px 0;
     color: white;
+}
+
+.score-icon {
+    flex-shrink: 0;
 }
 
 .score-details {
@@ -165,11 +173,18 @@
 }
 
 .indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     padding: 4px 10px;
     border-radius: 12px;
     font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
+}
+
+.indicator svg {
+    flex-shrink: 0;
 }
 
 .indicator-selected {
@@ -255,6 +270,10 @@
 }
 
 .quiz-retry-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
     border: none;
@@ -265,6 +284,10 @@
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.quiz-retry-btn svg {
+    flex-shrink: 0;
 }
 
 .quiz-retry-btn:hover {
