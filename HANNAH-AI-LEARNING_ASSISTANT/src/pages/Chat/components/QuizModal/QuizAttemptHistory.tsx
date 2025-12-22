@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, Trophy, CheckCircle, XCircle, History, Eye } from 'lucide-react';
+import { Clock, Trophy, CheckCircle, XCircle, History, Eye, RefreshCw, Calendar } from 'lucide-react';
 import type { QuizAttemptSummary } from '../../../../service/studioService';
 import './QuizAttemptHistory.css';
 
@@ -46,17 +46,17 @@ export function QuizAttemptHistory({
             {/* Summary Header */}
             <div className="history-summary">
                 <div className="summary-stat">
-                    <History className="stat-icon" size={24} />
+                    <History className="stat-icon" size={24} style={{ color: '#ffffff' }} />
                     <div className="stat-info">
-                        <span className="stat-value">{totalAttempts}</span>
-                        <span className="stat-label">Lần làm</span>
+                        <span className="stat-value" style={{ color: '#fff', opacity: 1, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{totalAttempts}</span>
+                        <span className="quiz-stat-label">Lần làm</span>
                     </div>
                 </div>
                 <div className="summary-stat best-score">
                     <Trophy className="stat-icon trophy" size={24} />
                     <div className="stat-info">
-                        <span className="stat-value">{bestScore}%</span>
-                        <span className="stat-label">Điểm cao nhất</span>
+                        <span className="stat-value" style={{ color: '#fff', opacity: 1, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{bestScore}%</span>
+                        <span className="quiz-stat-label">Điểm cao nhất</span>
                     </div>
                 </div>
             </div>
@@ -100,12 +100,21 @@ export function QuizAttemptHistory({
                                 </div>
 
                                 <div className="attempt-meta">
-                                    <div className="meta-item">
-                                        <Clock size={14} />
-                                        <span>{formatTime(attempt.time_taken_seconds)}</span>
-                                    </div>
-                                    <div className="meta-item date">
-                                        <span>{formatDate(attempt.completed_at)}</span>
+                                    {attempt.time_taken_seconds ? (
+                                        <div className="meta-item time" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div className="meta-left" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <Clock size={14} />
+                                                <span className="meta-label">Thời gian làm bài</span>
+                                            </div>
+                                            <span className="meta-value">{formatTime(attempt.time_taken_seconds)}</span>
+                                        </div>
+                                    ) : null}
+                                    <div className="meta-item date" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div className="meta-left" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <Calendar size={14} />
+                                            <span className="meta-label">Hoàn thành lúc</span>
+                                        </div>
+                                        <span className="meta-value">{formatDate(attempt.completed_at)}</span>
                                     </div>
                                 </div>
 
@@ -124,7 +133,8 @@ export function QuizAttemptHistory({
             {/* Footer Actions */}
             <div className="history-footer">
                 <button className="retake-btn" onClick={onRetakeQuiz}>
-                    🔄 Làm lại quiz
+                    <RefreshCw size={14} />
+                    Làm lại quiz
                 </button>
                 <button className="close-btn" onClick={onClose}>
                     Đóng
