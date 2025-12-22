@@ -484,13 +484,6 @@
     cursor: not-allowed;
 }
 
-.quiz-side-modal-footer {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    padding: 0 16px 16px 16px;
-    background-color: white;
-}
 
 .quiz-side-feedback-btn {
     display: flex;
@@ -695,10 +688,6 @@
 [data-theme="dark"] .quiz-side-hint-btn:hover {
     background-color: #334155;
     color: #f1f5f9;
-}
-
-[data-theme="dark"] .quiz-side-modal-footer {
-    background-color: #1e293b;
 }
 
 [data-theme="dark"] .quiz-side-feedback-btn {

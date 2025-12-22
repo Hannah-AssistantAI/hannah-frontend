@@ -19,8 +19,8 @@ export function useQuiz() {
     const [attemptHistory, setAttemptHistory] = useState<MyQuizAttemptsResponse | null>(null);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
-
-    const loadQuiz = async (quizId: string) => {
+    // Returns true if quiz modal should be shown, false if history modal is shown instead
+    const loadQuiz = async (quizId: string): Promise<boolean> => {
         console.log('🔄 loadQuiz called with quizId:', quizId);
         try {
             const response = await studioService.getQuizContent(quizId);
@@ -29,81 +29,21 @@ export function useQuiz() {
             setSelectedQuizId(quizId);
             setCurrentHint(null); // Clear any previous hint
 
-            // Check if user has already completed this quiz
+            // Check if user has already completed this quiz - show history modal
             try {
-                const { default: quizApiService } = await import('../../../service/quizApi');
-                const attempts = await quizApiService.getQuizAttempts(Number(quizId));
-                console.log('📋 All quiz attempts:', attempts);
+                const history = await studioService.getMyQuizAttempts(Number(quizId));
+                console.log('📋 My quiz attempts:', history);
 
-                // Get current user ID from localStorage (stored as 'user_data')
-                const userData = localStorage.getItem('user_data');
-                const currentUserId = userData ? JSON.parse(userData).userId : null;
-                console.log('👤 Current user ID:', currentUserId);
+                // If user has any completed attempts, show history modal
+                const hasCompletedAttempts = history.attempts.some(a => a.is_completed);
 
-                // Find user's completed attempt
-                const userCompletedAttempt = attempts.find(
-                    a => a.userId === currentUserId && a.isCompleted
-                );
-                console.log('🎯 User completed attempt:', userCompletedAttempt);
-
-                if (userCompletedAttempt) {
-                    // Load the completed attempt details and show results
-                    console.log('✅ Found existing completed attempt:', userCompletedAttempt.attemptId);
-                    const attemptDetail = await quizApiService.getQuizAttemptDetail(
-                        Number(quizId),
-                        userCompletedAttempt.attemptId
-                    );
-
-                    // DEBUG: Log the attemptDetail to understand the data structure
-                    console.log('📊 Attempt Detail from API:', attemptDetail);
-                    console.log('📊 Score:', attemptDetail.score, 'MaxScore:', attemptDetail.maxScore, 'Percentage:', attemptDetail.percentage);
-
-                    // Convert attempt detail to quiz results format
-                    // Calculate correctAnswers from questions data
-                    const correctCount = attemptDetail.questions?.filter(q => q.isCorrect).length || 0;
-                    const totalCount = attemptDetail.totalQuestions || attemptDetail.questions?.length || 1;
-
-                    // Use percentage from API, or score if already percentage, or calculate from correctAnswers/totalQuestions
-                    let percentage = attemptDetail.percentage;
-                    if (percentage === undefined || percentage === null) {
-                        if (attemptDetail.score !== undefined && attemptDetail.score > 0) {
-                            // score from backend is already percentage (e.g., 13.33)
-                            percentage = attemptDetail.score;
-                        } else if (attemptDetail.maxScore > 0) {
-                            percentage = (attemptDetail.score / attemptDetail.maxScore) * 100;
-                        } else if (totalCount > 0) {
-                            // Ultimate fallback: calculate from correctCount/totalCount
-                            percentage = (correctCount / totalCount) * 100;
-                        } else {
-                            percentage = 0;
-                        }
-                    }
-
-                    console.log('📊 Quiz score calculation:', { correctCount, totalCount, percentage, attemptDetail });
-
-                    const results = {
-                        score: percentage,  // QuizResults expects score as percentage
-                        correctAnswers: correctCount,
-                        totalQuestions: totalCount,
-                        answers: attemptDetail.questions?.map(q => ({
-                            questionId: q.questionId,
-                            questionText: q.content,  // Match QuizResults expected field
-                            options: q.options,
-                            // Handle skipped questions (selectedOptionIndex = -1 or undefined)
-                            selectedAnswer: q.selectedOptionIndex >= 0 ? String.fromCharCode(65 + q.selectedOptionIndex) : '',
-                            correctAnswer: String.fromCharCode(65 + q.correctOptionIndex),
-                            isCorrect: q.isCorrect,
-                            explanation: q.explanation || ''
-                        })) || [],
-                        timeTaken: attemptDetail.timeTaken,
-                        attemptId: attemptDetail.attemptId
-                    };
-
-                    setQuizResults(results);
-                    setShowQuizResults(true);
-                    setCurrentQuestionIndex(0);
-                    setSelectedAnswers({});
-                    return;
+                if (hasCompletedAttempts) {
+                    console.log('✅ User has completed attempts, showing history modal');
+                    setAttemptHistory(history);
+                    setShowAttemptHistory(true);
+                    setShowQuizResults(false);
+                    setQuizResults(null);
+                    return false;  // Don't show quiz modal, show history instead
                 }
             } catch (attemptError) {
                 console.log('No existing attempt found or error checking:', attemptError);
@@ -115,8 +55,10 @@ export function useQuiz() {
             setShowQuizResults(false);
             setQuizResults(null);
             setQuizStartTime(new Date());
+            return true;  // Show quiz modal for fresh attempt
         } catch (error) {
             console.error('Failed to load quiz:', error);
+            return false;
         }
     };
 
@@ -256,7 +198,8 @@ export function useQuiz() {
             // Convert to quiz results format
             const correctCount = attemptDetail.questions?.filter((q: any) => q.isCorrect).length || 0;
             const totalCount = attemptDetail.totalQuestions || attemptDetail.questions?.length || 1;
-            const percentage = attemptDetail.score ?? (correctCount / totalCount) * 100;
+            // Calculate percentage from correctCount/totalCount for accuracy
+            const percentage = totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
 
             const results = {
                 score: percentage,

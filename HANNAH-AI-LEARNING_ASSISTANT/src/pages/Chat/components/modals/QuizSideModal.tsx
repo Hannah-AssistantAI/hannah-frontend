@@ -149,17 +149,6 @@ export const QuizSideModal: React.FC<QuizSideModalProps> = ({
                         </button>
                     )}
                 </div>
-
-                <div className="quiz-side-modal-footer">
-                    <button className="quiz-side-feedback-btn">
-                        <ThumbsUp size={18} />
-                        Hữu ích
-                    </button>
-                    <button className="quiz-side-feedback-btn">
-                        <ThumbsDown size={18} />
-                        Không phù hợp
-                    </button>
-                </div>
             </div>
         </div>
     )
