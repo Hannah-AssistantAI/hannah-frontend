@@ -167,13 +167,11 @@ export const buildAvatarUrl = (avatarPath: string | null | undefined): string =>
     return avatarPath;
   }
 
-  // If it starts with a slash, it's an absolute path from the server root
-  if (avatarPath.startsWith('/')) {
-    return `${API_BASE_URL}${avatarPath}`;
-  }
-
-  // Otherwise, assume it's a relative path and prepend the base URL
-  return `${API_BASE_URL}/${avatarPath}`;
+  // Extract filename from MinIO path (e.g., "avatars/abc123.png" -> "abc123.png")
+  const filename = avatarPath.includes('/') ? avatarPath.split('/').pop() : avatarPath;
+  
+  // Route through the Files API endpoint to serve from MinIO
+  return `${API_BASE_URL}/api/files/avatars/${filename}`;
 };
 
 /**
