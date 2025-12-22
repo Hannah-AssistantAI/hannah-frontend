@@ -183,28 +183,30 @@ export default function Chat() {
         setOpenMenuId(null)
     }
 
-    // 🆕 Handle View Quiz History from sidebar
-    const handleViewQuizHistory = async (itemId: string) => {
-        const numericId = itemId.replace('quiz-', '')
-        // Load quiz first to set selectedQuizId
-        await quiz.loadQuiz(numericId)
-        // Then load history
-        await quiz.loadAttemptHistory()
-        setOpenMenuId(null)
-    }
-
     // Custom handler for studio item clicks to integrate with useQuiz hook
     const handleStudioItemClick = async (item: any) => {
         if (item.type === 'quiz') {
             // Extract numeric ID for quiz loading
             const numericId = item.id.replace('quiz-', '')
-            await quiz.loadQuiz(numericId)
-            // Open the quiz modal after loading
-            studio.setShowQuizModal(true)
+            const shouldShowQuizModal = await quiz.loadQuiz(numericId)
+            // Only open quiz modal if loadQuiz returns true
+            // (loadQuiz returns false when showing history modal for completed quiz)
+            if (shouldShowQuizModal) {
+                studio.setShowQuizModal(true)
+            }
         } else {
             // Delegate to studio's handler for other types
             await studio.handleStudioItemClick(item)
         }
+    }
+
+    // Handler for retrying quiz from sidebar menu
+    const handleRetryQuiz = async (itemId: string) => {
+        const numericId = itemId.replace('quiz-', '')
+        await quiz.loadQuiz(numericId)
+        quiz.retryQuiz()  // Reset quiz state for fresh attempt
+        studio.setShowQuizModal(true)
+        setOpenMenuId(null)
     }
 
     const toggleMenu = (itemId: string) => {
@@ -426,7 +428,7 @@ export default function Chat() {
                     onItemClick={handleStudioItemClick}
                     onDeleteItem={handleDeleteItem}
                     onFlagItem={handleFlagQuiz}
-                    onViewHistory={handleViewQuizHistory}
+                    onRetryQuiz={handleRetryQuiz}
                     openMenuId={openMenuId}
                     onToggleMenu={toggleMenu}
                     language={messages.filter(m => m.type === 'assistant').pop()?.detectedLanguage}
@@ -639,16 +641,19 @@ export default function Chat() {
                 onClose={() => setIsVoiceModeOpen(false)}
             />
 
-            {/* 🆕 Quiz Attempt History Modal */}
+            {/* Quiz Attempt History Modal - Shows when clicking on completed quiz */}
             {quiz.showAttemptHistory && quiz.attemptHistory && (
                 <div className="modal-overlay" onClick={quiz.closeHistory}>
-                    <div className="modal-container" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', maxHeight: '80vh', overflow: 'auto' }}>
+                    <div onClick={e => e.stopPropagation()}>
                         <QuizAttemptHistory
                             quizTitle={quiz.attemptHistory.quiz_title || quiz.quizContent?.title || 'Quiz'}
                             totalAttempts={quiz.attemptHistory.total_attempts}
                             bestScore={quiz.attemptHistory.best_score}
                             attempts={quiz.attemptHistory.attempts}
-                            onViewAttempt={quiz.viewAttemptDetail}
+                            onViewAttempt={async (attemptId) => {
+                                await quiz.viewAttemptDetail(attemptId);
+                                studio.setShowQuizModal(true);
+                            }}
                             onRetakeQuiz={() => {
                                 quiz.closeHistory();
                                 quiz.retryQuiz();
