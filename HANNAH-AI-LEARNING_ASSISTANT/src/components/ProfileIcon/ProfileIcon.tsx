@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { User, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { buildAvatarUrl } from '../../config/apiConfig';
 import './ProfileIcon.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -85,7 +86,23 @@ const ProfileIcon: React.FC<ProfileIconProps> = React.memo(({ className = '' }) 
         aria-label="User profile menu"
       >
         <div className="avatar-circle">
-          {getInitials(user.fullName)}
+          {user.avatarUrl ? (
+            <img
+              src={buildAvatarUrl(user.avatarUrl)}
+              alt={user.fullName}
+              className="avatar-image"
+              onError={(e) => {
+                // Hide image and show initials on error
+                e.currentTarget.style.display = 'none';
+                const parent = e.currentTarget.parentElement;
+                if (parent) {
+                  parent.innerHTML = getInitials(user.fullName);
+                }
+              }}
+            />
+          ) : (
+            getInitials(user.fullName)
+          )}
         </div>
       </div>
 
