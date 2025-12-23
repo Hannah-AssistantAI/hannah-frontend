@@ -1,18 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, MessageSquare, User, Calendar } from 'lucide-react';
+import { Eye, MessageSquare, User, Calendar, Wifi, WifiOff } from 'lucide-react';
 import type { FlaggedItem } from '../../../service/flaggingService';
 import flaggingService from '../../../service/flaggingService';
 import { getStatusDisplay, getStatusClass, isResolved } from '../../../utils/statusHelpers';
+import { useRealtimeEvent } from '../../../hooks/useRealtime';
+import type { FlagCreatedData, FlagResolvedData, FlagAssignedData } from '../../../hooks/useRealtime';
+import { useRealtimeContext } from '../../../contexts/RealtimeContext';
+import { toast } from 'react-hot-toast';
 
 type FilterStatus = 'processing' | 'resolved';
 
 const AssignedMessages: React.FC = () => {
     const navigate = useNavigate();
+    const { isConnected } = useRealtimeContext();
     const [assignedFlags, setAssignedFlags] = useState<FlaggedItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('processing');
+
+    // 🔔 Real-time: Handle flag assigned to me
+    const handleFlagAssigned = useCallback((data: FlagAssignedData) => {
+        console.log('[AssignedMessages] New flag assigned:', data);
+        loadAssignedFlags();
+        toast.success(`New flag assigned to you!`, { icon: '📋' });
+    }, []);
+
+    // 🔔 Real-time: Handle flag resolved
+    const handleFlagResolved = useCallback((data: FlagResolvedData) => {
+        console.log('[AssignedMessages] Flag resolved:', data);
+        setAssignedFlags(prev => prev.map(item =>
+            item.id === data.flagId
+                ? { ...item, status: 'Resolved' }
+                : item
+        ));
+    }, []);
+
+    // Subscribe to real-time events
+    useRealtimeEvent('FlagAssigned', handleFlagAssigned);
+    useRealtimeEvent('FlagResolved', handleFlagResolved);
 
     useEffect(() => {
         loadAssignedFlags();
@@ -90,13 +116,33 @@ const AssignedMessages: React.FC = () => {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/40 to-indigo-50/30">
             <div className="max-w-[1800px] mx-auto p-6">
                 {/* Page Header */}
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-900 to-indigo-700 bg-clip-text text-transparent mb-2">
-                        💬 Assigned Messages
-                    </h1>
-                    <p className="text-gray-600 text-base font-medium">
-                        Manage and process flagged messages assigned to you
-                    </p>
+                <div className="mb-6 flex items-start justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-900 to-indigo-700 bg-clip-text text-transparent mb-2">
+                            💬 Assigned Messages
+                        </h1>
+                        <p className="text-gray-600 text-base font-medium">
+                            Manage and process flagged messages assigned to you
+                        </p>
+                    </div>
+                    {/* Real-time connection indicator */}
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${isConnected
+                        ? 'bg-green-100 text-green-700 border border-green-200'
+                        : 'bg-gray-100 text-gray-500 border border-gray-200'
+                        }`}>
+                        {isConnected ? (
+                            <>
+                                <Wifi className="w-3.5 h-3.5" />
+                                <span>Live</span>
+                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                            </>
+                        ) : (
+                            <>
+                                <WifiOff className="w-3.5 h-3.5" />
+                                <span>Offline</span>
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 {/* Error Banner */}

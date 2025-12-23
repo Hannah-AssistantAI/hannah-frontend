@@ -204,7 +204,7 @@ class FlaggingService {
   async assignToFaculty(flagId: number, facultyId: number): Promise<void> {
     try {
       const response = await fetch(
-        `${API_BASE_URL}${API_ENDPOINTS.CONVERSATIONS.BASE}/flagged/${flagId}/assign`,
+        `${API_BASE_URL}/api/Conversations/flagged/${flagId}/assign`,
         {
           method: 'POST',
           headers: {
@@ -216,7 +216,7 @@ class FlaggingService {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `Failed to assign flag: ${response.statusText}`);
       }
     } catch (error) {
@@ -327,32 +327,20 @@ class FlaggingService {
    */
   async flagQuiz(quizId: number, reason: string, attemptId?: number): Promise<any> {
     try {
-      // Python API uses same gateway as main API
-      const PYTHON_API_BASE_URL = API_BASE_URL;
-
-      const body: any = { reason };
+      // Import pythonApiClient for Python backend
+      const { default: pythonApiClient } = await import('./pythonApiClient');
+      
+      const body: Record<string, any> = { reason };
       if (attemptId !== undefined) {
         body.attemptId = attemptId;
       }
 
-      const response = await fetch(
-        `${PYTHON_API_BASE_URL}/api/v1/studio/quiz/${quizId}/flag`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)}`
-          },
-          body: JSON.stringify(body)
-        }
+      const response = await pythonApiClient.post<any>(
+        `/api/v1/studio/quiz/${quizId}/flag`,
+        body
       );
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || errorData.message || `Failed to flag quiz: ${response.statusText}`);
-      }
-
-      return await response.json();
+      return response.data;
     } catch (error) {
       console.error('Error flagging quiz:', error);
       throw error;
@@ -368,7 +356,7 @@ class FlaggingService {
   async assignFlagToFaculty(flagId: number, facultyId: number): Promise<void> {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/Flagging/${flagId}/assign`,
+        `${API_BASE_URL}/api/flagging/${flagId}/assign`,
         {
           method: 'PUT',
           headers: {
