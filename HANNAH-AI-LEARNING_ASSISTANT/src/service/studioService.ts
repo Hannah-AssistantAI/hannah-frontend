@@ -11,7 +11,7 @@ export interface GenerateQuizRequest {
     subjectId?: number;  // Subject ID for quiz topic generation
     sourceType?: 'conversation' | 'documents' | 'hybrid';
     sourceSubjectIds?: number[];
-    sourceDocumentIds?: number[];
+    documentIds?: number[];  // Changed from sourceDocumentIds to match backend schema
 }
 
 export interface GenerateMindMapRequest {
