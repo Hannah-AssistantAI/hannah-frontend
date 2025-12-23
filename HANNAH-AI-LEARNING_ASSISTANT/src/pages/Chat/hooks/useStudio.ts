@@ -300,7 +300,7 @@ export const useStudio = (conversationId: number | null) => {
                         topics: generationContext ? [generationContext] : [],
                         sourceType,
                         sourceSubjectIds: options?.sourceSubjectIds,
-                        sourceDocumentIds: sourceDocumentIds
+                        documentIds: sourceDocumentIds  // Fixed: was sourceDocumentIds
                     });
                     break;
                 case 'notecard':
