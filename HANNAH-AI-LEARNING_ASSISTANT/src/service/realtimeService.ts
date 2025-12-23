@@ -1,8 +1,25 @@
 import * as signalR from '@microsoft/signalr';
 
-// Use the same base URL as the rest of the API
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
-const REALTIME_HUB_URL = `${API_BASE_URL}/hubs/realtime`;
+// SignalR Hub URL - needs absolute URL, not relative /api path
+// In production: use VITE_SIGNALR_URL or construct from window.location
+// In development: use localhost
+const getHubUrl = (): string => {
+    // Check for explicit SignalR URL env var
+    const signalrUrl = import.meta.env.VITE_SIGNALR_URL;
+    if (signalrUrl) {
+        return `${signalrUrl}/hubs/realtime`;
+    }
+    
+    // In production, construct from current origin
+    if (import.meta.env.PROD) {
+        return `${window.location.origin}/hubs/realtime`;
+    }
+    
+    // Local development
+    return 'http://localhost:5001/hubs/realtime';
+};
+
+const REALTIME_HUB_URL = getHubUrl();
 
 console.log('[Realtime] Hub URL:', REALTIME_HUB_URL);
 
