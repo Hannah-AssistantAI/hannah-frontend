@@ -1,19 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Search, Flag, MessageSquare, AlertCircle, CheckCircle, Clock, User, Calendar } from 'lucide-react';
+import { Eye, Search, Flag, MessageSquare, AlertCircle, CheckCircle, Clock, User, Calendar, Wifi, WifiOff } from 'lucide-react';
 import flaggingService, { type FlaggedItem } from '../../../service/flaggingService';
 import { isPending, isAssigned, isResolved } from '../../../utils/statusHelpers';
+import { useRealtimeEvent } from '../../../hooks/useRealtime';
+import type { FlagCreatedData, FlagResolvedData } from '../../../hooks/useRealtime';
+import { useRealtimeContext } from '../../../contexts/RealtimeContext';
+import { toast } from 'react-hot-toast';
 import './FlaggedMessagesList.css';
 
 type FilterStatus = 'Pending' | 'Assigned' | 'Resolved';
 
 const FlaggedMessagesList: React.FC = () => {
     const navigate = useNavigate();
+    const { isConnected } = useRealtimeContext();
     const [allItems, setAllItems] = useState<FlaggedItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('Pending');
     const [searchQuery, setSearchQuery] = useState('');
+
+    // 🔔 Real-time: Handle new flag created
+    const handleFlagCreated = useCallback((data: FlagCreatedData) => {
+        console.log('[FlaggedMessages] New flag created:', data);
+        loadFlaggedItems();
+        toast.success(`New message flagged!`, { icon: '🚩' });
+    }, []);
+
+    // 🔔 Real-time: Handle flag resolved
+    const handleFlagResolved = useCallback((data: FlagResolvedData) => {
+        console.log('[FlaggedMessages] Flag resolved:', data);
+        setAllItems(prev => prev.map(item =>
+            item.id === data.flagId
+                ? { ...item, status: 'Resolved' }
+                : item
+        ));
+        toast.success(`Flag #${data.flagId} resolved`, { icon: '✅' });
+    }, []);
+
+    // Subscribe to real-time events
+    useRealtimeEvent('FlagCreated', handleFlagCreated);
+    useRealtimeEvent('FlagResolved', handleFlagResolved);
 
     // Load all items only once on mount
     useEffect(() => {
@@ -146,10 +173,28 @@ const FlaggedMessagesList: React.FC = () => {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/30">
             <div className="max-w-[1800px] mx-auto p-6">
                 {/* Page Header */}
-                <div className="mb-6 pb-3 border-b-2 border-gray-200">
+                <div className="mb-6 pb-3 border-b-2 border-gray-200 flex items-center justify-between">
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                         Flagged Messages
                     </h1>
+                    {/* Real-time connection indicator */}
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${isConnected
+                        ? 'bg-green-100 text-green-700 border border-green-200'
+                        : 'bg-gray-100 text-gray-500 border border-gray-200'
+                        }`}>
+                        {isConnected ? (
+                            <>
+                                <Wifi className="w-3.5 h-3.5" />
+                                <span>Live Updates</span>
+                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                            </>
+                        ) : (
+                            <>
+                                <WifiOff className="w-3.5 h-3.5" />
+                                <span>Offline</span>
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 {/* Error Banner */}
