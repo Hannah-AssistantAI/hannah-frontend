@@ -102,13 +102,11 @@ const NotificationDetailModal: React.FC<NotificationDetailModalProps> = ({ notif
                         );
                         setMessageContext(context);
                     } catch (err) {
-                        console.error('❌ Error loading message context:', err);
                         toast.error('Unable to load conversation content. Please try again!');
                     }
                 }
             }
         } catch (error) {
-            console.error('❌ Error loading flag detail:', error);
             toast.error('Unable to load flag information. Please try again!');
         } finally {
             setLoading(false);

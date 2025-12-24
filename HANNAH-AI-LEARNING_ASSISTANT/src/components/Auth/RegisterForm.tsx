@@ -104,7 +104,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
         // Registration successful
         toast.success('Đăng ký thành công! Vui lòng đăng nhập.', {
           duration: 3000,
-          icon: '✅',
         });
         onSuccess();
       } catch (error: any) {
@@ -121,7 +120,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
 
         toast.error(errorMessage, {
           duration: 4000,
-          icon: '❌',
         });
       } finally {
         setIsLoading(false);

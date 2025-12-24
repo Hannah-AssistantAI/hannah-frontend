@@ -78,7 +78,7 @@ const DocumentsManagement: React.FC = () => {
     console.log('[Documents] Document uploaded:', data);
     if (selectedCourse && data.subjectId === selectedCourse.subjectId) {
       fetchDocuments(selectedCourse.subjectId);
-      toast.success(`New document uploaded: ${data.fileName}`, { icon: '📄' });
+      toast.success(`New document uploaded: ${data.fileName}`);
     }
   }, [selectedCourse]);
 
@@ -87,7 +87,7 @@ const DocumentsManagement: React.FC = () => {
     console.log('[Documents] Document processed:', data);
     if (selectedCourse && data.subjectId === selectedCourse.subjectId) {
       fetchDocuments(selectedCourse.subjectId);
-      toast.success(`Document processed: ${data.fileName}`, { icon: '✅' });
+      toast.success(`Document processed: ${data.fileName}`);
     }
   }, [selectedCourse]);
 
@@ -109,7 +109,7 @@ const DocumentsManagement: React.FC = () => {
     if (eventSemester === currentSemesterNumber) {
       console.log('[Documents] ✅ Semester matches! Refreshing subject list...');
       fetchSubjects();
-      toast.success(`New subject added to ${selectedSemester}!`, { icon: '📚' });
+      toast.success(`New subject added to ${selectedSemester}!`);
     } else {
       console.log('[Documents] ℹ️ Semester does not match, ignoring event');
     }
@@ -120,7 +120,7 @@ const DocumentsManagement: React.FC = () => {
     console.log('[Documents] Subject removed from semester:', data);
     // Remove the subject from local state
     setCourses(prev => prev.filter(c => c.subjectId !== data.subjectId));
-    toast('Subject removed from this semester', { icon: '🗑️' });
+    toast.success('Subject removed from this semester');
   }, []);
 
   // Subscribe to Course Management events

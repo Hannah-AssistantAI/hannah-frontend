@@ -24,7 +24,7 @@ const FlaggedMessagesList: React.FC = () => {
     const handleFlagCreated = useCallback((data: FlagCreatedData) => {
         console.log('[FlaggedMessages] New flag created:', data);
         loadFlaggedItems();
-        toast.success(`New message flagged!`, { icon: '🚩' });
+        toast.success(`New message flagged!`);
     }, []);
 
     // 🔔 Real-time: Handle flag resolved
@@ -35,7 +35,7 @@ const FlaggedMessagesList: React.FC = () => {
                 ? { ...item, status: 'Resolved' }
                 : item
         ));
-        toast.success(`Flag #${data.flagId} resolved`, { icon: '✅' });
+        toast.success(`Flag #${data.flagId} resolved`);
     }, []);
 
     // Subscribe to real-time events

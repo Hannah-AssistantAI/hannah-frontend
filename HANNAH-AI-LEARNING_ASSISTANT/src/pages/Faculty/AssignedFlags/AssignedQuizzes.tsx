@@ -23,14 +23,14 @@ const AssignedQuizzes: React.FC = () => {
     const handleQuizFlagged = useCallback((data: QuizFlaggedData) => {
         console.log('[AssignedQuizzes] Quiz flagged:', data);
         loadAssignedFlags();
-        toast.success(`New quiz flagged!`, { icon: '📝' });
+        toast.success(`New quiz flagged!`);
     }, []);
 
     // 🔔 Real-time: Handle flag assigned
     const handleFlagAssigned = useCallback((data: FlagAssignedData) => {
         console.log('[AssignedQuizzes] Flag assigned:', data);
         loadAssignedFlags();
-        toast.success(`New flag assigned to you!`, { icon: '📋' });
+        toast.success(`New flag assigned to you!`);
     }, []);
 
     // 🔔 Real-time: Handle flag resolved
@@ -135,8 +135,8 @@ const AssignedQuizzes: React.FC = () => {
                     </div>
                     {/* Real-time connection indicator */}
                     <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${isConnected
-                            ? 'bg-green-100 text-green-700 border border-green-200'
-                            : 'bg-gray-100 text-gray-500 border border-gray-200'
+                        ? 'bg-green-100 text-green-700 border border-green-200'
+                        : 'bg-gray-100 text-gray-500 border border-gray-200'
                         }`}>
                         {isConnected ? (
                             <>

@@ -30,7 +30,7 @@ const FlaggedQuizzes: React.FC = () => {
     console.log('[FlaggedQuizzes] New flag created:', data);
     // Reload the list to get full data
     loadFlaggedItems();
-    toast.success(`New flag reported! ID: ${data.flagId}`, { icon: '🚩' });
+    toast.success(`New flag reported! ID: ${data.flagId}`);
   }, []);
 
   // 🔔 Real-time: Handle flag resolved
@@ -42,7 +42,7 @@ const FlaggedQuizzes: React.FC = () => {
         ? { ...item, status: 'Resolved' }
         : item
     ));
-    toast.success(`Flag #${data.flagId} has been resolved`, { icon: '✅' });
+    toast.success(`Flag #${data.flagId} has been resolved`);
   }, []);
 
   // Subscribe to real-time events
