@@ -99,6 +99,19 @@ export function useCourseEvents(callbacks: {
     useRealtimeEvent('SubjectUpdated', callbacks.onSubjectUpdated || (() => {}));
 }
 
+/**
+ * Hook to subscribe to suggestion events (Learning Outcomes & Common Challenges)
+ */
+export function useSuggestionEvents(callbacks: {
+    onSuggestionCreated?: (data: SuggestionData) => void;
+    onSuggestionApproved?: (data: SuggestionData) => void;
+    onSuggestionRejected?: (data: SuggestionData) => void;
+}) {
+    useRealtimeEvent('SuggestionCreated', callbacks.onSuggestionCreated || (() => {}));
+    useRealtimeEvent('SuggestionApproved', callbacks.onSuggestionApproved || (() => {}));
+    useRealtimeEvent('SuggestionRejected', callbacks.onSuggestionRejected || (() => {}));
+}
+
 // Type definitions for event data
 export interface FlagCreatedData {
     flagId: number;
@@ -188,6 +201,17 @@ export interface SubjectData {
 export interface SubjectUpdatedData {
     subjectId: number;
     data: SubjectData;
+}
+
+// Suggestion event data type
+export interface SuggestionData {
+    suggestionId: number;
+    subjectId: number;
+    contentType: string;
+    content: string;
+    status: string;
+    rejectionReason?: string;
+    createdAt?: string;
 }
 
 export default useRealtime;

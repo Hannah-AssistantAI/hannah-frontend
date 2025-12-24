@@ -31,12 +31,20 @@ export type RealtimeEventType =
     | 'QuizFlagged'
     | 'DocumentUploaded'
     | 'DocumentProcessed'
+    | 'DocumentDeleted'
+    | 'DocumentApproved'
+    | 'DocumentRejected'
     | 'AnalyticsUpdated'
     // Course Management events
     | 'SubjectAddedToSemester'
     | 'SubjectRemovedFromSemester'
     | 'SubjectCreated'
-    | 'SubjectUpdated';
+    | 'SubjectUpdated'
+    // Suggestion events (Learning Outcomes & Common Challenges)
+    | 'SuggestionCreated'
+    | 'SuggestionApproved'
+    | 'SuggestionRejected'
+    | 'SuggestionDeleted';
 
 export interface RealtimeEvent<T = unknown> {
     type: RealtimeEventType;
@@ -154,12 +162,20 @@ class RealtimeService {
             'QuizFlagged',
             'DocumentUploaded',
             'DocumentProcessed',
+            'DocumentDeleted',
+            'DocumentApproved',
+            'DocumentRejected',
             'AnalyticsUpdated',
             // Course Management events
             'SubjectAddedToSemester',
             'SubjectRemovedFromSemester',
             'SubjectCreated',
-            'SubjectUpdated'
+            'SubjectUpdated',
+            // Suggestion events (Learning Outcomes & Common Challenges)
+            'SuggestionCreated',
+            'SuggestionApproved',
+            'SuggestionRejected',
+            'SuggestionDeleted'
         ];
 
         eventTypes.forEach(eventType => {
