@@ -31,7 +31,12 @@ export type RealtimeEventType =
     | 'QuizFlagged'
     | 'DocumentUploaded'
     | 'DocumentProcessed'
-    | 'AnalyticsUpdated';
+    | 'AnalyticsUpdated'
+    // Course Management events
+    | 'SubjectAddedToSemester'
+    | 'SubjectRemovedFromSemester'
+    | 'SubjectCreated'
+    | 'SubjectUpdated';
 
 export interface RealtimeEvent<T = unknown> {
     type: RealtimeEventType;
@@ -136,6 +141,7 @@ class RealtimeService {
 
     /**
      * Register handlers for all event types
+     * Note: SignalR JS client receives method names as lowercase
      */
     private registerEventHandlers(): void {
         if (!this.connection) return;
@@ -148,12 +154,20 @@ class RealtimeService {
             'QuizFlagged',
             'DocumentUploaded',
             'DocumentProcessed',
-            'AnalyticsUpdated'
+            'AnalyticsUpdated',
+            // Course Management events
+            'SubjectAddedToSemester',
+            'SubjectRemovedFromSemester',
+            'SubjectCreated',
+            'SubjectUpdated'
         ];
 
         eventTypes.forEach(eventType => {
-            this.connection!.on(eventType, (data: unknown) => {
-                console.log(`[Realtime] Received ${eventType}:`, data);
+            // Register lowercase version (SignalR JS receives methods as lowercase)
+            // Map back to PascalCase for our internal listeners
+            const lowercaseEvent = eventType.toLowerCase();
+            this.connection!.on(lowercaseEvent, (data: unknown) => {
+                console.log(`[Realtime] Received ${lowercaseEvent} -> ${eventType}:`, data);
                 this.notifyListeners(eventType, data);
             });
         });

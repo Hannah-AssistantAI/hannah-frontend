@@ -84,6 +84,21 @@ export function useDocumentEvents(callbacks: {
     useRealtimeEvent('DocumentProcessed', callbacks.onDocumentProcessed || (() => {}));
 }
 
+/**
+ * Hook to subscribe to course management events (Subject added/removed from semester)
+ */
+export function useCourseEvents(callbacks: {
+    onSubjectAddedToSemester?: (data: SubjectSemesterData) => void;
+    onSubjectRemovedFromSemester?: (data: SubjectRemovedData) => void;
+    onSubjectCreated?: (data: SubjectData) => void;
+    onSubjectUpdated?: (data: SubjectUpdatedData) => void;
+}) {
+    useRealtimeEvent('SubjectAddedToSemester', callbacks.onSubjectAddedToSemester || (() => {}));
+    useRealtimeEvent('SubjectRemovedFromSemester', callbacks.onSubjectRemovedFromSemester || (() => {}));
+    useRealtimeEvent('SubjectCreated', callbacks.onSubjectCreated || (() => {}));
+    useRealtimeEvent('SubjectUpdated', callbacks.onSubjectUpdated || (() => {}));
+}
+
 // Type definitions for event data
 export interface FlagCreatedData {
     flagId: number;
@@ -139,6 +154,40 @@ export interface DocumentData {
     status: string;
     uploadedAt?: string;
     processedAt?: string;
+}
+
+// Course Management event data types
+export interface SubjectSemesterData {
+    semesterId: number;
+    subject: {
+        SubjectId?: number;
+        subjectId?: number;
+        Code?: string;
+        code?: string;
+        Name?: string;
+        name?: string;
+        Semester?: number;
+        semester?: number;
+        Credits?: number;
+        credits?: number;
+    };
+}
+
+export interface SubjectRemovedData {
+    semesterId: number;
+    subjectId: number;
+}
+
+export interface SubjectData {
+    subjectId: number;
+    code: string;
+    name: string;
+    credits?: number;
+}
+
+export interface SubjectUpdatedData {
+    subjectId: number;
+    data: SubjectData;
 }
 
 export default useRealtime;
