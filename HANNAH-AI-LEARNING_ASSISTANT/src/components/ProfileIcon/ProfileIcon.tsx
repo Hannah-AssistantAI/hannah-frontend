@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, Flag } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { buildAvatarUrl } from '../../config/apiConfig';
 import './ProfileIcon.css';
@@ -58,6 +58,12 @@ const ProfileIcon: React.FC<ProfileIconProps> = React.memo(({ className = '' }) 
     }
   };
 
+  const handleMyFlagsView = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDropdownOpen(false);
+    navigate('/my-flags');
+  };
+
   if (!user) {
     return null;
   }
@@ -74,6 +80,8 @@ const ProfileIcon: React.FC<ProfileIconProps> = React.memo(({ className = '' }) 
       .toUpperCase()
       .slice(0, 2);
   };
+
+  const isStudent = user.role?.toLowerCase() === 'student';
 
   return (
     <div className={`profile-icon-container ${className}`} ref={containerRef}>
@@ -126,6 +134,17 @@ const ProfileIcon: React.FC<ProfileIconProps> = React.memo(({ className = '' }) 
             <User size={16} />
             <span>Profile</span>
           </button>
+
+          {/* My Flags - Students only */}
+          {isStudent && (
+            <button
+              className="dropdown-item"
+              onClick={handleMyFlagsView}
+            >
+              <Flag size={16} />
+              <span>My Flags</span>
+            </button>
+          )}
 
           <div className="dropdown-divider"></div>
 
