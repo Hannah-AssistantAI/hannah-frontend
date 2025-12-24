@@ -268,7 +268,7 @@ const MyFlags: React.FC = () => {
                                                 className="view-conversation-btn"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    navigate(`/chat?conversationId=${flag.conversationId}`);
+                                                    navigate(`/chat/${flag.conversationId}`);
                                                 }}
                                             >
                                                 <ExternalLink size={16} />
