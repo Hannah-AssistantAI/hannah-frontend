@@ -1,10 +1,12 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Target, ChevronDown, Plus, X, Check, ChevronRight, Loader2 } from 'lucide-react';
 import subjectService, { type Subject } from '../../../service/subjectService';
 
 import suggestionService, { SuggestionContentType, SuggestionStatus, type Suggestion } from '../../../service/suggestionService';
 import { toast } from 'react-hot-toast';
+import { useRealtimeEvent } from '../../../hooks/useRealtime';
+import { useRealtimeContext } from '../../../contexts/RealtimeContext';
 
 // Define types
 interface Course {
@@ -51,13 +53,35 @@ const OutcomesManagement: React.FC = () => {
       setError(null);
       const response = await subjectService.getAllSubjects();
 
-      const transformedCourses: Course[] = response.items.map((subject: Subject) => ({
-        id: subject.subjectId,
-        name: subject.name,
-        code: subject.code,
-        semester: `Semester ${subject.semester || 1}`,
+      // Handle semester which can come as number (1,2,3) or enum name (First, Second, Third)
+      const semesterEnumToNumber: { [key: string]: number } = {
+        'First': 1, 'Second': 2, 'Third': 3, 'Fourth': 4, 'Fifth': 5,
+        'Sixth': 6, 'Seventh': 7, 'Eighth': 8, 'Ninth': 9
+      };
 
-      }));
+      const transformedCourses: Course[] = response.items.map((subject: Subject) => {
+        // Parse semester: could be number, string number, or enum name
+        let semesterNumber = 1;
+        const rawSemester = subject.semester;
+        if (typeof rawSemester === 'number') {
+          semesterNumber = rawSemester;
+        } else if (typeof rawSemester === 'string') {
+          // Check if it's an enum name like "First", "Second"
+          if (semesterEnumToNumber[rawSemester]) {
+            semesterNumber = semesterEnumToNumber[rawSemester];
+          } else {
+            // Try to parse as number
+            semesterNumber = parseInt(rawSemester) || 1;
+          }
+        }
+
+        return {
+          id: subject.subjectId,
+          name: subject.name,
+          code: subject.code,
+          semester: `Semester ${semesterNumber}`,
+        };
+      });
 
       setCourses(transformedCourses);
     } catch (err: any) {
@@ -67,6 +91,59 @@ const OutcomesManagement: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Real-time connection
+  const { isConnected, joinSubjectGroup, leaveSubjectGroup } = useRealtimeContext();
+
+  // 🔔 Real-time: Handle suggestion approved by Admin
+  const handleSuggestionApproved = useCallback((data: { subjectId: number; suggestionId: number; contentType: string; content: string }) => {
+    console.log('[Outcomes] Suggestion approved event:', data);
+    if (selectedCourse && data.subjectId === selectedCourse.id && data.contentType === 'LearningOutcome') {
+      // Update local state: move from pending to approved style
+      setLearningOutcomes(prev => prev.map(s =>
+        s.id === data.suggestionId ? { ...s, status: SuggestionStatus.Approved } : s
+      ));
+      // Add to official outcomes
+      setSubjectOutcomes(prev => [...prev, data.content]);
+      toast.success('Your learning outcome was approved!');
+    }
+  }, [selectedCourse]);
+
+  // 🔔 Real-time: Handle suggestion rejected by Admin
+  const handleSuggestionRejected = useCallback((data: { subjectId: number; suggestionId: number; contentType: string }) => {
+    console.log('[Outcomes] Suggestion rejected event:', data);
+    if (selectedCourse && data.subjectId === selectedCourse.id && data.contentType === 'LearningOutcome') {
+      // Update local state
+      setLearningOutcomes(prev => prev.map(s =>
+        s.id === data.suggestionId ? { ...s, status: SuggestionStatus.Rejected } : s
+      ));
+      toast.error('Your learning outcome was rejected');
+    }
+  }, [selectedCourse]);
+
+  // 🔔 Real-time: Handle suggestion deleted by Admin
+  const handleSuggestionDeleted = useCallback((data: { subjectId: number; suggestionId: number; contentType: string }) => {
+    console.log('[Outcomes] Suggestion deleted event:', data);
+    if (selectedCourse && data.subjectId === selectedCourse.id && data.contentType === 'LearningOutcome') {
+      // Remove from local state
+      setLearningOutcomes(prev => prev.filter(s => s.id !== data.suggestionId));
+    }
+  }, [selectedCourse]);
+
+  // Subscribe to real-time events
+  useRealtimeEvent('SuggestionApproved', handleSuggestionApproved);
+  useRealtimeEvent('SuggestionRejected', handleSuggestionRejected);
+  useRealtimeEvent('SuggestionDeleted', handleSuggestionDeleted);
+
+  // Join subject group for targeted updates
+  useEffect(() => {
+    if (selectedCourse && isConnected) {
+      joinSubjectGroup(selectedCourse.id);
+      return () => {
+        leaveSubjectGroup(selectedCourse.id);
+      };
+    }
+  }, [selectedCourse, isConnected, joinSubjectGroup, leaveSubjectGroup]);
 
   // Fetch subjects on mount
   useEffect(() => {
@@ -155,6 +232,12 @@ const OutcomesManagement: React.FC = () => {
       return;
     }
 
+    // Backend requires minimum 10 characters
+    if (formData.text.trim().length < 10) {
+      toast.error('Content must be at least 10 characters');
+      return;
+    }
+
     if (!selectedCourse) {
       toast.error('No course selected');
       return;
@@ -165,7 +248,7 @@ const OutcomesManagement: React.FC = () => {
       await suggestionService.createSuggestion({
         subjectId: selectedCourse.id,
         contentType: SuggestionContentType.LearningOutcome,
-        content: formData.text,
+        content: formData.text.trim(),
       });
 
       toast.success('Learning outcome submitted for review!');
@@ -175,7 +258,13 @@ const OutcomesManagement: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Error submitting suggestion:', err);
-      toast.error(err.message || 'Failed to submit suggestion.');
+      // Handle validation errors from backend
+      if (err.errors) {
+        const errorMessages = Object.values(err.errors).flat().join(', ');
+        toast.error(errorMessages || 'Validation error');
+      } else {
+        toast.error(err.message || 'Failed to submit suggestion.');
+      }
     } finally {
       setIsSubmitting(false);
     }

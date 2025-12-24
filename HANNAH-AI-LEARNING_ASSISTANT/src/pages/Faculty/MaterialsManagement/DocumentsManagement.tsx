@@ -73,27 +73,69 @@ const DocumentsManagement: React.FC = () => {
   const [totalCount, setTotalCount] = useState(0);
   const PAGE_SIZE = 10;
 
-  // 🔔 Real-time: Handle document uploaded
+  // 🔔 Real-time: Handle document uploaded (by someone else)
+  // Note: Don't show toast here because the uploader already sees success toast from upload action
   const handleDocumentUploaded = useCallback((data: DocumentData) => {
     console.log('[Documents] Document uploaded:', data);
     if (selectedCourse && data.subjectId === selectedCourse.subjectId) {
       fetchDocuments(selectedCourse.subjectId);
-      toast.success(`New document uploaded: ${data.fileName}`);
+      // Don't show toast - the uploader already sees "Successfully uploaded" toast
     }
   }, [selectedCourse]);
 
-  // 🔔 Real-time: Handle document processed
+  // 🔔 Real-time: Handle document processed (status: Processing → Indexed)
+  // Update local state directly to avoid page flicker
   const handleDocumentProcessed = useCallback((data: DocumentData) => {
     console.log('[Documents] Document processed:', data);
     if (selectedCourse && data.subjectId === selectedCourse.subjectId) {
+      // Update the specific document's status in local state without full refresh
+      setSelectedCourse(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          materials: prev.materials.map(m =>
+            m.documentId === data.documentId
+              ? { ...m, status: 'Completed' as const }
+              : m
+          )
+        };
+      });
+    }
+  }, [selectedCourse]);
+
+  // 🔔 Real-time: Handle document approved by Admin
+  const handleDocumentApproved = useCallback((data: DocumentData) => {
+    console.log('[Documents] Document approved:', data);
+    if (selectedCourse && data.subjectId === selectedCourse.subjectId) {
       fetchDocuments(selectedCourse.subjectId);
-      toast.success(`Document processed: ${data.fileName}`);
+      toast.success(`Document approved: ${data.fileName}`);
+    }
+  }, [selectedCourse]);
+
+  // 🔔 Real-time: Handle document rejected by Admin
+  const handleDocumentRejected = useCallback((data: DocumentData) => {
+    console.log('[Documents] Document rejected:', data);
+    if (selectedCourse && data.subjectId === selectedCourse.subjectId) {
+      fetchDocuments(selectedCourse.subjectId);
+      toast.error(`Document rejected: ${data.fileName}`);
+    }
+  }, [selectedCourse]);
+
+  // 🔔 Real-time: Handle document deleted by Admin
+  const handleDocumentDeleted = useCallback((data: DocumentData) => {
+    console.log('[Documents] Document deleted:', data);
+    if (selectedCourse && data.subjectId === selectedCourse.subjectId) {
+      fetchDocuments(selectedCourse.subjectId);
+      toast.success(`Document deleted: ${data.fileName}`);
     }
   }, [selectedCourse]);
 
   // Subscribe to real-time events
   useRealtimeEvent('DocumentUploaded', handleDocumentUploaded);
   useRealtimeEvent('DocumentProcessed', handleDocumentProcessed);
+  useRealtimeEvent('DocumentApproved', handleDocumentApproved);
+  useRealtimeEvent('DocumentRejected', handleDocumentRejected);
+  useRealtimeEvent('DocumentDeleted', handleDocumentDeleted);
 
   // Join/leave subject group for targeted updates
   useEffect(() => {

@@ -1,12 +1,16 @@
 import { Link, useParams } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X, Download, RefreshCw } from 'lucide-react';
+import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X, Download, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
 import documentService, { type Document } from '../../../service/documentService';
 import suggestionService, { type Suggestion, SuggestionStatus, SuggestionContentType } from '../../../service/suggestionService';
 import SyllabusImporter from './SyllabusImporter';
+import { useRealtimeEvent } from '../../../hooks/useRealtime';
+import type { DocumentData } from '../../../hooks/useRealtime';
+import { useRealtimeContext } from '../../../contexts/RealtimeContext';
+import ConfirmModal from '../../../components/ConfirmModal/ConfirmModal';
 import './CourseManagement.css';
 
 // Semester enum mapping - Backend returns 'First', 'Second', etc. Convert to numbers
@@ -56,6 +60,147 @@ export default function CourseDetail() {
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [rejectSubmitting, setRejectSubmitting] = useState(false);
+
+  // State for delete confirmation modal
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    type: 'document' | 'suggestion';
+    id: number | null;
+    name: string;
+  }>({
+    isOpen: false,
+    type: 'document',
+    id: null,
+    name: ''
+  });
+
+  // Real-time connection context
+  const { isConnected, joinSubjectGroup, leaveSubjectGroup } = useRealtimeContext();
+
+  // 🔔 Real-time: Handle document uploaded by Faculty
+  const handleDocumentUploaded = useCallback((data: DocumentData) => {
+    console.log('[CourseDetail] Document uploaded event:', data);
+    // Check if this document belongs to the current subject
+    if (data.subjectId === parseInt(id || '0')) {
+      console.log('[CourseDetail] Document for current subject! Refreshing pending list...');
+      // Refresh pending documents to show new upload
+      fetchPendingDocuments();
+      toast.success(`New document uploaded: ${data.fileName}`);
+    }
+  }, [id]);
+
+  // 🔔 Real-time: Handle document processed (status change)
+  // No toast - just refresh silently (Admin already saw action toast if they triggered it)
+  const handleDocumentProcessed = useCallback((data: DocumentData) => {
+    console.log('[CourseDetail] Document processed event:', data);
+    if (data.subjectId === parseInt(id || '0')) {
+      fetchApprovedDocuments();
+      // No toast - avoid double toast if Admin triggered the action
+    }
+  }, [id]);
+
+  // 🔔 Real-time: Handle document deleted
+  // No toast for Admin - they already see success toast from their delete action
+  const handleDocumentDeleted = useCallback((data: DocumentData) => {
+    console.log('[CourseDetail] Document deleted event:', data);
+    if (data.subjectId === parseInt(id || '0')) {
+      // Remove from pending list
+      setPendingDocuments(prev => prev.filter(doc => doc.documentId !== data.documentId));
+      // Also refresh approved in case it was approved
+      fetchApprovedDocuments();
+      // No toast - Admin already sees success toast from delete action
+    }
+  }, [id]);
+
+  // 🔔 Real-time: Handle suggestion created by Faculty
+  const handleSuggestionCreated = useCallback((data: { subjectId: number; suggestionId: number; contentType: string; content: string; status: string }) => {
+    console.log('[CourseDetail] Suggestion created event:', data);
+    if (data.subjectId === parseInt(id || '0')) {
+      // Add to pending suggestions locally to avoid full refetch
+      const newSuggestion = {
+        id: data.suggestionId,
+        subjectId: data.subjectId,
+        contentType: data.contentType === 'LearningOutcome' ? SuggestionContentType.LearningOutcome : SuggestionContentType.CommonChallenge,
+        content: data.content,
+        status: SuggestionStatus.Pending,
+        createdAt: new Date().toISOString(),
+        suggestedByUserId: 0,
+        suggestedByUserName: 'Faculty'
+      };
+      setPendingSuggestions(prev => [...prev, newSuggestion]);
+      const type = data.contentType === 'LearningOutcome' ? 'Learning Outcome' : 'Common Challenge';
+      toast.success(`New ${type} suggestion submitted by Faculty`);
+    }
+  }, [id]);
+
+  // 🔔 Real-time: Handle suggestion approved (update local state to avoid flicker)
+  // No toast - Admin already sees toast from their approve action
+  const handleSuggestionApproved = useCallback((data: { subjectId: number; suggestionId: number }) => {
+    console.log('[CourseDetail] Suggestion approved event:', data);
+    if (data.subjectId === parseInt(id || '0')) {
+      // Move from pending to approved locally
+      setPendingSuggestions(prev => {
+        const approved = prev.find(s => s.id === data.suggestionId);
+        if (approved) {
+          setApprovedSuggestions(prevApproved => [...prevApproved, { ...approved, status: SuggestionStatus.Approved }]);
+        }
+        return prev.filter(s => s.id !== data.suggestionId);
+      });
+      fetchSubjectDetail(); // Refresh subject to show new outcome/challenge in official list
+    }
+  }, [id]);
+
+  // 🔔 Real-time: Handle suggestion rejected (update local state to avoid flicker)
+  // No toast - Admin already sees toast from their reject action
+  const handleSuggestionRejected = useCallback((data: { subjectId: number; suggestionId: number; rejectionReason?: string }) => {
+    console.log('[CourseDetail] Suggestion rejected event:', data);
+    if (data.subjectId === parseInt(id || '0')) {
+      // Move from pending to rejected locally
+      setPendingSuggestions(prev => {
+        const rejected = prev.find(s => s.id === data.suggestionId);
+        if (rejected) {
+          setRejectedSuggestions(prevRejected => [...prevRejected, {
+            ...rejected,
+            status: SuggestionStatus.Rejected,
+            rejectionReason: data.rejectionReason || null
+          }]);
+        }
+        return prev.filter(s => s.id !== data.suggestionId);
+      });
+    }
+  }, [id]);
+
+  // 🔔 Real-time: Handle suggestion deleted
+  // No toast - Admin already sees toast from their delete action
+  const handleSuggestionDeleted = useCallback((data: { subjectId: number; suggestionId: number }) => {
+    console.log('[CourseDetail] Suggestion deleted event:', data);
+    if (data.subjectId === parseInt(id || '0')) {
+      // Remove from all lists locally
+      setPendingSuggestions(prev => prev.filter(s => s.id !== data.suggestionId));
+      setApprovedSuggestions(prev => prev.filter(s => s.id !== data.suggestionId));
+      setRejectedSuggestions(prev => prev.filter(s => s.id !== data.suggestionId));
+    }
+  }, [id]);
+
+  // Subscribe to real-time events
+  useRealtimeEvent('DocumentUploaded', handleDocumentUploaded);
+  useRealtimeEvent('DocumentProcessed', handleDocumentProcessed);
+  useRealtimeEvent('DocumentDeleted', handleDocumentDeleted);
+  useRealtimeEvent('SuggestionCreated', handleSuggestionCreated);
+  useRealtimeEvent('SuggestionApproved', handleSuggestionApproved);
+  useRealtimeEvent('SuggestionRejected', handleSuggestionRejected);
+  useRealtimeEvent('SuggestionDeleted', handleSuggestionDeleted);
+
+  // Join subject group for targeted updates
+  useEffect(() => {
+    if (id && isConnected) {
+      const subjectId = parseInt(id);
+      joinSubjectGroup(subjectId);
+      return () => {
+        leaveSubjectGroup(subjectId);
+      };
+    }
+  }, [id, isConnected, joinSubjectGroup, leaveSubjectGroup]);
 
   // State for expanded document descriptions
   const [expandedDocs, setExpandedDocs] = useState<Set<number>>(new Set());
@@ -149,8 +294,22 @@ export default function CourseDetail() {
 
   // Handle reject submission from modal
   const handleRejectSubmit = async () => {
-    if (!rejectReason.trim() || !rejectingId) {
+    const trimmedReason = rejectReason.trim();
+
+    if (!trimmedReason || !rejectingId) {
       toast.error('Please enter a rejection reason');
+      return;
+    }
+
+    // Backend requires minimum 10 characters
+    if (trimmedReason.length < 10) {
+      toast.error(`Rejection reason must be at least 10 characters (currently ${trimmedReason.length})`);
+      return;
+    }
+
+    // Backend allows maximum 500 characters
+    if (trimmedReason.length > 500) {
+      toast.error(`Rejection reason cannot exceed 500 characters (currently ${trimmedReason.length})`);
       return;
     }
 
@@ -158,13 +317,13 @@ export default function CourseDetail() {
       setRejectSubmitting(true);
       if (rejectModalType === 'document') {
         setProcessingDocId(rejectingId);
-        await documentService.rejectDocument(rejectingId, rejectReason);
+        await documentService.rejectDocument(rejectingId, trimmedReason);
         toast.success('Document rejected');
         await fetchPendingDocuments();
         setProcessingDocId(null);
       } else {
         setProcessingSuggestionId(rejectingId);
-        await suggestionService.rejectSuggestion(rejectingId, rejectReason);
+        await suggestionService.rejectSuggestion(rejectingId, trimmedReason);
         toast.success('Suggestion rejected');
         await fetchSuggestions();
         setProcessingSuggestionId(null);
@@ -172,9 +331,15 @@ export default function CourseDetail() {
       setShowRejectModal(false);
       setRejectReason('');
       setRejectingId(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error rejecting:', error);
-      toast.error('Failed to reject');
+      // Show detailed error from backend if available
+      if (error.errors) {
+        const errorMessages = Object.values(error.errors).flat().join(', ');
+        toast.error(errorMessages || 'Validation error');
+      } else {
+        toast.error(error.message || 'Failed to reject');
+      }
     } finally {
       setRejectSubmitting(false);
     }
@@ -245,38 +410,46 @@ export default function CourseDetail() {
 
 
 
-  const handleDeleteSuggestion = async (suggestionId: number) => {
-    const confirmed = window.confirm('Are you sure you want to delete this suggestion? This action cannot be undone.');
-    if (!confirmed) return;
-
-    try {
-      setProcessingSuggestionId(suggestionId);
-      await suggestionService.deleteSuggestion(suggestionId);
-      toast.success('Suggestion deleted successfully.');
-      await fetchSuggestions(); // Refresh list
-    } catch (error) {
-      console.error('Error deleting suggestion:', error);
-      toast.error('Failed to delete suggestion.');
-    } finally {
-      setProcessingSuggestionId(null);
-    }
+  // Open delete confirmation modal
+  const openDeleteModal = (type: 'document' | 'suggestion', id: number, name: string) => {
+    setDeleteModal({ isOpen: true, type, id, name });
   };
 
-  const handleDeleteDocument = async (documentId: number) => {
-    const confirmed = window.confirm('Are you sure you want to delete this document? This action cannot be undone.');
-    if (!confirmed) return;
+  // Handle confirmed delete
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.id) return;
 
     try {
-      setProcessingDocId(documentId);
-      await documentService.deleteDocument(documentId.toString());
-      toast.success('Document deleted successfully.');
-      await fetchApprovedDocuments(); // Refresh list
+      if (deleteModal.type === 'suggestion') {
+        setProcessingSuggestionId(deleteModal.id);
+        await suggestionService.deleteSuggestion(deleteModal.id);
+        toast.success('Suggestion deleted successfully.');
+        await fetchSuggestions();
+        setProcessingSuggestionId(null);
+      } else {
+        setProcessingDocId(deleteModal.id);
+        await documentService.deleteDocument(deleteModal.id.toString());
+        toast.success('Document deleted successfully.');
+        await fetchApprovedDocuments();
+        setProcessingDocId(null);
+      }
     } catch (error) {
-      console.error('Error deleting document:', error);
-      toast.error('Failed to delete document.');
-    } finally {
+      console.error('Error deleting:', error);
+      toast.error(`Failed to delete ${deleteModal.type}.`);
       setProcessingDocId(null);
+      setProcessingSuggestionId(null);
     }
+
+    setDeleteModal({ isOpen: false, type: 'document', id: null, name: '' });
+  };
+
+  // Legacy handlers - now open modal instead
+  const handleDeleteSuggestion = (suggestionId: number, suggestionTitle: string) => {
+    openDeleteModal('suggestion', suggestionId, suggestionTitle || 'this suggestion');
+  };
+
+  const handleDeleteDocument = (documentId: number, documentTitle: string) => {
+    openDeleteModal('document', documentId, documentTitle || 'this document');
   };
 
   // Handle reprocess failed document
@@ -897,7 +1070,7 @@ export default function CourseDetail() {
                                       Download
                                     </button>
                                     <button
-                                      onClick={() => handleDeleteDocument(doc.documentId)}
+                                      onClick={() => handleDeleteDocument(doc.documentId, doc.title)}
                                       disabled={processingDocId === doc.documentId}
                                       style={{
                                         padding: '0.5rem',
@@ -1029,7 +1202,7 @@ export default function CourseDetail() {
                                       Download
                                     </button>
                                     <button
-                                      onClick={() => handleDeleteDocument(doc.documentId)}
+                                      onClick={() => handleDeleteDocument(doc.documentId, doc.title)}
                                       disabled={processingDocId === doc.documentId}
                                       style={{
                                         padding: '0.5rem',
@@ -1204,7 +1377,7 @@ export default function CourseDetail() {
                                         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                           <span className="chip status published">Approved</span>
                                           <button
-                                            onClick={() => handleDeleteSuggestion(suggestion.id)}
+                                            onClick={() => handleDeleteSuggestion(suggestion.id, suggestion.content)}
                                             disabled={processingSuggestionId === suggestion.id}
                                             style={{
                                               padding: '0.5rem',
@@ -1270,7 +1443,7 @@ export default function CourseDetail() {
                                         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                           <span className="chip" style={{ backgroundColor: '#fecaca', color: '#991b1b' }}>Rejected</span>
                                           <button
-                                            onClick={() => handleDeleteSuggestion(suggestion.id)}
+                                            onClick={() => handleDeleteSuggestion(suggestion.id, suggestion.content)}
                                             disabled={processingSuggestionId === suggestion.id}
                                             style={{
                                               padding: '0.5rem',
@@ -1365,12 +1538,13 @@ export default function CourseDetail() {
               <textarea
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Enter rejection reason..."
+                placeholder="Enter rejection reason (minimum 10 characters)..."
+                maxLength={500}
                 style={{
                   width: '100%',
                   minHeight: '120px',
                   padding: '0.75rem',
-                  border: '2px solid #e2e8f0',
+                  border: `2px solid ${rejectReason.trim().length > 0 && rejectReason.trim().length < 10 ? '#ef4444' : '#e2e8f0'}`,
                   borderRadius: '8px',
                   fontSize: '0.875rem',
                   resize: 'vertical',
@@ -1378,9 +1552,29 @@ export default function CourseDetail() {
                   boxSizing: 'border-box',
                 }}
                 onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                onBlur={(e) => e.target.style.borderColor = rejectReason.trim().length > 0 && rejectReason.trim().length < 10 ? '#ef4444' : '#e2e8f0'}
                 autoFocus
               />
+              {/* Character counter and helper text */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginTop: '0.5rem',
+                fontSize: '0.75rem',
+              }}>
+                <span style={{
+                  color: rejectReason.trim().length > 0 && rejectReason.trim().length < 10 ? '#ef4444' : '#64748b'
+                }}>
+                  {rejectReason.trim().length > 0 && rejectReason.trim().length < 10
+                    ? `Need ${10 - rejectReason.trim().length} more characters`
+                    : 'Minimum 10 characters'}
+                </span>
+                <span style={{
+                  color: rejectReason.trim().length > 450 ? '#f59e0b' : '#64748b'
+                }}>
+                  {rejectReason.trim().length}/500
+                </span>
+              </div>
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', justifyContent: 'flex-end' }}>
                 <button
                   onClick={() => { setShowRejectModal(false); setRejectReason(''); setRejectingId(null); }}
@@ -1433,6 +1627,18 @@ export default function CourseDetail() {
           </div>
         )
       }
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+        onConfirm={handleConfirmDelete}
+        title={`Delete ${deleteModal.type === 'document' ? 'Document' : 'Suggestion'}`}
+        message={`Are you sure you want to delete "${deleteModal.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
     </AdminPageWrapper >
   );
 }
