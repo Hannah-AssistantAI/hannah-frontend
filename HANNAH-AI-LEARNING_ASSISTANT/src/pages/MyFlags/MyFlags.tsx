@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Flag, Clock, User, CheckCircle, AlertCircle, MessageSquare, FileQuestion } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Flag, Clock, User, CheckCircle, AlertCircle, MessageSquare, FileQuestion, ArrowLeft, ExternalLink } from 'lucide-react';
 import apiClient from '../../service/apiClient';
 import './MyFlags.css';
 
@@ -7,6 +8,7 @@ interface MyFlag {
     id: number;
     type: string;
     contentId: number | null;
+    conversationId?: number;
     reason: string;
     status: string;
     priority: string | null;
@@ -18,7 +20,29 @@ interface MyFlag {
     resolutionNotes: string | null;
 }
 
+// Helper to parse resolution JSON
+interface ResolutionData {
+    type?: string;
+    feedback?: string;
+    correctedResponse?: string;
+    timestamp?: string;
+}
+
+const parseResolutionNotes = (notes: string | null): ResolutionData | null => {
+    if (!notes) return null;
+    try {
+        const data = JSON.parse(notes);
+        if (data.type || data.feedback || data.correctedResponse) {
+            return data as ResolutionData;
+        }
+    } catch {
+        // Not JSON, return as plain feedback
+    }
+    return { feedback: notes };
+};
+
 const MyFlags: React.FC = () => {
+    const navigate = useNavigate();
     const [flags, setFlags] = useState<MyFlag[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<string>('all');
@@ -97,6 +121,12 @@ const MyFlags: React.FC = () => {
 
     return (
         <div className="my-flags-container">
+            {/* Back Button */}
+            <button className="back-button" onClick={() => navigate(-1)}>
+                <ArrowLeft size={20} />
+                <span>Back</span>
+            </button>
+
             <div className="my-flags-header">
                 <div className="header-content">
                     <h1><Flag size={28} /> My Flags</h1>
@@ -149,74 +179,107 @@ const MyFlags: React.FC = () => {
                         <p>You haven't flagged any content yet.</p>
                     </div>
                 ) : (
-                    filteredFlags.map(flag => (
-                        <div
-                            key={flag.id}
-                            className={`flag-card ${flag.status.toLowerCase()} ${expandedId === flag.id ? 'expanded' : ''}`}
-                            onClick={() => setExpandedId(expandedId === flag.id ? null : flag.id)}
-                        >
-                            <div className="flag-main">
-                                <div className="flag-type">
-                                    {getTypeIcon(flag.type)}
-                                    <span className="type-label">{flag.type.toUpperCase()}</span>
-                                </div>
+                    filteredFlags.map(flag => {
+                        const resolution = parseResolutionNotes(flag.resolutionNotes);
 
-                                <div className="flag-content">
-                                    <p className="flag-reason">{flag.reason}</p>
-                                    <div className="flag-meta">
-                                        <span><Clock size={14} /> {formatDate(flag.flaggedAt)}</span>
-                                        {flag.priority && <span className={`priority ${flag.priority.toLowerCase()}`}>{flag.priority}</span>}
+                        return (
+                            <div
+                                key={flag.id}
+                                className={`flag-card ${flag.status.toLowerCase()} ${expandedId === flag.id ? 'expanded' : ''}`}
+                                onClick={() => setExpandedId(expandedId === flag.id ? null : flag.id)}
+                            >
+                                <div className="flag-main">
+                                    <div className="flag-type">
+                                        {getTypeIcon(flag.type)}
+                                        <span className="type-label">{flag.type.toUpperCase()}</span>
+                                    </div>
+
+                                    <div className="flag-content">
+                                        <p className="flag-reason">{flag.reason}</p>
+                                        <div className="flag-meta">
+                                            <span><Clock size={14} /> {formatDate(flag.flaggedAt)}</span>
+                                            {flag.priority && <span className={`priority ${flag.priority.toLowerCase()}`}>{flag.priority}</span>}
+                                        </div>
+                                    </div>
+
+                                    <div className="flag-status">
+                                        {getStatusBadge(flag.status)}
                                     </div>
                                 </div>
 
-                                <div className="flag-status">
-                                    {getStatusBadge(flag.status)}
-                                </div>
+                                {/* Expanded Details */}
+                                {expandedId === flag.id && (
+                                    <div className="flag-details">
+                                        {/* Timeline */}
+                                        <div className="timeline">
+                                            <div className="timeline-item">
+                                                <div className="timeline-dot flagged"></div>
+                                                <div className="timeline-content">
+                                                    <strong>Flagged</strong>
+                                                    <span>{formatDate(flag.flaggedAt)}</span>
+                                                </div>
+                                            </div>
+
+                                            {flag.assignedAt && (
+                                                <div className="timeline-item">
+                                                    <div className="timeline-dot assigned"></div>
+                                                    <div className="timeline-content">
+                                                        <strong>Assigned to {flag.assignedToName}</strong>
+                                                        <span>{formatDate(flag.assignedAt)}</span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {flag.resolvedAt && (
+                                                <div className="timeline-item">
+                                                    <div className="timeline-dot resolved"></div>
+                                                    <div className="timeline-content">
+                                                        <strong>Resolved by {flag.resolvedByName}</strong>
+                                                        <span>{formatDate(flag.resolvedAt)}</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Faculty Response - Parsed */}
+                                        {resolution && (
+                                            <div className="resolution-section">
+                                                {/* Feedback */}
+                                                {resolution.feedback && (
+                                                    <div className="resolution-notes">
+                                                        <h4>💬 Faculty Feedback</h4>
+                                                        <p>{resolution.feedback}</p>
+                                                    </div>
+                                                )}
+
+                                                {/* Corrected Response */}
+                                                {resolution.correctedResponse && (
+                                                    <div className="corrected-response">
+                                                        <h4>✅ Corrected Response</h4>
+                                                        <p>{resolution.correctedResponse}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* View in Conversation button for messages */}
+                                        {flag.type.toLowerCase() === 'message' && flag.conversationId && (
+                                            <button
+                                                className="view-conversation-btn"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigate(`/chat?conversationId=${flag.conversationId}`);
+                                                }}
+                                            >
+                                                <ExternalLink size={16} />
+                                                View in Conversation
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
                             </div>
-
-                            {/* Expanded Details */}
-                            {expandedId === flag.id && (
-                                <div className="flag-details">
-                                    <div className="timeline">
-                                        <div className="timeline-item">
-                                            <div className="timeline-dot flagged"></div>
-                                            <div className="timeline-content">
-                                                <strong>Flagged</strong>
-                                                <span>{formatDate(flag.flaggedAt)}</span>
-                                            </div>
-                                        </div>
-
-                                        {flag.assignedAt && (
-                                            <div className="timeline-item">
-                                                <div className="timeline-dot assigned"></div>
-                                                <div className="timeline-content">
-                                                    <strong>Assigned to {flag.assignedToName}</strong>
-                                                    <span>{formatDate(flag.assignedAt)}</span>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {flag.resolvedAt && (
-                                            <div className="timeline-item">
-                                                <div className="timeline-dot resolved"></div>
-                                                <div className="timeline-content">
-                                                    <strong>Resolved by {flag.resolvedByName}</strong>
-                                                    <span>{formatDate(flag.resolvedAt)}</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {flag.resolutionNotes && (
-                                        <div className="resolution-notes">
-                                            <h4>📝 Faculty Response</h4>
-                                            <p>{flag.resolutionNotes}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
         </div>
