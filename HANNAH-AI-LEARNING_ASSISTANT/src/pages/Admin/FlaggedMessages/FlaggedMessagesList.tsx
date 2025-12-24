@@ -7,6 +7,7 @@ import { useRealtimeEvent } from '../../../hooks/useRealtime';
 import type { FlagCreatedData, FlagResolvedData } from '../../../hooks/useRealtime';
 import { useRealtimeContext } from '../../../contexts/RealtimeContext';
 import { toast } from 'react-hot-toast';
+import { formatDateTimeVN } from '../../../utils/dateUtils';
 import './FlaggedMessagesList.css';
 
 type FilterStatus = 'Pending' | 'Assigned' | 'Resolved';
@@ -94,13 +95,7 @@ const FlaggedMessagesList: React.FC = () => {
     );
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleString('vi-VN', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        return formatDateTimeVN(dateString);
     };
 
     const getTypeIcon = (type: string) => {

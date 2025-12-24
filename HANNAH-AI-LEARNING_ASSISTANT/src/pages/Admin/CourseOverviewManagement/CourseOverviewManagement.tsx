@@ -5,6 +5,7 @@ import orientationService from '../../../service/orientationService';
 import type { OrientationContent } from '../../../service/orientationService';
 import authService from '../../../service/authService';
 import AdminPageWrapper from '../components/AdminPageWrapper';
+import { formatDateTimeVN } from '../../../utils/dateUtils';
 
 // Password Verification Modal Component
 interface PasswordModalProps {
@@ -469,7 +470,7 @@ const CourseOverviewManagement: React.FC = () => {
                                 <div className="mt-4 flex items-center gap-4 text-sm text-slate-500">
                                     <span className="flex items-center gap-1">
                                         <Clock className="w-4 h-4" />
-                                        Updated: {new Date(content.lastUpdatedAt).toLocaleString('en-US')}
+                                        Updated: {formatDateTimeVN(content.lastUpdatedAt)}
                                     </span>
                                     {content.lastUpdatedBy && (
                                         <span className="flex items-center gap-1">

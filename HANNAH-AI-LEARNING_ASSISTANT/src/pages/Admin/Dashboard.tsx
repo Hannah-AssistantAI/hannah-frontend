@@ -10,6 +10,7 @@ import { Badge } from '../../components/Admin/Badge';
 import { Modal } from '../../components/Admin/Modal';
 import { apiService } from '../../service/api';
 import AdminPageWrapper from './components/AdminPageWrapper';
+import { formatDateVN, formatTimeVN } from '../../utils/dateUtils';
 import './style.css';
 
 export const Dashboard: React.FC = () => {
@@ -155,10 +156,10 @@ export const Dashboard: React.FC = () => {
                 <tr key={index}>
                   <td>
                     <div style={{ fontSize: '13px', color: '#4a5568' }}>
-                      {new Date(conv.timestamp).toLocaleDateString('vi-VN')}
+                      {formatDateVN(conv.timestamp)}
                     </div>
                     <div style={{ fontSize: '12px', color: '#a0aec0' }}>
-                      {new Date(conv.timestamp).toLocaleTimeString('vi-VN')}
+                      {formatTimeVN(conv.timestamp)}
                     </div>
                   </td>
                   <td>

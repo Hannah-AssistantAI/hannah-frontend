@@ -3,6 +3,7 @@ import { flaggingApiService } from '../../service/flaggingApi';
 import type { FlaggedItem } from '../../service/flaggingApi';
 import AdminPageWrapper from './components/AdminPageWrapper';
 import AssignFacultyModal from '../../components/Admin/AssignFacultyModal';
+import { formatDateTimeVN } from '../../utils/dateUtils';
 
 export default function FlaggedItems() {
     const [items, setItems] = useState<FlaggedItem[]>([]);
@@ -233,7 +234,7 @@ export default function FlaggedItems() {
                                     <td className="px-4 py-2">{getPriorityBadge(item.priority)}</td>
                                     <td className="px-4 py-2">{item.flaggedByName}</td>
                                     <td className="px-4 py-2 whitespace-nowrap text-xs text-slate-600">
-                                        {new Date(item.flaggedAt).toLocaleString('vi-VN')}
+                                        {formatDateTimeVN(item.flaggedAt)}
                                     </td>
                                     <td className="px-4 py-2">{item.assignedToName || '-'}</td>
                                     <td className="px-4 py-2">{getStatusBadge(item.status)}</td>

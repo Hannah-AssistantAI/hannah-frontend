@@ -10,6 +10,7 @@ import EditUserModal from './modals/EditUserModal';
 import CreateFormModal from './modals/CreateFormModal';
 import DeleteConfirmationModal from './modals/DeleteConfirmationModal';
 import DeactivateConfirmationModal from './modals/DeactivateConfirmationModal';
+import { formatDateVN } from '../../../utils/dateUtils';
 
 const UserManagement: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -405,7 +406,7 @@ const UserManagement: React.FC = () => {
                       {user.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td className="um-date-cell">{new Date(user.createdAt).toLocaleDateString('vi-VN')}</td>
+                  <td className="um-date-cell">{formatDateVN(user.createdAt)}</td>
                   <td>
                     <div className="um-action-buttons">
                       <button

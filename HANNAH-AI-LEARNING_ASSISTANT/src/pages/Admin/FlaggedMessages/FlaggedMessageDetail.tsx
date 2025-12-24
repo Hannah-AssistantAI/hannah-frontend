@@ -4,6 +4,7 @@ import { Check, X, ArrowLeft, User, Calendar, Flag, MessageSquare, UserCheck, Re
 import flaggingService, { type FlaggedItem, type MessageContext } from '../../../service/flaggingService';
 import userService, { type User as UserType } from '../../../service/userService';
 import ResolveModal from '../../Faculty/AssignedFlags/ResolveModal';
+import { formatDateTimeVN } from '../../../utils/dateUtils';
 import './FlaggedMessageDetail.css';
 
 // Interface for parsed resolution data
@@ -230,13 +231,7 @@ const FlaggedMessageDetail: React.FC = () => {
     );
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleString('vi-VN', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
+        return formatDateTimeVN(dateString);
     };
 
     const getTypeLabel = (type: string) => {

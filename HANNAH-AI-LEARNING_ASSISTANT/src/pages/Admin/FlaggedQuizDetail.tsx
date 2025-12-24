@@ -6,6 +6,7 @@ import flaggingService, { type FlaggedItem } from '../../service/flaggingService
 import userService, { type User as UserType } from '../../service/userService';
 import { STORAGE_KEYS } from '../../config/apiConfig';
 import authService from '../../service/authService';
+import { formatDateTimeVN } from '../../utils/dateUtils';
 
 interface QuizQuestion {
   questionId: string;
@@ -505,7 +506,7 @@ export default function FlaggedQuizDetail({ initialFlagData }: FlaggedQuizDetail
                       </div>
                       <div className="col-span-2 bg-gray-50 rounded-lg p-3">
                         <span className="text-gray-500 text-xs font-medium uppercase tracking-wide">Flagged At</span>
-                        <p className="font-medium text-gray-900 mt-1">{new Date(flagData.flaggedAt).toLocaleString('vi-VN')}</p>
+                        <p className="font-medium text-gray-900 mt-1">{formatDateTimeVN(flagData.flaggedAt)}</p>
                       </div>
                       <div className="col-span-2 bg-gray-50 rounded-lg p-3">
                         <span className="text-gray-500 text-xs font-medium uppercase tracking-wide flex items-center gap-1">

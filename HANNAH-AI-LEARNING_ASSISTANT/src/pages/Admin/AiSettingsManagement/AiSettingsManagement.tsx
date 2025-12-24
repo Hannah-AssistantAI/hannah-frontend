@@ -36,6 +36,7 @@ import {
     Copy,
     RotateCcw,
 } from 'lucide-react';
+import { formatDateTimeVN } from '../../../utils/dateUtils';
 import './AiSettingsManagement.css';
 
 // ============================================================================
@@ -229,7 +230,7 @@ const TextSettingCard: React.FC<SettingCardProps> = ({ setting, onSave, saving }
                 </span>
                 {setting.updatedAt && (
                     <span className="ai-setting-updated">
-                        Cập nhật: {new Date(setting.updatedAt).toLocaleString('vi-VN')}
+                        Cập nhật: {formatDateTimeVN(setting.updatedAt)}
                     </span>
                 )}
             </div>

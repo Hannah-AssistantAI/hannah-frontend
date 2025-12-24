@@ -11,6 +11,7 @@ import { useRealtimeEvent } from '../../../hooks/useRealtime';
 import type { DocumentData } from '../../../hooks/useRealtime';
 import { useRealtimeContext } from '../../../contexts/RealtimeContext';
 import ConfirmModal from '../../../components/ConfirmModal/ConfirmModal';
+import { formatDateVN, formatDateTimeVN } from '../../../utils/dateUtils';
 import './CourseManagement.css';
 
 // Semester enum mapping - Backend returns 'First', 'Second', etc. Convert to numbers
@@ -527,7 +528,7 @@ export default function CourseDetail() {
                 <div className="form-content">
                   <p className="course-description" style={{ marginTop: 0 }}>{subject.description || 'No description available.'}</p>
                   <div className="course-footer">
-                    <div className="course-footer-item"><Clock size={16} /> Created: {new Date(subject.createdAt).toLocaleDateString()}</div>
+                    <div className="course-footer-item"><Clock size={16} /> Created: {formatDateVN(subject.createdAt)}</div>
                   </div>
                 </div>
               </div>
@@ -541,7 +542,7 @@ export default function CourseDetail() {
                     <div className="info-item"><label className="preview-label">Minimum Passing Average</label><p className="preview-value">{subject.minAvgMarkToPass || '-'}</p></div>
                     <div className="info-item"><label className="preview-label">Approval</label><span className={`chip status ${subject.isApproved ? 'published' : 'draft'}`}>{subject.isApproved ? 'Approved' : 'Not approved'}</span></div>
                     <div className="info-item"><label className="preview-label">Decision No.</label><p className="preview-value">{subject.decisionNo || '-'}</p></div>
-                    <div className="info-item"><label className="preview-label">Approved Date</label><p className="preview-value">{subject.approvedDate ? new Date(subject.approvedDate).toLocaleDateString() : '-'}</p></div>
+                    <div className="info-item"><label className="preview-label">Approved Date</label><p className="preview-value">{formatDateVN(subject.approvedDate)}</p></div>
                   </div>
                   <div className="time-tools" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
                     <div className="time-box"><h4 className="subsection-title">Time Allocation</h4><p>{subject.timeAllocation || 'Not specified'}</p></div>
@@ -866,7 +867,7 @@ export default function CourseDetail() {
                                   <span>📁 {doc.mimeType}</span>
                                   <span>📊 {documentService.formatFileSize(doc.fileSize)}</span>
                                   <span>👤 {doc.uploadedByName || 'Unknown'}</span>
-                                  <span>🕒 {new Date(doc.createdAt).toLocaleDateString()}</span>
+                                  <span>🕒 {formatDateVN(doc.createdAt)}</span>
                                   <span className="chip status draft">Pending Approval</span>
                                 </div>
                               </div>
@@ -1106,7 +1107,7 @@ export default function CourseDetail() {
                                   <span>📁 {doc.mimeType}</span>
                                   <span>📊 {documentService.formatFileSize(doc.fileSize)}</span>
                                   <span>👤 {doc.uploadedByName || 'Unknown'}</span>
-                                  <span>🕒 {new Date(doc.createdAt).toLocaleDateString()}</span>
+                                  <span>🕒 {formatDateVN(doc.createdAt)}</span>
                                 </div>
                               </div>
                             ))}
@@ -1238,7 +1239,7 @@ export default function CourseDetail() {
                                   <span>📁 {doc.mimeType}</span>
                                   <span>📊 {documentService.formatFileSize(doc.fileSize)}</span>
                                   <span>👤 {doc.uploadedByName || 'Unknown'}</span>
-                                  <span>🕒 {new Date(doc.createdAt).toLocaleDateString()}</span>
+                                  <span>🕒 {formatDateVN(doc.createdAt)}</span>
                                 </div>
                               </div>
                             ))}
@@ -1281,7 +1282,7 @@ export default function CourseDetail() {
                                         <div style={{ flex: 1 }}>
                                           <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{suggestion.content}</p>
                                           <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                            Suggested by: <strong>{suggestion.suggestedByUserName || 'Unknown'}</strong> • {new Date(suggestion.createdAt).toLocaleDateString()}
+                                            Suggested by: <strong>{suggestion.suggestedByUserName || 'Unknown'}</strong> • {formatDateVN(suggestion.createdAt)}
                                           </p>
                                         </div>
                                         <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
@@ -1368,9 +1369,9 @@ export default function CourseDetail() {
                                         <div style={{ flex: 1 }}>
                                           <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{suggestion.content}</p>
                                           <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                            Suggested by: <strong>{suggestion.suggestedByUserName || 'Unknown'}</strong> • {new Date(suggestion.createdAt).toLocaleDateString()}
+                                            Suggested by: <strong>{suggestion.suggestedByUserName || 'Unknown'}</strong> • {formatDateVN(suggestion.createdAt)}
                                             {suggestion.reviewedByUserName && suggestion.reviewedAt && (
-                                              <> • Approved by: <strong>{suggestion.reviewedByUserName}</strong> on {new Date(suggestion.reviewedAt).toLocaleDateString()}</>
+                                              <> • Approved by: <strong>{suggestion.reviewedByUserName}</strong> on {formatDateVN(suggestion.reviewedAt)}</>
                                             )}
                                           </p>
                                         </div>
@@ -1429,9 +1430,9 @@ export default function CourseDetail() {
                                         <div style={{ flex: 1 }}>
                                           <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{suggestion.content}</p>
                                           <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                            Suggested by: <strong>{suggestion.suggestedByUserName || 'Unknown'}</strong> • {new Date(suggestion.createdAt).toLocaleDateString()}
+                                            Suggested by: <strong>{suggestion.suggestedByUserName || 'Unknown'}</strong> • {formatDateVN(suggestion.createdAt)}
                                             {suggestion.reviewedByUserName && suggestion.reviewedAt && (
-                                              <> • Rejected by: <strong>{suggestion.reviewedByUserName}</strong> on {new Date(suggestion.reviewedAt).toLocaleDateString()}</>
+                                              <> • Rejected by: <strong>{suggestion.reviewedByUserName}</strong> on {formatDateVN(suggestion.reviewedAt)}</>
                                             )}
                                           </p>
                                           {suggestion.rejectionReason && (
@@ -1493,7 +1494,7 @@ export default function CourseDetail() {
                   <div className="preview-item"><label className="preview-label">Minimum Passing Average</label><p className="preview-value">{subject.minAvgMarkToPass || '-'}</p></div>
                   <div className="preview-item"><label className="preview-label">Approval</label><span className={`chip status ${subject.isApproved ? 'published' : 'draft'}`}>{subject.isApproved ? 'Approved' : 'Not approved'}</span></div>
                   <div className="preview-item"><label className="preview-label">Decision No.</label><p className="preview-value">{subject.decisionNo || '-'}</p></div>
-                  <div className="preview-item"><label className="preview-label">Approved Date</label><p className="preview-value">{subject.approvedDate ? new Date(subject.approvedDate).toLocaleDateString() : '-'}</p></div>
+                  <div className="preview-item"><label className="preview-label">Approved Date</label><p className="preview-value">{formatDateVN(subject.approvedDate)}</p></div>
                   <div className="meta-grid">
                     <div className="meta-item"><span className="meta-label">Documents</span><span className="meta-value">{approvedDocuments.length}</span></div>
                     <div className="meta-item"><span className="meta-label">Outcome</span><span className="meta-value">{subject.learningOutcomes?.length || 0}</span></div>

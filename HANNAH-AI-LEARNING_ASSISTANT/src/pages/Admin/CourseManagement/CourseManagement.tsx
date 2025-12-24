@@ -6,6 +6,7 @@ import subjectService, { type Subject } from '../../../service/subjectService';
 import { toast } from 'react-hot-toast';
 import ConfirmModal from '../../../components/ConfirmModal/ConfirmModal';
 import SyllabusImportButton from './SyllabusImportButton';
+import { formatDateVN } from '../../../utils/dateUtils';
 import './CourseManagement.css';
 
 const initialFormState: Partial<Subject> = {
@@ -468,7 +469,7 @@ export default function CourseManagement() {
           <span className={`status-badge ${subject.isActive ? 'active' : 'inactive'}`}>{subject.isActive ? 'Active' : 'Inactive'}</span>
         </div>
         <p className="course-description">Credits: {subject.credits}</p>
-        <div className="course-footer"><div className="course-footer-item"><Clock size={16} />Created: {new Date(subject.createdAt).toLocaleDateString()}</div></div>
+        <div className="course-footer"><div className="course-footer-item"><Clock size={16} />Created: {formatDateVN(subject.createdAt)}</div></div>
       </div>
     </div>
   );
