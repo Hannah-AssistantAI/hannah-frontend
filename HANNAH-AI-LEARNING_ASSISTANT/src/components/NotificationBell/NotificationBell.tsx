@@ -67,14 +67,23 @@ const NotificationBell: React.FC = () => {
     };
 
     const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
+        // Server returns UTC time - ensure it's parsed as UTC
+        // If no timezone indicator, append 'Z' to treat as UTC
+        const utcDateString = dateString.endsWith('Z') ? dateString : dateString + 'Z';
+        const date = new Date(utcDateString);
         const now = new Date();
         const diff = now.getTime() - date.getTime();
+
+        // Handle negative diff (future dates or clock skew)
+        if (diff < 0) return 'Just now';
+
+        const minutes = Math.floor(diff / (1000 * 60));
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const days = Math.floor(hours / 24);
 
-        if (days > 0) return `${days} days ago`;
-        if (hours > 0) return `${hours} hours ago`;
+        if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+        if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+        if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
         return 'Just now';
     };
 

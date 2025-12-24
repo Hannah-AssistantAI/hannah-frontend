@@ -89,7 +89,9 @@ const MyFlags: React.FC = () => {
     };
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleString('vi-VN', {
+        // Server returns UTC time - ensure it's parsed as UTC
+        const utcDateString = dateString.endsWith('Z') ? dateString : dateString + 'Z';
+        return new Date(utcDateString).toLocaleString('vi-VN', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
