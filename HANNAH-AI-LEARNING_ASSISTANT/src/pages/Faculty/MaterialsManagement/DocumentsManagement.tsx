@@ -177,7 +177,7 @@ const DocumentsManagement: React.FC = () => {
   };
 
   // 🔔 Real-time: Handle subject added to semester
-  // Defined after fetchSubjects to ensure function is available
+  // Update local state directly instead of refetching to avoid loading indicator
   const handleSubjectAddedToSemester = useCallback((data: SubjectSemesterData) => {
     console.log('[Documents] Subject added to semester event received:', data);
     const currentSemesterNumber = parseInt(selectedSemester.replace('Semester ', ''));
@@ -187,10 +187,36 @@ const DocumentsManagement: React.FC = () => {
 
     console.log('[Documents] Current semester:', currentSemesterNumber, 'Event semester:', eventSemester);
 
-    // If the subject was added to the currently selected semester, refresh the list
+    // If the subject was added to the currently selected semester, add to local state
     if (eventSemester === currentSemesterNumber) {
-      console.log('[Documents] Semester matches! Refreshing subject list...');
-      fetchSubjects();
+      console.log('[Documents] Semester matches! Adding to local state...');
+
+      // Extract subject data from event (handle both PascalCase and camelCase)
+      const subjectId = data.subject?.SubjectId || data.subject?.subjectId || 0;
+      const subjectCode = data.subject?.Code || data.subject?.code || '';
+      const subjectName = data.subject?.Name || data.subject?.name || '';
+
+      // Add new course to local state
+      const newCourse: Course = {
+        subjectId: subjectId,
+        subjectName: subjectName,
+        subjectCode: subjectCode,
+        semester: `Semester ${eventSemester}`,
+        materials: [],
+        materialsCount: 0
+      };
+
+      // Check if course already exists to avoid duplicates
+      setCourses(prev => {
+        const exists = prev.some(c => c.subjectId === subjectId);
+        if (exists) {
+          console.log('[Documents] Course already exists, skipping');
+          return prev;
+        }
+        console.log('[Documents] Adding new course:', newCourse);
+        return [...prev, newCourse];
+      });
+
       toast.success(`New subject added to ${selectedSemester}!`);
     } else {
       console.log('[Documents] Semester does not match, ignoring event');
