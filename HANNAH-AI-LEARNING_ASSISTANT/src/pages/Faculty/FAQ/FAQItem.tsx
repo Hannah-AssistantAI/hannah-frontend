@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatDateTimeVN } from '../../../utils/dateUtils';
 
 type FAQ = {
   id: string | number;
@@ -22,13 +23,7 @@ const FAQItem: React.FC<FAQItemProps> = ({ faq, onEdit, onDelete }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const formatDate = (date: string | number | Date): string => {
-    return new Date(date).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return formatDateTimeVN(date);
   };
 
   const truncateText = (text: string, maxLength = 150): string => {

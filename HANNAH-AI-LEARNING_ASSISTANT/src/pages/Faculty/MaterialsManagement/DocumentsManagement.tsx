@@ -8,6 +8,7 @@ import documentService from '../../../service/documentService';
 import { useRealtimeEvent } from '../../../hooks/useRealtime';
 import type { DocumentData, SubjectSemesterData, SubjectRemovedData } from '../../../hooks/useRealtime';
 import { useRealtimeContext } from '../../../contexts/RealtimeContext';
+import { formatDateVN } from '../../../utils/dateUtils';
 
 
 // Define types
@@ -828,7 +829,7 @@ const DocumentsManagement: React.FC = () => {
                                   <p className="text-xs text-slate-500 mt-1">{mat.description}</p>
                                 )}
                                 <p className="text-sm text-slate-500">
-                                  {mat.fileType} • {documentService.formatFileSize(mat.fileSize)} • {new Date(mat.uploadedAt).toLocaleDateString()}
+                                  {mat.fileType} • {documentService.formatFileSize(mat.fileSize)} • {formatDateVN(mat.uploadedAt)}
                                 </p>
                               </div>
                             </div>
@@ -879,7 +880,7 @@ const DocumentsManagement: React.FC = () => {
                                   <p className="text-xs text-slate-500 mt-1">{mat.description}</p>
                                 )}
                                 <p className="text-sm text-slate-500 mt-1">
-                                  {mat.fileType} • {documentService.formatFileSize(mat.fileSize)} • {new Date(mat.uploadedAt).toLocaleDateString()}
+                                  {mat.fileType} • {documentService.formatFileSize(mat.fileSize)} • {formatDateVN(mat.uploadedAt)}
                                 </p>
                               </div>
                             </div>
@@ -936,7 +937,7 @@ const DocumentsManagement: React.FC = () => {
                                   <p className="text-xs text-slate-500 mt-1">{mat.description}</p>
                                 )}
                                 <p className="text-sm text-slate-500 mt-1">
-                                  {mat.fileType} • {documentService.formatFileSize(mat.fileSize)} • {new Date(mat.uploadedAt).toLocaleDateString()}
+                                  {mat.fileType} • {documentService.formatFileSize(mat.fileSize)} • {formatDateVN(mat.uploadedAt)}
                                 </p>
                               </div>
                             </div>
@@ -988,7 +989,7 @@ const DocumentsManagement: React.FC = () => {
                                   <p className="text-xs text-slate-500 mt-1">{mat.description}</p>
                                 )}
                                 <p className="text-sm text-slate-500">
-                                  {mat.fileType} • {documentService.formatFileSize(mat.fileSize)} • {new Date(mat.uploadedAt).toLocaleDateString()}
+                                  {mat.fileType} • {documentService.formatFileSize(mat.fileSize)} • {formatDateVN(mat.uploadedAt)}
                                 </p>
                               </div>
                             </div>

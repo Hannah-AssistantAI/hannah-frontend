@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import flaggingService, { type FlaggedItem, type MessageContext } from '../../../service/flaggingService';
 import ResolveModal from './ResolveModal';
 import { getStatusDisplay, getStatusClass, canResolve } from '../../../utils/statusHelpers';
+import { formatDateTimeFullVN } from '../../../utils/dateUtils';
 import './MessageDetailModal.css';
 
 interface MessageDetailModalProps {
@@ -61,15 +62,7 @@ const MessageDetailModal: React.FC<MessageDetailModalProps> = ({ item, onClose, 
     };
 
     const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('vi-VN', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        }).format(date);
+        return formatDateTimeFullVN(dateString);
     };
 
     const getTypeLabel = (type: string) => {

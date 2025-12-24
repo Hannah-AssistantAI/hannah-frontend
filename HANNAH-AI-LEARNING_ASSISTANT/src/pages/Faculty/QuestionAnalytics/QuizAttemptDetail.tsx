@@ -4,6 +4,7 @@ import { useApp } from '../../../contexts/AppContext';
 import { ArrowLeft, CheckCircle2, XCircle, User, BookOpen, Calendar, ListChecks, Award } from 'lucide-react';
 import quizApiService from '../../../service/quizApi';
 import type { QuizAttemptDetailDto } from '../../../service/quizApi';
+import { formatDateTimeVN } from '../../../utils/dateUtils';
 
 const getScoreColor = (percentage: number) => {
   if (percentage >= 80) return '#10b981'; // green
@@ -118,7 +119,7 @@ export default function QuizAttemptDetail() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-xs text-slate-500">Submitted At</div>
-                  <div className="font-semibold text-slate-800">{detail.completedAt ? new Date(detail.completedAt).toLocaleString('vi-VN') : 'In Progress'}</div>
+                  <div className="font-semibold text-slate-800">{detail.completedAt ? formatDateTimeVN(detail.completedAt) : 'In Progress'}</div>
                 </div>
                 <Calendar className="w-5 h-5 text-slate-400" />
               </div>

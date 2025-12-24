@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Users, BookOpen } from 'lucide-react';
 import { mockAnalyticsData } from '../../../data/mockData';
+import { formatDateVN, formatDateTimeVN } from '../../../utils/dateUtils';
 import './QuestionStatistics.css';
 
 const QuestionStatistics: React.FC = () => {
@@ -136,7 +137,7 @@ const QuestionStatistics: React.FC = () => {
                   title={`${data.count} questions`}
                 ></div>
               </div>
-              <span className="trend-label">{new Date(data.date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}</span>
+              <span className="trend-label">{formatDateVN(data.date, { day: '2-digit', month: '2-digit' })}</span>
               <span className="trend-count">{data.count}</span>
             </div>
           ))}
@@ -155,12 +156,7 @@ const QuestionStatistics: React.FC = () => {
               <div className="question-header">
                 <span className="question-student">{question.student}</span>
                 <span className="question-time">
-                  {new Date(question.timestamp).toLocaleString('vi-VN', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
+                  {formatDateTimeVN(question.timestamp)}
                 </span>
               </div>
               <p className="question-content">{question.content}</p>

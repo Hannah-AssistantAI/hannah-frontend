@@ -14,6 +14,7 @@ import type {
 } from '../../../service/quizApi';
 import TopicPerformanceChart from '../../../components/Charts/TopicPerformanceChart';
 import KnowledgeGapHeatmap from '../../../components/Charts/KnowledgeGapHeatmap';
+import { formatDateVN, formatDateTimeVN } from '../../../utils/dateUtils';
 
 // ==================== INTERFACES ====================
 
@@ -604,7 +605,7 @@ const QuestionAnalytics = () => {
                           {group.title}
                         </div>
                         <div className="text-sm text-slate-500">
-                          Last Updated: {new Date(group.createdAt).toLocaleDateString()}
+                          Last Updated: {formatDateVN(group.createdAt)}
                         </div>
                       </div>
                     </td>
@@ -718,7 +719,7 @@ const QuestionAnalytics = () => {
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-sm text-slate-500">
-                          {attempt.submittedAt ? new Date(attempt.submittedAt).toLocaleString() : 'In Progress'}
+                          {attempt.submittedAt ? formatDateTimeVN(attempt.submittedAt) : 'In Progress'}
                         </span>
                       </td>
                       <td className="px-6 py-4">

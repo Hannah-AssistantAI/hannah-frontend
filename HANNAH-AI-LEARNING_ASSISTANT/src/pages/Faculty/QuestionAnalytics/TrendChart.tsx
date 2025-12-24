@@ -1,3 +1,5 @@
+import { formatDateVN } from '../../../utils/dateUtils';
+
 interface TrendChartProps {
   data: {
     date: string;
@@ -39,10 +41,7 @@ const TrendChart = ({ data }: TrendChartProps) => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      month: '2-digit',
-      day: '2-digit'
-    });
+    return formatDateVN(dateString, { month: '2-digit', day: '2-digit' });
   };
 
   // Create path for line chart

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, Users, FileText, BarChart2, Calendar } from 'lucide-react';
 import quizApiService, { type QuizDetailDto, type QuizStatisticsDto, type QuizAttemptDto } from '../../../service/quizApi';
 import { useApp } from '../../../contexts/AppContext';
+import { formatDateVN, formatDateTimeVN } from '../../../utils/dateUtils';
 
 const QuizDetail = () => {
     const { id } = useParams();
@@ -61,7 +62,7 @@ const QuizDetail = () => {
                             <div className="flex flex-wrap gap-4 text-sm text-slate-600">
                                 <span className="flex items-center gap-1 bg-slate-100 px-3 py-1 rounded-full"><FileText size={16} /> {quiz.questionCount} Questions</span>
                                 <span className="flex items-center gap-1 bg-slate-100 px-3 py-1 rounded-full"><Users size={16} /> {quiz.attemptCount} Attempts</span>
-                                <span className="flex items-center gap-1 bg-slate-100 px-3 py-1 rounded-full"><Calendar size={16} /> {new Date(quiz.createdAt).toLocaleDateString()}</span>
+                                <span className="flex items-center gap-1 bg-slate-100 px-3 py-1 rounded-full"><Calendar size={16} /> {formatDateVN(quiz.createdAt)}</span>
                                 {quiz.timeLimitMinutes && (
                                     <span className="flex items-center gap-1 bg-slate-100 px-3 py-1 rounded-full"><Clock size={16} /> {quiz.timeLimitMinutes} mins limit</span>
                                 )}
@@ -144,7 +145,7 @@ const QuizDetail = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                                            {attempt.submittedAt ? new Date(attempt.submittedAt).toLocaleString() : new Date(attempt.startedAt).toLocaleString()}
+                                            {attempt.submittedAt ? formatDateTimeVN(attempt.submittedAt) : formatDateTimeVN(attempt.startedAt)}
                                         </td>
                                     </tr>
                                 ))}
