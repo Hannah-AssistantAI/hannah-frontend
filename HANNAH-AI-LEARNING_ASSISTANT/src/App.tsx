@@ -38,6 +38,7 @@ import FlaggedQuizDetail from './pages/Admin/FlaggedQuizDetail'
 import { FlaggedMessagesList, FlaggedMessageDetail } from './pages/Admin/FlaggedMessages'
 import { AssignedMessages, AssignedQuizzes } from './pages/Faculty/AssignedFlags'
 import AssignedFlagDetailRouter from './pages/Faculty/AssignedFlags/AssignedFlagDetailRouter'
+import MyFlags from './pages/MyFlags/MyFlags'
 
 const AuthRedirectHandler = () => {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -81,6 +82,7 @@ function App() {
           <Route path="/chat" element={<ThemedPage><Chat /></ThemedPage>} />
           <Route path="/chat/:conversationId" element={<ThemedPage><Chat /></ThemedPage>} />
           <Route path="/profile" element={<ThemedPage><Profile /></ThemedPage>} />
+          <Route path="/my-flags" element={<ThemedPage><MyFlags /></ThemedPage>} />
         </Route>
 
         {/* Admin Routes - Require 'Admin' role */}
