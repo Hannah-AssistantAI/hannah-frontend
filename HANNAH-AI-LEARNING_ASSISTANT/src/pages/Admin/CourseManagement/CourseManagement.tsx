@@ -76,7 +76,18 @@ export default function CourseManagement() {
   }, [view]);
 
   const handleCreateClick = () => {
-    setFormData(initialFormState);
+    // Auto-select semester based on current filter
+    // If filter is 'all', default to Semester 1
+    // If filter is a specific semester (e.g., 'Semester 8'), use that semester number
+    let autoSemester = 1;
+    if (selectedSemester !== 'all') {
+      const semesterNum = parseInt(selectedSemester.replace('Semester ', ''));
+      if (!isNaN(semesterNum)) {
+        autoSemester = semesterNum;
+      }
+    }
+
+    setFormData({ ...initialFormState, semester: autoSemester });
     setEditingSubjectId(null);
     setFieldErrors({});
     setView('create');
