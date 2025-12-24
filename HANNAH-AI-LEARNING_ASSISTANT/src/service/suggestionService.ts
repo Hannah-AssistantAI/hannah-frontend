@@ -52,6 +52,26 @@ export interface ApproveSuggestionDto {
 const createSuggestion = async (suggestionData: CreateSuggestionDto): Promise<void> => {
   await apiClient.post(API_ENDPOINTS.SUGGESTION.CREATE, suggestionData);
 };
+// Map string status to number (backend uses JsonStringEnumConverter)
+const normalizeStatus = (status: string | number): SuggestionStatus => {
+  if (typeof status === 'number') return status as SuggestionStatus;
+  const statusMap: { [key: string]: SuggestionStatus } = {
+    'Pending': SuggestionStatus.Pending,
+    'Approved': SuggestionStatus.Approved,
+    'Rejected': SuggestionStatus.Rejected,
+  };
+  return statusMap[status] || SuggestionStatus.Pending;
+};
+
+// Map string contentType to number (backend uses JsonStringEnumConverter)
+const normalizeContentType = (contentType: string | number): SuggestionContentType => {
+  if (typeof contentType === 'number') return contentType as SuggestionContentType;
+  const contentTypeMap: { [key: string]: SuggestionContentType } = {
+    'LearningOutcome': SuggestionContentType.LearningOutcome,
+    'CommonChallenge': SuggestionContentType.CommonChallenge,
+  };
+  return contentTypeMap[contentType] || SuggestionContentType.LearningOutcome;
+};
 
 /**
  * Fetches suggestions, optionally filtered by status, subjectId, and contentType.
@@ -60,7 +80,12 @@ const createSuggestion = async (suggestionData: CreateSuggestionDto): Promise<vo
  */
 const getSuggestions = async (params?: { status?: SuggestionStatus; subjectId?: number; contentType?: SuggestionContentType }): Promise<Suggestion[]> => {
   const response = await apiClient.get<Suggestion[]>(API_ENDPOINTS.SUGGESTION.GET_ALL, params);
-  return response.data;
+  // Normalize status and contentType from string to number (backend uses JsonStringEnumConverter)
+  return response.data.map(s => ({
+    ...s,
+    status: normalizeStatus(s.status as unknown as string | number),
+    contentType: normalizeContentType(s.contentType as unknown as string | number)
+  }));
 };
 
 /**
