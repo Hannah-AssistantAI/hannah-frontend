@@ -95,38 +95,6 @@ const DocumentsManagement: React.FC = () => {
   useRealtimeEvent('DocumentUploaded', handleDocumentUploaded);
   useRealtimeEvent('DocumentProcessed', handleDocumentProcessed);
 
-  // 🔔 Real-time: Handle subject added to semester
-  const handleSubjectAddedToSemester = useCallback((data: SubjectSemesterData) => {
-    console.log('[Documents] 🎯 Subject added to semester event received:', data);
-    const currentSemesterNumber = parseInt(selectedSemester.replace('Semester ', ''));
-
-    // Get semester from event (handle both PascalCase and camelCase)
-    const eventSemester = data.semesterId || data.subject?.Semester || data.subject?.semester || 0;
-
-    console.log('[Documents] Current semester:', currentSemesterNumber, 'Event semester:', eventSemester);
-
-    // If the subject was added to the currently selected semester, refresh the list
-    if (eventSemester === currentSemesterNumber) {
-      console.log('[Documents] ✅ Semester matches! Refreshing subject list...');
-      fetchSubjects();
-      toast.success(`New subject added to ${selectedSemester}!`);
-    } else {
-      console.log('[Documents] ℹ️ Semester does not match, ignoring event');
-    }
-  }, [selectedSemester]);
-
-  // 🔔 Real-time: Handle subject removed from semester
-  const handleSubjectRemovedFromSemester = useCallback((data: SubjectRemovedData) => {
-    console.log('[Documents] Subject removed from semester:', data);
-    // Remove the subject from local state
-    setCourses(prev => prev.filter(c => c.subjectId !== data.subjectId));
-    toast.success('Subject removed from this semester');
-  }, []);
-
-  // Subscribe to Course Management events
-  useRealtimeEvent('SubjectAddedToSemester', handleSubjectAddedToSemester);
-  useRealtimeEvent('SubjectRemovedFromSemester', handleSubjectRemovedFromSemester);
-
   // Join/leave subject group for targeted updates
   useEffect(() => {
     if (selectedCourse && isConnected) {
@@ -207,6 +175,39 @@ const DocumentsManagement: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // 🔔 Real-time: Handle subject added to semester
+  // Defined after fetchSubjects to ensure function is available
+  const handleSubjectAddedToSemester = useCallback((data: SubjectSemesterData) => {
+    console.log('[Documents] Subject added to semester event received:', data);
+    const currentSemesterNumber = parseInt(selectedSemester.replace('Semester ', ''));
+
+    // Get semester from event (handle both PascalCase and camelCase)
+    const eventSemester = data.semesterId || data.subject?.Semester || data.subject?.semester || 0;
+
+    console.log('[Documents] Current semester:', currentSemesterNumber, 'Event semester:', eventSemester);
+
+    // If the subject was added to the currently selected semester, refresh the list
+    if (eventSemester === currentSemesterNumber) {
+      console.log('[Documents] Semester matches! Refreshing subject list...');
+      fetchSubjects();
+      toast.success(`New subject added to ${selectedSemester}!`);
+    } else {
+      console.log('[Documents] Semester does not match, ignoring event');
+    }
+  }, [selectedSemester]);
+
+  // 🔔 Real-time: Handle subject removed from semester
+  const handleSubjectRemovedFromSemester = useCallback((data: SubjectRemovedData) => {
+    console.log('[Documents] Subject removed from semester:', data);
+    // Remove the subject from local state
+    setCourses(prev => prev.filter(c => c.subjectId !== data.subjectId));
+    toast.success('Subject removed from this semester');
+  }, []);
+
+  // Subscribe to Course Management events
+  useRealtimeEvent('SubjectAddedToSemester', handleSubjectAddedToSemester);
+  useRealtimeEvent('SubjectRemovedFromSemester', handleSubjectRemovedFromSemester);
 
   // Fetch materials count for all courses
   const fetchMaterialsCountForCourses = async (coursesToUpdate: Course[]) => {

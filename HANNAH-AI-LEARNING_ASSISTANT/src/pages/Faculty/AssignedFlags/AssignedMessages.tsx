@@ -23,7 +23,7 @@ const AssignedMessages: React.FC = () => {
     const handleFlagAssigned = useCallback((data: FlagAssignedData) => {
         console.log('[AssignedMessages] New flag assigned:', data);
         loadAssignedFlags();
-        toast.success(`New flag assigned to you!`, { icon: '📋' });
+        toast.success(`New flag assigned to you!`);
     }, []);
 
     // 🔔 Real-time: Handle flag resolved
