@@ -1,10 +1,13 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Upload, File, Trash2, Edit2, FileText, BookOpen, ChevronDown, Undo, ChevronRight, Loader2, AlertCircle, ChevronLeft } from 'lucide-react';
+import { Upload, File, Trash2, Edit2, FileText, BookOpen, ChevronDown, Undo, ChevronRight, Loader2, AlertCircle, ChevronLeft, Wifi, WifiOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import subjectService from '../../../service/subjectService';
 import type { Subject } from '../../../service/subjectService';
 import documentService from '../../../service/documentService';
+import { useRealtimeEvent } from '../../../hooks/useRealtime';
+import type { DocumentData, SubjectSemesterData, SubjectRemovedData } from '../../../hooks/useRealtime';
+import { useRealtimeContext } from '../../../contexts/RealtimeContext';
 
 
 // Define types
@@ -36,6 +39,9 @@ const DocumentsManagement: React.FC = () => {
   const courseIdFromUrl = searchParams.get('courseId');
   const semesterFromUrl = searchParams.get('semester');
 
+  // Real-time connection
+  const { isConnected, joinSubjectGroup, leaveSubjectGroup } = useRealtimeContext();
+
   // State management
 
   const [courses, setCourses] = useState<Course[]>([]);
@@ -66,6 +72,70 @@ const DocumentsManagement: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const PAGE_SIZE = 10;
+
+  // 🔔 Real-time: Handle document uploaded
+  const handleDocumentUploaded = useCallback((data: DocumentData) => {
+    console.log('[Documents] Document uploaded:', data);
+    if (selectedCourse && data.subjectId === selectedCourse.subjectId) {
+      fetchDocuments(selectedCourse.subjectId);
+      toast.success(`New document uploaded: ${data.fileName}`, { icon: '📄' });
+    }
+  }, [selectedCourse]);
+
+  // 🔔 Real-time: Handle document processed
+  const handleDocumentProcessed = useCallback((data: DocumentData) => {
+    console.log('[Documents] Document processed:', data);
+    if (selectedCourse && data.subjectId === selectedCourse.subjectId) {
+      fetchDocuments(selectedCourse.subjectId);
+      toast.success(`Document processed: ${data.fileName}`, { icon: '✅' });
+    }
+  }, [selectedCourse]);
+
+  // Subscribe to real-time events
+  useRealtimeEvent('DocumentUploaded', handleDocumentUploaded);
+  useRealtimeEvent('DocumentProcessed', handleDocumentProcessed);
+
+  // 🔔 Real-time: Handle subject added to semester
+  const handleSubjectAddedToSemester = useCallback((data: SubjectSemesterData) => {
+    console.log('[Documents] 🎯 Subject added to semester event received:', data);
+    const currentSemesterNumber = parseInt(selectedSemester.replace('Semester ', ''));
+
+    // Get semester from event (handle both PascalCase and camelCase)
+    const eventSemester = data.semesterId || data.subject?.Semester || data.subject?.semester || 0;
+
+    console.log('[Documents] Current semester:', currentSemesterNumber, 'Event semester:', eventSemester);
+
+    // If the subject was added to the currently selected semester, refresh the list
+    if (eventSemester === currentSemesterNumber) {
+      console.log('[Documents] ✅ Semester matches! Refreshing subject list...');
+      fetchSubjects();
+      toast.success(`New subject added to ${selectedSemester}!`, { icon: '📚' });
+    } else {
+      console.log('[Documents] ℹ️ Semester does not match, ignoring event');
+    }
+  }, [selectedSemester]);
+
+  // 🔔 Real-time: Handle subject removed from semester
+  const handleSubjectRemovedFromSemester = useCallback((data: SubjectRemovedData) => {
+    console.log('[Documents] Subject removed from semester:', data);
+    // Remove the subject from local state
+    setCourses(prev => prev.filter(c => c.subjectId !== data.subjectId));
+    toast('Subject removed from this semester', { icon: '🗑️' });
+  }, []);
+
+  // Subscribe to Course Management events
+  useRealtimeEvent('SubjectAddedToSemester', handleSubjectAddedToSemester);
+  useRealtimeEvent('SubjectRemovedFromSemester', handleSubjectRemovedFromSemester);
+
+  // Join/leave subject group for targeted updates
+  useEffect(() => {
+    if (selectedCourse && isConnected) {
+      joinSubjectGroup(selectedCourse.subjectId);
+      return () => {
+        leaveSubjectGroup(selectedCourse.subjectId);
+      };
+    }
+  }, [selectedCourse, isConnected, joinSubjectGroup, leaveSubjectGroup]);
 
   // Fetch subjects on mount
   useEffect(() => {
@@ -401,9 +471,29 @@ const DocumentsManagement: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Documents</h1>
-          <p className="text-slate-600">Manage learning materials for courses</p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-800 mb-2">Documents</h1>
+            <p className="text-slate-600">Manage learning materials for courses</p>
+          </div>
+          {/* Real-time connection indicator */}
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${isConnected
+            ? 'bg-green-100 text-green-700 border border-green-200'
+            : 'bg-gray-100 text-gray-500 border border-gray-200'
+            }`}>
+            {isConnected ? (
+              <>
+                <Wifi className="w-3.5 h-3.5" />
+                <span>Live</span>
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-3.5 h-3.5" />
+                <span>Offline</span>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Loading State */}
