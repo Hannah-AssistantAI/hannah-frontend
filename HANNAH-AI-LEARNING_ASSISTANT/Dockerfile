@@ -6,6 +6,11 @@ RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
+# Build argument for API base URL - MUST be declared early
+ARG VITE_API_BASE_URL=/api
+# Set as environment variable so Vite can read it during build
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 # Copy ONLY package.json (NOT package-lock.json to avoid platform issues)
 COPY package.json ./
 
@@ -15,11 +20,7 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Build argument for API base URL
-ARG VITE_API_BASE_URL=/api
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-
-# Build the application
+# Build the application (Vite will read VITE_API_BASE_URL from ENV)
 RUN npm run build
 
 # Stage 2: Serve with Nginx
