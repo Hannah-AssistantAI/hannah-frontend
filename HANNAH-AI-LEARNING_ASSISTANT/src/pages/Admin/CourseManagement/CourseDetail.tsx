@@ -423,6 +423,34 @@ export default function CourseDetail() {
     });
   };
 
+  // Auto-refresh preview modal when no previews available yet
+  useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    if (previewModal.isOpen && !previewModal.loading && previewModal.previewUrls.length === 0 && previewModal.documentId) {
+      // Poll every 5 seconds for preview updates
+      intervalId = setInterval(async () => {
+        try {
+          const response = await documentService.getDocumentPreviews(previewModal.documentId!);
+          if (response.previewUrls && response.previewUrls.length > 0) {
+            setPreviewModal(prev => ({
+              ...prev,
+              previewUrls: response.previewUrls,
+            }));
+            // Stop polling once previews are available
+            if (intervalId) clearInterval(intervalId);
+          }
+        } catch (error) {
+          console.error('Error polling for previews:', error);
+        }
+      }, 5000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [previewModal.isOpen, previewModal.loading, previewModal.previewUrls.length, previewModal.documentId]);
+
   const fetchSuggestions = async () => {
     if (!id) return;
     try {
