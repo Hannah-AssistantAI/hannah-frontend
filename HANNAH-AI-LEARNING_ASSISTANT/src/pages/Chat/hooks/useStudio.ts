@@ -190,10 +190,10 @@ export const useStudio = (conversationId: number | null) => {
                 // Sort by raw timestamp (newest first)
                 rawItems.sort((a, b) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime());
 
-                // Format timestamps for display
-                const items: StudioItem[] = rawItems.map(item => ({
-                    ...item,
-                    timestamp: formatDateTimeVN(item.rawTimestamp)
+                // Format timestamps for display and remove rawTimestamp
+                const items: StudioItem[] = rawItems.map(({ rawTimestamp, ...rest }) => ({
+                    ...rest,
+                    timestamp: formatDateTimeVN(rawTimestamp)
                 }));
 
                 setStudioItems(items);
