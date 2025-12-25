@@ -14,7 +14,7 @@ const VIETNAM_TIMEZONE = 'Asia/Ho_Chi_Minh';
  * @param dateString - Date string from API (may or may not have Z suffix)
  * @returns Date object parsed as UTC
  */
-function parseAsUTC(dateString: string | Date): Date {
+export function parseAsUTC(dateString: string | Date): Date {
   if (dateString instanceof Date) return dateString;
   
   // If the string already has timezone info (Z, +, -), parse directly
