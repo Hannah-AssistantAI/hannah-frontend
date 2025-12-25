@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X, Download, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X, Download, RefreshCw, Wifi, WifiOff, Eye } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
 import documentService, { type Document } from '../../../service/documentService';
@@ -73,6 +73,21 @@ export default function CourseDetail() {
     type: 'document',
     id: null,
     name: ''
+  });
+
+  // State for document preview modal
+  const [previewModal, setPreviewModal] = useState<{
+    isOpen: boolean;
+    documentId: number | null;
+    documentTitle: string;
+    previewUrls: string[];
+    loading: boolean;
+  }>({
+    isOpen: false,
+    documentId: null,
+    documentTitle: '',
+    previewUrls: [],
+    loading: false
   });
 
   // Real-time connection context
@@ -370,6 +385,43 @@ export default function CourseDetail() {
     }
   };
 
+  // Handle opening document preview modal
+  const handleOpenPreview = async (documentId: number, documentTitle: string) => {
+    setPreviewModal({
+      isOpen: true,
+      documentId,
+      documentTitle,
+      previewUrls: [],
+      loading: true
+    });
+
+    try {
+      const response = await documentService.getDocumentPreviews(documentId);
+      setPreviewModal(prev => ({
+        ...prev,
+        previewUrls: response.previewUrls || [],
+        loading: false
+      }));
+    } catch (error) {
+      console.error('Error fetching document previews:', error);
+      setPreviewModal(prev => ({
+        ...prev,
+        previewUrls: [],
+        loading: false
+      }));
+    }
+  };
+
+  // Close preview modal
+  const closePreviewModal = () => {
+    setPreviewModal({
+      isOpen: false,
+      documentId: null,
+      documentTitle: '',
+      previewUrls: [],
+      loading: false
+    });
+  };
 
   const fetchSuggestions = async () => {
     if (!id) return;
@@ -799,6 +851,29 @@ export default function CourseDetail() {
                                   >
                                     <Download size={16} />
                                     Download
+                                  </button>
+                                  <button
+                                    onClick={() => handleOpenPreview(doc.documentId, doc.title)}
+                                    style={{
+                                      padding: '0.5rem 1rem',
+                                      fontSize: '0.875rem',
+                                      fontWeight: 600,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.5rem',
+                                      backgroundColor: '#8b5cf6',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '8px',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s ease',
+                                    }}
+                                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#7c3aed')}
+                                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#8b5cf6')}
+                                    title="Preview document thumbnails"
+                                  >
+                                    <Eye size={16} />
+                                    Preview
                                   </button>
                                   <button
                                     onClick={() => handleApprove(doc.documentId)}
@@ -1640,6 +1715,139 @@ export default function CourseDetail() {
         cancelText="Cancel"
         type="danger"
       />
+
+      {/* Document Preview Modal */}
+      {previewModal.isOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+            padding: '2rem',
+          }}
+          onClick={closePreviewModal}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '16px',
+              maxWidth: '900px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{
+              padding: '1.25rem 1.5rem',
+              borderBottom: '1px solid #e5e7eb',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
+              color: 'white',
+            }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Eye size={22} />
+                Document Preview: {previewModal.documentTitle}
+              </h3>
+              <button
+                onClick={closePreviewModal}
+                style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  border: 'none',
+                  padding: '0.5rem',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: 'white',
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div style={{
+              padding: '1.5rem',
+              maxHeight: 'calc(90vh - 80px)',
+              overflowY: 'auto',
+            }}>
+              {previewModal.loading ? (
+                <div style={{ textAlign: 'center', padding: '3rem' }}>
+                  <Loader className="animate-spin" size={48} style={{ margin: '0 auto', color: '#8b5cf6' }} />
+                  <p style={{ marginTop: '1rem', color: '#6b7280' }}>Loading preview thumbnails...</p>
+                </div>
+              ) : previewModal.previewUrls.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '3rem' }}>
+                  <FileText size={64} style={{ color: '#d1d5db', margin: '0 auto' }} />
+                  <p style={{ marginTop: '1rem', color: '#6b7280', fontSize: '1rem' }}>
+                    No preview available yet.
+                  </p>
+                  <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>
+                    Preview thumbnails are being generated. Please try again in a few moments.
+                  </p>
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                  gap: '1rem',
+                }}>
+                  {previewModal.previewUrls.map((url, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        backgroundColor: '#f9fafb',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                      }}
+                    >
+                      <div style={{
+                        padding: '0.5rem 0.75rem',
+                        backgroundColor: '#f3f4f6',
+                        borderBottom: '1px solid #e5e7eb',
+                        fontSize: '0.75rem',
+                        color: '#6b7280',
+                        fontWeight: 500,
+                      }}>
+                        Slide {index + 1}
+                      </div>
+                      <a href={url} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={url}
+                          alt={`Slide ${index + 1}`}
+                          style={{
+                            width: '100%',
+                            height: 'auto',
+                            display: 'block',
+                            cursor: 'zoom-in',
+                          }}
+                          onError={(e) => {
+                            e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150" viewBox="0 0 200 150"><rect fill="%23f3f4f6" width="200" height="150"/><text x="50%" y="50%" fill="%236b7280" font-family="system-ui" font-size="12" text-anchor="middle">Image not found</text></svg>';
+                          }}
+                        />
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </AdminPageWrapper >
   );
 }

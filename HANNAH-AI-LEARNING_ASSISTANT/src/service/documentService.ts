@@ -453,6 +453,27 @@ class DocumentService {
   }
 
   /**
+   * PREVIEW: Get document preview thumbnails
+   */
+  async getDocumentPreviews(documentId: number): Promise<{
+    documentId: number;
+    previewUrls: string[];
+    previewsAvailable: boolean;
+  }> {
+    try {
+      const response = await apiClient.get<{
+        documentId: number;
+        previewUrls: string[];
+        previewsAvailable: boolean;
+      }>(`/api/documents/${documentId}/previews`);
+      return response.data;
+    } catch (error) {
+      console.error('Get document previews error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Helper: Get approval status badge color
    */
   getApprovalStatusColor(approvalStatus: string): string {
