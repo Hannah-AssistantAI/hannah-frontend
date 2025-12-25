@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X, Download, RefreshCw, Wifi, WifiOff, Eye, BookOpen, Calendar, ClipboardList, Library, ListChecks } from 'lucide-react';
+import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X, Download, RefreshCw, Wifi, WifiOff, Eye, BookOpen, Calendar, ClipboardList, Library, ListChecks, Folder, BarChart3, User, Clock3 } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
 import documentService, { type Document } from '../../../service/documentService';
@@ -967,10 +967,10 @@ export default function CourseDetail() {
                                   paddingTop: '0.5rem',
                                   borderTop: '1px solid var(--border-color)'
                                 }}>
-                                  <span>📁 {doc.mimeType}</span>
-                                  <span>📊 {documentService.formatFileSize(doc.fileSize)}</span>
-                                  <span>👤 {doc.uploadedByName || 'Unknown'}</span>
-                                  <span>🕒 {formatDateVN(doc.createdAt)}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Folder size={12} /> {doc.mimeType}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><BarChart3 size={12} /> {documentService.formatFileSize(doc.fileSize)}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><User size={12} /> {doc.uploadedByName || 'Unknown'}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Clock3 size={12} /> {formatDateVN(doc.createdAt)}</span>
                                   <span className="chip status draft">Pending Approval</span>
                                 </div>
                               </div>
@@ -1207,10 +1207,10 @@ export default function CourseDetail() {
                                   paddingTop: '0.5rem',
                                   borderTop: '1px solid var(--border-color)'
                                 }}>
-                                  <span>📁 {doc.mimeType}</span>
-                                  <span>📊 {documentService.formatFileSize(doc.fileSize)}</span>
-                                  <span>👤 {doc.uploadedByName || 'Unknown'}</span>
-                                  <span>🕒 {formatDateVN(doc.createdAt)}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Folder size={12} /> {doc.mimeType}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><BarChart3 size={12} /> {documentService.formatFileSize(doc.fileSize)}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><User size={12} /> {doc.uploadedByName || 'Unknown'}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Clock3 size={12} /> {formatDateVN(doc.createdAt)}</span>
                                 </div>
                               </div>
                             ))}
@@ -1339,10 +1339,10 @@ export default function CourseDetail() {
                                   paddingTop: '0.5rem',
                                   borderTop: '1px solid var(--border-color)'
                                 }}>
-                                  <span>📁 {doc.mimeType}</span>
-                                  <span>📊 {documentService.formatFileSize(doc.fileSize)}</span>
-                                  <span>👤 {doc.uploadedByName || 'Unknown'}</span>
-                                  <span>🕒 {formatDateVN(doc.createdAt)}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Folder size={12} /> {doc.mimeType}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><BarChart3 size={12} /> {documentService.formatFileSize(doc.fileSize)}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><User size={12} /> {doc.uploadedByName || 'Unknown'}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Clock3 size={12} /> {formatDateVN(doc.createdAt)}</span>
                                 </div>
                               </div>
                             ))}
