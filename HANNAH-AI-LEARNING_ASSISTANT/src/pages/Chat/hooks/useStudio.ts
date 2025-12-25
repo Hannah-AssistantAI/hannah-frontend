@@ -4,6 +4,7 @@ import studentService, { formatRoadmapAsMarkdown } from '../../../service/studen
 import orientationService from '../../../service/orientationService'
 import type { StudioItem } from '../types'
 import { mockRoadmapContent } from '../../../data/mockData'
+import { formatDateTimeVN } from '../../../utils/dateUtils'
 
 /**
  * Extract a specific semester section from orientation document
@@ -102,31 +103,34 @@ export const useStudio = (conversationId: number | null) => {
                 ]);
                 const roadmapsRes = { data: { data: [] } }; // Mock empty roadmap list
 
-                // Transform backend data to StudioItem format
-                const items: StudioItem[] = [];
+                // Transform backend data to StudioItem format (with raw timestamp for sorting)
+                interface RawStudioItem extends Omit<StudioItem, 'timestamp'> {
+                    rawTimestamp: string;
+                }
+                const rawItems: RawStudioItem[] = [];
 
                 // Add mindmaps
                 if (mindmapsRes.data && mindmapsRes.data.data) {
-                    items.push(...mindmapsRes.data.data.map((m: any) => ({
+                    rawItems.push(...mindmapsRes.data.data.map((m: any) => ({
                         id: `mindmap-${m.mindmapId}`,
                         type: 'mindmap' as const,
                         title: m.title,
                         subtitle: m.topic,
                         status: 'completed' as const,
-                        timestamp: m.generatedAt,
+                        rawTimestamp: m.generatedAt,
                         content: null
                     })));
                 }
 
                 // Add quizzes
                 if (quizzesRes.data && quizzesRes.data.data) {
-                    items.push(...quizzesRes.data.data.map((q: any) => ({
+                    rawItems.push(...quizzesRes.data.data.map((q: any) => ({
                         id: `quiz-${q.quizId}`,
                         type: 'quiz' as const,
                         title: q.title,
                         subtitle: `${q.questionCount} câu hỏi • ${q.difficulty}`,
                         status: 'completed' as const,
-                        timestamp: q.generatedAt,
+                        rawTimestamp: q.generatedAt,
                         content: null
                     })));
                 }
@@ -139,7 +143,7 @@ export const useStudio = (conversationId: number | null) => {
 
                 if (flashcardsRes.data && flashcardsRes.data.data) {
                     console.log(`Processing ${flashcardsRes.data.data.length} flashcard sets`);
-                    items.push(...flashcardsRes.data.data.map((f: any) => {
+                    rawItems.push(...flashcardsRes.data.data.map((f: any) => {
                         console.log('Flashcard item:', f);
                         return {
                             id: `notecard-${f.flashcardSetId}`,
@@ -147,7 +151,7 @@ export const useStudio = (conversationId: number | null) => {
                             title: f.title,
                             subtitle: `${f.cardCount} thẻ`,
                             status: 'completed' as const,
-                            timestamp: f.generatedAt,
+                            rawTimestamp: f.generatedAt,
                             content: null
                         };
                     }));
@@ -159,32 +163,39 @@ export const useStudio = (conversationId: number | null) => {
 
                 // Add reports
                 if (reportsRes.data && reportsRes.data.data) {
-                    items.push(...reportsRes.data.data.map((r: any) => ({
+                    rawItems.push(...reportsRes.data.data.map((r: any) => ({
                         id: `report-${r.reportId}`,
                         type: 'report' as const,
                         title: r.title,
                         subtitle: 'Báo cáo',
                         status: 'completed' as const,
-                        timestamp: r.generatedAt,
+                        rawTimestamp: r.generatedAt,
                         content: null
                     })));
                 }
 
                 // Add roadmaps
                 if (roadmapsRes.data && roadmapsRes.data.data) {
-                    items.push(...roadmapsRes.data.data.map((rm: any) => ({
+                    rawItems.push(...roadmapsRes.data.data.map((rm: any) => ({
                         id: `roadmap-${rm.roadmapId}`,
                         type: 'roadmap' as const,
                         title: rm.title,
                         subtitle: 'Lộ trình học tập',
                         status: 'completed' as const,
-                        timestamp: rm.generatedAt,
+                        rawTimestamp: rm.generatedAt,
                         content: null
                     })));
                 }
 
-                // Sort by timestamp (newest first) and set state
-                items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+                // Sort by raw timestamp (newest first)
+                rawItems.sort((a, b) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime());
+
+                // Format timestamps for display
+                const items: StudioItem[] = rawItems.map(item => ({
+                    ...item,
+                    timestamp: formatDateTimeVN(item.rawTimestamp)
+                }));
+
                 setStudioItems(items);
 
                 console.log(`Fetched ${items.length} studio items for conversation ${conversationId}`);

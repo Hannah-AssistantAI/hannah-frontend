@@ -1,6 +1,7 @@
 import React from 'react';
 import { Clock, Trophy, CheckCircle, XCircle, History, Eye, RefreshCw, Calendar } from 'lucide-react';
 import type { QuizAttemptSummary } from '../../../../service/studioService';
+import { formatDateTimeVN } from '../../../../utils/dateUtils';
 import './QuizAttemptHistory.css';
 
 interface QuizAttemptHistoryProps {
@@ -25,13 +26,7 @@ export function QuizAttemptHistory({
 
     const formatDate = (dateStr: string | null) => {
         if (!dateStr) return '-';
-        return new Date(dateStr).toLocaleString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        return formatDateTimeVN(dateStr);
     };
 
     const formatTime = (seconds: number | null) => {

@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import type { FlagNotification } from '../../service/notificationService';
 import flaggingService, { type FlaggedItem, type MessageContext } from '../../service/flaggingService';
 import quizApiService, { type QuizAttemptDetailDto } from '../../service/quizApi';
+import { formatDateTimeFullVN } from '../../utils/dateUtils';
 import './NotificationDetailModal.css';
 
 // Interface for parsed resolution data
@@ -114,13 +115,7 @@ const NotificationDetailModal: React.FC<NotificationDetailModalProps> = ({ notif
     };
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleString('vi-VN', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
+        return formatDateTimeFullVN(dateString);
     };
 
     const getRoleLabel = (role: string) => {

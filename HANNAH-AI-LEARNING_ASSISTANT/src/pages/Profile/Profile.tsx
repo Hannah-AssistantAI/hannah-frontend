@@ -31,6 +31,7 @@ import {
     ArrowLeft,
     GraduationCap
 } from 'lucide-react'
+import { formatDateVN } from '../../utils/dateUtils';
 import './Profile.css'
 
 // Dựa theo DB schema
@@ -82,7 +83,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
             setIsLoading(true);
             try {
                 const profileData = await userService.getUserProfile(user.userId.toString());
-                const joinDate = new Date(profileData.createdAt || user.createdAt).toLocaleDateString('vi-VN', {
+                const joinDate = formatDateVN(profileData.createdAt || user.createdAt, {
                     month: 'long',
                     year: 'numeric'
                 });

@@ -4,6 +4,7 @@ import { Loader2, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import conversationService from '../service/conversationService';
+import { isToday, isYesterday, parseAsUTC } from '../utils/dateUtils';
 import './HistorySidebar.css';
 
 interface HistorySidebarProps {
@@ -137,25 +138,37 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ isOpen, onClose,
             "Cũ hơn": []
         };
 
+        // Use Vietnam timezone for date comparison
+        const VIETNAM_TIMEZONE = 'Asia/Ho_Chi_Minh';
         const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const yesterday = new Date(today);
+
+        // Get today's date string in Vietnam timezone
+        const todayVN = now.toLocaleDateString('vi-VN', { timeZone: VIETNAM_TIMEZONE });
+
+        // Get yesterday's date string in Vietnam timezone
+        const yesterday = new Date(now);
         yesterday.setDate(yesterday.getDate() - 1);
-        const last7Days = new Date(today);
+        const yesterdayVN = yesterday.toLocaleDateString('vi-VN', { timeZone: VIETNAM_TIMEZONE });
+
+        // Get 7 days ago date
+        const last7Days = new Date(now);
         last7Days.setDate(last7Days.getDate() - 7);
 
         conversations.forEach(conv => {
             const dateStr = conv.updated_at || conv.created_at || conv.createdAt;
             if (!dateStr) return;
 
-            const date = new Date(dateStr);
-            const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            // Parse date as UTC (backend returns UTC timestamps)
+            const date = parseAsUTC(dateStr);
 
-            if (dateOnly.getTime() === today.getTime()) {
+            // Get the date string in Vietnam timezone for comparison
+            const dateVN = date.toLocaleDateString('vi-VN', { timeZone: VIETNAM_TIMEZONE });
+
+            if (dateVN === todayVN) {
                 groups["Hôm nay"].push(conv);
-            } else if (dateOnly.getTime() === yesterday.getTime()) {
+            } else if (dateVN === yesterdayVN) {
                 groups["Hôm qua"].push(conv);
-            } else if (dateOnly > last7Days) {
+            } else if (date > last7Days) {
                 groups["7 ngày trước"].push(conv);
             } else {
                 groups["Cũ hơn"].push(conv);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import { flaggingApiService } from '../service/flaggingApi';
+import { formatDateTimeVN } from '../utils/dateUtils';
 import './NotificationBell.css';
 
 interface Notification {
@@ -117,7 +118,7 @@ export const NotificationBell: React.FC = () => {
                                             </p>
                                         )}
                                         <span className="notification-time">
-                                            {new Date(notification.resolvedAt).toLocaleString()}
+                                            {formatDateTimeVN(notification.resolvedAt)}
                                         </span>
                                     </div>
                                     {!notification.isRead && (

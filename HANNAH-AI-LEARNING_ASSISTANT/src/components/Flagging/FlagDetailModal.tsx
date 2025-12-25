@@ -4,6 +4,7 @@ import { flaggingApiService } from '../../service/flaggingApi';
 import { documentService } from '../../service/documentService';
 import type { FlaggedItem } from '../../service/flaggingApi';
 import type { Message } from '../../service/conversationService';
+import { formatDateTimeVN } from '../../utils/dateUtils';
 
 interface FlagDetailModalProps {
     isOpen: boolean;
@@ -139,7 +140,7 @@ const FlagDetailModal: React.FC<FlagDetailModalProps> = ({
                         </div>
                         <div>
                             <span className="text-gray-500">Date:</span>
-                            <span className="ml-2 font-medium text-gray-900">{new Date(item.flaggedAt).toLocaleString()}</span>
+                            <span className="ml-2 font-medium text-gray-900">{formatDateTimeVN(item.flaggedAt)}</span>
                         </div>
                         <div>
                             <span className="text-gray-500">Reason:</span>

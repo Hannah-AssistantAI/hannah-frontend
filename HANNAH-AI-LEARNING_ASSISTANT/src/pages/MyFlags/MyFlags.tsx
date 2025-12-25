@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Flag, Clock, User, CheckCircle, AlertCircle, MessageSquare, FileQuestion, ArrowLeft, ExternalLink } from 'lucide-react';
 import apiClient from '../../service/apiClient';
+import { formatDateTimeVN } from '../../utils/dateUtils';
 import './MyFlags.css';
 
 interface MyFlag {
@@ -89,15 +90,7 @@ const MyFlags: React.FC = () => {
     };
 
     const formatDate = (dateString: string) => {
-        // Server returns UTC time - ensure it's parsed as UTC
-        const utcDateString = dateString.endsWith('Z') ? dateString : dateString + 'Z';
-        return new Date(utcDateString).toLocaleString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        return formatDateTimeVN(dateString);
     };
 
     const filteredFlags = flags.filter(flag => {

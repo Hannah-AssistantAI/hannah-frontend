@@ -27,6 +27,7 @@ import {
     Edit3,
     Check
 } from 'lucide-react';
+import { formatDateVN } from '../../utils/dateUtils';
 import './AcademicDashboard.css';
 
 interface AcademicDashboardProps {
@@ -293,11 +294,7 @@ export default function AcademicDashboard({ userId, profileSemester, onSemesterU
     };
 
     const formatImportDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
+        return formatDateVN(dateString);
     };
 
     if (isLoading) {
