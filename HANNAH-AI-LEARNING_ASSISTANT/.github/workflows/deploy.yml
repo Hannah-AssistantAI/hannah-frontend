@@ -1,4 +1,4 @@
-name: Deploy Frontend
+name: Deploy Frontend to EC2
 
 on:
   push:
@@ -6,69 +6,50 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 jobs:
-  build-and-test:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
         with:
-          node-version: "20"
-          cache: "npm"
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 15m
+          script: |
+            set -e
 
-      - name: Install dependencies
-        run: npm ci
+            FRONTEND_DIR=~/hannah/hannah-frontend/HANNAH-AI-LEARNING_ASSISTANT
 
-      - name: Run TypeScript check
-        run: npx tsc --noEmit
-        continue-on-error: true
+            echo "🚀 Deploying Frontend..."
 
-      - name: Build
-        run: npm run build
-        env:
-          VITE_API_BASE_URL: https://hannahai.online
+            # Navigate to frontend directory
+            if [ -d "$FRONTEND_DIR" ]; then
+              cd $FRONTEND_DIR
+              echo "📂 Pulling latest code..."
+              git pull origin master
+            else
+              echo "📂 Cloning repository..."
+              mkdir -p ~/hannah/hannah-frontend
+              cd ~/hannah/hannah-frontend
+              git clone https://github.com/Hannah-AssistantAI/hannah-frontend.git .
+              cd HANNAH-AI-LEARNING_ASSISTANT
+            fi
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
-          retention-days: 7
+            echo "📦 Installing dependencies..."
+            npm ci --legacy-peer-deps
 
-      # Add deployment step based on your hosting provider
-      # Uncomment the appropriate section below:
+            echo "🔨 Building..."
+            npm run build
 
-      # ============ VERCEL ============
-      # - name: Deploy to Vercel
-      #   uses: amondnet/vercel-action@v25
-      #   with:
-      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
-      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-      #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-      #     working-directory: ./
+            echo "🔄 Restarting frontend container..."
+            cd ~/hannah/hannah-backend
+            docker-compose build --no-cache hannah-frontend
+            docker-compose up -d hannah-frontend
+            docker-compose restart nginx-proxy
 
-      # ============ NETLIFY ============
-      # - name: Deploy to Netlify
-      #   uses: nwtgck/actions-netlify@v2
-      #   with:
-      #     publish-dir: './dist'
-      #     production-branch: master
-      #     github-token: ${{ secrets.GITHUB_TOKEN }}
-      #     deploy-message: "Deploy from GitHub Actions"
-      #   env:
-      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-      #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-
-      # ============ AWS S3 ============
-      # - name: Deploy to S3
-      #   uses: jakejarvis/s3-sync-action@master
-      #   with:
-      #     args: --delete
-      #   env:
-      #     AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
-      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     SOURCE_DIR: 'dist'
+            echo "✅ Frontend deployment completed!"
