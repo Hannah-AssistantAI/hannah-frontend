@@ -1,51 +1,51 @@
 /**
- * AI Settings Management Styles - Premium Dark Theme
- * Modern glassmorphism with vibrant gradients
+ * AI Settings Management Styles - Admin Light Theme
+ * Clean professional design matching Admin Configuration page
  */
 
 /* ============================================================================
-   CSS VARIABLES - Vibrant Color Palette
+   CSS VARIABLES - Light Theme (Matching Configuration)
    ============================================================================ */
 .ai-settings-container {
-    /* Base colors */
-    --ai-bg-primary: #0f0f1a;
-    --ai-bg-secondary: #16162a;
-    --ai-bg-card: #1e1e35;
-    --ai-bg-card-hover: #252545;
+    /* Base colors - Light theme */
+    --ai-bg-primary: #f8fafc;
+    --ai-bg-secondary: #f9fafb;
+    --ai-bg-card: #ffffff;
+    --ai-bg-card-hover: #f1f5f9;
 
     /* Accent colors */
-    --ai-primary: #6366f1;
-    --ai-primary-light: #818cf8;
-    --ai-primary-glow: rgba(99, 102, 241, 0.3);
+    --ai-primary: #3b82f6;
+    --ai-primary-light: #60a5fa;
+    --ai-primary-glow: rgba(59, 130, 246, 0.15);
 
     /* Text colors */
-    --ai-text-primary: #f1f5f9;
-    --ai-text-secondary: #94a3b8;
-    --ai-text-muted: #64748b;
+    --ai-text-primary: #1f2937;
+    --ai-text-secondary: #475569;
+    --ai-text-muted: #9ca3af;
 
-    /* Border & effects */
-    --ai-border: rgba(99, 102, 241, 0.2);
-    --ai-border-hover: rgba(99, 102, 241, 0.4);
+    /* Border & effects - Stronger borders like Configuration */
+    --ai-border: #cbd5e1;
+    --ai-border-hover: #94a3b8;
 
     /* Status colors */
     --ai-success: #10b981;
     --ai-warning: #f59e0b;
     --ai-error: #ef4444;
 
-    /* Gradients */
-    --ai-gradient-primary: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
-    --ai-gradient-card: linear-gradient(135deg, #1e1e35 0%, #252550 100%);
-    --ai-gradient-header: linear-gradient(135deg, #1a1a30 0%, #2a2a50 100%);
+    /* Gradients - Subtle for light theme */
+    --ai-gradient-primary: linear-gradient(135deg, #3b82f6, #2563eb);
+    --ai-gradient-card: #ffffff;
+    --ai-gradient-header: linear-gradient(135deg, #f8fafc, #f1f5f9);
 
     padding: 24px;
-    max-width: 1200px;
+    max-width: 100%;  /* Full width */
     margin: 0 auto;
     background: var(--ai-bg-primary);
     min-height: 100vh;
 }
 
 /* ============================================================================
-   HEADER - Glassmorphism Effect
+   HEADER - Clean Style (Like Configuration)
    ============================================================================ */
 .ai-settings-header {
     display: flex;
@@ -54,9 +54,9 @@
     margin-bottom: 32px;
     padding: 24px;
     background: var(--ai-gradient-header);
-    border: 1px solid var(--ai-border);
+    border: 2px solid var(--ai-border);
     border-radius: 20px;
-    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .ai-settings-title-section {
@@ -165,19 +165,20 @@
 }
 
 /* ============================================================================
-   COLLAPSIBLE GROUP - Glass Cards
+   COLLAPSIBLE GROUP - Clean Cards (Like Configuration)
    ============================================================================ */
 .ai-settings-group {
-    background: var(--ai-gradient-card);
-    border: 1px solid var(--ai-border);
+    background: var(--ai-bg-card);
+    border: 2px solid var(--ai-border);
     border-radius: 20px;
     overflow: hidden;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .ai-settings-group:hover {
     border-color: var(--ai-border-hover);
-    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .ai-settings-group-header {
@@ -185,7 +186,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 20px 24px;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05));
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(59, 130, 246, 0.03));
     border: none;
     cursor: pointer;
     width: 100%;
@@ -194,7 +195,7 @@
 }
 
 .ai-settings-group-header:hover {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(59, 130, 246, 0.06));
 }
 
 .group-header-left {
@@ -252,11 +253,11 @@
 }
 
 /* ============================================================================
-   SETTING CARDS - Glassmorphism
+   SETTING CARDS - Clean Style (Like Configuration)
    ============================================================================ */
 .ai-setting-card {
     background: var(--ai-bg-card);
-    border: 1px solid var(--ai-border);
+    border: 2px solid var(--ai-border);
     border-radius: 16px;
     padding: 20px;
     transition: all 0.3s ease;
@@ -264,13 +265,13 @@
 
 .ai-setting-card:hover {
     border-color: var(--ai-border-hover);
-    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .ai-setting-card.has-changes {
     border-color: var(--ai-primary);
-    box-shadow: 0 0 0 3px var(--ai-primary-glow);
-    background: linear-gradient(135deg, var(--ai-bg-card), rgba(99, 102, 241, 0.05));
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    background: linear-gradient(135deg, #ffffff, #eff6ff);
 }
 
 .ai-setting-header {
@@ -360,11 +361,11 @@
 }
 
 /* ============================================================================
-   PLACEHOLDER HELPER - Cyan Accent
+   PLACEHOLDER HELPER - Blue Accent (Light Theme)
    ============================================================================ */
 .placeholder-helper {
-    background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(20, 184, 166, 0.05));
-    border: 1px solid rgba(6, 182, 212, 0.3);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(59, 130, 246, 0.03));
+    border: 1px solid rgba(59, 130, 246, 0.2);
     border-radius: 12px;
     padding: 14px 18px;
     margin-bottom: 14px;
@@ -375,7 +376,7 @@
     align-items: center;
     gap: 6px;
     font-size: 0.8rem;
-    color: #22d3ee;
+    color: #3b82f6;
     margin-bottom: 10px;
     font-weight: 500;
 }
@@ -391,20 +392,20 @@
     align-items: center;
     gap: 6px;
     padding: 8px 14px;
-    background: rgba(6, 182, 212, 0.1);
-    border: 1px solid rgba(6, 182, 212, 0.3);
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.2);
     border-radius: 8px;
     cursor: pointer;
     font-size: 0.8rem;
-    color: #67e8f9;
+    color: #2563eb;
     transition: all 0.3s ease;
 }
 
 .placeholder-chip:hover {
-    background: rgba(6, 182, 212, 0.2);
-    border-color: #22d3ee;
+    background: rgba(59, 130, 246, 0.15);
+    border-color: #3b82f6;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 
 .placeholder-chip code {
@@ -417,19 +418,20 @@
 }
 
 /* ============================================================================
-   TEXTAREA - Dark Theme Input
+   TEXTAREA - Light Theme Input with Blue Accent
    ============================================================================ */
 .ai-setting-textarea {
     width: 100%;
-    padding: 14px;
-    border: 1px solid var(--ai-border);
-    border-radius: 12px;
+    padding: 14px 18px;
+    border: 2px solid var(--ai-border);
+    border-radius: 14px;
     font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
     font-size: 0.9rem;
     line-height: 1.6;
     resize: vertical;
-    transition: all 0.3s ease;
-    background: var(--ai-bg-secondary);
+    transition: all 0.2s ease;
+    /* Solid blue-tinted background */
+    background: #dbeafe;
     color: var(--ai-text-primary);
 }
 
@@ -440,8 +442,8 @@
 .ai-setting-textarea:focus {
     outline: none;
     border-color: var(--ai-primary);
-    background: var(--ai-bg-card);
-    box-shadow: 0 0 0 3px var(--ai-primary-glow);
+    background: #bfdbfe;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
 /* ============================================================================
