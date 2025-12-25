@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X, Download, RefreshCw, Wifi, WifiOff, Eye } from 'lucide-react';
+import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X, Download, RefreshCw, Wifi, WifiOff, Eye, BookOpen, Calendar, ClipboardList, Library, ListChecks } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
 import documentService, { type Document } from '../../../service/documentService';
@@ -666,7 +666,7 @@ export default function CourseDetail() {
               {/* Syllabus Data: Sessions, Assessments, Materials */}
               {(subject.sessions || subject.assessments || subject.syllabusMaterials || subject.studentTasks) && (
                 <div className="form-section">
-                  <h3 className="form-section-title">📚 Imported Syllabus Data</h3>
+                  <h3 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><BookOpen size={20} style={{ color: '#6366f1' }} /> Imported Syllabus Data</h3>
                   <div className="form-content" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
                     {/* Sessions Table */}
@@ -676,7 +676,7 @@ export default function CourseDetail() {
                         return (
                           <div>
                             <h4 style={{ margin: '0 0 0.75rem 0', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              📅 Course Sessions ({sessions.length})
+                              <Calendar size={18} /> Course Sessions ({sessions.length})
                             </h4>
                             <div style={{ maxHeight: '350px', overflowY: 'auto', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
                               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
@@ -712,7 +712,7 @@ export default function CourseDetail() {
                         return (
                           <div>
                             <h4 style={{ margin: '0 0 0.75rem 0', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              📝 Assessments ({assessments.length})
+                              <ClipboardList size={18} /> Assessments ({assessments.length})
                             </h4>
                             <div style={{ borderRadius: '8px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
                               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
@@ -752,7 +752,7 @@ export default function CourseDetail() {
                           return (
                             <div>
                               <h4 style={{ margin: '0 0 0.75rem 0', color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                📖 Learning Materials ({materials.length})
+                                <Library size={18} /> Learning Materials ({materials.length})
                               </h4>
                               <div style={{ background: '#eff6ff', borderRadius: '8px', padding: '1rem', border: '1px solid #bfdbfe' }}>
                                 <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>
@@ -774,7 +774,7 @@ export default function CourseDetail() {
                       {subject.studentTasks && (
                         <div>
                           <h4 style={{ margin: '0 0 0.75rem 0', color: '#8b5cf6', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            ✅ Student Tasks
+                            <ListChecks size={18} /> Student Tasks
                           </h4>
                           <div style={{ background: '#f5f3ff', borderRadius: '8px', padding: '1rem', border: '1px solid #ddd6fe', fontSize: '0.85rem', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
                             {subject.studentTasks}
