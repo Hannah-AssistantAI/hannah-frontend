@@ -209,7 +209,7 @@ const studentService = {
      */
     setCurrentSemester: async (userId: number, currentSemester: string): Promise<SetCurrentSemesterResponse> => {
         const response = await apiClient.put<SetCurrentSemesterResponse>(
-            `/api/students/${userId}/current-semester`,
+            `/api/v1/students/${userId}/current-semester`,
             { currentSemester }
         );
         return response.data;
