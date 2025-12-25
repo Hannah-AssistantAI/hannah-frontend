@@ -23,7 +23,9 @@ const FAQItem: React.FC<FAQItemProps> = ({ faq, onEdit, onDelete }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const formatDate = (date: string | number | Date): string => {
-    return formatDateTimeVN(date);
+    // Convert number to string for formatDateTimeVN compatibility
+    const dateValue = typeof date === 'number' ? new Date(date).toISOString() : date;
+    return formatDateTimeVN(dateValue);
   };
 
   const truncateText = (text: string, maxLength = 150): string => {
