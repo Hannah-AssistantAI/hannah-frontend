@@ -607,8 +607,9 @@ export default function AcademicDashboard({ userId, profileSemester, onSemesterU
                                             <td>
                                                 <span className={`status-badge ${getStatusClass(grade.status)}`}>
                                                     {getStatusIcon(grade.status)}
-                                                    {grade.status === 'Passed' ? 'Đạt' :
-                                                        grade.status === 'Failed' ? 'Chưa đạt' : 'Đang học'}
+                                                    {grade.status.toLowerCase() === 'passed' ? 'ĐẠT' :
+                                                        grade.status.toLowerCase() === 'failed' ? 'Chưa đạt' :
+                                                            grade.status.toLowerCase() === 'not started' ? 'CHƯA HỌC' : 'ĐANG HỌC'}
                                                 </span>
                                             </td>
                                         </tr>
