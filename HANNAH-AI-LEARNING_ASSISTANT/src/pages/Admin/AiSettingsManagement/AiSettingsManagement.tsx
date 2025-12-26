@@ -303,6 +303,8 @@ function getSettingLabel(key: string): string {
         'ai_youtube_max_results': 'Số video tối đa hiển thị',
         'ai_youtube_keywords': 'Keywords thêm vào tìm kiếm',
         'ai_youtube_exclude_keywords': 'Keywords loại bỏ video',
+        // Slide Display
+        'ai_slide_source_format': 'Format hiển thị nguồn slide',
     };
     return labels[key] || key;
 }
@@ -325,7 +327,7 @@ function groupSettings(settings: SystemSetting[]): Record<string, SystemSetting[
             groups['Trích dẫn nguồn'].push(setting);
         } else if (setting.settingKey.includes('youtube')) {
             groups['YouTube Settings'].push(setting);
-        } else if (setting.settingKey.includes('rag') || setting.settingKey.includes('specialization')) {
+        } else if (setting.settingKey.includes('rag') || setting.settingKey.includes('specialization') || setting.settingKey.includes('slide')) {
             groups['RAG Filtering'].push(setting);
         }
     });
