@@ -93,7 +93,7 @@ export const BigPictureSidebar: React.FC<BigPictureSidebarProps> = ({
                                     <button
                                         key={subIndex}
                                         className="big-picture-subtopic-button"
-                                        onClick={() => onTopicClick?.(subtopic)}
+                                        onClick={() => onTopicClick?.(`${topic.title}: ${subtopic}`)}
                                     >
                                         {subtopic}
                                     </button>
