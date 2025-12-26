@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef } from 'react'
-import { Maximize2, Minimize2, Download, Plus, Minus, ChevronsUpDown, ChevronsDownUp } from 'lucide-react'
+import { Maximize2, Minimize2, Download, Plus, Minus, ChevronsUpDown, ChevronsDownUp, BookOpen, Bot, Video, FileText, File, Inbox } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import MindmapViewer, { type MindmapViewerHandle } from '../../../../components/MindmapViewer'
 import studioService, { type GetMindMapNodeDetailsResponse } from '../../../../service/studioService'
@@ -234,13 +234,13 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
                                         onClick={() => setActiveTab('resources')}
                                         className={`mindmap-tab-btn ${activeTab === 'resources' ? 'active-resources' : 'inactive'}`}
                                     >
-                                        📚 {t.resources}
+                                        <BookOpen size={16} /> {t.resources}
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('ai-tutor')}
                                         className={`mindmap-tab-btn ${activeTab === 'ai-tutor' ? 'active-ai' : 'inactive'}`}
                                     >
-                                        🤖 {t.aiTutor}
+                                        <Bot size={16} /> {t.aiTutor}
                                     </button>
                                 </div>
                             </div>
@@ -263,7 +263,7 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
                                                         <div className="mindmap-resources-list">
                                                             {nodeDetails.resources.map((resource, idx) => (
                                                                 <a key={idx} href={resource.url} target="_blank" rel="noopener noreferrer" className="mindmap-resource-card">
-                                                                    <div className="mindmap-resource-icon">{resource.type === 'video' ? '🎬' : resource.type === 'article' ? '📰' : '📄'}</div>
+                                                                    <div className="mindmap-resource-icon">{resource.type === 'video' ? <Video size={16} /> : resource.type === 'article' ? <FileText size={16} /> : <File size={16} />}</div>
                                                                     <div className="mindmap-resource-content">
                                                                         <div className="mindmap-resource-title">{resource.title}</div>
                                                                         <div className="mindmap-resource-meta">{resource.type}</div>
@@ -276,7 +276,7 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
                                             </>
                                         ) : (
                                             <div className="mindmap-empty-state">
-                                                <div className="mindmap-empty-icon">📭</div>
+                                                <div className="mindmap-empty-icon"><Inbox size={32} style={{ color: '#9ca3af' }} /></div>
                                                 <p className="mindmap-empty-text">Không có tài nguyên</p>
                                             </div>
                                         )}
