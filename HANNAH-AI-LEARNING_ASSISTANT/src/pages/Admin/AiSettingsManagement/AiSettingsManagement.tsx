@@ -35,6 +35,7 @@ import {
     Info,
     Copy,
     RotateCcw,
+    Youtube,
 } from 'lucide-react';
 import { formatDateTimeVN } from '../../../utils/dateUtils';
 import './AiSettingsManagement.css';
@@ -297,6 +298,11 @@ function getSettingLabel(key: string): string {
         'ai_rag_hybrid_fallback_enabled': 'Bật tìm mở rộng (Hybrid)',
         'ai_rag_out_of_semester_note': 'Thông báo nội dung ngoài kỳ học',
         'ai_rag_similarity_threshold': 'Ngưỡng similarity tối thiểu',
+        // YouTube Settings
+        'ai_youtube_enabled': 'Bật/tắt YouTube videos',
+        'ai_youtube_max_results': 'Số video tối đa hiển thị',
+        'ai_youtube_keywords': 'Keywords thêm vào tìm kiếm',
+        'ai_youtube_exclude_keywords': 'Keywords loại bỏ video',
     };
     return labels[key] || key;
 }
@@ -307,6 +313,7 @@ function groupSettings(settings: SystemSetting[]): Record<string, SystemSetting[
         'Thông tin sinh viên': [],
         'Trích dẫn nguồn': [],
         'RAG Filtering': [],
+        'YouTube Settings': [],
     };
 
     settings.forEach(setting => {
@@ -316,6 +323,8 @@ function groupSettings(settings: SystemSetting[]): Record<string, SystemSetting[
             groups['Thông tin sinh viên'].push(setting);
         } else if (setting.settingKey.includes('citation')) {
             groups['Trích dẫn nguồn'].push(setting);
+        } else if (setting.settingKey.includes('youtube')) {
+            groups['YouTube Settings'].push(setting);
         } else if (setting.settingKey.includes('rag') || setting.settingKey.includes('specialization')) {
             groups['RAG Filtering'].push(setting);
         }
@@ -330,6 +339,7 @@ function getGroupIcon(group: string) {
         'Thông tin sinh viên': <User size={20} />,
         'Trích dẫn nguồn': <Quote size={20} />,
         'RAG Filtering': <Filter size={20} />,
+        'YouTube Settings': <Youtube size={20} />,
     };
     return icons[group] || <FileText size={20} />;
 }
@@ -340,6 +350,7 @@ function getGroupDescription(group: string): string {
         'Thông tin sinh viên': 'Hiển thị thông tin cá nhân hóa cho sinh viên',
         'Trích dẫn nguồn': 'Cách AI trích dẫn tài liệu trong câu trả lời',
         'RAG Filtering': 'Lọc tài liệu dựa trên profile sinh viên',
+        'YouTube Settings': 'Cấu hình tìm kiếm và hiển thị video YouTube liên quan',
     };
     return descriptions[group] || '';
 }
