@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Loader2, CheckCircle } from 'lucide-react';
 import notificationService from '../../service/notificationService';
 import type { FlagNotification } from '../../service/notificationService';
 import NotificationDetailModal from './NotificationDetailModal';
@@ -102,7 +102,7 @@ const NotificationBell: React.FC = () => {
                     <div className="notification-dropdown">
                         <div className="notification-header">
                             <h3>Notifications</h3>
-                            {loading && <span className="loading-spinner">⟳</span>}
+                            {loading && <Loader2 size={16} className="animate-spin" style={{ color: '#6b7280' }} />}
                         </div>
 
                         <div className="notification-list">
@@ -117,7 +117,7 @@ const NotificationBell: React.FC = () => {
                                         className={`notification-item ${notification.isRead ? 'read' : 'unread'}`}
                                         onClick={() => handleNotificationClick(notification)}
                                     >
-                                        <div className="notification-icon">✅</div>
+                                        <div className="notification-icon"><CheckCircle size={20} style={{ color: '#22c55e' }} /></div>
                                         <div className="notification-content">
                                             <p className="notification-message">{notification.message}</p>
                                             <p className="notification-meta">
