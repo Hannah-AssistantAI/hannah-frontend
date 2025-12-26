@@ -50,23 +50,6 @@
     color: var(--text-tertiary);
 }
 
-.upload-file-btn {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
-}
-
-.upload-file-btn:hover {
-    background-color: var(--bg-surface-secondary);
-}
-
 .send-btn {
     background: none;
     border: none;
