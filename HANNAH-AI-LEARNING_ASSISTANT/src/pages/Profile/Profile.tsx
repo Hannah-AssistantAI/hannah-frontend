@@ -84,6 +84,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
             try {
                 const profileData = await userService.getUserProfile(user.userId.toString());
                 const joinDate = formatDateVN(profileData.createdAt || user.createdAt, {
+                    day: 'numeric',
                     month: 'long',
                     year: 'numeric'
                 });
