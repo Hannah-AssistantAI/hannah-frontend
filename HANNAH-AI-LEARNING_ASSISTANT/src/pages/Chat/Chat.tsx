@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Send, Upload, GitBranch, FileText, ClipboardCheck, StickyNote, Map, Mic } from 'lucide-react'
+import { Send, GitBranch, FileText, ClipboardCheck, StickyNote, Map, Mic } from 'lucide-react'
 import subjectService, { type Subject } from '../../service/subjectService'
 import flaggingService from '../../service/flaggingService'
 import { useStudio } from './hooks/useStudio'
@@ -382,15 +382,12 @@ export default function Chat() {
                         <div className="chat-input-wrapper">
                             <input
                                 type="text"
-                                placeholder="Nhập hoặc chia sẻ tệp tin..."
+                                placeholder="Nhập câu hỏi của bạn..."
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 onKeyPress={handleKeyPress}
                                 className="chat-input"
                             />
-                            <button className="upload-file-btn" aria-label="Tải lên tệp tin">
-                                <Upload size={20} />
-                            </button>
                             <button
                                 className="voice-mode-btn"
                                 onClick={() => setIsVoiceModeOpen(true)}
