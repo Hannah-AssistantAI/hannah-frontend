@@ -171,6 +171,7 @@ export default function AcademicDashboard({ userId, profileSemester, onSemesterU
         switch (status.toLowerCase()) {
             case 'passed': return 'passed';
             case 'failed': return 'failed';
+            case 'not started': return 'not-started';  // 🆕 Courses not yet begun
             default: return 'studying';
         }
     };
@@ -179,6 +180,7 @@ export default function AcademicDashboard({ userId, profileSemester, onSemesterU
         switch (status.toLowerCase()) {
             case 'passed': return <CheckCircle2 size={14} />;
             case 'failed': return <XCircle size={14} />;
+            case 'not started': return <AlertCircle size={14} />;  // 🆕 Not yet started
             default: return <Clock size={14} />;
         }
     };

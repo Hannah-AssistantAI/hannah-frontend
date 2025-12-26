@@ -657,6 +657,12 @@
     color: #fbbf24;
 }
 
+/* 🆕 Not started - gray/silver to show not yet begun */
+.status-badge.not-started {
+    background: rgba(148, 163, 184, 0.15);
+    color: #94a3b8;
+}
+
 /* No transcript state */
 .no-transcript {
     text-align: center;
@@ -1013,5 +1019,5 @@
 
 :root:not([data-theme="dark"]) .subject-name,
 [data-theme="light"] .subject-name {
-color: #64748b !important;
+    color: #64748b !important;
 }
