@@ -22,12 +22,12 @@ export default function OnboardingTranscript() {
 
         setLoading(true);
         try {
-            // Use existing transcript upload API
+            // Use existing transcript upload API - correct endpoint
             const formData = new FormData();
             formData.append('file', file);
 
-            const token = localStorage.getItem('token');
-            const response = await fetch('/api/Transcripts/upload', {
+            const token = localStorage.getItem('accessToken');
+            const response = await fetch('/api/students/me/transcript', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
