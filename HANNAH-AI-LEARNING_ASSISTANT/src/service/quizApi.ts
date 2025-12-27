@@ -160,7 +160,7 @@ class QuizApiService {
      */
     async getQuizzes(params?: GetQuizzesParams): Promise<PaginatedQuizListDto> {
         try {
-            const response = await apiClient.get<BackendApiResponse<QuizDto[]>>('/api/Quizzes', params);
+            const response = await apiClient.get<BackendApiResponse<QuizDto[]>>('/api/v1/Quizzes', params);
 
             return {
                 items: response.data.data,
@@ -182,7 +182,7 @@ class QuizApiService {
      */
     async getQuizById(quizId: number): Promise<QuizDetailDto> {
         try {
-            const response = await apiClient.get<BackendApiResponse<QuizDetailDto>>(`/api/Quizzes/${quizId}`);
+            const response = await apiClient.get<BackendApiResponse<QuizDetailDto>>(`/api/v1/Quizzes/${quizId}`);
             return response.data.data;
         } catch (error) {
             console.error(`Error fetching quiz ${quizId}:`, error);
@@ -196,7 +196,7 @@ class QuizApiService {
      */
     async getQuizResults(quizId: number): Promise<QuizResultsDto> {
         try {
-            const response = await apiClient.get<BackendApiResponse<QuizResultsDto>>(`/api/Quizzes/${quizId}/results`);
+            const response = await apiClient.get<BackendApiResponse<QuizResultsDto>>(`/api/v1/Quizzes/${quizId}/results`);
             return response.data.data;
         } catch (error) {
             console.error(`Error fetching quiz results for ${quizId}:`, error);
@@ -210,7 +210,7 @@ class QuizApiService {
      */
     async getQuizStatistics(quizId: number): Promise<QuizStatisticsDto> {
         try {
-            const response = await apiClient.get<BackendApiResponse<QuizStatisticsDto>>(`/api/Quizzes/${quizId}/statistics`);
+            const response = await apiClient.get<BackendApiResponse<QuizStatisticsDto>>(`/api/v1/Quizzes/${quizId}/statistics`);
             return response.data.data;
         } catch (error) {
             console.error(`Error fetching quiz statistics for ${quizId}:`, error);
@@ -224,7 +224,7 @@ class QuizApiService {
      */
     async getQuizAttempts(quizId: number): Promise<QuizAttemptDto[]> {
         try {
-            const response = await apiClient.get<BackendApiResponse<QuizAttemptDto[]>>(`/api/Quizzes/${quizId}/attempts`);
+            const response = await apiClient.get<BackendApiResponse<QuizAttemptDto[]>>(`/api/v1/Quizzes/${quizId}/attempts`);
             return response.data.data;
         } catch (error) {
             console.error(`Error fetching quiz attempts for ${quizId}:`, error);
@@ -238,7 +238,7 @@ class QuizApiService {
      */
     async deleteQuiz(quizId: number): Promise<void> {
         try {
-            await apiClient.delete<BackendApiResponse<null>>(`/api/Quizzes/${quizId}`);
+            await apiClient.delete<BackendApiResponse<null>>(`/api/v1/Quizzes/${quizId}`);
         } catch (error) {
             console.error(`Error deleting quiz ${quizId}:`, error);
             throw error;
@@ -286,7 +286,7 @@ class QuizApiService {
 
             // Fall back to .NET API
             try {
-                const response = await apiClient.get<BackendApiResponse<QuizAttemptDetailDto>>(`/api/Quizzes/${quizId}/attempts/${attemptId}`);
+                const response = await apiClient.get<BackendApiResponse<QuizAttemptDetailDto>>(`/api/v1/Quizzes/${quizId}/attempts/${attemptId}`);
                 return response.data.data;
             } catch (error) {
                 console.error(`Error fetching quiz attempt ${attemptId} for quiz ${quizId}:`, error);

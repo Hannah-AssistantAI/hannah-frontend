@@ -3,7 +3,9 @@
  * Centralized API endpoints and base URL configuration
  */
 
-// Base API URL - uses environment variable in production, falls back to localhost for development
+// Base API URL - uses environment variable in production, falls back to .NET API for development
+// Note: Local dev uses .NET direct (5001). Production uses nginx->Ocelot which transforms routes.
+// For Quiz API, we need to use /api/v1/Quizzes routes when calling .NET directly.
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
 
 /**
@@ -169,7 +171,7 @@ export const buildAvatarUrl = (avatarPath: string | null | undefined): string =>
 
   // Extract filename from MinIO path (e.g., "avatars/abc123.png" -> "abc123.png")
   const filename = avatarPath.includes('/') ? avatarPath.split('/').pop() : avatarPath;
-  
+
   // Route through the Files API endpoint to serve from MinIO
   return `${API_BASE_URL}/api/files/avatars/${filename}`;
 };
