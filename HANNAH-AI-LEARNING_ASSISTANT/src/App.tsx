@@ -40,6 +40,14 @@ import { AssignedMessages, AssignedQuizzes } from './pages/Faculty/AssignedFlags
 import AssignedFlagDetailRouter from './pages/Faculty/AssignedFlags/AssignedFlagDetailRouter'
 import MyFlags from './pages/MyFlags/MyFlags'
 
+// Onboarding pages - Phase 0 (Thesis Defense Remediation)
+import {
+  OnboardingWelcome,
+  OnboardingProfile,
+  OnboardingTranscript,
+  OnboardingComplete
+} from './pages/Onboarding'
+
 const AuthRedirectHandler = () => {
   const { isAuthenticated, user, isLoading } = useAuth();
   const navigate = useNavigate();
@@ -75,6 +83,14 @@ function App() {
 
         {/* Public shared conversation route - no auth required */}
         <Route path="/shared/:shareToken" element={<SharedConversationView />} />
+
+        {/* Onboarding Routes - Require Login (Phase 0) */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/onboarding" element={<OnboardingWelcome />} />
+          <Route path="/onboarding/profile" element={<OnboardingProfile />} />
+          <Route path="/onboarding/transcript" element={<OnboardingTranscript />} />
+          <Route path="/onboarding/complete" element={<OnboardingComplete />} />
+        </Route>
 
         {/* Protected Routes - Require Login */}
         <Route element={<ProtectedRoute />}>
