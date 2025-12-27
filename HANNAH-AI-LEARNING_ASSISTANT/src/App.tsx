@@ -39,6 +39,7 @@ import { FlaggedMessagesList, FlaggedMessageDetail } from './pages/Admin/Flagged
 import { AssignedMessages, AssignedQuizzes } from './pages/Faculty/AssignedFlags'
 import AssignedFlagDetailRouter from './pages/Faculty/AssignedFlags/AssignedFlagDetailRouter'
 import MyFlags from './pages/MyFlags/MyFlags'
+import OnboardingGuard from './components/OnboardingGuard'
 
 // Onboarding pages - Phase 0 (Thesis Defense Remediation)
 import {
@@ -92,13 +93,15 @@ function App() {
           <Route path="/onboarding/complete" element={<OnboardingComplete />} />
         </Route>
 
-        {/* Protected Routes - Require Login */}
+        {/* Protected Routes - Require Login + Onboarding for Students */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/learn" element={<ThemedPage><Learn /></ThemedPage>} />
-          <Route path="/chat" element={<ThemedPage><Chat /></ThemedPage>} />
-          <Route path="/chat/:conversationId" element={<ThemedPage><Chat /></ThemedPage>} />
-          <Route path="/profile" element={<ThemedPage><Profile /></ThemedPage>} />
-          <Route path="/my-flags" element={<ThemedPage><MyFlags /></ThemedPage>} />
+          <Route element={<OnboardingGuard />}>
+            <Route path="/learn" element={<ThemedPage><Learn /></ThemedPage>} />
+            <Route path="/chat" element={<ThemedPage><Chat /></ThemedPage>} />
+            <Route path="/chat/:conversationId" element={<ThemedPage><Chat /></ThemedPage>} />
+            <Route path="/profile" element={<ThemedPage><Profile /></ThemedPage>} />
+            <Route path="/my-flags" element={<ThemedPage><MyFlags /></ThemedPage>} />
+          </Route>
         </Route>
 
         {/* Admin Routes - Require 'Admin' role */}
