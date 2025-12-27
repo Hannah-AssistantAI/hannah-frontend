@@ -1,12 +1,13 @@
 import { Link, useParams } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X, Download, RefreshCw, Wifi, WifiOff, Eye, BookOpen, Calendar, ClipboardList, Library, ListChecks, Folder, BarChart3, User, Clock3 } from 'lucide-react';
+import { Clock, FileText, AlertTriangle, CheckSquare, Map, ChevronRight, Loader, Check, X, Download, RefreshCw, Wifi, WifiOff, Eye, BookOpen, Calendar, ClipboardList, Library, ListChecks, Folder, BarChart3, User, Clock3, History } from 'lucide-react';
 import AdminPageWrapper from '../components/AdminPageWrapper';
 import subjectService, { type Subject } from '../../../service/subjectService';
 import documentService, { type Document } from '../../../service/documentService';
 import suggestionService, { type Suggestion, SuggestionStatus, SuggestionContentType } from '../../../service/suggestionService';
 import SyllabusImporter from './SyllabusImporter';
+import SyllabusVersionHistory from './SyllabusVersionHistory';
 import { useRealtimeEvent } from '../../../hooks/useRealtime';
 import type { DocumentData } from '../../../hooks/useRealtime';
 import { useRealtimeContext } from '../../../contexts/RealtimeContext';
@@ -785,6 +786,20 @@ export default function CourseDetail() {
                   </div>
                 </div>
               )}
+
+              {/* Syllabus Version History */}
+              <div className="form-section">
+                <h3 className="form-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <History size={20} style={{ color: '#8b5cf6' }} /> Syllabus Version History
+                </h3>
+                <div className="form-content">
+                  <SyllabusVersionHistory
+                    subjectId={subject.subjectId}
+                    subjectCode={subject.code}
+                    onRollback={fetchSubjectDetail}
+                  />
+                </div>
+              </div>
 
               <div className="form-section">
                 <h3 className="form-section-title">Faculty Submissions</h3>
