@@ -161,7 +161,7 @@ const PlaceholderHelper: React.FC<{ settingKey: string; onInsert: (placeholder: 
 };
 
 // ============================================================================
-// TEXT SETTING CARD
+// TEXT SETTING CARD - Smart Input Detection
 // ============================================================================
 const TextSettingCard: React.FC<SettingCardProps> = ({ setting, onSave, saving }) => {
     const [value, setValue] = useState(setting.settingValue);
@@ -193,12 +193,40 @@ const TextSettingCard: React.FC<SettingCardProps> = ({ setting, onSave, saving }
         toast.success(`Đã thêm ${placeholder}`);
     };
 
-    const isLongText = setting.settingKey.includes('prompt') ||
-        setting.settingKey.includes('template') ||
-        setting.settingKey.includes('guidelines');
+    // Smart type detection
+    const isNumber = /^\d+(\.\d+)?$/.test(setting.settingValue.trim());
+    const isShortText = setting.settingValue.length < 100 && !setting.settingKey.includes('prompt') && !setting.settingKey.includes('template');
+    const isLongText = setting.settingKey.includes('prompt') || setting.settingKey.includes('template') || setting.settingKey.includes('guidelines');
+
+    // Determine input type based on key patterns
+    const inputType = (() => {
+        if (setting.settingKey.includes('threshold') ||
+            setting.settingKey.includes('top_k') ||
+            setting.settingKey.includes('max_') ||
+            setting.settingKey.includes('_words') ||
+            setting.settingKey.includes('_depth') ||
+            setting.settingKey.includes('_nodes') ||
+            setting.settingKey.includes('_results') ||
+            setting.settingKey.includes('semester')) {
+            return 'number';
+        }
+        if (setting.settingKey.includes('keywords') || setting.settingKey.includes('format')) {
+            return 'short';
+        }
+        if (isLongText) {
+            return 'long';
+        }
+        if (isNumber) {
+            return 'number';
+        }
+        if (isShortText) {
+            return 'short';
+        }
+        return 'medium';
+    })();
 
     return (
-        <div className={`ai-setting-card ${hasChanges ? 'has-changes' : ''}`}>
+        <div className={`ai-setting-card ${hasChanges ? 'has-changes' : ''} ai-card-${inputType}`}>
             <div className="ai-setting-header">
                 <div className="ai-setting-info">
                     <h4 className="ai-setting-title">{getSettingLabel(setting.settingKey)}</h4>
@@ -228,17 +256,46 @@ const TextSettingCard: React.FC<SettingCardProps> = ({ setting, onSave, saving }
                 <PlaceholderHelper settingKey={setting.settingKey} onInsert={insertPlaceholder} />
             )}
 
-            <textarea
-                className="ai-setting-textarea"
-                value={value}
-                onChange={(e) => handleChange(e.target.value)}
-                rows={isLongText ? 10 : 4}
-                placeholder="Nhập giá trị..."
-            />
+            {/* Render appropriate input based on type */}
+            {inputType === 'number' ? (
+                <div className="ai-input-row">
+                    <input
+                        type="number"
+                        className="ai-setting-input ai-input-number"
+                        value={value}
+                        onChange={(e) => handleChange(e.target.value)}
+                        step="0.1"
+                    />
+                    <span className="ai-input-unit">
+                        {setting.settingKey.includes('threshold') ? '(0-1)' : ''}
+                        {setting.settingKey.includes('top_k') ? 'chunks' : ''}
+                        {setting.settingKey.includes('words') ? 'từ' : ''}
+                        {setting.settingKey.includes('depth') ? 'levels' : ''}
+                        {setting.settingKey.includes('nodes') ? 'nodes' : ''}
+                        {setting.settingKey.includes('results') ? 'videos' : ''}
+                    </span>
+                </div>
+            ) : inputType === 'short' ? (
+                <input
+                    type="text"
+                    className="ai-setting-input ai-input-short"
+                    value={value}
+                    onChange={(e) => handleChange(e.target.value)}
+                    placeholder="Nhập giá trị..."
+                />
+            ) : (
+                <textarea
+                    className="ai-setting-textarea"
+                    value={value}
+                    onChange={(e) => handleChange(e.target.value)}
+                    rows={inputType === 'long' ? 8 : 3}
+                    placeholder="Nhập giá trị..."
+                />
+            )}
 
             <div className="ai-setting-meta">
                 <span className="ai-setting-key">{setting.settingKey}</span>
-                <span className="ai-setting-char-count">{value.length} chars</span>
+                {inputType !== 'number' && <span className="ai-setting-char-count">{value.length} chars</span>}
                 {setting.updatedAt && (
                     <span className="ai-setting-updated">
                         Cập nhật: {formatDateTimeVN(setting.updatedAt)}
