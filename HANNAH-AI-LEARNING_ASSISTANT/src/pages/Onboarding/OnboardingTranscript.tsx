@@ -26,7 +26,7 @@ export default function OnboardingTranscript() {
             const formData = new FormData();
             formData.append('file', file);
 
-            const token = localStorage.getItem('accessToken');
+            const token = localStorage.getItem('access_token');
             const response = await fetch('/api/students/me/transcript/upload', {
                 method: 'POST',
                 headers: {
