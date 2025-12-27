@@ -1,17 +1,10 @@
 /**
- * AI Settings Management - Enhanced Edition
- * Admin interface for managing AI prompt settings and behavior
- * Phase 5: Admin Prompt Management
- * 
- * Features:
- * - Collapsible groups
- * - Undo changes
- * - Character count
- * - Placeholder helper
- * - Reset to default
+ * AI Settings Management - Premium Dark Theme Redesign
+ * Modern admin interface with sidebar navigation
+ * Phase 11: Complete UI Redesign
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import adminService from '../../../service/adminService';
 import type { SystemSetting } from '../../../service/adminService';
 import toast from 'react-hot-toast';
@@ -23,20 +16,19 @@ import {
     User,
     Quote,
     Filter,
-    FileText,
     ToggleLeft,
     ToggleRight,
     Loader2,
     CheckCircle,
     AlertTriangle,
-    ChevronDown,
-    ChevronRight,
     Undo2,
     Info,
     Copy,
     RotateCcw,
     Youtube,
     Sparkles,
+    Search,
+    Settings,
 } from 'lucide-react';
 import { formatDateTimeVN } from '../../../utils/dateUtils';
 import './AiSettingsManagement.css';
@@ -48,50 +40,94 @@ interface SettingCardProps {
     setting: SystemSetting;
     onSave: (key: string, value: string) => Promise<void>;
     saving: boolean;
-    defaultValue?: string;
+}
+
+interface CategoryConfig {
+    id: string;
+    name: string;
+    icon: React.ReactNode;
+    description: string;
+    keywords: string[];
 }
 
 // ============================================================================
-// PLACEHOLDERS - Available template variables
+// CATEGORY CONFIGURATION
+// ============================================================================
+const CATEGORIES: CategoryConfig[] = [
+    {
+        id: 'main',
+        name: 'Prompt Chính',
+        icon: <MessageSquare size={20} />,
+        description: 'System prompt và guidelines',
+        keywords: ['system_prompt', 'response_guidelines'],
+    },
+    {
+        id: 'studio',
+        name: 'Studio Prompts',
+        icon: <Sparkles size={20} />,
+        description: 'Quiz, Mindmap, Flashcard',
+        keywords: ['_generation_prompt'],
+    },
+    {
+        id: 'student',
+        name: 'Profile SV',
+        icon: <User size={20} />,
+        description: 'Thông tin sinh viên',
+        keywords: ['student_context'],
+    },
+    {
+        id: 'citation',
+        name: 'Trích Dẫn',
+        icon: <Quote size={20} />,
+        description: 'Format nguồn tài liệu',
+        keywords: ['citation'],
+    },
+    {
+        id: 'rag',
+        name: 'RAG & Filter',
+        icon: <Filter size={20} />,
+        description: 'Tìm kiếm & lọc tài liệu',
+        keywords: ['rag', 'specialization', 'slide'],
+    },
+    {
+        id: 'youtube',
+        name: 'YouTube',
+        icon: <Youtube size={20} />,
+        description: 'Video đề xuất',
+        keywords: ['youtube'],
+    },
+];
+
+// ============================================================================
+// PLACEHOLDERS
 // ============================================================================
 const AVAILABLE_PLACEHOLDERS: Record<string, { placeholder: string; description: string }[]> = {
     'ai_student_context_template': [
-        { placeholder: '{semester}', description: 'Kỳ học hiện tại (1-9)' },
-        { placeholder: '{specialization}', description: 'Mã chuyên ngành (SE, AI, IS...)' },
-        { placeholder: '{specialty_name}', description: 'Tên chuyên ngành đầy đủ' },
+        { placeholder: '{semester}', description: 'Kỳ học hiện tại' },
+        { placeholder: '{specialization}', description: 'Mã chuyên ngành' },
+        { placeholder: '{specialty_name}', description: 'Tên chuyên ngành' },
     ],
     'ai_citation_format': [
         { placeholder: '{content}', description: 'Nội dung trích dẫn' },
         { placeholder: '{source}', description: 'Tên file nguồn' },
         { placeholder: '{page}', description: 'Số trang' },
     ],
-};
-
-// ============================================================================
-// DEFAULT VALUES - For reset functionality
-// ============================================================================
-const DEFAULT_VALUES: Record<string, string> = {
-    'ai_system_prompt': `Bạn là Hannah AI, trợ lý học tập thông minh của trường FPT University.
-
-**Nhiệm vụ của bạn:**
-1. Trả lời câu hỏi về môn học dựa trên tài liệu đã upload
-2. Hướng dẫn lộ trình học tập phù hợp với từng sinh viên
-3. Giải thích khái niệm rõ ràng, có ví dụ cụ thể
-4. Tạo quiz, mindmap, flashcard khi được yêu cầu
-
-**Nguyên tắc:**
-- Luôn trích dẫn nguồn khi trả lời từ tài liệu
-- Không đưa ra thông tin không có trong tài liệu
-- Sử dụng ngôn ngữ phù hợp với sinh viên Việt Nam
-- Trả lời bằng ngôn ngữ mà sinh viên sử dụng (Việt/Anh)`,
-    'ai_student_context_template': `**Thông tin sinh viên:**
-- Kỳ học hiện tại: HK{semester}
-- Chuyên ngành: {specialization}
-- Chuyên ngành hẹp: {specialty_name}`,
-    'ai_citation_format': '> "{content}" - [{source}, trang {page}]',
-    'ai_rag_out_of_semester_note': '⚠️ **Lưu ý:** Nội dung này thuộc kỳ học cao hơn kỳ hiện tại của bạn. Bạn sẽ được học chi tiết khi lên kỳ đó.',
-    'ai_rag_similarity_threshold': '0.5',
-    'ai_specialization_start_semester': '5',
+    'ai_quiz_generation_prompt': [
+        { placeholder: '{{difficulty}}', description: 'Độ khó' },
+        { placeholder: '{{count}}', description: 'Số câu hỏi' },
+        { placeholder: '{{topics}}', description: 'Chủ đề' },
+        { placeholder: '{{context}}', description: 'Nội dung tài liệu' },
+    ],
+    'ai_flashcard_generation_prompt': [
+        { placeholder: '{{count}}', description: 'Số flashcard' },
+        { placeholder: '{{topic}}', description: 'Chủ đề' },
+        { placeholder: '{{context}}', description: 'Nội dung' },
+    ],
+    'ai_specialization_prompt_template': [
+        { placeholder: '{specialization_name}', description: 'Tên chuyên ngành' },
+        { placeholder: '{specialization_code}', description: 'Mã chuyên ngành' },
+        { placeholder: '{required_subjects}', description: 'Môn bắt buộc' },
+    ],
 };
 
 // ============================================================================
@@ -102,16 +138,16 @@ const PlaceholderHelper: React.FC<{ settingKey: string; onInsert: (placeholder: 
     if (!placeholders) return null;
 
     return (
-        <div className="placeholder-helper">
-            <div className="placeholder-helper-header">
+        <div className="ai-placeholder-helper">
+            <div className="ai-placeholder-header">
                 <Info size={14} />
-                <span>Placeholders có sẵn:</span>
+                <span>Placeholders:</span>
             </div>
-            <div className="placeholder-list">
+            <div className="ai-placeholder-list">
                 {placeholders.map(({ placeholder, description }) => (
                     <button
                         key={placeholder}
-                        className="placeholder-chip"
+                        className="ai-placeholder-chip"
                         onClick={() => onInsert(placeholder)}
                         title={description}
                     >
@@ -125,12 +161,11 @@ const PlaceholderHelper: React.FC<{ settingKey: string; onInsert: (placeholder: 
 };
 
 // ============================================================================
-// TEXT SETTING CARD - Enhanced
+// TEXT SETTING CARD
 // ============================================================================
 const TextSettingCard: React.FC<SettingCardProps> = ({ setting, onSave, saving }) => {
     const [value, setValue] = useState(setting.settingValue);
     const [hasChanges, setHasChanges] = useState(false);
-    const [showPlaceholders, setShowPlaceholders] = useState(false);
 
     useEffect(() => {
         setValue(setting.settingValue);
@@ -152,23 +187,15 @@ const TextSettingCard: React.FC<SettingCardProps> = ({ setting, onSave, saving }
         setHasChanges(false);
     };
 
-    const handleReset = () => {
-        const defaultVal = DEFAULT_VALUES[setting.settingKey];
-        if (defaultVal) {
-            setValue(defaultVal);
-            setHasChanges(defaultVal !== setting.settingValue);
-            toast.success('Đã khôi phục về mặc định');
-        }
-    };
-
     const insertPlaceholder = (placeholder: string) => {
         setValue(prev => prev + placeholder);
         setHasChanges(true);
         toast.success(`Đã thêm ${placeholder}`);
     };
 
-    const isLongText = setting.settingKey === 'ai_system_prompt' ||
-        setting.settingKey === 'ai_response_guidelines';
+    const isLongText = setting.settingKey.includes('prompt') ||
+        setting.settingKey.includes('template') ||
+        setting.settingKey.includes('guidelines');
 
     return (
         <div className={`ai-setting-card ${hasChanges ? 'has-changes' : ''}`}>
@@ -180,56 +207,38 @@ const TextSettingCard: React.FC<SettingCardProps> = ({ setting, onSave, saving }
                 <div className="ai-setting-actions">
                     {hasChanges && (
                         <>
-                            <button
-                                className="ai-setting-btn secondary"
-                                onClick={handleUndo}
-                                title="Hoàn tác"
-                            >
+                            <button className="ai-btn ai-btn-secondary" onClick={handleUndo} title="Hoàn tác">
                                 <Undo2 size={16} />
                             </button>
-                            <button
-                                className="ai-setting-btn primary"
-                                onClick={handleSave}
-                                disabled={saving}
-                            >
+                            <button className="ai-btn ai-btn-primary" onClick={handleSave} disabled={saving}>
                                 {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                                 Lưu
                             </button>
                         </>
                     )}
-                    {DEFAULT_VALUES[setting.settingKey] && !hasChanges && (
-                        <button
-                            className="ai-setting-btn ghost"
-                            onClick={handleReset}
-                            title="Khôi phục mặc định"
-                        >
+                    {!hasChanges && (
+                        <button className="ai-btn ai-btn-ghost" onClick={handleUndo} title="Reset">
                             <RotateCcw size={16} />
                         </button>
                     )}
                 </div>
             </div>
 
-            {/* Placeholder Helper */}
             {AVAILABLE_PLACEHOLDERS[setting.settingKey] && (
-                <PlaceholderHelper
-                    settingKey={setting.settingKey}
-                    onInsert={insertPlaceholder}
-                />
+                <PlaceholderHelper settingKey={setting.settingKey} onInsert={insertPlaceholder} />
             )}
 
             <textarea
                 className="ai-setting-textarea"
                 value={value}
                 onChange={(e) => handleChange(e.target.value)}
-                rows={isLongText ? 12 : 6}
+                rows={isLongText ? 10 : 4}
                 placeholder="Nhập giá trị..."
             />
 
             <div className="ai-setting-meta">
                 <span className="ai-setting-key">{setting.settingKey}</span>
-                <span className="ai-setting-char-count">
-                    {value.length} ký tự
-                </span>
+                <span className="ai-setting-char-count">{value.length} chars</span>
                 {setting.updatedAt && (
                     <span className="ai-setting-updated">
                         Cập nhật: {formatDateTimeVN(setting.updatedAt)}
@@ -258,23 +267,17 @@ const ToggleSettingCard: React.FC<SettingCardProps> = ({ setting, onSave, saving
                     <p className="ai-setting-description">{setting.description}</p>
                 </div>
                 <button
-                    className={`ai-setting-toggle ${isEnabled ? 'enabled' : ''}`}
+                    className={`ai-toggle-switch ${isEnabled ? 'enabled' : ''}`}
                     onClick={handleToggle}
                     disabled={saving}
                 >
-                    {saving ? (
-                        <Loader2 size={20} className="animate-spin" />
-                    ) : isEnabled ? (
-                        <ToggleRight size={32} />
-                    ) : (
-                        <ToggleLeft size={32} />
-                    )}
+                    {saving && <Loader2 size={16} className="animate-spin" />}
                 </button>
             </div>
             <div className="ai-setting-meta">
                 <span className="ai-setting-key">{setting.settingKey}</span>
-                <span className={`ai-setting-status ${isEnabled ? 'enabled' : 'disabled'}`}>
-                    {isEnabled ? <><CheckCircle size={14} /> Đang bật</> : <><AlertTriangle size={14} /> Đang tắt</>}
+                <span className={`ai-toggle-status ${isEnabled ? 'enabled' : 'disabled'}`}>
+                    {isEnabled ? <><CheckCircle size={14} /> Bật</> : <><AlertTriangle size={14} /> Tắt</>}
                 </span>
             </div>
         </div>
@@ -286,141 +289,61 @@ const ToggleSettingCard: React.FC<SettingCardProps> = ({ setting, onSave, saving
 // ============================================================================
 function getSettingLabel(key: string): string {
     const labels: Record<string, string> = {
-        'ai_system_prompt': 'System Prompt (Prompt chính)',
-        'ai_student_context_template': 'Template thông tin sinh viên',
-        'ai_student_context_enabled': 'Hiển thị thông tin sinh viên',
-        'ai_citation_format': 'Format trích dẫn nguồn',
-        'ai_citation_enabled': 'Bật trích dẫn nguồn',
+        'ai_system_prompt': 'System Prompt',
+        'ai_response_guidelines': 'Response Guidelines',
+        'ai_student_context_template': 'Template SV',
+        'ai_student_context_enabled': 'Hiển thị Info SV',
+        'ai_citation_format': 'Format trích dẫn',
+        'ai_citation_enabled': 'Bật trích dẫn',
         'ai_citation_instruction': 'Hướng dẫn trích dẫn',
-        'ai_rag_semester_filter_enabled': 'Lọc theo kỳ học sinh viên',
-        'ai_rag_specialization_filter_enabled': 'Lọc theo chuyên ngành',
-        'ai_specialization_start_semester': 'Kỳ bắt đầu phân nhánh',
-        'ai_response_guidelines': 'Hướng dẫn format response',
-        'ai_rag_hybrid_fallback_enabled': 'Bật tìm mở rộng (Hybrid)',
-        'ai_rag_out_of_semester_note': 'Thông báo nội dung ngoài kỳ học',
-        'ai_rag_similarity_threshold': 'Ngưỡng similarity tối thiểu',
-        // YouTube Settings
-        'ai_youtube_enabled': 'Bật/tắt YouTube videos',
-        'ai_youtube_max_results': 'Số video tối đa hiển thị',
-        'ai_youtube_keywords': 'Keywords thêm vào tìm kiếm',
-        'ai_youtube_exclude_keywords': 'Keywords loại bỏ video',
-        // Slide Display
-        'ai_slide_source_format': 'Format hiển thị nguồn slide',
-        // Studio Generation Prompts (Phase 10)
-        'ai_quiz_generation_prompt': 'Quiz Generation Prompt',
-        'ai_mindmap_generation_prompt': 'Mindmap Generation Prompt',
-        'ai_flashcard_generation_prompt': 'Flashcard Generation Prompt',
-        'ai_report_generation_prompt': 'Report Generation Prompt',
+        'ai_rag_semester_filter_enabled': 'Lọc theo kỳ',
+        'ai_rag_specialization_filter_enabled': 'Lọc chuyên ngành',
+        'ai_specialization_start_semester': 'Kỳ bắt đầu',
+        'ai_rag_hybrid_fallback_enabled': 'Hybrid fallback',
+        'ai_rag_out_of_semester_note': 'Note ngoài kỳ',
+        'ai_rag_similarity_threshold': 'Similarity threshold',
+        'ai_youtube_enabled': 'YouTube videos',
+        'ai_youtube_max_results': 'Max videos',
+        'ai_youtube_keywords': 'Search keywords',
+        'ai_youtube_exclude_keywords': 'Exclude keywords',
+        'ai_slide_source_format': 'Slide source format',
+        'ai_quiz_generation_prompt': 'Quiz Prompt',
+        'ai_mindmap_generation_prompt': 'Mindmap Prompt',
+        'ai_flashcard_generation_prompt': 'Flashcard Prompt',
+        'ai_report_generation_prompt': 'Report Prompt',
+        'ai_rag_diversity_enabled': 'Diversity ranking',
+        'ai_rag_top_k': 'Top K chunks',
+        'ai_rag_max_chunks_per_doc': 'Max chunks/doc',
+        'ai_specialization_context_enabled': 'Specialization context',
+        'ai_specialization_prompt_template': 'Specialization template',
     };
-    return labels[key] || key;
+    return labels[key] || key.replace('ai_', '').replace(/_/g, ' ');
 }
 
-function groupSettings(settings: SystemSetting[]): Record<string, SystemSetting[]> {
-    const groups: Record<string, SystemSetting[]> = {
-        'Prompt chính': [],
-        'Studio Generation Prompts': [],
-        'Thông tin sinh viên': [],
-        'Trích dẫn nguồn': [],
-        'RAG Filtering': [],
-        'YouTube Settings': [],
-    };
+function categorizeSettings(settings: SystemSetting[]): Map<string, SystemSetting[]> {
+    const categorized = new Map<string, SystemSetting[]>();
+
+    CATEGORIES.forEach(cat => {
+        categorized.set(cat.id, []);
+    });
 
     settings.forEach(setting => {
-        if (setting.settingKey.includes('_generation_prompt')) {
-            groups['Studio Generation Prompts'].push(setting);
-        } else if (setting.settingKey.includes('system_prompt') || setting.settingKey.includes('response_guidelines')) {
-            groups['Prompt chính'].push(setting);
-        } else if (setting.settingKey.includes('student_context')) {
-            groups['Thông tin sinh viên'].push(setting);
-        } else if (setting.settingKey.includes('citation')) {
-            groups['Trích dẫn nguồn'].push(setting);
-        } else if (setting.settingKey.includes('youtube')) {
-            groups['YouTube Settings'].push(setting);
-        } else if (setting.settingKey.includes('rag') || setting.settingKey.includes('specialization') || setting.settingKey.includes('slide')) {
-            groups['RAG Filtering'].push(setting);
+        let assigned = false;
+        for (const cat of CATEGORIES) {
+            if (cat.keywords.some(kw => setting.settingKey.includes(kw))) {
+                categorized.get(cat.id)!.push(setting);
+                assigned = true;
+                break;
+            }
+        }
+        if (!assigned) {
+            // Put in RAG category as default
+            categorized.get('rag')!.push(setting);
         }
     });
 
-    return groups;
+    return categorized;
 }
-
-function getGroupIcon(group: string) {
-    const icons: Record<string, React.ReactNode> = {
-        'Prompt chính': <MessageSquare size={20} />,
-        'Studio Generation Prompts': <Sparkles size={20} />,
-        'Thông tin sinh viên': <User size={20} />,
-        'Trích dẫn nguồn': <Quote size={20} />,
-        'RAG Filtering': <Filter size={20} />,
-        'YouTube Settings': <Youtube size={20} />,
-    };
-    return icons[group] || <FileText size={20} />;
-}
-
-function getGroupDescription(group: string): string {
-    const descriptions: Record<string, string> = {
-        'Prompt chính': 'Cấu hình personality và behavior chính của AI',
-        'Studio Generation Prompts': 'Prompts cho Quiz, Mindmap, Flashcard, Report - chỉnh sửa không cần redeploy',
-        'Thông tin sinh viên': 'Hiển thị thông tin cá nhân hóa cho sinh viên',
-        'Trích dẫn nguồn': 'Cách AI trích dẫn tài liệu trong câu trả lời',
-        'RAG Filtering': 'Lọc tài liệu dựa trên profile sinh viên',
-        'YouTube Settings': 'Cấu hình tìm kiếm và hiển thị video YouTube liên quan',
-    };
-    return descriptions[group] || '';
-}
-
-// ============================================================================
-// COLLAPSIBLE GROUP COMPONENT
-// ============================================================================
-const SettingsGroup: React.FC<{
-    group: string;
-    items: SystemSetting[];
-    onSave: (key: string, value: string) => Promise<void>;
-    savingKey: string | null;
-    defaultExpanded?: boolean;
-}> = ({ group, items, onSave, savingKey, defaultExpanded = true }) => {
-    const [isExpanded, setIsExpanded] = useState(defaultExpanded);
-
-    if (items.length === 0) return null;
-
-    return (
-        <div className={`ai-settings-group ${isExpanded ? 'expanded' : 'collapsed'}`}>
-            <button
-                className="ai-settings-group-header"
-                onClick={() => setIsExpanded(!isExpanded)}
-            >
-                <div className="group-header-left">
-                    {getGroupIcon(group)}
-                    <div className="group-header-text">
-                        <h2>{group}</h2>
-                        <span className="group-description">{getGroupDescription(group)}</span>
-                    </div>
-                </div>
-                <div className="group-header-right">
-                    <span className="group-count">{items.length} settings</span>
-                    {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
-                </div>
-            </button>
-
-            {isExpanded && (
-                <div className="ai-settings-group-content">
-                    {items.map(setting => {
-                        const CardComponent = setting.settingType === 'boolean'
-                            ? ToggleSettingCard
-                            : TextSettingCard;
-                        return (
-                            <CardComponent
-                                key={setting.settingKey}
-                                setting={setting}
-                                onSave={onSave}
-                                saving={savingKey === setting.settingKey}
-                            />
-                        );
-                    })}
-                </div>
-            )}
-        </div>
-    );
-};
 
 // ============================================================================
 // MAIN COMPONENT
@@ -429,6 +352,10 @@ export default function AiSettingsManagement() {
     const [settings, setSettings] = useState<SystemSetting[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [savingKey, setSavingKey] = useState<string | null>(null);
+    const [activeCategory, setActiveCategory] = useState('main');
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
     const loadSettings = useCallback(async () => {
         setIsLoading(true);
@@ -461,54 +388,141 @@ export default function AiSettingsManagement() {
         }
     };
 
-    const groupedSettings = groupSettings(settings);
+    const scrollToSection = (categoryId: string) => {
+        setActiveCategory(categoryId);
+        const section = sectionRefs.current[categoryId];
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
+    // Filter and categorize
+    const filteredSettings = searchQuery
+        ? settings.filter(s =>
+            s.settingKey.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            s.settingValue.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (s.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        : settings;
+
+    const categorizedSettings = categorizeSettings(filteredSettings);
 
     if (isLoading) {
         return (
-            <div className="ai-settings-loading">
-                <Loader2 size={48} className="animate-spin" />
-                <p>Đang tải cài đặt AI...</p>
+            <div className="ai-settings-page">
+                <div className="ai-loading" style={{ flex: 1 }}>
+                    <Loader2 size={48} />
+                    <p>Đang tải cài đặt AI...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="ai-settings-container">
-            <div className="ai-settings-header">
-                <div className="ai-settings-title-section">
-                    <Bot size={32} />
-                    <div>
-                        <h1>Quản lý AI Prompt</h1>
-                        <p>Cấu hình behavior và response của AI mà không cần sửa code</p>
+        <div className="ai-settings-page">
+            {/* Sidebar */}
+            <aside className="ai-settings-sidebar">
+                <div className="ai-sidebar-header">
+                    <div className="ai-sidebar-logo">
+                        <Bot />
+                        <h1>AI Settings</h1>
                     </div>
+                    <p className="ai-sidebar-subtitle">Quản lý AI prompts</p>
                 </div>
-                <button className="ai-settings-refresh-btn" onClick={loadSettings}>
-                    <RefreshCw size={18} />
-                    Làm mới
-                </button>
-            </div>
 
-            {settings.length === 0 ? (
-                <div className="ai-settings-empty">
-                    <AlertTriangle size={48} />
-                    <h3>Chưa có cài đặt AI</h3>
-                    <p>Vui lòng chạy migration script để seed default settings</p>
-                    <code>20241213_SeedAiPromptSettings.sql</code>
-                </div>
-            ) : (
-                <div className="ai-settings-groups">
-                    {Object.entries(groupedSettings).map(([group, items]) => (
-                        <SettingsGroup
-                            key={group}
-                            group={group}
-                            items={items}
-                            onSave={handleSave}
-                            savingKey={savingKey}
-                            defaultExpanded={group === 'Prompt chính'}
-                        />
-                    ))}
-                </div>
-            )}
+                <nav className="ai-sidebar-nav">
+                    {CATEGORIES.map(cat => {
+                        const count = categorizedSettings.get(cat.id)?.length || 0;
+                        return (
+                            <button
+                                key={cat.id}
+                                className={`ai-nav-item ${activeCategory === cat.id ? 'active' : ''}`}
+                                onClick={() => scrollToSection(cat.id)}
+                            >
+                                {cat.icon}
+                                <div className="ai-nav-item-text">
+                                    <div className="ai-nav-item-label">{cat.name}</div>
+                                    <div className="ai-nav-item-count">{cat.description}</div>
+                                </div>
+                                {count > 0 && <span className="ai-nav-item-badge">{count}</span>}
+                            </button>
+                        );
+                    })}
+                </nav>
+            </aside>
+
+            {/* Main Content */}
+            <main className="ai-settings-content">
+                <header className="ai-content-header">
+                    <h1 className="ai-content-title">Cấu hình AI Settings</h1>
+                    <div className="ai-header-actions">
+                        <div className="ai-search-box">
+                            <Search />
+                            <input
+                                type="text"
+                                placeholder="Tìm kiếm settings..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                        <button className="ai-refresh-btn" onClick={loadSettings}>
+                            <RefreshCw size={18} />
+                            Làm mới
+                        </button>
+                    </div>
+                </header>
+
+                {settings.length === 0 ? (
+                    <div className="ai-empty-state">
+                        <AlertTriangle size={48} />
+                        <h3>Chưa có cài đặt AI</h3>
+                        <p>Vui lòng chạy seed script</p>
+                    </div>
+                ) : (
+                    <>
+                        {CATEGORIES.map(cat => {
+                            const items = categorizedSettings.get(cat.id) || [];
+                            if (items.length === 0 && searchQuery) return null;
+
+                            return (
+                                <section
+                                    key={cat.id}
+                                    className="ai-settings-section"
+                                    ref={(el) => { sectionRefs.current[cat.id] = el; }}
+                                >
+                                    <div className="ai-section-header">
+                                        <div className="ai-section-icon">{cat.icon}</div>
+                                        <h2 className="ai-section-title">{cat.name}</h2>
+                                        <span className="ai-section-count">{items.length} settings</span>
+                                    </div>
+
+                                    <div className="ai-settings-grid">
+                                        {items.map(setting => {
+                                            const CardComponent = setting.settingType === 'boolean'
+                                                ? ToggleSettingCard
+                                                : TextSettingCard;
+                                            return (
+                                                <CardComponent
+                                                    key={setting.settingKey}
+                                                    setting={setting}
+                                                    onSave={handleSave}
+                                                    saving={savingKey === setting.settingKey}
+                                                />
+                                            );
+                                        })}
+                                        {items.length === 0 && (
+                                            <div className="ai-empty-state" style={{ height: 150 }}>
+                                                <Settings size={32} />
+                                                <p>Chưa có settings trong mục này</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </section>
+                            );
+                        })}
+                    </>
+                )}
+            </main>
         </div>
     );
 }
