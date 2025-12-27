@@ -27,7 +27,7 @@ export default function OnboardingTranscript() {
             formData.append('file', file);
 
             const token = localStorage.getItem('accessToken');
-            const response = await fetch('/api/students/me/transcript', {
+            const response = await fetch('/api/students/me/transcript/upload', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
