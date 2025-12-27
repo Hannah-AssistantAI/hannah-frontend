@@ -36,6 +36,7 @@ import {
     Copy,
     RotateCcw,
     Youtube,
+    Sparkles,
 } from 'lucide-react';
 import { formatDateTimeVN } from '../../../utils/dateUtils';
 import './AiSettingsManagement.css';
@@ -305,6 +306,11 @@ function getSettingLabel(key: string): string {
         'ai_youtube_exclude_keywords': 'Keywords loại bỏ video',
         // Slide Display
         'ai_slide_source_format': 'Format hiển thị nguồn slide',
+        // Studio Generation Prompts (Phase 10)
+        'ai_quiz_generation_prompt': 'Quiz Generation Prompt',
+        'ai_mindmap_generation_prompt': 'Mindmap Generation Prompt',
+        'ai_flashcard_generation_prompt': 'Flashcard Generation Prompt',
+        'ai_report_generation_prompt': 'Report Generation Prompt',
     };
     return labels[key] || key;
 }
@@ -312,6 +318,7 @@ function getSettingLabel(key: string): string {
 function groupSettings(settings: SystemSetting[]): Record<string, SystemSetting[]> {
     const groups: Record<string, SystemSetting[]> = {
         'Prompt chính': [],
+        'Studio Generation Prompts': [],
         'Thông tin sinh viên': [],
         'Trích dẫn nguồn': [],
         'RAG Filtering': [],
@@ -319,7 +326,9 @@ function groupSettings(settings: SystemSetting[]): Record<string, SystemSetting[
     };
 
     settings.forEach(setting => {
-        if (setting.settingKey.includes('system_prompt') || setting.settingKey.includes('response_guidelines')) {
+        if (setting.settingKey.includes('_generation_prompt')) {
+            groups['Studio Generation Prompts'].push(setting);
+        } else if (setting.settingKey.includes('system_prompt') || setting.settingKey.includes('response_guidelines')) {
             groups['Prompt chính'].push(setting);
         } else if (setting.settingKey.includes('student_context')) {
             groups['Thông tin sinh viên'].push(setting);
@@ -338,6 +347,7 @@ function groupSettings(settings: SystemSetting[]): Record<string, SystemSetting[
 function getGroupIcon(group: string) {
     const icons: Record<string, React.ReactNode> = {
         'Prompt chính': <MessageSquare size={20} />,
+        'Studio Generation Prompts': <Sparkles size={20} />,
         'Thông tin sinh viên': <User size={20} />,
         'Trích dẫn nguồn': <Quote size={20} />,
         'RAG Filtering': <Filter size={20} />,
@@ -349,6 +359,7 @@ function getGroupIcon(group: string) {
 function getGroupDescription(group: string): string {
     const descriptions: Record<string, string> = {
         'Prompt chính': 'Cấu hình personality và behavior chính của AI',
+        'Studio Generation Prompts': 'Prompts cho Quiz, Mindmap, Flashcard, Report - chỉnh sửa không cần redeploy',
         'Thông tin sinh viên': 'Hiển thị thông tin cá nhân hóa cho sinh viên',
         'Trích dẫn nguồn': 'Cách AI trích dẫn tài liệu trong câu trả lời',
         'RAG Filtering': 'Lọc tài liệu dựa trên profile sinh viên',

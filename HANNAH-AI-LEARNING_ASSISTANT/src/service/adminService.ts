@@ -36,7 +36,7 @@ export type AiSettingKey =
     | 'ai_specialization_start_semester'
     | 'ai_response_guidelines';
 
-const AI_SETTINGS_CATEGORY = 'ai_prompt';
+const AI_SETTINGS_CATEGORIES = ['ai_prompt', 'ai_studio', 'ai_quiz', 'ai_flashcard', 'ai_mindmap'];
 
 const adminService = {
     /**
@@ -52,10 +52,18 @@ const adminService = {
     },
 
     /**
-     * Get all AI prompt settings
+     * Get all AI prompt settings (multiple categories)
      */
     getAiSettings: async (): Promise<SystemSetting[]> => {
-        return adminService.getSettings(AI_SETTINGS_CATEGORY);
+        // Fetch all AI-related categories and merge
+        const results = await Promise.all(
+            AI_SETTINGS_CATEGORIES.map(cat => adminService.getSettings(cat))
+        );
+        // Flatten and dedupe by settingKey
+        const allSettings = results.flat();
+        const uniqueSettings = new Map<string, SystemSetting>();
+        allSettings.forEach(s => uniqueSettings.set(s.settingKey, s));
+        return Array.from(uniqueSettings.values());
     },
 
     /**
