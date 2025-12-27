@@ -71,8 +71,9 @@ export default function OnboardingProfile() {
             newErrors.studentId = 'MSSV không đúng định dạng (VD: SE1234)';
         }
 
-        if (!formData.specializationId) {
-            newErrors.specializationId = 'Vui lòng chọn chuyên ngành';
+        // Specialization only required for semesters 5+ (after choosing combo)
+        if (formData.currentSemester >= 5 && !formData.specializationId) {
+            newErrors.specializationId = 'Vui lòng chọn chuyên ngành (bắt buộc từ kỳ 5)';
         }
 
         if (formData.currentSemester < 1 || formData.currentSemester > 9) {
@@ -161,20 +162,23 @@ export default function OnboardingProfile() {
                     <div className="form-group">
                         <label>
                             <GraduationCap size={18} />
-                            Chuyên ngành
+                            Chuyên ngành {formData.currentSemester >= 5 ? '' : '(tùy chọn)'}
                         </label>
                         <select
                             value={formData.specializationId}
                             onChange={(e) => setFormData({ ...formData, specializationId: Number(e.target.value) })}
                             className={errors.specializationId ? 'error' : ''}
                         >
-                            <option value={0}>-- Chọn chuyên ngành --</option>
+                            <option value={0}>{formData.currentSemester < 5 ? '-- Chưa chọn combo (có thể bỏ qua) --' : '-- Chọn chuyên ngành --'}</option>
                             {specializations.map(s => (
                                 <option key={s.id} value={s.id}>
                                     {s.name} ({s.code})
                                 </option>
                             ))}
                         </select>
+                        {formData.currentSemester < 5 && (
+                            <span className="helper-text">💡 Sinh viên kỳ 1-4 chưa chọn combo, bạn có thể cập nhật sau</span>
+                        )}
                         {errors.specializationId && <span className="error-text">{errors.specializationId}</span>}
                     </div>
 

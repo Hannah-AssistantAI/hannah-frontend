@@ -331,6 +331,20 @@
     color: #8b5cf6;
 }
 
+.onboarding-form .error-text {
+    color: #f87171;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.onboarding-form .helper-text {
+    color: #a78bfa;
+    font-size: 12px;
+    margin-top: 6px;
+    display: block;
+    font-style: italic;
+}
+
 .upload-text h3 {
     color: #ffffff;
     font-size: 1.1rem;
