@@ -49,6 +49,9 @@ import {
   OnboardingComplete
 } from './pages/Onboarding'
 
+// Student pages - Phase 1 (Career Path Explorer)
+import { CareerPathExplorer } from './pages/Student/CareerPath'
+
 const AuthRedirectHandler = () => {
   const { isAuthenticated, user, isLoading } = useAuth();
   const navigate = useNavigate();
@@ -101,6 +104,7 @@ function App() {
             <Route path="/chat/:conversationId" element={<ThemedPage><Chat /></ThemedPage>} />
             <Route path="/profile" element={<ThemedPage><Profile /></ThemedPage>} />
             <Route path="/my-flags" element={<ThemedPage><MyFlags /></ThemedPage>} />
+            <Route path="/career-path" element={<CareerPathExplorer />} />
           </Route>
         </Route>
 

@@ -1,0 +1,618 @@
+/* CareerPathExplorer.css - Modern glossy dark theme */
+
+.career-path-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+    color: #e0e0e0;
+    padding: 24px;
+}
+
+/* Loading & Error States */
+.career-path-page.loading,
+.career-path-page.error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader {
+    text-align: center;
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.error-box {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 32px;
+    border-radius: 16px;
+    text-align: center;
+}
+
+.error-box h3 {
+    color: #f87171;
+    margin-bottom: 8px;
+}
+
+.error-box button {
+    margin-top: 16px;
+    padding: 10px 24px;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.error-box button:hover {
+    background: #4f46e5;
+}
+
+/* Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.header-content h1 {
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #a78bfa, #6366f1);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+}
+
+.subtitle {
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+.tab-switcher {
+    display: flex;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px;
+    border-radius: 12px;
+}
+
+.tab-switcher button {
+    padding: 10px 20px;
+    border: none;
+    background: transparent;
+    color: #9ca3af;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.tab-switcher button.active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+}
+
+.tab-switcher button:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Explore Layout */
+.explore-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 24px;
+    min-height: calc(100vh - 180px);
+}
+
+@media (max-width: 900px) {
+    .explore-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Specialization List */
+.spec-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.spec-list h3 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #9ca3af;
+    margin-bottom: 8px;
+}
+
+/* Specialization Card */
+.spec-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.spec-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateY(-2px);
+}
+
+.spec-card.selected {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
+    border-color: #6366f1;
+}
+
+.spec-card.suggested::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.suggested-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 11px;
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.spec-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.spec-name-en {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-bottom: 12px;
+}
+
+.spec-stats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.spec-stats .stat {
+    font-size: 13px;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.career-outlook {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.career-outlook .jobs {
+    color: #9ca3af;
+    margin-bottom: 4px;
+}
+
+.career-outlook .salary {
+    color: #10b981;
+    font-weight: 600;
+}
+
+/* Specialization Detail */
+.spec-content {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    padding: 24px;
+    overflow-y: auto;
+    max-height: calc(100vh - 180px);
+}
+
+.detail-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.detail-header .name-en {
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+.description {
+    color: #9ca3af;
+    margin: 16px 0;
+    line-height: 1.6;
+}
+
+.suggestion-reason {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #fbbf24;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Career Section */
+.career-section {
+    margin-bottom: 24px;
+}
+
+.career-section h4 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6b7280;
+    margin-bottom: 12px;
+}
+
+.jobs-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.job-tag {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+}
+
+.salary-range {
+    color: #10b981;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.demand {
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.demand-high {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+}
+
+.demand-medium {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+}
+
+.demand-low {
+    background: rgba(107, 114, 128, 0.15);
+    color: #9ca3af;
+}
+
+/* Curriculum Timeline */
+.curriculum-section h4 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6b7280;
+    margin-bottom: 16px;
+}
+
+.semester-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.semester-block {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.semester-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.semester-num {
+    font-weight: 600;
+    color: #a78bfa;
+}
+
+.subject-count {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.subjects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.subject-item {
+    display: grid;
+    grid-template-columns: 80px 1fr 50px;
+    gap: 12px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.subject-item.required {
+    border-left: 3px solid #6366f1;
+}
+
+.subject-item.elective {
+    border-left: 3px solid #10b981;
+}
+
+.subject-item.recommended {
+    border-left: 3px solid #f59e0b;
+}
+
+.subject-code {
+    font-weight: 600;
+    color: #e0e0e0;
+}
+
+.subject-name {
+    color: #9ca3af;
+}
+
+.subject-credits {
+    text-align: right;
+    color: #6b7280;
+}
+
+/* Roadmap View */
+.roadmap-view {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.roadmap-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.roadmap-header h2 {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.spec-info {
+    color: #a78bfa;
+    font-size: 14px;
+}
+
+.spec-info.no-spec {
+    color: #f59e0b;
+}
+
+/* Progress Bar */
+.progress-section {
+    margin-bottom: 24px;
+}
+
+.progress-bar {
+    height: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa);
+    border-radius: 6px;
+    transition: width 0.5s ease;
+}
+
+.progress-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+.progress-stats .percent {
+    color: #a78bfa;
+    font-weight: 600;
+}
+
+/* Weak Subjects Alert */
+.weak-subjects-alert {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.weak-subjects-alert h4 {
+    color: #f87171;
+    margin-bottom: 12px;
+}
+
+.weak-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.weak-item {
+    display: grid;
+    grid-template-columns: 80px 1fr 60px auto;
+    gap: 8px;
+    font-size: 13px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+}
+
+.weak-item .code {
+    font-weight: 600;
+    color: #f87171;
+}
+
+.weak-item .grade {
+    color: #ef4444;
+}
+
+.weak-item .reason {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* Milestones */
+.milestones {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.milestone {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.milestone.completed {
+    border-left: 4px solid #10b981;
+}
+
+.milestone.current {
+    border-left: 4px solid #6366f1;
+}
+
+.milestone.upcoming {
+    border-left: 4px solid #6b7280;
+}
+
+.milestone-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.milestone-header .semester {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.status-badge {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.status-badge.completed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+}
+
+.status-badge.current {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+}
+
+.status-badge.upcoming {
+    background: rgba(107, 114, 128, 0.15);
+    color: #9ca3af;
+}
+
+.milestone-progress {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 12px;
+}
+
+.milestone-subjects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.subject-chip {
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.subject-chip.completed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+}
+
+.subject-chip.in_progress {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+}
+
+.subject-chip.not_started {
+    background: rgba(107, 114, 128, 0.15);
+    color: #9ca3af;
+}
+
+.subject-chip.weak {
+    border: 1px solid #ef4444;
+}
+
+.subject-chip .grade {
+    margin-left: 4px;
+    font-weight: 400;
+    opacity: 0.8;
+}
+
+/* No Selection */
+.no-selection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: #6b7280;
+    font-size: 14px;
+}
