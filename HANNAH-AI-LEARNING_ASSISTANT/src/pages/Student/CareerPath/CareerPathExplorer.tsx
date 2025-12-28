@@ -266,9 +266,36 @@ const CareerPathExplorer: React.FC = () => {
         return (
             <div className="career-path-page error">
                 <div className="error-box">
-                    <h3>❌ Có lỗi xảy ra</h3>
-                    <p>{error}</p>
-                    <button onClick={() => window.location.reload()}>Thử lại</button>
+                    <div className="error-icon">📚</div>
+                    <h3>Chưa có dữ liệu lộ trình</h3>
+                    <p className="error-description">
+                        {error.includes('401') || error.includes('Unauthorized') ? (
+                            <>Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.</>
+                        ) : (
+                            <>
+                                Bạn có thể chưa hoàn thành các bước onboarding hoặc chưa upload bảng điểm.
+                                <br />
+                                Hãy kiểm tra lại thông tin cá nhân và bảng điểm của bạn.
+                            </>
+                        )}
+                    </p>
+                    <div className="error-actions">
+                        <button
+                            className="btn-home"
+                            onClick={() => window.location.href = '/'}
+                        >
+                            🏠 Quay lại trang chủ
+                        </button>
+                        <button
+                            className="btn-retry"
+                            onClick={() => window.location.reload()}
+                        >
+                            🔄 Thử lại
+                        </button>
+                    </div>
+                    <p className="error-help">
+                        Nếu vẫn gặp lỗi, hãy liên hệ hỗ trợ kỹ thuật.
+                    </p>
                 </div>
             </div>
         );
