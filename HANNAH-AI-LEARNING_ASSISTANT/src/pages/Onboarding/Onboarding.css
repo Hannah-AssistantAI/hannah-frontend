@@ -1,5 +1,5 @@
 /* ============================================================================
-   ONBOARDING - Modern Dark Theme
+   ONBOARDING - Modern Light Theme with Teal Accent
    ============================================================================ */
 
 .onboarding-container {
@@ -7,7 +7,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+    background: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 50%, #f0f9ff 100%);
     padding: 24px;
 }
 
@@ -16,14 +16,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #0f0f1a;
+    background: #f0fdfa;
 }
 
 .loading-spinner {
     width: 48px;
     height: 48px;
-    border: 3px solid rgba(139, 92, 246, 0.2);
-    border-top-color: #8b5cf6;
+    border: 3px solid rgba(20, 184, 166, 0.2);
+    border-top-color: #14b8a6;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -36,14 +36,21 @@
 
 /* Card Base */
 .onboarding-card {
-    background: rgba(255, 255, 255, 0.03);
+    background: #ffffff;
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid #e2e8f0;
     border-radius: 24px;
     padding: 48px;
     max-width: 560px;
     width: 100%;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+/* Reset any pseudo-elements that might create stray lines */
+.onboarding-card *::before,
+.onboarding-card *::after {
+    border: none !important;
 }
 
 /* Welcome Page */
@@ -55,7 +62,7 @@
 .welcome-icon {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    background: linear-gradient(135deg, #14b8a6, #06b6d4);
     border-radius: 20px;
     display: flex;
     align-items: center;
@@ -67,12 +74,12 @@
 .welcome-header h1 {
     font-size: 2rem;
     font-weight: 700;
-    color: #ffffff;
+    color: #1f2937;
     margin: 0 0 12px;
 }
 
 .welcome-subtitle {
-    color: #94a3b8;
+    color: #64748b;
     font-size: 1.1rem;
 }
 
@@ -89,38 +96,38 @@
     align-items: center;
     gap: 16px;
     padding: 20px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 16px;
     transition: all 0.2s ease;
 }
 
 .step-item:hover {
-    background: rgba(139, 92, 246, 0.05);
-    border-color: rgba(139, 92, 246, 0.2);
+    background: rgba(20, 184, 166, 0.05);
+    border-color: rgba(20, 184, 166, 0.3);
 }
 
 .step-icon {
     width: 48px;
     height: 48px;
-    background: rgba(139, 92, 246, 0.15);
+    background: rgba(20, 184, 166, 0.15);
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #8b5cf6;
+    color: #14b8a6;
     flex-shrink: 0;
 }
 
 .step-content h3 {
-    color: #ffffff;
+    color: #1f2937;
     font-size: 1rem;
     font-weight: 600;
     margin: 0 0 4px;
 }
 
 .step-content p {
-    color: #94a3b8;
+    color: #64748b;
     font-size: 0.9rem;
     margin: 0;
 }
@@ -148,25 +155,25 @@
 }
 
 .onboarding-btn.primary {
-    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    background: linear-gradient(135deg, #14b8a6, #06b6d4);
     color: white;
     width: 100%;
 }
 
 .onboarding-btn.primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3);
 }
 
 .onboarding-btn.secondary {
-    background: rgba(255, 255, 255, 0.05);
-    color: #94a3b8;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
 }
 
 .onboarding-btn.secondary:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: white;
+    background: #e2e8f0;
+    color: #374151;
 }
 
 .onboarding-btn:disabled {
@@ -192,7 +199,7 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
+    background: #e2e8f0;
     color: #94a3b8;
     display: flex;
     align-items: center;
@@ -202,7 +209,7 @@
 }
 
 .step-indicator .step.active {
-    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    background: linear-gradient(135deg, #14b8a6, #06b6d4);
     color: white;
 }
 
@@ -214,18 +221,18 @@
 .step-indicator .step-line {
     width: 40px;
     height: 2px;
-    background: rgba(255, 255, 255, 0.1);
+    background: #e2e8f0;
 }
 
 .onboarding-header h2 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #ffffff;
+    color: #1f2937;
     margin: 0 0 8px;
 }
 
 .onboarding-header p {
-    color: #94a3b8;
+    color: #64748b;
     margin: 0;
 }
 
@@ -236,45 +243,46 @@
     gap: 20px;
 }
 
-.form-group {
+.onboarding-form .form-group {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.form-group label {
+.onboarding-form .form-group label {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #e2e8f0;
+    color: #374151;
     font-weight: 500;
     font-size: 0.9rem;
 }
 
-.form-group input,
-.form-group select {
+.onboarding-form .form-group input,
+.onboarding-form .form-group select {
     padding: 14px 16px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
-    color: #ffffff;
+    color: #1f2937;
     font-size: 1rem;
     transition: all 0.2s ease;
 }
 
-.form-group input::placeholder {
-    color: #64748b;
+.onboarding-form .form-group input::placeholder {
+    color: #9ca3af;
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.onboarding-form .form-group input:focus,
+.onboarding-form .form-group select:focus {
     outline: none;
-    border-color: #8b5cf6;
-    background: rgba(139, 92, 246, 0.05);
+    border-color: #14b8a6;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
 }
 
-.form-group input.error,
-.form-group select.error {
+.onboarding-form .form-group input.error,
+.onboarding-form .form-group select.error {
     border-color: #ef4444;
 }
 
@@ -301,44 +309,50 @@
 
 /* Upload Page */
 .upload-area {
-    border: 2px dashed rgba(139, 92, 246, 0.3);
+    border: 2px dashed #14b8a6;
     border-radius: 16px;
     padding: 48px 24px;
     text-align: center;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.03) 0%, rgba(6, 182, 212, 0.03) 100%);
+    position: relative;
 }
 
 .upload-area:hover {
-    border-color: #8b5cf6;
-    background: rgba(139, 92, 246, 0.05);
+    border-color: #0d9488;
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(20, 184, 166, 0.15);
 }
 
 .upload-area.dragover {
-    border-color: #8b5cf6;
-    background: rgba(139, 92, 246, 0.1);
+    border-color: #0d9488;
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.12) 0%, rgba(6, 182, 212, 0.12) 100%);
+    transform: scale(1.01);
+    box-shadow: 0 12px 30px rgba(20, 184, 166, 0.2);
 }
 
 .upload-icon {
     width: 64px;
     height: 64px;
-    background: rgba(139, 92, 246, 0.15);
+    background: rgba(20, 184, 166, 0.15);
     border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 16px;
-    color: #8b5cf6;
+    color: #14b8a6;
 }
 
 .onboarding-form .error-text {
-    color: #f87171;
+    color: #dc2626;
     font-size: 12px;
     margin-top: 4px;
 }
 
 .onboarding-form .helper-text {
-    color: #a78bfa;
+    color: #14b8a6;
     font-size: 12px;
     margin-top: 6px;
     display: block;
@@ -346,13 +360,13 @@
 }
 
 .upload-text h3 {
-    color: #ffffff;
+    color: #1f2937;
     font-size: 1.1rem;
     margin: 0 0 8px;
 }
 
 .upload-text p {
-    color: #94a3b8;
+    color: #64748b;
     font-size: 0.9rem;
     margin: 0;
 }
@@ -361,7 +375,7 @@
     text-align: center;
     margin-top: 24px;
     padding-top: 24px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid #e2e8f0;
 }
 
 .skip-hint p {
@@ -371,7 +385,7 @@
 }
 
 .skip-link {
-    color: #8b5cf6;
+    color: #14b8a6;
     text-decoration: none;
     font-weight: 500;
 }
@@ -413,20 +427,20 @@
 }
 
 .complete-card h1 {
-    color: #ffffff;
+    color: #1f2937;
     font-size: 1.8rem;
     margin: 0 0 12px;
 }
 
 .complete-card .complete-subtitle {
-    color: #94a3b8;
+    color: #64748b;
     font-size: 1.1rem;
     margin: 0 0 32px;
 }
 
 .profile-summary {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 16px;
     padding: 24px;
     margin-bottom: 32px;
@@ -434,7 +448,7 @@
 }
 
 .profile-summary h3 {
-    color: #8b5cf6;
+    color: #14b8a6;
     font-size: 0.9rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -446,7 +460,7 @@
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid #e2e8f0;
 }
 
 .profile-summary .summary-row:last-child {
@@ -454,11 +468,11 @@
 }
 
 .profile-summary .summary-label {
-    color: #94a3b8;
+    color: #64748b;
 }
 
 .profile-summary .summary-value {
-    color: #ffffff;
+    color: #1f2937;
     font-weight: 500;
 }
 
