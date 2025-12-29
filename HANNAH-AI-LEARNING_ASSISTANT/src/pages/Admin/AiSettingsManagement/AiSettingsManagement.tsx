@@ -1,36 +1,35 @@
 /**
- * AI Settings Management - Premium Dark Theme Redesign
- * Modern admin interface with sidebar navigation
- * Phase 11: Complete UI Redesign
+ * AI Settings Management - Modern Light Theme with Horizontal Tabs
+ * No sidebar - uses horizontal tabs for category navigation
+ * Phase 12: Redesign for Admin Layout Integration
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import adminService from '../../../service/adminService';
 import type { SystemSetting } from '../../../service/adminService';
 import toast from 'react-hot-toast';
 import {
-    Bot,
     Save,
     RefreshCw,
     MessageSquare,
     User,
     Quote,
     Filter,
-    ToggleLeft,
-    ToggleRight,
     Loader2,
     CheckCircle,
     AlertTriangle,
     Undo2,
     Info,
     Copy,
-    RotateCcw,
     Youtube,
     Sparkles,
     Search,
     Settings,
+    ChevronDown,
+    ChevronUp,
 } from 'lucide-react';
 import { formatDateTimeVN } from '../../../utils/dateUtils';
+import AdminPageWrapper from '../components/AdminPageWrapper';
 import './AiSettingsManagement.css';
 
 // ============================================================================
@@ -40,6 +39,8 @@ interface SettingCardProps {
     setting: SystemSetting;
     onSave: (key: string, value: string) => Promise<void>;
     saving: boolean;
+    isExpanded?: boolean;
+    onToggleExpand?: () => void;
 }
 
 interface CategoryConfig {
@@ -57,42 +58,42 @@ const CATEGORIES: CategoryConfig[] = [
     {
         id: 'main',
         name: 'Prompt Chính',
-        icon: <MessageSquare size={20} />,
+        icon: <MessageSquare size={18} />,
         description: 'System prompt và guidelines',
         keywords: ['system_prompt', 'response_guidelines'],
     },
     {
         id: 'studio',
-        name: 'Studio Prompts',
-        icon: <Sparkles size={20} />,
+        name: 'Studio',
+        icon: <Sparkles size={18} />,
         description: 'Quiz, Mindmap, Flashcard',
         keywords: ['_generation_prompt'],
     },
     {
         id: 'student',
         name: 'Profile SV',
-        icon: <User size={20} />,
+        icon: <User size={18} />,
         description: 'Thông tin sinh viên',
         keywords: ['student_context'],
     },
     {
         id: 'citation',
         name: 'Trích Dẫn',
-        icon: <Quote size={20} />,
+        icon: <Quote size={18} />,
         description: 'Format nguồn tài liệu',
         keywords: ['citation'],
     },
     {
         id: 'rag',
         name: 'RAG & Filter',
-        icon: <Filter size={20} />,
+        icon: <Filter size={18} />,
         description: 'Tìm kiếm & lọc tài liệu',
         keywords: ['rag', 'specialization', 'slide'],
     },
     {
         id: 'youtube',
         name: 'YouTube',
-        icon: <Youtube size={20} />,
+        icon: <Youtube size={18} />,
         description: 'Video đề xuất',
         keywords: ['youtube'],
     },
@@ -138,16 +139,16 @@ const PlaceholderHelper: React.FC<{ settingKey: string; onInsert: (placeholder: 
     if (!placeholders) return null;
 
     return (
-        <div className="ai-placeholder-helper">
-            <div className="ai-placeholder-header">
+        <div className="ais-placeholder-helper">
+            <div className="ais-placeholder-header">
                 <Info size={14} />
-                <span>Placeholders:</span>
+                <span>Placeholders có sẵn:</span>
             </div>
-            <div className="ai-placeholder-list">
+            <div className="ais-placeholder-list">
                 {placeholders.map(({ placeholder, description }) => (
                     <button
                         key={placeholder}
-                        className="ai-placeholder-chip"
+                        className="ais-placeholder-chip"
                         onClick={() => onInsert(placeholder)}
                         title={description}
                     >
@@ -161,9 +162,9 @@ const PlaceholderHelper: React.FC<{ settingKey: string; onInsert: (placeholder: 
 };
 
 // ============================================================================
-// TEXT SETTING CARD - Smart Input Detection
+// TEXT SETTING CARD
 // ============================================================================
-const TextSettingCard: React.FC<SettingCardProps> = ({ setting, onSave, saving }) => {
+const TextSettingCard: React.FC<SettingCardProps> = ({ setting, onSave, saving, isExpanded = true, onToggleExpand }) => {
     const [value, setValue] = useState(setting.settingValue);
     const [hasChanges, setHasChanges] = useState(false);
 
@@ -194,11 +195,9 @@ const TextSettingCard: React.FC<SettingCardProps> = ({ setting, onSave, saving }
     };
 
     // Smart type detection
-    const isNumber = /^\d+(\.\d+)?$/.test(setting.settingValue.trim());
-    const isShortText = setting.settingValue.length < 100 && !setting.settingKey.includes('prompt') && !setting.settingKey.includes('template');
     const isLongText = setting.settingKey.includes('prompt') || setting.settingKey.includes('template') || setting.settingKey.includes('guidelines');
 
-    // Determine input type based on key patterns
+    // Determine input type
     const inputType = (() => {
         if (setting.settingKey.includes('threshold') ||
             setting.settingKey.includes('top_k') ||
@@ -216,92 +215,91 @@ const TextSettingCard: React.FC<SettingCardProps> = ({ setting, onSave, saving }
         if (isLongText) {
             return 'long';
         }
-        if (isNumber) {
-            return 'number';
-        }
-        if (isShortText) {
-            return 'short';
-        }
         return 'medium';
     })();
 
     return (
-        <div className={`ai-setting-card ${hasChanges ? 'has-changes' : ''} ai-card-${inputType}`}>
-            <div className="ai-setting-header">
-                <div className="ai-setting-info">
-                    <h4 className="ai-setting-title">{getSettingLabel(setting.settingKey)}</h4>
-                    <p className="ai-setting-description">{setting.description}</p>
+        <div className={`ais-card ${hasChanges ? 'has-changes' : ''} ais-card-${inputType}`}>
+            <div className="ais-card-header" onClick={onToggleExpand}>
+                <div className="ais-card-info">
+                    <h4 className="ais-card-title">{getSettingLabel(setting.settingKey)}</h4>
+                    {!isExpanded && <p className="ais-card-preview">{value.substring(0, 80)}...</p>}
                 </div>
-                <div className="ai-setting-actions">
+                <div className="ais-card-actions">
                     {hasChanges && (
                         <>
-                            <button className="ai-btn ai-btn-secondary" onClick={handleUndo} title="Hoàn tác">
+                            <button className="ais-btn ais-btn-ghost" onClick={(e) => { e.stopPropagation(); handleUndo(); }} title="Hoàn tác">
                                 <Undo2 size={16} />
                             </button>
-                            <button className="ai-btn ai-btn-primary" onClick={handleSave} disabled={saving}>
+                            <button className="ais-btn ais-btn-primary" onClick={(e) => { e.stopPropagation(); handleSave(); }} disabled={saving}>
                                 {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                                 Lưu
                             </button>
                         </>
                     )}
-                    {!hasChanges && (
-                        <button className="ai-btn ai-btn-ghost" onClick={handleUndo} title="Reset">
-                            <RotateCcw size={16} />
+                    {onToggleExpand && (
+                        <button className="ais-btn ais-btn-ghost ais-expand-btn" onClick={(e) => { e.stopPropagation(); onToggleExpand(); }}>
+                            {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                         </button>
                     )}
                 </div>
             </div>
 
-            {AVAILABLE_PLACEHOLDERS[setting.settingKey] && (
-                <PlaceholderHelper settingKey={setting.settingKey} onInsert={insertPlaceholder} />
-            )}
+            {isExpanded && (
+                <div className="ais-card-body">
+                    <p className="ais-card-description">{setting.description}</p>
 
-            {/* Render appropriate input based on type */}
-            {inputType === 'number' ? (
-                <div className="ai-input-row">
-                    <input
-                        type="number"
-                        className="ai-setting-input ai-input-number"
-                        value={value}
-                        onChange={(e) => handleChange(e.target.value)}
-                        step="0.1"
-                    />
-                    <span className="ai-input-unit">
-                        {setting.settingKey.includes('threshold') ? '(0-1)' : ''}
-                        {setting.settingKey.includes('top_k') ? 'chunks' : ''}
-                        {setting.settingKey.includes('words') ? 'từ' : ''}
-                        {setting.settingKey.includes('depth') ? 'levels' : ''}
-                        {setting.settingKey.includes('nodes') ? 'nodes' : ''}
-                        {setting.settingKey.includes('results') ? 'videos' : ''}
-                    </span>
+                    {AVAILABLE_PLACEHOLDERS[setting.settingKey] && (
+                        <PlaceholderHelper settingKey={setting.settingKey} onInsert={insertPlaceholder} />
+                    )}
+
+                    {inputType === 'number' ? (
+                        <div className="ais-input-row">
+                            <input
+                                type="number"
+                                className="ais-input ais-input-number"
+                                value={value}
+                                onChange={(e) => handleChange(e.target.value)}
+                                step="0.1"
+                            />
+                            <span className="ais-input-unit">
+                                {setting.settingKey.includes('threshold') ? '(0-1)' : ''}
+                                {setting.settingKey.includes('top_k') ? 'chunks' : ''}
+                                {setting.settingKey.includes('words') ? 'từ' : ''}
+                                {setting.settingKey.includes('depth') ? 'levels' : ''}
+                                {setting.settingKey.includes('nodes') ? 'nodes' : ''}
+                                {setting.settingKey.includes('results') ? 'videos' : ''}
+                            </span>
+                        </div>
+                    ) : inputType === 'short' ? (
+                        <input
+                            type="text"
+                            className="ais-input ais-input-short"
+                            value={value}
+                            onChange={(e) => handleChange(e.target.value)}
+                            placeholder="Nhập giá trị..."
+                        />
+                    ) : (
+                        <textarea
+                            className="ais-textarea"
+                            value={value}
+                            onChange={(e) => handleChange(e.target.value)}
+                            rows={inputType === 'long' ? 10 : 4}
+                            placeholder="Nhập giá trị..."
+                        />
+                    )}
+
+                    <div className="ais-card-meta">
+                        <span className="ais-card-key">{setting.settingKey}</span>
+                        {inputType !== 'number' && <span className="ais-card-chars">{value.length} ký tự</span>}
+                        {setting.updatedAt && (
+                            <span className="ais-card-updated">
+                                Cập nhật: {formatDateTimeVN(setting.updatedAt)}
+                            </span>
+                        )}
+                    </div>
                 </div>
-            ) : inputType === 'short' ? (
-                <input
-                    type="text"
-                    className="ai-setting-input ai-input-short"
-                    value={value}
-                    onChange={(e) => handleChange(e.target.value)}
-                    placeholder="Nhập giá trị..."
-                />
-            ) : (
-                <textarea
-                    className="ai-setting-textarea"
-                    value={value}
-                    onChange={(e) => handleChange(e.target.value)}
-                    rows={inputType === 'long' ? 8 : 3}
-                    placeholder="Nhập giá trị..."
-                />
             )}
-
-            <div className="ai-setting-meta">
-                <span className="ai-setting-key">{setting.settingKey}</span>
-                {inputType !== 'number' && <span className="ai-setting-char-count">{value.length} chars</span>}
-                {setting.updatedAt && (
-                    <span className="ai-setting-updated">
-                        Cập nhật: {formatDateTimeVN(setting.updatedAt)}
-                    </span>
-                )}
-            </div>
         </div>
     );
 };
@@ -317,23 +315,23 @@ const ToggleSettingCard: React.FC<SettingCardProps> = ({ setting, onSave, saving
     };
 
     return (
-        <div className="ai-setting-card ai-setting-toggle-card">
-            <div className="ai-setting-toggle-content">
-                <div className="ai-setting-info">
-                    <h4 className="ai-setting-title">{getSettingLabel(setting.settingKey)}</h4>
-                    <p className="ai-setting-description">{setting.description}</p>
+        <div className="ais-card ais-card-toggle">
+            <div className="ais-toggle-content">
+                <div className="ais-card-info">
+                    <h4 className="ais-card-title">{getSettingLabel(setting.settingKey)}</h4>
+                    <p className="ais-card-description">{setting.description}</p>
                 </div>
                 <button
-                    className={`ai-toggle-switch ${isEnabled ? 'enabled' : ''}`}
+                    className={`ais-toggle-switch ${isEnabled ? 'enabled' : ''}`}
                     onClick={handleToggle}
                     disabled={saving}
                 >
-                    {saving && <Loader2 size={16} className="animate-spin" />}
+                    {saving && <Loader2 size={14} className="animate-spin" />}
                 </button>
             </div>
-            <div className="ai-setting-meta">
-                <span className="ai-setting-key">{setting.settingKey}</span>
-                <span className={`ai-toggle-status ${isEnabled ? 'enabled' : 'disabled'}`}>
+            <div className="ais-card-meta">
+                <span className="ais-card-key">{setting.settingKey}</span>
+                <span className={`ais-toggle-status ${isEnabled ? 'enabled' : 'disabled'}`}>
                     {isEnabled ? <><CheckCircle size={14} /> Bật</> : <><AlertTriangle size={14} /> Tắt</>}
                 </span>
             </div>
@@ -348,31 +346,31 @@ function getSettingLabel(key: string): string {
     const labels: Record<string, string> = {
         'ai_system_prompt': 'System Prompt',
         'ai_response_guidelines': 'Response Guidelines',
-        'ai_student_context_template': 'Template SV',
-        'ai_student_context_enabled': 'Hiển thị Info SV',
-        'ai_citation_format': 'Format trích dẫn',
-        'ai_citation_enabled': 'Bật trích dẫn',
-        'ai_citation_instruction': 'Hướng dẫn trích dẫn',
-        'ai_rag_semester_filter_enabled': 'Lọc theo kỳ',
-        'ai_rag_specialization_filter_enabled': 'Lọc chuyên ngành',
-        'ai_specialization_start_semester': 'Kỳ bắt đầu',
-        'ai_rag_hybrid_fallback_enabled': 'Hybrid fallback',
-        'ai_rag_out_of_semester_note': 'Note ngoài kỳ',
-        'ai_rag_similarity_threshold': 'Similarity threshold',
-        'ai_youtube_enabled': 'YouTube videos',
-        'ai_youtube_max_results': 'Max videos',
-        'ai_youtube_keywords': 'Search keywords',
-        'ai_youtube_exclude_keywords': 'Exclude keywords',
-        'ai_slide_source_format': 'Slide source format',
-        'ai_quiz_generation_prompt': 'Quiz Prompt',
-        'ai_mindmap_generation_prompt': 'Mindmap Prompt',
-        'ai_flashcard_generation_prompt': 'Flashcard Prompt',
-        'ai_report_generation_prompt': 'Report Prompt',
-        'ai_rag_diversity_enabled': 'Diversity ranking',
-        'ai_rag_top_k': 'Top K chunks',
-        'ai_rag_max_chunks_per_doc': 'Max chunks/doc',
-        'ai_specialization_context_enabled': 'Specialization context',
-        'ai_specialization_prompt_template': 'Specialization template',
+        'ai_student_context_template': 'Template Thông Tin SV',
+        'ai_student_context_enabled': 'Hiển Thị Info SV',
+        'ai_citation_format': 'Format Trích Dẫn',
+        'ai_citation_enabled': 'Bật Trích Dẫn',
+        'ai_citation_instruction': 'Hướng Dẫn Trích Dẫn',
+        'ai_rag_semester_filter_enabled': 'Lọc Theo Kỳ',
+        'ai_rag_specialization_filter_enabled': 'Lọc Chuyên Ngành',
+        'ai_specialization_start_semester': 'Kỳ Bắt Đầu',
+        'ai_rag_hybrid_fallback_enabled': 'Hybrid Fallback',
+        'ai_rag_out_of_semester_note': 'Note Ngoài Kỳ',
+        'ai_rag_similarity_threshold': 'Similarity Threshold',
+        'ai_youtube_enabled': 'YouTube Videos',
+        'ai_youtube_max_results': 'Max Videos',
+        'ai_youtube_keywords': 'Search Keywords',
+        'ai_youtube_exclude_keywords': 'Exclude Keywords',
+        'ai_slide_source_format': 'Slide Source Format',
+        'ai_quiz_generation_prompt': 'Quiz Generation Prompt',
+        'ai_mindmap_generation_prompt': 'Mindmap Generation Prompt',
+        'ai_flashcard_generation_prompt': 'Flashcard Generation Prompt',
+        'ai_report_generation_prompt': 'Report Generation Prompt',
+        'ai_rag_diversity_enabled': 'Diversity Ranking',
+        'ai_rag_top_k': 'Top K Chunks',
+        'ai_rag_max_chunks_per_doc': 'Max Chunks/Doc',
+        'ai_specialization_context_enabled': 'Specialization Context',
+        'ai_specialization_prompt_template': 'Specialization Template',
     };
     return labels[key] || key.replace('ai_', '').replace(/_/g, ' ');
 }
@@ -394,7 +392,6 @@ function categorizeSettings(settings: SystemSetting[]): Map<string, SystemSettin
             }
         }
         if (!assigned) {
-            // Put in RAG category as default
             categorized.get('rag')!.push(setting);
         }
     });
@@ -411,20 +408,31 @@ export default function AiSettingsManagement() {
     const [savingKey, setSavingKey] = useState<string | null>(null);
     const [activeCategory, setActiveCategory] = useState('main');
     const [searchQuery, setSearchQuery] = useState('');
-
-    const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+    const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
 
     const loadSettings = useCallback(async () => {
         setIsLoading(true);
         try {
             const data = await adminService.getAiSettings();
             setSettings(data);
+            // Auto-expand first 2 cards
+            if (data.length > 0) {
+                setExpandedCards(new Set(data.slice(0, 2).map(s => s.settingKey)));
+            }
         } catch (error) {
             console.error('Failed to load AI settings:', error);
             toast.error('Không thể tải cài đặt AI');
         } finally {
             setIsLoading(false);
         }
+    }, []);
+
+    // Add class to body to prevent outer scroll
+    useEffect(() => {
+        document.body.classList.add('ai-settings-page');
+        return () => {
+            document.body.classList.remove('ai-settings-page');
+        };
     }, []);
 
     useEffect(() => {
@@ -445,12 +453,16 @@ export default function AiSettingsManagement() {
         }
     };
 
-    const scrollToSection = (categoryId: string) => {
-        setActiveCategory(categoryId);
-        const section = sectionRefs.current[categoryId];
-        if (section) {
-            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+    const toggleCardExpand = (key: string) => {
+        setExpandedCards(prev => {
+            const next = new Set(prev);
+            if (next.has(key)) {
+                next.delete(key);
+            } else {
+                next.add(key);
+            }
+            return next;
+        });
     };
 
     // Filter and categorize
@@ -463,58 +475,47 @@ export default function AiSettingsManagement() {
         : settings;
 
     const categorizedSettings = categorizeSettings(filteredSettings);
+    const currentCategorySettings = categorizedSettings.get(activeCategory) || [];
+
+    // Separate toggles from text settings for grid layout
+    const toggleSettings = currentCategorySettings.filter(s => s.settingType === 'boolean');
+    const textSettings = currentCategorySettings.filter(s => s.settingType !== 'boolean');
 
     if (isLoading) {
         return (
-            <div className="ai-settings-page">
-                <div className="ai-loading" style={{ flex: 1 }}>
-                    <Loader2 size={48} />
+            <AdminPageWrapper title="AI Settings">
+                <div className="ais-loading">
+                    <Loader2 size={40} />
                     <p>Đang tải cài đặt AI...</p>
                 </div>
-            </div>
+            </AdminPageWrapper>
         );
     }
 
     return (
-        <div className="ai-settings-page">
-            {/* Sidebar */}
-            <aside className="ai-settings-sidebar">
-                <div className="ai-sidebar-header">
-                    <div className="ai-sidebar-logo">
-                        <Bot />
-                        <h1>AI Settings</h1>
-                    </div>
-                    <p className="ai-sidebar-subtitle">Quản lý AI prompts</p>
-                </div>
-
-                <nav className="ai-sidebar-nav">
-                    {CATEGORIES.map(cat => {
-                        const count = categorizedSettings.get(cat.id)?.length || 0;
-                        return (
-                            <button
-                                key={cat.id}
-                                className={`ai-nav-item ${activeCategory === cat.id ? 'active' : ''}`}
-                                onClick={() => scrollToSection(cat.id)}
-                            >
-                                {cat.icon}
-                                <div className="ai-nav-item-text">
-                                    <div className="ai-nav-item-label">{cat.name}</div>
-                                    <div className="ai-nav-item-count">{cat.description}</div>
-                                </div>
-                                {count > 0 && <span className="ai-nav-item-badge">{count}</span>}
-                            </button>
-                        );
-                    })}
-                </nav>
-            </aside>
-
-            {/* Main Content */}
-            <main className="ai-settings-content">
-                <header className="ai-content-header">
-                    <h1 className="ai-content-title">Cấu hình AI Settings</h1>
-                    <div className="ai-header-actions">
-                        <div className="ai-search-box">
-                            <Search />
+        <AdminPageWrapper title="AI Settings">
+            <div className="ais-container">
+                {/* Tabs + Toolbar Row */}
+                <div className="ais-tabs-row">
+                    <nav className="ais-tabs">
+                        {CATEGORIES.map(cat => {
+                            const count = categorizedSettings.get(cat.id)?.length || 0;
+                            return (
+                                <button
+                                    key={cat.id}
+                                    className={`ais-tab ${activeCategory === cat.id ? 'active' : ''}`}
+                                    onClick={() => setActiveCategory(cat.id)}
+                                >
+                                    {cat.icon}
+                                    <span className="ais-tab-name">{cat.name}</span>
+                                    {count > 0 && <span className="ais-tab-badge">{count}</span>}
+                                </button>
+                            );
+                        })}
+                    </nav>
+                    <div className="ais-toolbar">
+                        <div className="ais-search">
+                            <Search size={18} />
                             <input
                                 type="text"
                                 placeholder="Tìm kiếm settings..."
@@ -522,64 +523,69 @@ export default function AiSettingsManagement() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
-                        <button className="ai-refresh-btn" onClick={loadSettings}>
+                        <button className="ais-btn ais-btn-secondary" onClick={loadSettings}>
                             <RefreshCw size={18} />
                             Làm mới
                         </button>
                     </div>
-                </header>
+                </div>
 
-                {settings.length === 0 ? (
-                    <div className="ai-empty-state">
-                        <AlertTriangle size={48} />
-                        <h3>Chưa có cài đặt AI</h3>
-                        <p>Vui lòng chạy seed script</p>
-                    </div>
-                ) : (
-                    <>
-                        {CATEGORIES.map(cat => {
-                            const items = categorizedSettings.get(cat.id) || [];
-                            if (items.length === 0 && searchQuery) return null;
-
-                            return (
-                                <section
-                                    key={cat.id}
-                                    className="ai-settings-section"
-                                    ref={(el) => { sectionRefs.current[cat.id] = el; }}
-                                >
-                                    <div className="ai-section-header">
-                                        <div className="ai-section-icon">{cat.icon}</div>
-                                        <h2 className="ai-section-title">{cat.name}</h2>
-                                        <span className="ai-section-count">{items.length} settings</span>
+                {/* Content */}
+                <main className="ais-content">
+                    {settings.length === 0 ? (
+                        <div className="ais-empty">
+                            <AlertTriangle size={48} />
+                            <h3>Chưa có cài đặt AI</h3>
+                            <p>Vui lòng chạy seed script để tạo settings mặc định</p>
+                        </div>
+                    ) : currentCategorySettings.length === 0 ? (
+                        <div className="ais-empty">
+                            <Settings size={48} />
+                            <h3>Không có settings trong mục này</h3>
+                            <p>Thử tìm kiếm hoặc chọn category khác</p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Toggle Settings Grid */}
+                            {toggleSettings.length > 0 && (
+                                <div className="ais-section">
+                                    <h3 className="ais-section-title">Bật/Tắt tính năng</h3>
+                                    <div className="ais-toggles-grid">
+                                        {toggleSettings.map(setting => (
+                                            <ToggleSettingCard
+                                                key={setting.settingKey}
+                                                setting={setting}
+                                                onSave={handleSave}
+                                                saving={savingKey === setting.settingKey}
+                                            />
+                                        ))}
                                     </div>
+                                </div>
+                            )}
 
-                                    <div className="ai-settings-grid">
-                                        {items.map(setting => {
-                                            const CardComponent = setting.settingType === 'boolean'
-                                                ? ToggleSettingCard
-                                                : TextSettingCard;
-                                            return (
-                                                <CardComponent
-                                                    key={setting.settingKey}
-                                                    setting={setting}
-                                                    onSave={handleSave}
-                                                    saving={savingKey === setting.settingKey}
-                                                />
-                                            );
-                                        })}
-                                        {items.length === 0 && (
-                                            <div className="ai-empty-state" style={{ height: 150 }}>
-                                                <Settings size={32} />
-                                                <p>Chưa có settings trong mục này</p>
-                                            </div>
-                                        )}
+                            {/* Text Settings */}
+                            {textSettings.length > 0 && (
+                                <div className="ais-section">
+                                    {toggleSettings.length > 0 && <h3 className="ais-section-title">Cấu hình chi tiết</h3>}
+                                    <div className="ais-cards-list">
+                                        {textSettings.map(setting => (
+                                            <TextSettingCard
+                                                key={setting.settingKey}
+                                                setting={setting}
+                                                onSave={handleSave}
+                                                saving={savingKey === setting.settingKey}
+                                                isExpanded={expandedCards.has(setting.settingKey)}
+                                                onToggleExpand={() => toggleCardExpand(setting.settingKey)}
+                                            />
+                                        ))}
                                     </div>
-                                </section>
-                            );
-                        })}
-                    </>
-                )}
-            </main>
-        </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </main>
+            </div>
+        </AdminPageWrapper>
     );
 }
+
