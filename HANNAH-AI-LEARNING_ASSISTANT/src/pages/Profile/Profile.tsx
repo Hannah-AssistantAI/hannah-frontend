@@ -29,7 +29,8 @@ import {
     Clock,
     Loader2,
     ArrowLeft,
-    GraduationCap
+    GraduationCap,
+    Map
 } from 'lucide-react'
 import { formatDateVN } from '../../utils/dateUtils';
 import './Profile.css'
@@ -322,6 +323,18 @@ export default function Profile({ embedded = false }: ProfileProps) {
                                 >
                                     <GraduationCap size={20} />
                                     <span>Kết quả học tập</span>
+                                    <ChevronRight size={18} className="pf-nav-arrow" />
+                                </button>
+                            )}
+
+                            {/* Career Path link - only for students */}
+                            {userProfile?.role.toLowerCase() === 'student' && (
+                                <button
+                                    className="pf-nav-item pf-nav-link"
+                                    onClick={() => navigate('/career-path')}
+                                >
+                                    <Map size={20} />
+                                    <span>Lộ trình nghề nghiệp</span>
                                     <ChevronRight size={18} className="pf-nav-arrow" />
                                 </button>
                             )}
