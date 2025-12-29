@@ -666,3 +666,53 @@
     color: #6b7280;
     font-size: 14px;
 }
+
+/* Empty States */
+.empty-milestones,
+.empty-specs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    min-height: 200px;
+}
+
+.empty-milestones .empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.empty-milestones h4,
+.empty-specs p {
+    color: #9ca3af;
+    margin-bottom: 8px;
+}
+
+.empty-milestones p {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.empty-milestones button,
+.empty-specs button {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.empty-milestones button:hover,
+.empty-specs button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}

@@ -178,30 +178,41 @@ const RoadmapView: React.FC<RoadmapViewProps> = ({ roadmap }) => {
             )}
 
             <div className="milestones">
-                {roadmap.milestones.map(milestone => (
-                    <div key={milestone.semester} className={`milestone ${milestone.status}`}>
-                        <div className="milestone-header">
-                            <span className="semester">Kỳ {milestone.semester}</span>
-                            <span className={`status-badge ${milestone.status}`}>
-                                {getStatusLabel(milestone.status)}
-                            </span>
+                {roadmap.milestones && roadmap.milestones.length > 0 ? (
+                    roadmap.milestones.map(milestone => (
+                        <div key={milestone.semester} className={`milestone ${milestone.status}`}>
+                            <div className="milestone-header">
+                                <span className="semester">Kỳ {milestone.semester}</span>
+                                <span className={`status-badge ${milestone.status}`}>
+                                    {getStatusLabel(milestone.status)}
+                                </span>
+                            </div>
+                            <div className="milestone-progress">
+                                {milestone.completedCredits}/{milestone.totalCredits} TC
+                            </div>
+                            <div className="milestone-subjects">
+                                {milestone.subjects.map(subj => (
+                                    <div
+                                        key={subj.id || subj.code}
+                                        className={`subject-chip ${subj.status} ${subj.isWeak ? 'weak' : ''}`}
+                                    >
+                                        {subj.code}
+                                        {subj.grade && <span className="grade">({subj.grade})</span>}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                        <div className="milestone-progress">
-                            {milestone.completedCredits}/{milestone.totalCredits} TC
-                        </div>
-                        <div className="milestone-subjects">
-                            {milestone.subjects.map(subj => (
-                                <div
-                                    key={subj.id || subj.code}
-                                    className={`subject-chip ${subj.status} ${subj.isWeak ? 'weak' : ''}`}
-                                >
-                                    {subj.code}
-                                    {subj.grade && <span className="grade">({subj.grade})</span>}
-                                </div>
-                            ))}
-                        </div>
+                    ))
+                ) : (
+                    <div className="empty-milestones">
+                        <div className="empty-icon">📋</div>
+                        <h4>Chưa có lộ trình học tập</h4>
+                        <p>Hãy upload bảng điểm để xem lộ trình của bạn.</p>
+                        <button onClick={() => window.location.href = '/profile'}>
+                            📄 Cập nhật bảng điểm
+                        </button>
                     </div>
-                ))}
+                )}
             </div>
         </div>
     );
@@ -331,15 +342,21 @@ const CareerPathExplorer: React.FC = () => {
                     <div className="explore-layout">
                         <aside className="spec-list">
                             <h3>Chuyên ngành</h3>
-                            {overview.specializations.map(spec => (
-                                <SpecializationCard
-                                    key={spec.id}
-                                    spec={spec}
-                                    isSuggested={spec.code === overview.suggestedCode}
-                                    isSelected={selectedSpec?.id === spec.id}
-                                    onClick={() => setSelectedSpec(spec)}
-                                />
-                            ))}
+                            {overview.specializations && overview.specializations.length > 0 ? (
+                                overview.specializations.map(spec => (
+                                    <SpecializationCard
+                                        key={spec.id}
+                                        spec={spec}
+                                        isSuggested={spec.code === overview.suggestedCode}
+                                        isSelected={selectedSpec?.id === spec.id}
+                                        onClick={() => setSelectedSpec(spec)}
+                                    />
+                                ))
+                            ) : (
+                                <div className="empty-specs">
+                                    <p>Chưa có chuyên ngành nào được thiết lập.</p>
+                                </div>
+                            )}
                         </aside>
                         <section className="spec-content">
                             {selectedSpec ? (
