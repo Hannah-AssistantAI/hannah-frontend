@@ -51,6 +51,8 @@ import {
 
 // Student pages - Phase 1 (Career Path Explorer)
 import { CareerPathExplorer } from './pages/Student/CareerPath'
+// Student pages - Phase 4 (Learning Dashboard)
+import { LearningDashboard } from './pages/Student/LearningDashboard'
 
 const AuthRedirectHandler = () => {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -105,6 +107,7 @@ function App() {
             <Route path="/profile" element={<ThemedPage><Profile /></ThemedPage>} />
             <Route path="/my-flags" element={<ThemedPage><MyFlags /></ThemedPage>} />
             <Route path="/career-path" element={<CareerPathExplorer />} />
+            <Route path="/student/learning-dashboard" element={<LearningDashboard />} />
           </Route>
         </Route>
 
