@@ -40,7 +40,9 @@ const SpecializationCard: React.FC<SpecializationCardProps> = ({
                     <div className="jobs">
                         {spec.careerOutlook.jobTitles.slice(0, 2).join(' • ')}
                     </div>
-                    <div className="salary">{spec.careerOutlook.salaryRange}</div>
+                    {spec.careerOutlook.salaryRange && (
+                        <div className="salary">{spec.careerOutlook.salaryRange}</div>
+                    )}
                 </div>
             )}
         </div>
@@ -84,9 +86,11 @@ const SpecializationDetail: React.FC<SpecializationDetailProps> = ({ spec, sugge
                                 <span key={i} className="job-tag">{job}</span>
                             ))}
                         </div>
-                        <div className="salary-range">
-                            <strong>Mức lương:</strong> {spec.careerOutlook.salaryRange}
-                        </div>
+                        {spec.careerOutlook.salaryRange && (
+                            <div className="salary-range">
+                                <strong>Mức lương:</strong> {spec.careerOutlook.salaryRange}
+                            </div>
+                        )}
                         {spec.careerOutlook.marketDemand && (
                             <div className={`demand demand-${spec.careerOutlook.marketDemand}`}>
                                 Nhu cầu: {getDemandLabel(spec.careerOutlook.marketDemand)}
