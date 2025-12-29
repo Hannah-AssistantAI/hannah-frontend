@@ -9,8 +9,13 @@ import type {
     WeakTopic
 } from '../../../service/learningDashboardService';
 import { useAuth } from '../../../contexts/AuthContext';
-import { toast } from 'react-toastify';
 import './LearningDashboard.css';
+
+// Simple toast replacement for EC2 compatibility
+const toast = {
+    error: (msg: string) => console.error('[LearningDashboard]', msg),
+    success: (msg: string) => console.log('[LearningDashboard]', msg)
+};
 
 // ============ Helper Functions ============
 
