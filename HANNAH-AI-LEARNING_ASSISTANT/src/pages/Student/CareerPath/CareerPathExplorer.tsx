@@ -239,6 +239,10 @@ const CareerPathExplorer: React.FC = () => {
                     careerPathService.getLearningRoadmap()
                 ]);
 
+                console.log('CareerPath DEBUG - overviewData:', JSON.stringify(overviewData, null, 2));
+                console.log('CareerPath DEBUG - roadmapData:', JSON.stringify(roadmapData, null, 2));
+                console.log('CareerPath DEBUG - milestones count:', roadmapData?.milestones?.length || 0);
+
                 setOverview(overviewData);
                 setRoadmap(roadmapData);
 
