@@ -7,6 +7,11 @@
     padding: 24px;
 }
 
+/* Override any conflicting global styles */
+.career-content {
+    display: block !important;
+}
+
 /* Loading & Error States */
 .career-path-page.loading,
 .career-path-page.error {

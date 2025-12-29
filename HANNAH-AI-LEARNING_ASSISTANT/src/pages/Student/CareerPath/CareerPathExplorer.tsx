@@ -341,7 +341,7 @@ const CareerPathExplorer: React.FC = () => {
                 </div>
             </header>
 
-            <main className="page-content">
+            <main className="career-content">
                 {activeTab === 'explore' && overview && (
                     <div className="explore-layout">
                         <aside className="spec-list">
