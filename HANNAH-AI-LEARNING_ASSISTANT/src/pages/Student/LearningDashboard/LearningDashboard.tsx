@@ -10,6 +10,7 @@ import type {
 } from '../../../service/learningDashboardService';
 import { useAuth } from '../../../contexts/AuthContext';
 import CLOProgressSection from '../../../components/Learning/CLOProgressSection';
+import RecommendationsSection from '../../../components/Learning/RecommendationsSection';
 import './LearningDashboard.css';
 
 // Simple toast replacement for EC2 compatibility
@@ -324,6 +325,11 @@ const LearningDashboard: React.FC = () => {
                         </div>
                     </div>
                 </header>
+
+                {/* 🆕 AI Recommendations - prominent for daily focus */}
+                {dashboard.userId && (
+                    <RecommendationsSection userId={dashboard.userId} />
+                )}
 
                 {/* Weak Topics */}
                 <WeakTopicsSection topics={weakTopics} />
