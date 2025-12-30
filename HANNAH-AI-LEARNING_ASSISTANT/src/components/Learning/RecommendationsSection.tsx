@@ -47,8 +47,14 @@ const RecommendationsSection = ({ userId, onActionClick }: RecommendationsSectio
             setLoading(true);
             setError(null);
 
+            // Get token from localStorage
+            const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+
             const response = await fetch(
-                `${API_BASE}/personalization/recommendations?user_id=${userId}&limit=5`
+                `${API_BASE}/personalization/recommendations?user_id=${userId}&limit=5`,
+                {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                }
             );
 
             if (!response.ok) {
