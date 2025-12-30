@@ -14,7 +14,7 @@
     --warning-color: #f59e0b;
     --danger-color: #ef4444;
     --text-muted: var(--text-tertiary);
-    
+
     min-height: 100vh;
     background: var(--bg-gradient);
     padding: 2rem;
@@ -365,6 +365,34 @@
 .session-item__type {
     font-size: 0.75rem;
     color: var(--text-muted);
+}
+
+/* 🆕 Phase 2: Warning badge for sessions needing review */
+.session-item__warning {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.7rem;
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: 12px;
+    color: #fca5a5;
+    font-weight: 600;
+    white-space: nowrap;
+    animation: pulse-warning 2s infinite;
+}
+
+@keyframes pulse-warning {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
 }
 
 .session-item__actions {

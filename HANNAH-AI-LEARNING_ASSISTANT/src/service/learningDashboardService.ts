@@ -43,6 +43,7 @@ export interface SessionProgress {
     materialsRead: boolean;
     quizCompleted: boolean;
     quizScore: number | null;
+    needsReview: boolean;  // 🆕 Phase 2: Warning for low quiz scores
     tasksCompleted: boolean;
     completedAt: string | null;
     notes: string | null;
@@ -141,6 +142,33 @@ export interface DocumentsBySessionResponse {
     sessions: DocumentSessionMapping[];
 }
 
+/**
+ * 🆕 Phase 1: Subject available for content generation
+ */
+export interface SubjectForGeneration {
+    subjectId: number;
+    subjectCode: string;
+    subjectName: string;
+    hasDocuments: boolean;
+    documentCount: number;
+    totalSessions: number;
+    completedSessions: number;
+    inProgressSessions: number;
+    suggestedSessionRange: {
+        from: number;
+        to: number;
+    } | null;
+}
+
+/**
+ * 🆕 Phase 1: Response for subjects-for-generation API
+ */
+export interface SubjectsForGenerationResponse {
+    semester: number;
+    userId: number;
+    subjects: SubjectForGeneration[];
+}
+
 // ============ Service ============
 
 export const learningDashboardService = {
@@ -150,6 +178,17 @@ export const learningDashboardService = {
     getDashboard: async (): Promise<LearningDashboard> => {
         const response = await apiClient.get<LearningDashboard>(
             '/api/v1/learning/dashboard'
+        );
+        return response.data;
+    },
+
+    /**
+     * 🆕 Phase 1: Get subjects available for content generation (Quiz/Flashcard/Mindmap)
+     * Returns current semester subjects with document availability and session progress
+     */
+    getSubjectsForGeneration: async (): Promise<SubjectsForGenerationResponse> => {
+        const response = await apiClient.get<SubjectsForGenerationResponse>(
+            '/api/v1/learning/subjects-for-generation'
         );
         return response.data;
     },

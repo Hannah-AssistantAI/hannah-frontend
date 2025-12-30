@@ -218,6 +218,9 @@ export const useStudio = (conversationId: number | null) => {
             sourceType?: 'conversation' | 'documents' | 'hybrid';
             sourceSubjectIds?: number[];
             reportType?: 'summary' | 'detailed' | 'analysis';
+            // 🆕 Phase 1: Session range for personalized generation
+            sessionFrom?: number;
+            sessionTo?: number;
         }
     ) => {
         // Validate conversationId exists
@@ -289,7 +292,11 @@ export const useStudio = (conversationId: number | null) => {
                         topic: generationContext || effectiveTitle,
                         sourceType,
                         documentIds: sourceDocumentIds,
-                        topKChunks: 5
+                        topKChunks: 5,
+                        // 🆕 Phase 1: Session filtering
+                        sourceSubjectIds: options?.sourceSubjectIds,
+                        sessionFrom: options?.sessionFrom,
+                        sessionTo: options?.sessionTo
                     });
                     break;
                 case 'report':
@@ -311,7 +318,10 @@ export const useStudio = (conversationId: number | null) => {
                         topics: generationContext ? [generationContext] : [],
                         sourceType,
                         sourceSubjectIds: options?.sourceSubjectIds,
-                        documentIds: sourceDocumentIds  // Fixed: was sourceDocumentIds
+                        documentIds: sourceDocumentIds,
+                        // 🆕 Phase 1: Session filtering
+                        sessionFrom: options?.sessionFrom,
+                        sessionTo: options?.sessionTo
                     });
                     break;
                 case 'notecard':
@@ -321,7 +331,11 @@ export const useStudio = (conversationId: number | null) => {
                         topic: generationContext || effectiveTitle,
                         cardCount: effectiveQuantity,
                         sourceType,
-                        sourceDocumentIds: sourceDocumentIds
+                        sourceDocumentIds: sourceDocumentIds,
+                        // 🆕 Phase 1: Session filtering
+                        sourceSubjectIds: options?.sourceSubjectIds,
+                        sessionFrom: options?.sessionFrom,
+                        sessionTo: options?.sessionTo
                     });
                     break;
                 case 'roadmap':

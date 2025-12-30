@@ -30,6 +30,7 @@ import { parseInteractiveList } from './utils/messageHelpers'
 import { MessageDisplay } from './components/MessageDisplay/MessageDisplay'
 import { useChatMessages } from './hooks/useChatMessages'
 import { VoiceModeOverlay } from '../../components/VoiceMode'
+import { SubjectSelectionModal } from '../../components/Studio/SubjectSelectionModal'
 import './Chat.css'
 import './css/youtube-resources.css'
 
@@ -59,6 +60,9 @@ export default function Chat() {
     const [flaggingAttemptId, setFlaggingAttemptId] = useState<number | null>(null)
     const [isFlaggingQuiz, setIsFlaggingQuiz] = useState(false)
     const [bigPictureData, setBigPictureData] = useState<BigPictureTopic[]>([]);
+    // 🆕 Phase 1: Subject Selection Modal state
+    const [showSubjectModal, setShowSubjectModal] = useState(false);
+    const [pendingGenerationType, setPendingGenerationType] = useState<'quiz' | 'flashcard' | 'mindmap' | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Use custom hook for message management
@@ -95,13 +99,11 @@ export default function Chat() {
     ]
 
     // Wrapper for feature click with semester validation for roadmap
+    // 🆕 Phase 1: Shows SubjectSelectionModal for quiz/flashcard/mindmap
     const handleFeatureClick = (type: 'mindmap' | 'report' | 'notecard' | 'quiz' | 'roadmap', title: string) => {
         if (type === 'roadmap') {
             // Check if student has set their semester
-            // First check AuthContext (most up-to-date after Profile update)
             let currentSemester = user?.currentSemester;
-
-            // If not in context, check localStorage (may have been updated in Profile)
             if (!currentSemester) {
                 try {
                     const storedUser = localStorage.getItem('user_data');
@@ -113,11 +115,6 @@ export default function Chat() {
                     console.error('Failed to parse user_data from localStorage:', e);
                 }
             }
-
-            console.log('=== Roadmap Semester Check ===');
-            console.log('user?.currentSemester:', user?.currentSemester);
-            console.log('Final currentSemester:', currentSemester);
-
             if (!currentSemester) {
                 toast.error('Vui lòng cập nhật kỳ học hiện tại trong hồ sơ để sử dụng tính năng này!', {
                     duration: 4000,
@@ -127,8 +124,44 @@ export default function Chat() {
                 return;
             }
         }
-        // Proceed with studio feature click
+
+        // 🆕 For quiz/flashcard/mindmap: show subject selection modal
+        if (type === 'quiz' || type === 'notecard' || type === 'mindmap') {
+            setPendingGenerationType(type === 'notecard' ? 'flashcard' : type);
+            setShowSubjectModal(true);
+            return;
+        }
+
+        // For roadmap and report: proceed as before
         studio.handleStudioFeatureClick(type, title);
+    }
+
+    // 🆕 Phase 1: Handle subject selection for personalized generation
+    const handleSubjectSelect = (subjectId: number, sessionFrom: number, sessionTo: number) => {
+        if (!pendingGenerationType) return;
+
+        const typeMapping: Record<'quiz' | 'flashcard' | 'mindmap', 'quiz' | 'notecard' | 'mindmap'> = {
+            'quiz': 'quiz',
+            'flashcard': 'notecard',
+            'mindmap': 'mindmap'
+        };
+        const studioType = typeMapping[pendingGenerationType];
+
+        const featureTitles: Record<string, string> = {
+            'mindmap': 'Bản đồ tư duy',
+            'notecard': 'Thẻ ghi nhớ',
+            'quiz': 'Bài kiểm tra'
+        };
+
+        // Generate with subject and session range
+        studio.createStudioItem(studioType, featureTitles[studioType], {
+            sourceSubjectIds: [subjectId],
+            sessionFrom,
+            sessionTo,
+            sourceType: 'documents'
+        });
+
+        setPendingGenerationType(null);
     }
 
     // Fetch subjects on component mount
@@ -661,6 +694,17 @@ export default function Chat() {
                     </div>
                 </div>
             )}
+
+            {/* 🆕 Phase 1: Subject Selection Modal for personalized generation */}
+            <SubjectSelectionModal
+                isOpen={showSubjectModal}
+                onClose={() => {
+                    setShowSubjectModal(false);
+                    setPendingGenerationType(null);
+                }}
+                onSelect={handleSubjectSelect}
+                generationType={pendingGenerationType || 'quiz'}
+            />
         </div>
     )
 }

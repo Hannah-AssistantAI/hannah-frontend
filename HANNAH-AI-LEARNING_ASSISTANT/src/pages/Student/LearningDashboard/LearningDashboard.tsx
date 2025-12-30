@@ -159,6 +159,13 @@ const SessionModal: React.FC<SessionModalProps> = ({ sessionsData, onClose, onUp
                                     </div>
                                 </div>
 
+                                {/* 🆕 Phase 2: Warning badge for sessions needing review */}
+                                {session.needsReview && (
+                                    <div className="session-item__warning" title="Điểm quiz dưới 50% - cần ôn lại">
+                                        ⚠️ Cần ôn lại
+                                    </div>
+                                )}
+
                                 <div className="session-item__actions">
                                     <button
                                         className={`session-checkbox ${session.materialsRead ? 'session-checkbox--checked' : ''}`}

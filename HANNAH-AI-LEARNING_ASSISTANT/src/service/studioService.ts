@@ -12,6 +12,9 @@ export interface GenerateQuizRequest {
     sourceType?: 'conversation' | 'documents' | 'hybrid';
     sourceSubjectIds?: number[];
     documentIds?: number[];  // Changed from sourceDocumentIds to match backend schema
+    // 🆕 Phase 1: Session range for personalized generation
+    sessionFrom?: number;
+    sessionTo?: number;
 }
 
 export interface GenerateMindMapRequest {
@@ -21,6 +24,10 @@ export interface GenerateMindMapRequest {
     sourceType?: 'conversation' | 'documents' | 'hybrid';
     documentIds?: number[];
     topKChunks?: number;
+    // 🆕 Phase 1: Session range for personalized generation
+    sourceSubjectIds?: number[];
+    sessionFrom?: number;
+    sessionTo?: number;
 }
 
 export interface GenerateReportRequest {
@@ -42,6 +49,9 @@ export interface GenerateFlashcardRequest {
     sourceType?: 'conversation' | 'documents' | 'hybrid';
     sourceSubjectIds?: number[];
     sourceDocumentIds?: number[];
+    // 🆕 Phase 1: Session range for personalized generation
+    sessionFrom?: number;
+    sessionTo?: number;
 }
 
 export interface GenerateRoadmapRequest {
