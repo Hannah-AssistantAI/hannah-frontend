@@ -243,7 +243,7 @@ const LearningDashboard: React.FC = () => {
                 { [field]: value }
             );
 
-            // Update local state
+            // Update local state for immediate UI feedback
             setSelectedSubject(prev => {
                 if (!prev) return null;
                 return {
@@ -255,6 +255,9 @@ const LearningDashboard: React.FC = () => {
                     )
                 };
             });
+
+            // 🆕 Real-time refresh: Re-fetch dashboard to update completion %
+            await fetchDashboard();
 
             toast.success('Đã cập nhật tiến độ');
         } catch (error) {
