@@ -1,9 +1,15 @@
-/* CareerPathExplorer.css - Modern glossy dark theme */
+/* CareerPathExplorer.css - Theme-aware styles */
 
 .career-path-page {
+    /* Scoped variables that adapt to theme */
+    --cp-card-bg: var(--bg-surface);
+    --cp-card-border: var(--border-secondary);
+    --cp-text-muted: var(--text-tertiary);
+    --cp-accent: var(--accent-blue);
+    
     min-height: 100vh;
-    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
-    color: #e0e0e0;
+    background: var(--bg-gradient);
+    color: var(--text-primary);
     padding: 24px;
 }
 
@@ -139,7 +145,7 @@
 }
 
 .subtitle {
-    color: #9ca3af;
+    color: var(--text-secondary);
     font-size: 14px;
 }
 
@@ -155,7 +161,7 @@
     padding: 10px 20px;
     border: none;
     background: transparent;
-    color: #9ca3af;
+    color: var(--text-secondary);
     border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
@@ -196,14 +202,14 @@
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: #9ca3af;
+    color: var(--text-secondary);
     margin-bottom: 8px;
 }
 
 /* Specialization Card */
 .spec-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-secondary);
     border-radius: 12px;
     padding: 16px;
     cursor: pointer;
@@ -213,8 +219,8 @@
 }
 
 .spec-card:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(99, 102, 241, 0.3);
+    background: var(--bg-surface-secondary);
+    border-color: var(--accent-blue);
     transform: translateY(-2px);
 }
 
@@ -252,7 +258,7 @@
 
 .spec-name-en {
     font-size: 12px;
-    color: #9ca3af;
+    color: var(--text-secondary);
     margin-bottom: 12px;
 }
 
@@ -264,21 +270,21 @@
 
 .spec-stats .stat {
     font-size: 13px;
-    color: #6b7280;
+    color: var(--text-tertiary);
     display: flex;
     align-items: center;
     gap: 4px;
 }
 
 .career-outlook {
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--bg-surface-secondary);
     padding: 8px 12px;
     border-radius: 8px;
     font-size: 12px;
 }
 
 .career-outlook .jobs {
-    color: #9ca3af;
+    color: var(--text-secondary);
     margin-bottom: 4px;
 }
 
@@ -289,8 +295,8 @@
 
 /* Specialization Detail */
 .spec-content {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-secondary);
     border-radius: 16px;
     padding: 24px;
     overflow-y: auto;
@@ -304,12 +310,12 @@
 }
 
 .detail-header .name-en {
-    color: #9ca3af;
+    color: var(--text-secondary);
     font-size: 14px;
 }
 
 .description {
-    color: #9ca3af;
+    color: var(--text-secondary);
     margin: 16px 0;
     line-height: 1.6;
 }
@@ -332,7 +338,7 @@
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: #6b7280;
+    color: var(--text-tertiary);
     margin-bottom: 12px;
 }
 
@@ -376,7 +382,7 @@
 
 .demand-low {
     background: rgba(107, 114, 128, 0.15);
-    color: #9ca3af;
+    color: var(--text-secondary);
 }
 
 /* Curriculum Timeline */
@@ -384,7 +390,7 @@
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: #6b7280;
+    color: var(--text-tertiary);
     margin-bottom: 16px;
 }
 
@@ -395,7 +401,7 @@
 }
 
 .semester-block {
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--bg-surface-secondary);
     border-radius: 12px;
     padding: 16px;
 }
@@ -408,12 +414,12 @@
 
 .semester-num {
     font-weight: 600;
-    color: #a78bfa;
+    color: var(--accent-blue);
 }
 
 .subject-count {
     font-size: 13px;
-    color: #6b7280;
+    color: var(--text-tertiary);
 }
 
 .subjects-list {
@@ -427,7 +433,7 @@
     grid-template-columns: 80px 1fr 50px;
     gap: 12px;
     padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-surface);
     border-radius: 6px;
     font-size: 13px;
 }
@@ -446,16 +452,16 @@
 
 .subject-code {
     font-weight: 600;
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .subject-name {
-    color: #9ca3af;
+    color: var(--text-secondary);
 }
 
 .subject-credits {
     text-align: right;
-    color: #6b7280;
+    color: var(--text-tertiary);
 }
 
 /* Roadmap View */
@@ -475,7 +481,7 @@
 }
 
 .spec-info {
-    color: #a78bfa;
+    color: var(--accent-blue);
     font-size: 14px;
 }
 
@@ -490,7 +496,7 @@
 
 .progress-bar {
     height: 12px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-surface-secondary);
     border-radius: 6px;
     overflow: hidden;
     margin-bottom: 8px;
@@ -507,11 +513,11 @@
     display: flex;
     justify-content: space-between;
     font-size: 13px;
-    color: #9ca3af;
+    color: var(--text-secondary);
 }
 
 .progress-stats .percent {
-    color: #a78bfa;
+    color: var(--accent-blue);
     font-weight: 600;
 }
 
@@ -541,7 +547,7 @@
     gap: 8px;
     font-size: 13px;
     padding: 8px;
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--bg-surface-secondary);
     border-radius: 6px;
 }
 
@@ -555,7 +561,7 @@
 }
 
 .weak-item .reason {
-    color: #9ca3af;
+    color: var(--text-secondary);
     font-style: italic;
 }
 
@@ -567,8 +573,8 @@
 }
 
 .milestone {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-secondary);
     border-radius: 12px;
     padding: 16px;
 }
@@ -615,12 +621,12 @@
 
 .status-badge.upcoming {
     background: rgba(107, 114, 128, 0.15);
-    color: #9ca3af;
+    color: var(--text-secondary);
 }
 
 .milestone-progress {
     font-size: 13px;
-    color: #6b7280;
+    color: var(--text-tertiary);
     margin-bottom: 12px;
 }
 
@@ -649,7 +655,7 @@
 
 .subject-chip.not_started {
     background: rgba(107, 114, 128, 0.15);
-    color: #9ca3af;
+    color: var(--text-secondary);
 }
 
 .subject-chip.weak {
@@ -668,7 +674,7 @@
     align-items: center;
     justify-content: center;
     height: 300px;
-    color: #6b7280;
+    color: var(--text-tertiary);
     font-size: 14px;
 }
 
@@ -681,8 +687,8 @@
     justify-content: center;
     padding: 48px 24px;
     text-align: center;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px dashed rgba(255, 255, 255, 0.1);
+    background: var(--bg-surface);
+    border: 1px dashed var(--border-secondary);
     border-radius: 12px;
     min-height: 200px;
 }
@@ -694,12 +700,12 @@
 
 .empty-milestones h4,
 .empty-specs p {
-    color: #9ca3af;
+    color: var(--text-secondary);
     margin-bottom: 8px;
 }
 
 .empty-milestones p {
-    color: #6b7280;
+    color: var(--text-tertiary);
     font-size: 14px;
     margin-bottom: 16px;
 }
