@@ -9,6 +9,7 @@ import type {
     WeakTopic
 } from '../../../service/learningDashboardService';
 import { useAuth } from '../../../contexts/AuthContext';
+import CLOProgressSection from '../../../components/Learning/CLOProgressSection';
 import './LearningDashboard.css';
 
 // Simple toast replacement for EC2 compatibility
@@ -132,6 +133,12 @@ const SessionModal: React.FC<SessionModalProps> = ({ sessionsData, onClose, onUp
                 </div>
 
                 <div className="session-modal__content">
+                    {/* 🆕 CLO Progress Section */}
+                    <CLOProgressSection
+                        subjectId={sessionsData.subjectId}
+                        subjectCode={sessionsData.subjectCode}
+                    />
+
                     <div className="sessions-list">
                         {sessionsData.sessions.map((session) => (
                             <div
