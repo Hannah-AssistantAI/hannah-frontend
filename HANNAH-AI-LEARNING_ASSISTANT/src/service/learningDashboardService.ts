@@ -92,6 +92,55 @@ export interface WeakTopicsResponse {
     weakTopics: WeakTopic[];
 }
 
+/**
+ * 🆕 CLO (Course Learning Outcome) Progress
+ */
+export interface CLOProgress {
+    cloName: string;
+    description: string | null;
+    totalSessions: number;
+    completedSessions: number;
+    progressPercentage: number;
+    sessionNumbers: number[];
+}
+
+/**
+ * 🆕 CLO Progress Response
+ */
+export interface CLOProgressResponse {
+    subjectId: number;
+    subjectCode: string;
+    totalCLOs: number;
+    overallProgress: number;
+    clos: CLOProgress[];
+}
+
+/**
+ * 🆕 Document-Session Mapping
+ */
+export interface DocumentSessionMapping {
+    sessionNumber: number;
+    sessionTopic: string | null;
+    linkedCLOs: string[];
+    documents: {
+        id: number;
+        title: string;
+        category: string | null;
+        detectedSlot: string | null;
+    }[];
+}
+
+/**
+ * 🆕 Documents by Session Response
+ */
+export interface DocumentsBySessionResponse {
+    subjectId: number;
+    subjectCode: string;
+    totalSessions: number;
+    sessionsWithDocuments: number;
+    sessions: DocumentSessionMapping[];
+}
+
 // ============ Service ============
 
 export const learningDashboardService = {
@@ -145,6 +194,38 @@ export const learningDashboardService = {
      */
     getMyLearningContext: async () => {
         const response = await apiClient.get('/api/v1/personalization/context/me');
+        return response.data;
+    },
+
+    // ============ 🆕 Phase 1.5-1.6 APIs ============
+
+    /**
+     * Get CLO (Course Learning Outcome) progress for a subject
+     */
+    getCLOProgress: async (subjectId: number): Promise<CLOProgressResponse> => {
+        const response = await apiClient.get<CLOProgressResponse>(
+            `/api/v1/learning/subjects/${subjectId}/clo-progress`
+        );
+        return response.data;
+    },
+
+    /**
+     * Get documents grouped by session for a subject
+     */
+    getDocumentsBySession: async (subjectId: number): Promise<DocumentsBySessionResponse> => {
+        const response = await apiClient.get<DocumentsBySessionResponse>(
+            `/api/v1/learning/subjects/${subjectId}/documents-by-session`
+        );
+        return response.data;
+    },
+
+    /**
+     * Get documents grouped by CLO for a subject
+     */
+    getDocumentsByCLO: async (subjectId: number) => {
+        const response = await apiClient.get(
+            `/api/v1/learning/subjects/${subjectId}/documents-by-clo`
+        );
         return response.data;
     }
 };
