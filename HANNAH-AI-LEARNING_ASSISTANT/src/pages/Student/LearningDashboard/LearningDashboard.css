@@ -300,6 +300,50 @@
     flex: 1;
 }
 
+/* 🆕 Batch Save Footer */
+.session-modal__footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--card-border);
+    background: var(--bg-surface-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.session-modal__unsaved-indicator {
+    font-size: 0.85rem;
+    color: var(--warning-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: pulse-warning 2s infinite;
+}
+
+.session-modal__save-btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--success-color), #059669);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.session-modal__save-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+}
+
+.session-modal__save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* ============ Session List ============ */
 .sessions-list {
     display: flex;

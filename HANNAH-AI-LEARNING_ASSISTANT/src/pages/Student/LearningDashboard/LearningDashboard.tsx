@@ -117,9 +117,20 @@ interface SessionModalProps {
     sessionsData: SubjectSessions | null;
     onClose: () => void;
     onUpdateSession: (sessionNumber: number, field: string, value: boolean) => void;
+    // 🆕 Batch save props
+    hasUnsavedChanges?: boolean;
+    onSaveAll?: () => void;
+    isSaving?: boolean;
 }
 
-const SessionModal: React.FC<SessionModalProps> = ({ sessionsData, onClose, onUpdateSession }) => {
+const SessionModal: React.FC<SessionModalProps> = ({
+    sessionsData,
+    onClose,
+    onUpdateSession,
+    hasUnsavedChanges = false,
+    onSaveAll,
+    isSaving = false
+}) => {
     if (!sessionsData) return null;
 
     return (
@@ -184,6 +195,22 @@ const SessionModal: React.FC<SessionModalProps> = ({ sessionsData, onClose, onUp
                         ))}
                     </div>
                 </div>
+
+                {/* 🆕 Batch Save Footer */}
+                {hasUnsavedChanges && onSaveAll && (
+                    <div className="session-modal__footer">
+                        <span className="session-modal__unsaved-indicator">
+                            ● Có thay đổi chưa lưu
+                        </span>
+                        <button
+                            className="session-modal__save-btn"
+                            onClick={onSaveAll}
+                            disabled={isSaving}
+                        >
+                            {isSaving ? '⏳ Đang lưu...' : '💾 Lưu thay đổi'}
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -200,6 +227,13 @@ const LearningDashboard: React.FC = () => {
     const [selectedSubject, setSelectedSubject] = useState<SubjectSessions | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingSessions, setIsLoadingSessions] = useState(false);
+
+    // 🆕 Batch save state
+    const [pendingChanges, setPendingChanges] = useState<Map<number, { materialsRead?: boolean, tasksCompleted?: boolean }>>(new Map());
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Computed: has unsaved changes
+    const hasUnsavedChanges = pendingChanges.size > 0;
 
     // Fetch dashboard data
     const fetchDashboard = useCallback(async () => {
@@ -229,6 +263,8 @@ const LearningDashboard: React.FC = () => {
     const handleSubjectSelect = async (subjectId: number) => {
         try {
             setIsLoadingSessions(true);
+            // Clear pending changes when switching subjects
+            setPendingChanges(new Map());
             const sessionsData = await learningDashboardService.getSubjectSessions(subjectId);
             setSelectedSubject(sessionsData);
         } catch (error) {
@@ -239,38 +275,74 @@ const LearningDashboard: React.FC = () => {
         }
     };
 
-    // Handle session progress update
-    const handleUpdateSession = async (sessionNumber: number, field: string, value: boolean) => {
+    // 🆕 Handle session update - LOCAL ONLY (no API call)
+    const handleUpdateSession = (sessionNumber: number, field: string, value: boolean) => {
         if (!selectedSubject) return;
 
+        // Update local UI immediately
+        setSelectedSubject(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                sessions: prev.sessions.map(s =>
+                    s.sessionNumber === sessionNumber
+                        ? { ...s, [field]: value }
+                        : s
+                )
+            };
+        });
+
+        // Track pending change (no API call yet)
+        setPendingChanges(prev => {
+            const updated = new Map(prev);
+            const existing = updated.get(sessionNumber) || {};
+            updated.set(sessionNumber, { ...existing, [field]: value });
+            return updated;
+        });
+    };
+
+    // 🆕 Handle batch save - SINGLE API call for all changes
+    const handleSaveAll = async () => {
+        if (!selectedSubject || pendingChanges.size === 0) return;
+
+        setIsSaving(true);
         try {
-            await learningDashboardService.updateSessionProgress(
-                selectedSubject.subjectId,
+            // Convert Map to array of updates
+            const updates = Array.from(pendingChanges.entries()).map(([sessionNumber, changes]) => ({
                 sessionNumber,
-                { [field]: value }
+                ...changes
+            }));
+
+            // Batch API call
+            await learningDashboardService.batchUpdateSessionProgress(
+                selectedSubject.subjectId,
+                updates
             );
 
-            // Update local state for immediate UI feedback
-            setSelectedSubject(prev => {
-                if (!prev) return null;
-                return {
-                    ...prev,
-                    sessions: prev.sessions.map(s =>
-                        s.sessionNumber === sessionNumber
-                            ? { ...s, [field]: value }
-                            : s
-                    )
-                };
-            });
+            // Clear pending changes
+            setPendingChanges(new Map());
 
-            // 🆕 Real-time refresh: Re-fetch dashboard to update completion %
+            // Only ONE dashboard refresh
             await fetchDashboard();
 
-            toast.success('Đã cập nhật tiến độ');
+            toast.success('Đã lưu tất cả thay đổi');
         } catch (error) {
-            console.error('Error updating session:', error);
-            toast.error('Không thể cập nhật tiến độ');
+            console.error('Error saving sessions:', error);
+            toast.error('Không thể lưu thay đổi');
+        } finally {
+            setIsSaving(false);
         }
+    };
+
+    // Handle modal close - warn if unsaved changes
+    const handleCloseModal = () => {
+        if (hasUnsavedChanges) {
+            if (!confirm('Bạn có thay đổi chưa lưu. Bạn có muốn đóng không?')) {
+                return;
+            }
+        }
+        setPendingChanges(new Map());
+        setSelectedSubject(null);
     };
 
     // Computed values
@@ -359,8 +431,11 @@ const LearningDashboard: React.FC = () => {
                 {selectedSubject && (
                     <SessionModal
                         sessionsData={selectedSubject}
-                        onClose={() => setSelectedSubject(null)}
+                        onClose={handleCloseModal}
                         onUpdateSession={handleUpdateSession}
+                        hasUnsavedChanges={hasUnsavedChanges}
+                        onSaveAll={handleSaveAll}
+                        isSaving={isSaving}
                     />
                 )}
             </div>

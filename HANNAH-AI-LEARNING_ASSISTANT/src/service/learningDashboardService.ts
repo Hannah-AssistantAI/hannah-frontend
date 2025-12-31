@@ -266,6 +266,24 @@ export const learningDashboardService = {
             `/api/v1/learning/subjects/${subjectId}/documents-by-clo`
         );
         return response.data;
+    },
+
+    /**
+     * 🆕 Batch update multiple sessions at once (improves UX)
+     */
+    batchUpdateSessionProgress: async (
+        subjectId: number,
+        updates: Array<{
+            sessionNumber: number;
+            materialsRead?: boolean;
+            tasksCompleted?: boolean;
+        }>
+    ): Promise<{ success: boolean; updated: number }> => {
+        const response = await apiClient.post<{ success: boolean; updated: number }>(
+            `/api/v1/learning/subjects/${subjectId}/sessions/batch`,
+            { updates }
+        );
+        return response.data;
     }
 };
 
