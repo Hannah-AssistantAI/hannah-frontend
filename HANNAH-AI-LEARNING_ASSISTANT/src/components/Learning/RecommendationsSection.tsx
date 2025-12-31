@@ -7,7 +7,8 @@ import {
     Target,
     ChevronRight,
     Loader2,
-    RefreshCw
+    RefreshCw,
+    Play  // 🆕 For NEXT_SESSION
 } from 'lucide-react';
 import './RecommendationsSection.css';
 
@@ -80,6 +81,7 @@ const RecommendationsSection = ({ userId, onActionClick }: RecommendationsSectio
     const getTypeIcon = (type: string) => {
         switch (type) {
             case 'SESSION_BEHIND':
+            case 'WEAK_SESSION':  // 🆕 Same icon as SESSION_BEHIND
                 return <AlertTriangle className="rec-icon rec-icon--warning" size={18} />;
             case 'WEAK_TOPIC':
                 return <BookOpen className="rec-icon rec-icon--info" size={18} />;
@@ -87,6 +89,8 @@ const RecommendationsSection = ({ userId, onActionClick }: RecommendationsSectio
                 return <Flame className="rec-icon rec-icon--success" size={18} />;
             case 'QUIZ_PRACTICE':
                 return <ClipboardCheck className="rec-icon rec-icon--primary" size={18} />;
+            case 'NEXT_SESSION':  // 🆕 Play icon for next session
+                return <Play className="rec-icon rec-icon--next" size={18} />;
             case 'CLO_FOCUS':
             case 'DOCUMENT_REVIEW':
                 return <Target className="rec-icon rec-icon--secondary" size={18} />;
@@ -98,6 +102,7 @@ const RecommendationsSection = ({ userId, onActionClick }: RecommendationsSectio
     const getTypeClass = (type: string): string => {
         switch (type) {
             case 'SESSION_BEHIND':
+            case 'WEAK_SESSION':  // 🆕 Same style
                 return 'rec-card--warning';
             case 'WEAK_TOPIC':
                 return 'rec-card--info';
@@ -105,6 +110,8 @@ const RecommendationsSection = ({ userId, onActionClick }: RecommendationsSectio
                 return 'rec-card--success';
             case 'QUIZ_PRACTICE':
                 return 'rec-card--primary';
+            case 'NEXT_SESSION':  // 🆕 Next session style
+                return 'rec-card--next';
             default:
                 return '';
         }

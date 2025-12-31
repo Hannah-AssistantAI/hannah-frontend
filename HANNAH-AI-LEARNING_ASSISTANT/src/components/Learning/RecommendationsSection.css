@@ -149,6 +149,20 @@
     border-left: 3px solid #6366f1;
 }
 
+/* 🆕 NEXT_SESSION - actionable next step */
+.rec-card--next {
+    border-left: 3px solid #06b6d4;
+    background: rgba(6, 182, 212, 0.05);
+}
+
+.rec-card--next:hover {
+    background: rgba(6, 182, 212, 0.1);
+}
+
+.rec-icon--next {
+    color: #06b6d4;
+}
+
 .rec-card__content {
     flex: 1;
     min-width: 0;
