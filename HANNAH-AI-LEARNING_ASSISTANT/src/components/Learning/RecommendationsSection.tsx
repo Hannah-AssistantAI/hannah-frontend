@@ -48,8 +48,8 @@ const RecommendationsSection = ({ userId, onActionClick }: RecommendationsSectio
             setLoading(true);
             setError(null);
 
-            // Get token from localStorage
-            const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+            // Get token from localStorage - use correct key 'access_token'
+            const token = localStorage.getItem('access_token');
 
             const response = await fetch(
                 `${API_BASE}/personalization/recommendations?user_id=${userId}&limit=5`,
