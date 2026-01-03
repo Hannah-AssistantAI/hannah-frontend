@@ -168,6 +168,19 @@ const SessionModal: React.FC<SessionModalProps> = ({
                                     <div className="session-item__type">
                                         {session.type || 'Lecture'}
                                     </div>
+                                    {/* 🆕 Phase 3: Quiz metrics display */}
+                                    {(session.quizCount > 0 || session.quizCompleted) && (
+                                        <div className="session-item__quiz-metrics">
+                                            {session.quizCount > 0 && (
+                                                <span className="quiz-badge">📝 {session.quizCount} quiz</span>
+                                            )}
+                                            {session.quizCompleted && session.quizScore !== null && (
+                                                <span className={`quiz-score ${session.quizScore >= 60 ? 'quiz-score--pass' : 'quiz-score--fail'}`}>
+                                                    🎯 {session.quizScore}%
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* 🆕 Phase 2: Warning badge for sessions needing review */}

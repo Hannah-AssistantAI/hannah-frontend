@@ -411,6 +411,40 @@
     color: var(--text-muted);
 }
 
+/* 🆕 Phase 3: Quiz metrics display */
+.session-item__quiz-metrics {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.35rem;
+}
+
+.quiz-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    background: rgba(99, 102, 241, 0.15);
+    color: #6366f1;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.quiz-score {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.quiz-score--pass {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.quiz-score--fail {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
 /* 🆕 Phase 2: Warning badge for sessions needing review */
 .session-item__warning {
     display: inline-flex;

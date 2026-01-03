@@ -43,6 +43,7 @@ export interface SessionProgress {
     materialsRead: boolean;
     quizCompleted: boolean;
     quizScore: number | null;
+    quizCount: number;  // 🆕 Phase 3: Number of quizzes covering this session
     needsReview: boolean;  // 🆕 Phase 2: Warning for low quiz scores
     tasksCompleted: boolean;
     completedAt: string | null;
