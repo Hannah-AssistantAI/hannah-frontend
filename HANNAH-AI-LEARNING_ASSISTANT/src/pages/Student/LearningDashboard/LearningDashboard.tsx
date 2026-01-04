@@ -55,7 +55,6 @@ const SubjectCard: React.FC<SubjectCardProps> = ({ subject, onSelect }) => {
         >
             <div className="subject-card__header">
                 <span className="subject-card__code">{subject.subjectCode}</span>
-                <span className="subject-card__week">Tuần {subject.currentWeek}</span>
             </div>
 
             <h3 className="subject-card__name">{subject.subjectName}</h3>
