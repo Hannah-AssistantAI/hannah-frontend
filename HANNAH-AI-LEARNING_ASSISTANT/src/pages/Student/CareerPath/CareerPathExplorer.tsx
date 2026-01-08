@@ -334,9 +334,6 @@ const CareerPathExplorer: React.FC = () => {
                         ← Quay lại
                     </button>
                     <h1>🧭 Khám Phá Lộ Trình</h1>
-                    <p className="subtitle">
-                        Tìm hiểu các chuyên ngành và lập kế hoạch học tập của bạn
-                    </p>
                 </div>
                 <div className="tab-switcher">
                     <button
@@ -358,7 +355,6 @@ const CareerPathExplorer: React.FC = () => {
                 {activeTab === 'explore' && overview && (
                     <div className="explore-layout">
                         <aside className="spec-list">
-                            <h3>Chuyên ngành</h3>
                             {overview.specializations && overview.specializations.length > 0 ? (
                                 overview.specializations.map(spec => (
                                     <SpecializationCard
