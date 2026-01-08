@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { careerPathService } from '../../../service/careerPathService';
 import type {
     SpecializationsOverview,
@@ -225,6 +226,7 @@ const RoadmapView: React.FC<RoadmapViewProps> = ({ roadmap }) => {
 // ============ Main Component ============
 
 const CareerPathExplorer: React.FC = () => {
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [overview, setOverview] = useState<SpecializationsOverview | null>(null);
@@ -324,6 +326,13 @@ const CareerPathExplorer: React.FC = () => {
         <div className="career-path-page">
             <header className="page-header">
                 <div className="header-content">
+                    <button
+                        className="back-btn"
+                        onClick={() => navigate(-1)}
+                        title="Quay lại"
+                    >
+                        ← Quay lại
+                    </button>
                     <h1>🧭 Khám Phá Lộ Trình</h1>
                     <p className="subtitle">
                         Tìm hiểu các chuyên ngành và lập kế hoạch học tập của bạn

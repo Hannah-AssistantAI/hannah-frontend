@@ -6,7 +6,7 @@
     --cp-card-border: var(--border-secondary);
     --cp-text-muted: var(--text-tertiary);
     --cp-accent: var(--accent-blue);
-    
+
     min-height: 100vh;
     background: var(--bg-gradient);
     color: var(--text-primary);
@@ -132,6 +132,28 @@
     margin-bottom: 24px;
     flex-wrap: wrap;
     gap: 16px;
+}
+
+/* 🆕 Back button */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--cp-card-border);
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    color: var(--cp-accent);
+    border-color: var(--cp-accent);
+    background: rgba(99, 102, 241, 0.05);
 }
 
 .header-content h1 {
