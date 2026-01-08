@@ -324,7 +324,7 @@ const CareerPathExplorer: React.FC = () => {
         <div className="career-path-page">
             <header className="page-header">
                 <div className="header-content">
-                    <h1>🧭 Khám Phá Lộ Trình Nghề Nghiệp</h1>
+                    <h1>🧭 Khám Phá Lộ Trình</h1>
                     <p className="subtitle">
                         Tìm hiểu các chuyên ngành và lập kế hoạch học tập của bạn
                     </p>

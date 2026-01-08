@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     learningDashboardService
 } from '../../../service/learningDashboardService';
@@ -232,6 +233,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
 
 const LearningDashboard: React.FC = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
 
     // State
     const [dashboard, setDashboard] = useState<LearningDashboardType | null>(null);
@@ -397,6 +399,13 @@ const LearningDashboard: React.FC = () => {
                 {/* Header */}
                 <header className="learning-dashboard__header">
                     <div>
+                        <button
+                            className="learning-dashboard__back-btn"
+                            onClick={() => navigate(-1)}
+                            title="Quay lại"
+                        >
+                            ← Quay lại
+                        </button>
                         <h1 className="learning-dashboard__title">📊 Learning Dashboard</h1>
                         <p className="learning-dashboard__subtitle">
                             Học kỳ {dashboard.currentSemester}

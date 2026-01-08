@@ -36,6 +36,28 @@
     gap: 1rem;
 }
 
+/* 🆕 Back button */
+.learning-dashboard__back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.learning-dashboard__back-btn:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    background: rgba(99, 102, 241, 0.05);
+}
+
 .learning-dashboard__title {
     font-size: 2rem;
     font-weight: 700;

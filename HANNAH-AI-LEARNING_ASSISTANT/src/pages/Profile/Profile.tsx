@@ -335,7 +335,7 @@ export default function Profile({ embedded = false }: ProfileProps) {
                                     onClick={() => navigate('/career-path')}
                                 >
                                     <Map size={20} />
-                                    <span>Lộ trình nghề nghiệp</span>
+                                    <span>Lộ trình</span>
                                     <ChevronRight size={18} className="pf-nav-arrow" />
                                 </button>
                             )}
