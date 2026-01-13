@@ -155,8 +155,24 @@ class StudioService {
         return pythonApiClient.get<StudioGenerationResponse>(`/api/v1/studio/flashcard/${id}/content`);
     }
 
+    /**
+     * 🆕 Mark flashcard set as mastered - syncs progress to StudentSessionProgress
+     */
+    async markFlashcardMastered(flashcardSetId: string): Promise<{ success: boolean; message: string }> {
+        const response = await pythonApiClient.post<any>(`/api/v1/studio/flashcard/${flashcardSetId}/mastered`);
+        return response.data || response;
+    }
+
     async getRoadmapContent(id: string) {
         return pythonApiClient.get<StudioGenerationResponse>(`/api/v1/studio/roadmap/${id}/content`);
+    }
+
+    /**
+     * 🆕 Mark mindmap as mastered - syncs progress to StudentSessionProgress
+     */
+    async markMindmapMastered(mindmapId: number): Promise<{ success: boolean; message: string }> {
+        const response = await pythonApiClient.post<any>(`/api/v1/studio/mindmap/${mindmapId}/mastered`);
+        return response.data || response;
     }
 
     async submitQuiz(quizId: string, answers: Array<{ questionId: number, selectedAnswer: string, timeSpentSeconds?: number }>) {

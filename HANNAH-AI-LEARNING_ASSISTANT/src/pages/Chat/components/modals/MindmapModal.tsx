@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef } from 'react'
-import { Maximize2, Minimize2, Download, Plus, Minus, ChevronsUpDown, ChevronsDownUp, BookOpen, Bot, Video, FileText, File, Inbox } from 'lucide-react'
+import { Maximize2, Minimize2, Download, Plus, Minus, ChevronsUpDown, ChevronsDownUp, BookOpen, Bot, Video, FileText, File, Inbox, CheckCircle, Loader2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import MindmapViewer, { type MindmapViewerHandle } from '../../../../components/MindmapViewer'
 import studioService, { type GetMindMapNodeDetailsResponse } from '../../../../service/studioService'
@@ -12,9 +12,10 @@ interface MindmapModalProps {
     onClose: () => void
     content: any
     language?: SupportedLanguage | string | null
+    onMastered?: (mindmapId: number) => Promise<void>  // 🆕 Mark as mastered
 }
 
-export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, content, language = 'vi' }) => {
+export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, content, language = 'vi', onMastered }) => {
     const [selectedNode, setSelectedNode] = useState<string | null>(null);
     const [nodeDetails, setNodeDetails] = useState<GetMindMapNodeDetailsResponse | null>(null);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
@@ -22,6 +23,10 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
     const viewerRef = useRef<MindmapViewerHandle>(null);
     const [isExpanded, setIsExpanded] = useState(false);
     const [isAllNodesExpanded, setIsAllNodesExpanded] = useState(true); // Initially all nodes are expanded
+
+    // 🆕 State for mastered button
+    const [isMastered, setIsMastered] = useState(false);
+    const [isMarkingMastered, setIsMarkingMastered] = useState(false);
 
     const t = getLabels(language)
 
@@ -169,6 +174,40 @@ export const MindmapModal: React.FC<MindmapModalProps> = ({ isOpen, onClose, con
                         <h3 className="mindmap-modal-title">{content?.title || t.mindMap}</h3>
                     </div>
                     <div className="mindmap-modal-actions">
+                        {/* 🆕 Mark as Mastered Button */}
+                        {onMastered && content?.mindmapId && (
+                            <button
+                                className={`mindmap-action-btn ${isMastered ? 'mastered' : ''}`}
+                                onClick={async () => {
+                                    if (isMastered || isMarkingMastered) return;
+                                    setIsMarkingMastered(true);
+                                    try {
+                                        await onMastered(content.mindmapId);
+                                        setIsMastered(true);
+                                    } catch (error) {
+                                        console.error('Failed to mark as mastered:', error);
+                                    } finally {
+                                        setIsMarkingMastered(false);
+                                    }
+                                }}
+                                disabled={isMarkingMastered || isMastered}
+                                title={isMastered ? 'Đã đánh dấu nắm vững!' : 'Đánh dấu đã nắm vững'}
+                                style={{
+                                    backgroundColor: isMastered ? '#4caf50' : undefined,
+                                    color: isMastered ? '#fff' : undefined,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                }}
+                            >
+                                {isMarkingMastered ? (
+                                    <Loader2 size={16} className="spinning" />
+                                ) : (
+                                    <CheckCircle size={16} />
+                                )}
+                                {isMastered ? '✓' : ''}
+                            </button>
+                        )}
                         <button
                             className="mindmap-action-btn"
                             onClick={() => setIsExpanded(!isExpanded)}

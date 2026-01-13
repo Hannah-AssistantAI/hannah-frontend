@@ -485,6 +485,11 @@ export default function Chat() {
                 onClose={() => studio.setShowMindmapModal(false)}
                 content={studio.mindmapContent}
                 language={messages.filter(m => m.type === 'assistant').pop()?.detectedLanguage}
+                onMastered={async (mindmapId) => {
+                    const { studioService } = await import('../../service/studioService')
+                    await studioService.markMindmapMastered(mindmapId)
+                    toast.success('Đã đánh dấu nắm vững! Tiến độ học tập đã được cập nhật.')
+                }}
             />
 
 
@@ -508,6 +513,11 @@ export default function Chat() {
                 onShuffle={() => {
                     setCurrentCardIndex(0)
                     setIsCardFlipped(false)
+                }}
+                onMastered={async (flashcardSetId) => {
+                    const { studioService } = await import('../../service/studioService')
+                    await studioService.markFlashcardMastered(flashcardSetId)
+                    toast.success('Đã đánh dấu nắm vững! Tiến độ học tập đã được cập nhật.')
                 }}
             />
 
