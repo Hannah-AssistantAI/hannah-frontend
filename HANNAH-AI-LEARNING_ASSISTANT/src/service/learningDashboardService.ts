@@ -174,6 +174,32 @@ export interface SubjectsForGenerationResponse {
     subjects: SubjectForGeneration[];
 }
 
+/**
+ * 🆕 Document with progress tracking
+ */
+export interface DocumentProgress {
+    documentId: number;
+    title: string;
+    description: string | null;
+    linkedSessions: string | null;
+    linkedCLOs: string | null;
+    isViewed: boolean;
+    isCompleted: boolean;
+    viewedAt: string | null;
+    completedAt: string | null;
+    quizzesCreated: number;
+    flashcardsCreated: number;
+    mindmapsCreated: number;
+}
+
+/**
+ * 🆕 Subject documents with progress response
+ */
+export interface SubjectDocumentsResponse {
+    subjectId: number;
+    documents: DocumentProgress[];
+}
+
 // ============ Service ============
 
 export const learningDashboardService = {
@@ -287,6 +313,38 @@ export const learningDashboardService = {
         const response = await apiClient.post<{ success: boolean; updated: number }>(
             `/api/v1/learning/subjects/${subjectId}/sessions/batch`,
             { updates }
+        );
+        return response.data;
+    },
+
+    // ==================== 🆕 Document Progress Tracking ====================
+
+    /**
+     * Get documents for a subject with progress status
+     */
+    getSubjectDocuments: async (subjectId: number): Promise<SubjectDocumentsResponse> => {
+        const response = await apiClient.get<SubjectDocumentsResponse>(
+            `/api/v1/learning/subjects/${subjectId}/documents`
+        );
+        return response.data;
+    },
+
+    /**
+     * Mark a document as viewed
+     */
+    markDocumentViewed: async (documentId: number): Promise<{ success: boolean }> => {
+        const response = await apiClient.post<{ success: boolean }>(
+            `/api/v1/learning/documents/${documentId}/view`
+        );
+        return response.data;
+    },
+
+    /**
+     * Mark a document as completed
+     */
+    markDocumentCompleted: async (documentId: number): Promise<{ success: boolean }> => {
+        const response = await apiClient.post<{ success: boolean }>(
+            `/api/v1/learning/documents/${documentId}/complete`
         );
         return response.data;
     }

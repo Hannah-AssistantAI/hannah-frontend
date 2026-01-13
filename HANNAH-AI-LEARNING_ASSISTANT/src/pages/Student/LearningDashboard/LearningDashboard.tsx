@@ -7,7 +7,8 @@ import type {
     LearningDashboard as LearningDashboardType,
     SubjectProgressSummary,
     SubjectSessions,
-    WeakTopic
+    WeakTopic,
+    DocumentProgress
 } from '../../../service/learningDashboardService';
 import { useAuth } from '../../../contexts/AuthContext';
 import CLOProgressSection from '../../../components/Learning/CLOProgressSection';
@@ -120,6 +121,116 @@ const WeakTopicsSection: React.FC<WeakTopicsSectionProps> = ({ topics }) => {
     );
 };
 
+// 🆕 Documents Section for Subject Modal
+interface DocumentsSectionProps {
+    subjectId: number;
+}
+
+const DocumentsSection: React.FC<DocumentsSectionProps> = ({ subjectId }) => {
+    const [documents, setDocuments] = useState<DocumentProgress[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [updatingDocId, setUpdatingDocId] = useState<number | null>(null);
+
+    useEffect(() => {
+        const fetchDocuments = async () => {
+            try {
+                setIsLoading(true);
+                const response = await learningDashboardService.getSubjectDocuments(subjectId);
+                setDocuments(response.documents || []);
+            } catch (error) {
+                console.error('Error fetching documents:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchDocuments();
+    }, [subjectId]);
+
+    const handleMarkViewed = async (docId: number) => {
+        setUpdatingDocId(docId);
+        try {
+            await learningDashboardService.markDocumentViewed(docId);
+            setDocuments(prev => prev.map(d =>
+                d.documentId === docId ? { ...d, isViewed: true, viewedAt: new Date().toISOString() } : d
+            ));
+        } catch (error) {
+            console.error('Error marking document viewed:', error);
+        } finally {
+            setUpdatingDocId(null);
+        }
+    };
+
+    const handleMarkCompleted = async (docId: number) => {
+        setUpdatingDocId(docId);
+        try {
+            await learningDashboardService.markDocumentCompleted(docId);
+            setDocuments(prev => prev.map(d =>
+                d.documentId === docId
+                    ? { ...d, isViewed: true, isCompleted: true, completedAt: new Date().toISOString() }
+                    : d
+            ));
+        } catch (error) {
+            console.error('Error marking document completed:', error);
+        } finally {
+            setUpdatingDocId(null);
+        }
+    };
+
+    if (isLoading) {
+        return <div className="documents-section"><p>⏳ Đang tải tài liệu...</p></div>;
+    }
+
+    if (documents.length === 0) {
+        return <div className="documents-section"><p style={{ color: 'var(--text-muted)' }}>📄 Chưa có tài liệu nào</p></div>;
+    }
+
+    const viewedCount = documents.filter(d => d.isViewed).length;
+    const completedCount = documents.filter(d => d.isCompleted).length;
+
+    return (
+        <div className="documents-section">
+            <h3 className="documents-section__title">
+                📄 Tài liệu ({viewedCount}/{documents.length} đã xem, {completedCount} hoàn thành)
+            </h3>
+            <div className="documents-list">
+                {documents.map((doc) => (
+                    <div key={doc.documentId} className={`document-item ${doc.isCompleted ? 'document-item--completed' : doc.isViewed ? 'document-item--viewed' : ''}`}>
+                        <div className="document-item__info">
+                            <span className="document-item__title">{doc.title}</span>
+                            {doc.linkedSessions && (
+                                <span className="document-item__sessions">📅 Sessions: {doc.linkedSessions}</span>
+                            )}
+                            {(doc.quizzesCreated > 0 || doc.flashcardsCreated > 0 || doc.mindmapsCreated > 0) && (
+                                <span className="document-item__stats">
+                                    {doc.quizzesCreated > 0 && `📝${doc.quizzesCreated}`}
+                                    {doc.flashcardsCreated > 0 && ` 🃏${doc.flashcardsCreated}`}
+                                    {doc.mindmapsCreated > 0 && ` 🧠${doc.mindmapsCreated}`}
+                                </span>
+                            )}
+                        </div>
+                        <div className="document-item__actions">
+                            <button
+                                className={`document-checkbox ${doc.isViewed ? 'document-checkbox--checked' : ''}`}
+                                onClick={() => !doc.isViewed && handleMarkViewed(doc.documentId)}
+                                disabled={doc.isViewed || updatingDocId === doc.documentId}
+                            >
+                                👁 Đã xem
+                            </button>
+                            <button
+                                className={`document-checkbox ${doc.isCompleted ? 'document-checkbox--checked' : ''}`}
+                                onClick={() => !doc.isCompleted && handleMarkCompleted(doc.documentId)}
+                                disabled={doc.isCompleted || updatingDocId === doc.documentId}
+                            >
+                                ✅ Hoàn thành
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 interface SessionModalProps {
     sessionsData: SubjectSessions | null;
     onClose: () => void;
@@ -157,6 +268,9 @@ const SessionModal: React.FC<SessionModalProps> = ({
                         subjectId={sessionsData.subjectId}
                         subjectCode={sessionsData.subjectCode}
                     />
+
+                    {/* 🆕 Documents Section with checkboxes */}
+                    <DocumentsSection subjectId={sessionsData.subjectId} />
 
                     <div className="sessions-list">
                         {sessionsData.sessions.map((session) => (

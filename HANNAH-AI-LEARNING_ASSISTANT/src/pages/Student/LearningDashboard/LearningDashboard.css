@@ -571,6 +571,107 @@
     color: var(--text-muted);
 }
 
+/* ============ 🆕 Documents Section ============ */
+.documents-section {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(var(--accent-blue-rgb), 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(var(--accent-blue-rgb), 0.1);
+}
+
+.documents-section__title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.documents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.document-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--card-bg);
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    transition: all 0.2s ease;
+}
+
+.document-item:hover {
+    border-color: var(--primary-color);
+}
+
+.document-item--viewed {
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.document-item--completed {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.document-item__info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+}
+
+.document-item__title {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.document-item__sessions,
+.document-item__stats {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.document-item__actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.document-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    background: transparent;
+    border: 1px solid var(--card-border);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.document-checkbox:hover:not(:disabled) {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.document-checkbox--checked {
+    background: var(--success-color);
+    border-color: var(--success-color);
+    color: white;
+    cursor: default;
+}
+
+.document-checkbox:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 /* ============ Responsive ============ */
 @media (max-width: 768px) {
     .learning-dashboard {
@@ -592,5 +693,20 @@
 
     .session-modal {
         max-height: 95vh;
+    }
+
+    .document-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .document-item__actions {
+        width: 100%;
+    }
+
+    .document-checkbox {
+        flex: 1;
+        justify-content: center;
     }
 }
