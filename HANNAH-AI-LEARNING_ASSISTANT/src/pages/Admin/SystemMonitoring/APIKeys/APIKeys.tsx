@@ -4,7 +4,7 @@ import AdminPageWrapper from '../../components/AdminPageWrapper';
 import './APIKeys.css';
 
 // Python API Base URL (uses same API Gateway as main app)
-const PYTHON_API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+const PYTHON_API_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 interface ApiKeyInfo {
   key_name: string;

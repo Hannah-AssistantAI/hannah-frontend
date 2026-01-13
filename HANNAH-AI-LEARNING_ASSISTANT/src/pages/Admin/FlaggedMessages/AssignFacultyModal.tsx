@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { STORAGE_KEYS } from '../../../config/apiConfig';
+import { STORAGE_KEYS, API_BASE_URL } from '../../../config/apiConfig';
 import './AssignFacultyModal.css';
 
 interface User {
@@ -27,7 +27,7 @@ const AssignFacultyModal: React.FC<AssignFacultyModalProps> = ({ flagId, onClose
 
     const loadFacultyList = async () => {
         try {
-            const response = await fetch('http://localhost:5001/api/Users', {
+            const response = await fetch(`${API_BASE_URL}/api/Users`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)}`
                 }
@@ -66,7 +66,7 @@ const AssignFacultyModal: React.FC<AssignFacultyModalProps> = ({ flagId, onClose
             setError(null);
 
             const response = await fetch(
-                `http://localhost:5001/api/Conversations/flagged/${flagId}/assign`,
+                `${API_BASE_URL}/api/Conversations/flagged/${flagId}/assign`,
                 {
                     method: 'POST',
                     headers: {

@@ -115,7 +115,7 @@ const FlaggedMessageDetail: React.FC = () => {
     const loadAiCorrectionStatus = async () => {
         if (!item?.id) return;
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'}/api/v1/ai-corrections/by-flag/${item.id}`);
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL ?? ''}/api/v1/ai-corrections/by-flag/${item.id}`);
             const data = await response.json();
             if (data.data) {
                 setAiCorrectionId(data.data.id);
@@ -140,7 +140,7 @@ const FlaggedMessageDetail: React.FC = () => {
         try {
             setAiCorrectionLoading(true);
             const response = await fetch(
-                `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'}/api/v1/ai-corrections/${aiCorrectionId}/approve`,
+                `${import.meta.env.VITE_API_BASE_URL ?? ''}/api/v1/ai-corrections/${aiCorrectionId}/approve`,
                 {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -162,7 +162,7 @@ const FlaggedMessageDetail: React.FC = () => {
         try {
             setAiCorrectionLoading(true);
             const response = await fetch(
-                `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'}/api/v1/ai-corrections/${aiCorrectionId}/reject`,
+                `${import.meta.env.VITE_API_BASE_URL ?? ''}/api/v1/ai-corrections/${aiCorrectionId}/reject`,
                 {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
