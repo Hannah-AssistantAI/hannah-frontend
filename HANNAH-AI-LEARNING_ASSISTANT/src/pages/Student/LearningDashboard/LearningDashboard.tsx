@@ -77,6 +77,13 @@ const SubjectCard: React.FC<SubjectCardProps> = ({ subject, onSelect }) => {
                     <span>📝</span>
                     <span>{subject.quizzesTaken} quizzes</span>
                 </div>
+                {/* 🆕 Document tracking display */}
+                {(subject.totalDocuments ?? 0) > 0 && (
+                    <div className="subject-card__stat">
+                        <span>📄</span>
+                        <span>{subject.viewedDocuments ?? 0}/{subject.totalDocuments} tài liệu</span>
+                    </div>
+                )}
                 {subject.averageQuizScore !== null && (
                     <div className="subject-card__stat">
                         <span>📊</span>

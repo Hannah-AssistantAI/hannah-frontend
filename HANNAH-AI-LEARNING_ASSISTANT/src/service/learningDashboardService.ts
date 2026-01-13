@@ -16,6 +16,10 @@ export interface SubjectProgressSummary {
     currentWeek: number;
     quizzesTaken: number;
     averageQuizScore: number | null;
+    // 🆕 Document tracking
+    totalDocuments?: number;
+    viewedDocuments?: number;
+    completedDocuments?: number;
 }
 
 /**
