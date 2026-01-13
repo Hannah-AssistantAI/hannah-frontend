@@ -1,7 +1,14 @@
 import { useEffect, useRef, useCallback } from 'react';
 import * as signalR from '@microsoft/signalr';
 
-const SIGNALR_HUB_URL = 'http://localhost:5000/hubs/notifications';
+// SignalR Hub URL - use production origin or localhost for dev
+const getHubUrl = (): string => {
+    const signalrUrl = import.meta.env.VITE_SIGNALR_URL;
+    if (signalrUrl) return `${signalrUrl}/hubs/notifications`;
+    if (import.meta.env.PROD) return `${window.location.origin}/hubs/notifications`;
+    return 'http://localhost:5001/hubs/notifications';
+};
+const SIGNALR_HUB_URL = getHubUrl();
 
 export const useSignalR = (onNotification: (notification: any) => void) => {
     const connectionRef = useRef<signalR.HubConnection | null>(null);

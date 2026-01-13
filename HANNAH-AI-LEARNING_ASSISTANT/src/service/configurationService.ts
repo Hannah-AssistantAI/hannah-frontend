@@ -4,8 +4,10 @@
  * Provides safe fallback to default values if API is unavailable.
  */
 
-// .NET API Base URL (direct access like other services - see apiConfig.ts)
-const DOTNET_API_URL = 'http://localhost:5001/api';
+import { API_BASE_URL } from '../config/apiConfig';
+
+// .NET API Base URL (uses same base URL as other services)
+const DOTNET_API_URL = `${API_BASE_URL}/api`;
 
 // System Setting from backend
 export interface SystemSetting {
@@ -55,7 +57,7 @@ class ConfigurationService {
     private baseUrl: string;
 
     constructor() {
-        this.baseUrl = DOTNET_API_URL || 'http://localhost:5000';
+        this.baseUrl = DOTNET_API_URL;
     }
 
     private async fetchWithTimeout<T>(url: string, options?: RequestInit, timeout = 10000): Promise<T> {
