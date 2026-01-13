@@ -7,7 +7,8 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Build argument for API base URL - MUST be declared early
-ARG VITE_API_BASE_URL=/api
+# Empty string because endpoints in apiConfig.ts already include /api prefix
+ARG VITE_API_BASE_URL=
 # Set as environment variable so Vite can read it during build
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
