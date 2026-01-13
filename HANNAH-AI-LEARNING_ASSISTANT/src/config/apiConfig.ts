@@ -3,8 +3,9 @@
  * Centralized API endpoints and base URL configuration
  */
 
-// Base API URL - uses environment variable in production, falls back to localhost for development
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+// Base API URL - in production uses relative URLs via nginx proxy, localhost for dev
+// VITE_API_BASE_URL should be empty in production, 'http://localhost:5001' in dev
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 /**
  * API Endpoints
@@ -169,7 +170,7 @@ export const buildAvatarUrl = (avatarPath: string | null | undefined): string =>
 
   // Extract filename from MinIO path (e.g., "avatars/abc123.png" -> "abc123.png")
   const filename = avatarPath.includes('/') ? avatarPath.split('/').pop() : avatarPath;
-  
+
   // Route through the Files API endpoint to serve from MinIO
   return `${API_BASE_URL}/api/files/avatars/${filename}`;
 };
