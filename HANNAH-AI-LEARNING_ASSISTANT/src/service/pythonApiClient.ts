@@ -6,11 +6,11 @@
 import { getAuthHeaders, HTTP_STATUS, STORAGE_KEYS } from '../config/apiConfig';
 
 // Python API Base URL
-// In production: Routes through API Gateway (same base URL)
-// In local dev: Use separate Python API URL
-export const PYTHON_API_BASE_URL = import.meta.env.VITE_PYTHON_API_URL 
-    || import.meta.env.VITE_API_BASE_URL 
-    || 'http://localhost:8001';
+// In production: Routes through nginx proxy (empty string for relative URLs)
+// In local dev: Set VITE_PYTHON_API_URL=http://localhost:8001
+export const PYTHON_API_BASE_URL = import.meta.env.VITE_PYTHON_API_URL
+    ?? import.meta.env.VITE_API_BASE_URL
+    ?? '';
 
 export interface ApiResponse<T = any> {
     data: T;

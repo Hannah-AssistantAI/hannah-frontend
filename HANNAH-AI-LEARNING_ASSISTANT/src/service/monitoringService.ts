@@ -4,7 +4,8 @@
  */
 
 // API Base URLs from environment (routes through API Gateway in production)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+// In production: Empty string for relative URLs via nginx proxy
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 const PYTHON_API_URL = API_BASE_URL;
 const DOTNET_API_URL = API_BASE_URL;
 

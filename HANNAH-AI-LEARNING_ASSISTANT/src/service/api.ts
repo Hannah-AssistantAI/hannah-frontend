@@ -10,7 +10,8 @@ import type {
   ConfigSettings,
 } from '../types/index';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+// In production: Empty string for relative URLs via nginx proxy
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
 
 class ApiService {
   private async fetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
