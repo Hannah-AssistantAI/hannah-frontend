@@ -571,6 +571,54 @@
     color: var(--text-muted);
 }
 
+/* ============ 🆕 Mark All Button ============ */
+.mark-all-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: linear-gradient(135deg, var(--success-color), #059669);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.mark-all-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.mark-all-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ============ 🆕 Sessions Section ============ */
+.sessions-section {
+    margin-bottom: 1rem;
+}
+
+.sessions-section__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.sessions-section__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
 /* ============ 🆕 Documents Section ============ */
 .documents-section {
     margin-bottom: 1.5rem;
@@ -583,8 +631,17 @@
 .documents-section__title {
     font-size: 1rem;
     font-weight: 600;
-    margin-bottom: 1rem;
+    margin: 0;
     color: var(--text-primary);
+}
+
+.documents-section__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .documents-list {

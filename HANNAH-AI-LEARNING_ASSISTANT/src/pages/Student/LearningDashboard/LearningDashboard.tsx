@@ -176,6 +176,31 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ subjectId }) => {
         }
     };
 
+    const handleMarkAllCompleted = async () => {
+        const uncompletedDocs = documents.filter(d => !d.isCompleted);
+        if (uncompletedDocs.length === 0) return;
+
+        setUpdatingDocId(-1); // Indicate all are updating
+        try {
+            // Mark all uncompleted documents as completed
+            await Promise.all(
+                uncompletedDocs.map(doc =>
+                    learningDashboardService.markDocumentCompleted(doc.documentId)
+                )
+            );
+            setDocuments(prev => prev.map(d => ({
+                ...d,
+                isViewed: true,
+                isCompleted: true,
+                completedAt: new Date().toISOString()
+            })));
+        } catch (error) {
+            console.error('Error marking all documents completed:', error);
+        } finally {
+            setUpdatingDocId(null);
+        }
+    };
+
     if (isLoading) {
         return <div className="documents-section"><p>⏳ Đang tải tài liệu...</p></div>;
     }
@@ -186,12 +211,24 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ subjectId }) => {
 
     const viewedCount = documents.filter(d => d.isViewed).length;
     const completedCount = documents.filter(d => d.isCompleted).length;
+    const allCompleted = completedCount === documents.length;
 
     return (
         <div className="documents-section">
-            <h3 className="documents-section__title">
-                📄 Tài liệu ({viewedCount}/{documents.length} đã xem, {completedCount} hoàn thành)
-            </h3>
+            <div className="documents-section__header">
+                <h3 className="documents-section__title">
+                    📄 Tài liệu ({viewedCount}/{documents.length} đã xem, {completedCount} hoàn thành)
+                </h3>
+                {!allCompleted && (
+                    <button
+                        className="mark-all-btn"
+                        onClick={handleMarkAllCompleted}
+                        disabled={updatingDocId === -1}
+                    >
+                        {updatingDocId === -1 ? '⏳ Đang xử lý...' : '✅ Đánh dấu tất cả hoàn thành'}
+                    </button>
+                )}
+            </div>
             <div className="documents-list">
                 {documents.map((doc) => (
                     <div key={doc.documentId} className={`document-item ${doc.isCompleted ? 'document-item--completed' : doc.isViewed ? 'document-item--viewed' : ''}`}>
@@ -272,7 +309,27 @@ const SessionModal: React.FC<SessionModalProps> = ({
                     {/* 🆕 Documents Section with checkboxes */}
                     <DocumentsSection subjectId={sessionsData.subjectId} />
 
-                    <div className="sessions-list">
+                    {/* Sessions Section with Mark All button */}
+                    <div className="sessions-section">
+                        <div className="sessions-section__header">
+                            <h3 className="sessions-section__title">
+                                📚 Sessions ({sessionsData.completedCount}/{sessionsData.totalSessions} hoàn thành)
+                            </h3>
+                            {sessionsData.completedCount < sessionsData.totalSessions && (
+                                <button
+                                    className="mark-all-btn"
+                                    onClick={() => {
+                                        // Mark all sessions as read + completed
+                                        sessionsData.sessions.forEach(s => {
+                                            if (!s.materialsRead) onUpdateSession(s.sessionNumber, 'materialsRead', true);
+                                            if (!s.tasksCompleted) onUpdateSession(s.sessionNumber, 'tasksCompleted', true);
+                                        });
+                                    }}
+                                >
+                                    ✅ Đánh dấu tất cả hoàn thành
+                                </button>
+                            )}
+                        </div>
                         {sessionsData.sessions.map((session) => (
                             <div
                                 key={session.sessionNumber}
