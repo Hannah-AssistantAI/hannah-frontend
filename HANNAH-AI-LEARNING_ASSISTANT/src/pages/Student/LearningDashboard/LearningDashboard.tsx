@@ -233,7 +233,12 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ subjectId }) => {
                 {documents.map((doc) => (
                     <div key={doc.documentId} className={`document-item ${doc.isCompleted ? 'document-item--completed' : doc.isViewed ? 'document-item--viewed' : ''}`}>
                         <div className="document-item__info">
-                            <span className="document-item__title">{doc.title}</span>
+                            <span className="document-item__title">
+                                {doc.title}
+                                {doc.needsReview && (
+                                    <span className="document-item__warning" title="Cần ôn lại - điểm quiz thấp">⚠️</span>
+                                )}
+                            </span>
                             {doc.linkedSessions && (
                                 <span className="document-item__sessions">📅 Sessions: {doc.linkedSessions}</span>
                             )}

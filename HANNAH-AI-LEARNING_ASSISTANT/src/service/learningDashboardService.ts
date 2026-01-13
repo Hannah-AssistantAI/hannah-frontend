@@ -190,6 +190,7 @@ export interface DocumentProgress {
     quizzesCreated: number;
     flashcardsCreated: number;
     mindmapsCreated: number;
+    needsReview: boolean;  // 🆕 Warning badge if quiz score was low
 }
 
 /**
