@@ -1,7 +1,16 @@
-import React from 'react'
-import { Wand2, PanelRight, PanelRightClose, Pencil, Loader2, MoreVertical, Trash2, GitBranch, FileText, StickyNote, ClipboardCheck, Flag, Map, RefreshCw } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Wand2, PanelRight, PanelRightClose, Pencil, Loader2, MoreVertical, Trash2, GitBranch, FileText, StickyNote, ClipboardCheck, Flag, Map, RefreshCw, AlertTriangle, X, BookOpen } from 'lucide-react'
 import type { StudioItem, StudioFeature } from '../types'
 import { getLabels, type SupportedLanguage } from '../../../utils/translations'
+import { API_BASE_URL } from '../../../config/apiConfig'
+
+interface WeakDocument {
+    documentId: number
+    title: string
+    linkedSessions: string | null
+    subjectId: number
+    subjectCode: string
+}
 
 interface StudioSidebarProps {
     isOpen: boolean
@@ -36,6 +45,33 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
 }) => {
     // Get labels based on detected language
     const t = getLabels(language)
+
+    // 🆕 State for weak documents reminder
+    const [weakDocuments, setWeakDocuments] = useState<WeakDocument[]>([])
+    const [showReminder, setShowReminder] = useState(true)
+    const [isLoadingWeak, setIsLoadingWeak] = useState(false)
+
+    // 🆕 Fetch weak documents on mount
+    useEffect(() => {
+        const fetchWeakDocuments = async () => {
+            try {
+                setIsLoadingWeak(true)
+                const token = localStorage.getItem('authToken')
+                const response = await fetch(`${API_BASE_URL}/api/v1/learning/documents/weak`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                if (response.ok) {
+                    const data = await response.json()
+                    setWeakDocuments(data.documents || [])
+                }
+            } catch (error) {
+                console.error('Failed to fetch weak documents:', error)
+            } finally {
+                setIsLoadingWeak(false)
+            }
+        }
+        fetchWeakDocuments()
+    }, [])
 
     const getIconForType = (type: string) => {
         switch (type) {
@@ -75,6 +111,70 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                         {isOpen ? <PanelRightClose size={18} /> : <PanelRight size={18} />}
                     </button>
                 </div>
+
+                {/* 🆕 Weak Documents Reminder Banner */}
+                {showReminder && weakDocuments.length > 0 && isOpen && (
+                    <div className="weak-documents-banner" style={{
+                        background: 'linear-gradient(135deg, #fff3e0, #ffecb3)',
+                        border: '1px solid #ffb74d',
+                        borderRadius: '12px',
+                        padding: '12px',
+                        marginBottom: '16px',
+                        position: 'relative'
+                    }}>
+                        <button
+                            onClick={() => setShowReminder(false)}
+                            style={{
+                                position: 'absolute',
+                                top: '8px',
+                                right: '8px',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: '4px'
+                            }}
+                            title={language === 'en' ? 'Skip' : 'Bỏ qua'}
+                        >
+                            <X size={16} color="#f57c00" />
+                        </button>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                            <AlertTriangle size={20} color="#f57c00" style={{ flexShrink: 0, marginTop: '2px' }} />
+                            <div>
+                                <p style={{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: 600, color: '#e65100' }}>
+                                    {language === 'en'
+                                        ? `⚠️ ${weakDocuments.length} document(s) need review:`
+                                        : `⚠️ ${weakDocuments.length} tài liệu cần ôn lại:`}
+                                </p>
+                                <ul style={{ margin: '0 0 8px 0', paddingLeft: '16px', fontSize: '12px', color: '#bf360c' }}>
+                                    {weakDocuments.slice(0, 3).map(doc => (
+                                        <li key={doc.documentId} style={{ marginBottom: '4px' }}>
+                                            {doc.title} {doc.linkedSessions && `(${doc.linkedSessions})`}
+                                        </li>
+                                    ))}
+                                    {weakDocuments.length > 3 && (
+                                        <li>+{weakDocuments.length - 3} {language === 'en' ? 'more' : 'tài liệu khác'}...</li>
+                                    )}
+                                </ul>
+                                <a
+                                    href="/student/learning-dashboard"
+                                    target="_blank"
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        fontSize: '12px',
+                                        color: '#f57c00',
+                                        textDecoration: 'none',
+                                        fontWeight: 500
+                                    }}
+                                >
+                                    <BookOpen size={14} />
+                                    {language === 'en' ? 'View documents' : 'Xem tài liệu'}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="studio-features">
                     {features.map((feature, index) => {
