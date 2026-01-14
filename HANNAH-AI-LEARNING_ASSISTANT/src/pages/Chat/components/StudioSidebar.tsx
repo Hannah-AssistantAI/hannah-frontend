@@ -56,7 +56,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
         const fetchWeakDocuments = async () => {
             try {
                 setIsLoadingWeak(true)
-                const token = localStorage.getItem('authToken')
+                const token = localStorage.getItem('access_token')
                 const response = await fetch(`${API_BASE_URL}/api/v1/learning/documents/weak`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 })
