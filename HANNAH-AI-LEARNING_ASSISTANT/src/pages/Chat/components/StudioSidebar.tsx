@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Wand2, PanelRight, PanelRightClose, Pencil, Loader2, MoreVertical, Trash2, GitBranch, FileText, StickyNote, ClipboardCheck, Flag, Map, RefreshCw, AlertTriangle, X, BookOpen } from 'lucide-react'
 import type { StudioItem, StudioFeature } from '../types'
 import { getLabels, type SupportedLanguage } from '../../../utils/translations'
 import { API_BASE_URL } from '../../../config/apiConfig'
+import { useQuizEvents } from '../../../hooks/useRealtime'
 
 interface WeakDocument {
     documentId: number
@@ -51,27 +52,40 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
     const [showReminder, setShowReminder] = useState(true)
     const [isLoadingWeak, setIsLoadingWeak] = useState(false)
 
-    // 🆕 Fetch weak documents on mount
-    useEffect(() => {
-        const fetchWeakDocuments = async () => {
-            try {
-                setIsLoadingWeak(true)
-                const token = localStorage.getItem('access_token')
-                const response = await fetch(`${API_BASE_URL}/api/v1/learning/documents/weak`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                if (response.ok) {
-                    const data = await response.json()
-                    setWeakDocuments(data.documents || [])
-                }
-            } catch (error) {
-                console.error('Failed to fetch weak documents:', error)
-            } finally {
-                setIsLoadingWeak(false)
+    // 🆕 Fetch weak documents function
+    const fetchWeakDocuments = useCallback(async () => {
+        try {
+            setIsLoadingWeak(true)
+            const token = localStorage.getItem('access_token')
+            const response = await fetch(`${API_BASE_URL}/api/v1/learning/documents/weak`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            if (response.ok) {
+                const data = await response.json()
+                setWeakDocuments(data.documents || [])
+                setShowReminder(data.documents?.length > 0)
             }
+        } catch (error) {
+            console.error('Failed to fetch weak documents:', error)
+        } finally {
+            setIsLoadingWeak(false)
         }
-        fetchWeakDocuments()
     }, [])
+
+    // Fetch on mount
+    useEffect(() => {
+        fetchWeakDocuments()
+    }, [fetchWeakDocuments])
+
+    // 🆕 Listen for quiz completion to refetch weak documents (realtime update)
+    useQuizEvents({
+        onQuizCompleted: () => {
+            console.log('📊 Quiz completed, refetching weak documents...')
+            // Re-show reminder and fetch updated data
+            setShowReminder(true)
+            fetchWeakDocuments()
+        }
+    })
 
     const getIconForType = (type: string) => {
         switch (type) {
