@@ -8,10 +8,14 @@ import type {
     SubjectProgressSummary,
     SubjectSessions,
     WeakTopic,
-    DocumentProgress
+    DocumentProgress,
+    QuizAttempt
 } from '../../../service/learningDashboardService';
 import { useAuth } from '../../../contexts/AuthContext';
 import CLOProgressSection from '../../../components/Learning/CLOProgressSection';
+import CLORadarChart from '../../../components/Learning/CLORadarChart';
+import QuizScoreTrend from '../../../components/Learning/QuizScoreTrend';
+import SessionTimeline from '../../../components/Learning/SessionTimeline';
 import RecommendationsSection from '../../../components/Learning/RecommendationsSection';
 import './LearningDashboard.css';
 
@@ -273,6 +277,78 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ subjectId }) => {
     );
 };
 
+// 🆕 Analytics Section with Charts
+interface AnalyticsSectionProps {
+    subjectId: number;
+    sessions: SubjectSessions['sessions'];
+    totalSessions: number;
+}
+
+const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ subjectId, sessions, totalSessions }) => {
+    const [cloData, setCloData] = useState<any>(null);
+    const [quizHistory, setQuizHistory] = useState<QuizAttempt[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchAnalyticsData = async () => {
+            try {
+                setIsLoading(true);
+                // Fetch CLO progress and Quiz history in parallel
+                const [cloResponse, quizResponse] = await Promise.all([
+                    learningDashboardService.getCLOProgress(subjectId),
+                    learningDashboardService.getQuizHistory(subjectId).catch(() => ({ attempts: [] }))
+                ]);
+                setCloData(cloResponse);
+                setQuizHistory(quizResponse.attempts || []);
+            } catch (error) {
+                console.error('Error fetching analytics:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchAnalyticsData();
+    }, [subjectId]);
+
+    if (isLoading) {
+        return (
+            <div className="analytics-section analytics-section--loading">
+                <div className="loading-spinner__icon" />
+                <p>Đang tải phân tích...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="analytics-section">
+            <h3 className="analytics-section__title">📊 Phân tích tiến độ</h3>
+
+            {/* Session Timeline */}
+            <SessionTimeline
+                sessions={sessions}
+                totalSessions={totalSessions}
+            />
+
+            {/* Charts Grid */}
+            <div className="analytics-section__charts">
+                {/* CLO Radar Chart */}
+                {cloData && cloData.clos && cloData.clos.length > 0 && (
+                    <CLORadarChart
+                        clos={cloData.clos}
+                        size={260}
+                    />
+                )}
+
+                {/* Quiz Score Trend */}
+                <QuizScoreTrend
+                    attempts={quizHistory}
+                    width={380}
+                    height={200}
+                />
+            </div>
+        </div>
+    );
+};
+
 interface SessionModalProps {
     sessionsData: SubjectSessions | null;
     onClose: () => void;
@@ -309,6 +385,13 @@ const SessionModal: React.FC<SessionModalProps> = ({
                     <CLOProgressSection
                         subjectId={sessionsData.subjectId}
                         subjectCode={sessionsData.subjectCode}
+                    />
+
+                    {/* 🆕 Analytics Section with Charts */}
+                    <AnalyticsSection
+                        subjectId={sessionsData.subjectId}
+                        sessions={sessionsData.sessions}
+                        totalSessions={sessionsData.totalSessions}
                     />
 
                     {/* 🆕 Documents Section with checkboxes */}

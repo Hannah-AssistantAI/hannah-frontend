@@ -348,7 +348,45 @@ export const learningDashboardService = {
             `/api/v1/learning/documents/${documentId}/complete`
         );
         return response.data;
+    },
+
+    // ==================== 🆕 Quiz History for Analytics ====================
+
+    /**
+     * Get quiz attempt history for a subject (for trend chart)
+     */
+    getQuizHistory: async (subjectId: number): Promise<QuizHistoryResponse> => {
+        const response = await apiClient.get<QuizHistoryResponse>(
+            `/api/v1/learning/subjects/${subjectId}/quiz-history`
+        );
+        return response.data;
     }
 };
 
+/**
+ * 🆕 Quiz Attempt for history/trend
+ */
+export interface QuizAttempt {
+    attemptId: number;
+    quizId: number;
+    quizTitle: string;
+    score: number;
+    totalQuestions: number;
+    correctAnswers: number;
+    completedAt: string;
+    sessionNumbers?: number[];
+}
+
+/**
+ * 🆕 Quiz History Response
+ */
+export interface QuizHistoryResponse {
+    subjectId: number;
+    subjectCode: string;
+    totalAttempts: number;
+    averageScore: number;
+    attempts: QuizAttempt[];
+}
+
 export default learningDashboardService;
+
