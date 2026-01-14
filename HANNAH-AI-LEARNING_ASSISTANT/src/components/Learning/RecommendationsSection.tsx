@@ -52,7 +52,7 @@ const RecommendationsSection = ({ userId, onActionClick }: RecommendationsSectio
             const token = localStorage.getItem('access_token');
 
             const response = await fetch(
-                `${API_BASE}/personalization/recommendations?user_id=${userId}&limit=5`,
+                `${API_BASE}/api/v1/personalization/recommendations?user_id=${userId}&limit=5`,
                 {
                     headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                 }
