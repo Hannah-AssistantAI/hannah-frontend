@@ -357,6 +357,7 @@ interface SessionModalProps {
     hasUnsavedChanges?: boolean;
     onSaveAll?: () => void;
     isSaving?: boolean;
+    userId?: number;  // 🆕 For AI Recommendations
 }
 
 const SessionModal: React.FC<SessionModalProps> = ({
@@ -365,8 +366,16 @@ const SessionModal: React.FC<SessionModalProps> = ({
     onUpdateSession,
     hasUnsavedChanges = false,
     onSaveAll,
-    isSaving = false
+    isSaving = false,
+    userId  // 🆕
 }) => {
+    // 🆕 Handler for generating flashcards from weak topic recommendations
+    const handleGenerateFlashcard = async (topicName: string, subjectCode: string) => {
+        // For now, show a success message - can be connected to actual flashcard API later
+        toast.success(`🎴 Tạo flashcard cho: ${topicName}`);
+        // TODO: Connect to actual flashcard generation API
+        // await flashcardService.generateForTopic(topicName, subjectCode);
+    };
     if (!sessionsData) return null;
 
     return (
@@ -381,6 +390,14 @@ const SessionModal: React.FC<SessionModalProps> = ({
                 </div>
 
                 <div className="session-modal__content">
+                    {/* 🆕 AI Recommendations - Top of modal */}
+                    {userId && (
+                        <RecommendationsSection
+                            userId={userId}
+                            onGenerateFlashcard={handleGenerateFlashcard}
+                        />
+                    )}
+
                     {/* 🆕 CLO Progress Section */}
                     <CLOProgressSection
                         subjectId={sessionsData.subjectId}
@@ -723,6 +740,7 @@ const LearningDashboard: React.FC = () => {
                         hasUnsavedChanges={hasUnsavedChanges}
                         onSaveAll={handleSaveAll}
                         isSaving={isSaving}
+                        userId={dashboard?.userId}
                     />
                 )}
             </div>

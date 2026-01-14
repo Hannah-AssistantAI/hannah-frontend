@@ -8,7 +8,9 @@ import {
     ChevronRight,
     Loader2,
     RefreshCw,
-    Play  // 🆕 For NEXT_SESSION
+    Play,
+    Zap,  // 🆕 For quick action buttons
+    Brain  // 🆕 For KNOWLEDGE_GAP
 } from 'lucide-react';
 import './RecommendationsSection.css';
 
@@ -25,6 +27,7 @@ interface Recommendation {
 interface RecommendationsSectionProps {
     userId: number;
     onActionClick?: (recommendation: Recommendation) => void;
+    onGenerateFlashcard?: (topicName: string, subjectCode: string) => Promise<void>;  // 🆕
 }
 
 const API_BASE = import.meta.env.VITE_PYTHON_API_URL || 'https://hannahai.online/py-api';
@@ -37,11 +40,13 @@ const API_BASE = import.meta.env.VITE_PYTHON_API_URL || 'https://hannahai.online
  * - Weak topics to practice
  * - Learning streaks
  * - Upcoming exams
+ * - Knowledge gaps with remedial actions
  */
-const RecommendationsSection = ({ userId, onActionClick }: RecommendationsSectionProps) => {
+const RecommendationsSection = ({ userId, onActionClick, onGenerateFlashcard }: RecommendationsSectionProps) => {
     const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [generatingFor, setGeneratingFor] = useState<string | null>(null);
 
     const loadRecommendations = async () => {
         try {
@@ -81,15 +86,17 @@ const RecommendationsSection = ({ userId, onActionClick }: RecommendationsSectio
     const getTypeIcon = (type: string) => {
         switch (type) {
             case 'SESSION_BEHIND':
-            case 'WEAK_SESSION':  // 🆕 Same icon as SESSION_BEHIND
+            case 'WEAK_SESSION':
                 return <AlertTriangle className="rec-icon rec-icon--warning" size={18} />;
             case 'WEAK_TOPIC':
                 return <BookOpen className="rec-icon rec-icon--info" size={18} />;
+            case 'KNOWLEDGE_GAP':  // 🆕
+                return <Brain className="rec-icon rec-icon--danger" size={18} />;
             case 'STREAK_BOOST':
                 return <Flame className="rec-icon rec-icon--success" size={18} />;
             case 'QUIZ_PRACTICE':
                 return <ClipboardCheck className="rec-icon rec-icon--primary" size={18} />;
-            case 'NEXT_SESSION':  // 🆕 Play icon for next session
+            case 'NEXT_SESSION':
                 return <Play className="rec-icon rec-icon--next" size={18} />;
             case 'CLO_FOCUS':
             case 'DOCUMENT_REVIEW':
@@ -102,19 +109,26 @@ const RecommendationsSection = ({ userId, onActionClick }: RecommendationsSectio
     const getTypeClass = (type: string): string => {
         switch (type) {
             case 'SESSION_BEHIND':
-            case 'WEAK_SESSION':  // 🆕 Same style
+            case 'WEAK_SESSION':
                 return 'rec-card--warning';
             case 'WEAK_TOPIC':
                 return 'rec-card--info';
+            case 'KNOWLEDGE_GAP':  // 🆕
+                return 'rec-card--danger';
             case 'STREAK_BOOST':
                 return 'rec-card--success';
             case 'QUIZ_PRACTICE':
                 return 'rec-card--primary';
-            case 'NEXT_SESSION':  // 🆕 Next session style
+            case 'NEXT_SESSION':
                 return 'rec-card--next';
             default:
                 return '';
         }
+    };
+
+    // 🆕 Check if this recommendation type should show action buttons
+    const shouldShowActionButton = (type: string): boolean => {
+        return ['WEAK_TOPIC', 'KNOWLEDGE_GAP', 'WEAK_SESSION', 'DOCUMENT_REVIEW'].includes(type);
     };
 
     const handleClick = (rec: Recommendation) => {
@@ -123,11 +137,28 @@ const RecommendationsSection = ({ userId, onActionClick }: RecommendationsSectio
         }
     };
 
+    // 🆕 Handle flashcard generation for weak topics
+    const handleGenerateFlashcard = async (e: React.MouseEvent, rec: Recommendation) => {
+        e.stopPropagation();  // Don't trigger card click
+
+        const topicName = rec.action_data?.topic_name as string || rec.title;
+        const subjectCode = rec.action_data?.subject_code as string || '';
+
+        if (onGenerateFlashcard) {
+            setGeneratingFor(topicName);
+            try {
+                await onGenerateFlashcard(topicName, subjectCode);
+            } finally {
+                setGeneratingFor(null);
+            }
+        }
+    };
+
     if (loading) {
         return (
             <div className="recommendations-section recommendations-section--loading">
                 <Loader2 className="rec-loader" size={20} />
-                <span>Đang tải gợi ý...</span>
+                <span>Đang tải gợi ý AI...</span>
             </div>
         );
     }
@@ -151,8 +182,8 @@ const RecommendationsSection = ({ userId, onActionClick }: RecommendationsSectio
         <div className="recommendations-section">
             <div className="recommendations-header">
                 <h3 className="recommendations-title">
-                    <span className="rec-emoji">💡</span>
-                    Gợi ý cho bạn
+                    <span className="rec-emoji">🤖</span>
+                    AI Gợi ý học tập
                 </h3>
                 <button onClick={loadRecommendations} className="rec-refresh-btn" title="Làm mới">
                     <RefreshCw size={14} />
@@ -174,8 +205,31 @@ const RecommendationsSection = ({ userId, onActionClick }: RecommendationsSectio
                         <div className="rec-card__content">
                             <div className="rec-card__title">{rec.title}</div>
                             <div className="rec-card__message">{rec.message}</div>
+
+                            {/* 🆕 Action buttons for weak topics */}
+                            {shouldShowActionButton(rec.type) && onGenerateFlashcard && (
+                                <div className="rec-card__actions">
+                                    <button
+                                        className="rec-action-btn rec-action-btn--flashcard"
+                                        onClick={(e) => handleGenerateFlashcard(e, rec)}
+                                        disabled={generatingFor !== null}
+                                    >
+                                        {generatingFor === (rec.action_data?.topic_name || rec.title) ? (
+                                            <>
+                                                <Loader2 size={12} className="rec-action-spinner" />
+                                                Đang tạo...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Zap size={12} />
+                                                Tạo Flashcard ôn tập
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                        {rec.action_type !== 'none' && (
+                        {rec.action_type !== 'none' && !shouldShowActionButton(rec.type) && (
                             <ChevronRight className="rec-card__arrow" size={16} />
                         )}
                     </div>
@@ -186,3 +240,4 @@ const RecommendationsSection = ({ userId, onActionClick }: RecommendationsSectio
 };
 
 export default RecommendationsSection;
+

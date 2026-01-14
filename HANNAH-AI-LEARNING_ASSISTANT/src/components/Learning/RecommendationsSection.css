@@ -201,3 +201,58 @@
         white-space: normal;
     }
 }
+
+/* 🆕 KNOWLEDGE_GAP - critical knowledge gap */
+.rec-card--danger {
+    border-left: 3px solid #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.rec-card--danger:hover {
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.rec-icon--danger {
+    color: #ef4444;
+}
+
+/* 🆕 Action buttons for weak topics */
+.rec-card__actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.rec-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.rec-action-btn--flashcard {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.rec-action-btn--flashcard:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.rec-action-btn--flashcard:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.rec-action-spinner {
+    animation: spin 1s linear infinite;
+}
