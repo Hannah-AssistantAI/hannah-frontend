@@ -279,9 +279,11 @@
     background: var(--bg-surface);
     border-radius: 20px;
     border: 1px solid var(--card-border);
-    width: 100%;
-    max-width: 700px;
-    max-height: 85vh;
+    width: 95%;
+    max-width: 1200px;
+    /* Expanded from 700px */
+    max-height: 95vh;
+    /* Expanded from 85vh */
     overflow: hidden;
     display: flex;
     flex-direction: column;
