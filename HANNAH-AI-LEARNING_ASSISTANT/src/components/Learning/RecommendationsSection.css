@@ -196,9 +196,47 @@
 }
 
 /* Mobile responsive */
-@media (max-width: 640px) {
+@media (max-width: 1024px) {
+    .recommendations-section {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
+    .rec-card {
+        padding: 10px;
+    }
+
     .rec-card__message {
         white-space: normal;
+        line-height: 1.5;
+    }
+}
+
+@media (max-width: 640px) {
+    .recommendations-section {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    .rec-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .rec-card__icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .rec-card__title {
+        font-size: 12px;
+    }
+
+    .rec-card__message {
+        white-space: normal;
+        font-size: 11px;
     }
 }
 
