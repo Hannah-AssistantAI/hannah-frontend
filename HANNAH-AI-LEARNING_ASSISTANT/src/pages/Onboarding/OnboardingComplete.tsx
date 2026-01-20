@@ -33,9 +33,9 @@ export default function OnboardingComplete() {
                     <CheckCircle size={48} />
                 </div>
 
-                <h1 style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                    Chào mừng, {status?.fullName || 'bạn'}!
-                    <PartyPopper size={26} color="#f59e0b" />
+                <h1>
+                    Chào mừng, {status?.fullName || 'bạn'}!{' '}
+                    <PartyPopper size={24} color="#f59e0b" style={{ display: 'inline', verticalAlign: 'middle', marginBottom: 4 }} />
                 </h1>
                 <p className="complete-subtitle">
                     Bạn đã sẵn sàng sử dụng Hannah AI
