@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, GraduationCap, Calendar, Phone, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
+import { User, GraduationCap, Calendar, Phone, ArrowRight, ArrowLeft, Loader2, Lightbulb } from 'lucide-react';
 import toast from 'react-hot-toast';
 import onboardingService from '../../service/onboardingService';
 import studentService from '../../service/studentService';
@@ -177,7 +177,7 @@ export default function OnboardingProfile() {
                             ))}
                         </select>
                         {formData.currentSemester < 5 && (
-                            <span className="helper-text">💡 Sinh viên kỳ 1-4 chưa chọn combo, bạn có thể cập nhật sau</span>
+                            <span className="helper-text"><Lightbulb size={14} /> Sinh viên kỳ 1-4 chưa chọn combo, bạn có thể cập nhật sau</span>
                         )}
                         {errors.specializationId && <span className="error-text">{errors.specializationId}</span>}
                     </div>

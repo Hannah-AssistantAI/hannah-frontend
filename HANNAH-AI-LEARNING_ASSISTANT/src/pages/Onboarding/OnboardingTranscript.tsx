@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Upload, FileText, ArrowRight, ArrowLeft, Loader2, CheckCircle } from 'lucide-react';
+import { Upload, FileText, ArrowRight, ArrowLeft, Loader2, CheckCircle, Bug } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './Onboarding.css';
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, MessageCircle, Sparkles } from 'lucide-react';
+import { CheckCircle, MessageCircle, Sparkles, PartyPopper, CheckCircle2, Clock } from 'lucide-react';
 import onboardingService from '../../service/onboardingService';
 import type { OnboardingStatus } from '../../service/onboardingService';
 import './Onboarding.css';
@@ -33,7 +33,10 @@ export default function OnboardingComplete() {
                     <CheckCircle size={48} />
                 </div>
 
-                <h1>Chào mừng, {status?.fullName || 'bạn'}! 🎉</h1>
+                <h1 style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                    Chào mừng, {status?.fullName || 'bạn'}!
+                    <PartyPopper size={26} color="#f59e0b" />
+                </h1>
                 <p className="complete-subtitle">
                     Bạn đã sẵn sàng sử dụng Hannah AI
                 </p>
@@ -55,8 +58,12 @@ export default function OnboardingComplete() {
                         </div>
                         <div className="summary-row">
                             <span className="summary-label">Bảng điểm</span>
-                            <span className="summary-value">
-                                {status.transcriptUploaded ? '✅ Đã upload' : '⏳ Chưa upload'}
+                            <span className="summary-value" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                {status.transcriptUploaded ? (
+                                    <><CheckCircle2 size={15} color="#22c55e" style={{ flexShrink: 0 }} /> Đã upload</>
+                                ) : (
+                                    <><Clock size={15} color="#f59e0b" style={{ flexShrink: 0 }} /> Chưa upload</>
+                                )}
                             </span>
                         </div>
                     </div>
