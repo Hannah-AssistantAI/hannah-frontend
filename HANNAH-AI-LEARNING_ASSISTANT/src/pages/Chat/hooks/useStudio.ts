@@ -1,57 +1,13 @@
 import { useState, useEffect } from 'react'
 import { studioService } from '../../../service/studioService'
-import studentService, { formatRoadmapAsMarkdown } from '../../../service/studentService'
-import orientationService from '../../../service/orientationService'
 import type { StudioItem } from '../types'
-import { mockRoadmapContent } from '../../../data/mockData'
 import { formatDateTimeVN } from '../../../utils/dateUtils'
-
-/**
- * Extract a specific semester section from orientation document
- * Matches patterns like: 🟩 KỲ 1, 🟦 KỲ 2, etc.
- */
-const extractSemesterSection = (content: string, semesterNumber: number): string | null => {
-    if (!content || semesterNumber < 1 || semesterNumber > 9) {
-        return null;
-    }
-
-    // Build regex to match semester header (with any emoji prefix)
-    // Pattern: Any emoji(s) + "KỲ" + space + number
-    const semesterPattern = new RegExp(
-        `([\\p{Emoji}\\s]*KỲ\\s*${semesterNumber}[^\\n]*)`,
-        'iu'
-    );
-
-    // Find start of target semester
-    const startMatch = content.match(semesterPattern);
-    if (!startMatch) {
-        return null;
-    }
-
-    const startIndex = content.indexOf(startMatch[0]);
-
-    // Find start of next semester (KỲ X+1 to KỲ 9)
-    let endIndex = content.length;
-    for (let nextSem = semesterNumber + 1; nextSem <= 9; nextSem++) {
-        const nextPattern = new RegExp(`[\\p{Emoji}\\s]*KỲ\\s*${nextSem}`, 'iu');
-        const nextMatch = content.substring(startIndex + startMatch[0].length).match(nextPattern);
-        if (nextMatch) {
-            endIndex = startIndex + startMatch[0].length + content.substring(startIndex + startMatch[0].length).indexOf(nextMatch[0]);
-            break;
-        }
-    }
-
-    // Extract the semester section
-    const section = content.substring(startIndex, endIndex).trim();
-
-    return section || null;
-};
 
 export const useStudio = (conversationId: number | null) => {
     const [isStudioOpen, setIsStudioOpen] = useState(true)
     const [studioItems, setStudioItems] = useState<StudioItem[]>([])
     const [isLoadingContent, setIsLoadingContent] = useState(false)
-    const [selectedFeatureType, setSelectedFeatureType] = useState<'mindmap' | 'notecard' | 'quiz' | 'roadmap' | null>(null)
+    const [selectedFeatureType, setSelectedFeatureType] = useState<'mindmap' | 'notecard' | 'quiz' | null>(null)
 
     // Modal States
     const [showReportModal, setShowReportModal] = useState(false)
@@ -62,8 +18,6 @@ export const useStudio = (conversationId: number | null) => {
     const [showQuizSideModal, setShowQuizSideModal] = useState(false)
     const [showCustomizeModal, setShowCustomizeModal] = useState(false)
     const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
-    const [showRoadmapModal, setShowRoadmapModal] = useState(false)
-    const [showRoadmapOptionsModal, setShowRoadmapOptionsModal] = useState(false)
     const [itemToDelete, setItemToDelete] = useState<string | null>(null)
 
     // Content States
@@ -71,13 +25,11 @@ export const useStudio = (conversationId: number | null) => {
     const [selectedNotecardId, setSelectedNotecardId] = useState<string | null>(null)
     const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null)
     const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
-    const [selectedRoadmapId, setSelectedRoadmapId] = useState<string | null>(null)
 
     const [mindmapContent, setMindmapContent] = useState<any>(null)
     const [reportContent, setReportContent] = useState<any>(null)
     const [quizContent, setQuizContent] = useState<any>(null)
     const [flashcardContent, setFlashcardContent] = useState<any>(null)
-    const [roadmapContent, setRoadmapContent] = useState<any>(null)
 
     // Fetch studio items when conversationId changes
     useEffect(() => {
@@ -174,18 +126,7 @@ export const useStudio = (conversationId: number | null) => {
                     })));
                 }
 
-                // Add roadmaps
-                if (roadmapsRes.data && roadmapsRes.data.data) {
-                    rawItems.push(...roadmapsRes.data.data.map((rm: any) => ({
-                        id: `roadmap-${rm.roadmapId}`,
-                        type: 'roadmap' as const,
-                        title: rm.title,
-                        subtitle: 'Lộ trình học tập',
-                        status: 'completed' as const,
-                        rawTimestamp: rm.generatedAt,
-                        content: null
-                    })));
-                }
+
 
                 // Sort by raw timestamp (newest first)
                 rawItems.sort((a, b) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime());
@@ -208,7 +149,7 @@ export const useStudio = (conversationId: number | null) => {
     }, [conversationId]); // Re-fetch when conversationId changes
 
     const createStudioItem = async (
-        type: 'mindmap' | 'report' | 'notecard' | 'quiz' | 'roadmap',
+        type: 'mindmap' | 'report' | 'notecard' | 'quiz',
         title: string,
         options?: {
             quantity?: number;
@@ -338,33 +279,7 @@ export const useStudio = (conversationId: number | null) => {
                         sessionTo: options?.sessionTo
                     });
                     break;
-                case 'roadmap':
-                    // Fetch admin-edited Course Overview content from Orientation API
-                    try {
-                        const orientationData = await orientationService.getContent();
-                        response = {
-                            data: {
-                                data: {
-                                    roadmapId: `roadmap-${Date.now()}`,
-                                    title: orientationData.subjectName || 'Định hướng',
-                                    content: orientationData.content || 'Chưa có nội dung. Vui lòng liên hệ Admin để cập nhật.'
-                                }
-                            }
-                        };
-                    } catch (error) {
-                        console.error('Failed to fetch orientation content, using fallback:', error);
-                        // Fallback message if API fails
-                        response = {
-                            data: {
-                                data: {
-                                    roadmapId: `fallback-${Date.now()}`,
-                                    title: 'Định hướng',
-                                    content: 'Không thể tải nội dung định hướng. Vui lòng thử lại sau.'
-                                }
-                            }
-                        };
-                    }
-                    break;
+
             }
 
             console.log('=== STUDIO API RESPONSE ===');
@@ -382,7 +297,6 @@ export const useStudio = (conversationId: number | null) => {
                     responseData.reportId ||
                     responseData.quizId ||
                     responseData.flashcardSetId ||
-                    responseData.roadmapId ||
                     tempId;
 
                 // Add type prefix to ID to ensure uniqueness across different item types
@@ -495,21 +409,6 @@ export const useStudio = (conversationId: number | null) => {
                 const response = await studioService.getReportContent(numericId);
                 if (response.data) setReportContent(response.data.data);
                 setShowReportModal(true);
-            } else if (item.type === 'roadmap') {
-                setSelectedRoadmapId(item.id);
-
-                // Use cached content if available
-                if (item.content) {
-                    console.log('Using cached roadmap content:', item.content);
-                    setRoadmapContent(item.content);
-                } else {
-                    // ROADMAP API DISABLED - UI only with mock data
-                    console.log('Loading mock roadmap content');
-                    // const response = await studioService.getRoadmapContent(numericId);
-                    // if (response.data) setRoadmapContent(response.data.data || response.data);
-                    setRoadmapContent(mockRoadmapContent);
-                }
-                setShowRoadmapModal(true);
             }
         } catch (error) {
             console.error("Failed to load content:", error);
@@ -531,92 +430,11 @@ export const useStudio = (conversationId: number | null) => {
         setShowReportFormatModal(false)
     }
 
-    const handleStudioFeatureClick = (type: 'mindmap' | 'report' | 'notecard' | 'quiz' | 'roadmap', title: string) => {
+    const handleStudioFeatureClick = (type: 'mindmap' | 'report' | 'notecard' | 'quiz', title: string) => {
         if (type === 'report') {
             setShowReportFormatModal(true)
-        } else if (type === 'roadmap') {
-            // For roadmap, show options modal instead of creating item
-            setShowRoadmapOptionsModal(true)
         } else {
             createStudioItem(type, title)
-        }
-    }
-
-    // Handle roadmap option selection
-    const handleRoadmapOptionSelect = async (option: 'all' | 'current') => {
-        setShowRoadmapOptionsModal(false)
-        setIsLoadingContent(true)
-
-        try {
-            let content: any;
-            let title: string;
-
-            if (option === 'all') {
-                // Fetch Course Overview from Orientation API
-                const orientationData = await orientationService.getContent();
-                title = orientationData.subjectName || 'Định hướng';
-                content = {
-                    title,
-                    content: orientationData.content || 'Chưa có nội dung. Vui lòng liên hệ Admin để cập nhật.'
-                };
-            } else {
-                // Fetch orientation document and extract current semester section
-                const orientationData = await orientationService.getContent();
-                const fullContent = orientationData.content || '';
-
-                // Get current semester from localStorage (key is 'user_data' per STORAGE_KEYS)
-                const storedUser = localStorage.getItem('user_data');
-                const parsedUser = storedUser ? JSON.parse(storedUser) : null;
-
-                // Debug log to see what we're getting
-                console.log('=== Semester Debug ===');
-                console.log('storedUser raw:', storedUser);
-                console.log('parsedUser:', parsedUser);
-                console.log('parsedUser?.currentSemester:', parsedUser?.currentSemester);
-
-                // Parse semester number - handle both "4" and "HK4" formats
-                let currentSemesterNumber = 1;
-                const semesterStr = parsedUser?.currentSemester;
-                if (semesterStr) {
-                    // Extract number from string (e.g., "4", "HK4", "Kỳ 4" -> 4)
-                    const numMatch = semesterStr.toString().match(/\d+/);
-                    if (numMatch) {
-                        currentSemesterNumber = parseInt(numMatch[0], 10);
-                    }
-                }
-
-                console.log('Final currentSemesterNumber:', currentSemesterNumber);
-
-                // Extract the section for current semester using regex
-                // Pattern matches: emoji + KỲ X (where X is the semester number)
-                const semesterSection = extractSemesterSection(fullContent, currentSemesterNumber);
-
-                if (semesterSection) {
-                    title = `Lộ trình Kỳ ${currentSemesterNumber}`;
-                    content = {
-                        title,
-                        content: semesterSection
-                    };
-                } else {
-                    title = `Kỳ ${currentSemesterNumber}`;
-                    content = {
-                        title,
-                        content: `Không tìm thấy nội dung cho Kỳ ${currentSemesterNumber} trong tài liệu định hướng.`
-                    };
-                }
-            }
-
-            setRoadmapContent(content);
-            setShowRoadmapModal(true);
-        } catch (error) {
-            console.error('Failed to fetch roadmap content:', error);
-            setRoadmapContent({
-                title: 'Lỗi',
-                content: 'Không thể tải nội dung. Vui lòng thử lại sau.'
-            });
-            setShowRoadmapModal(true);
-        } finally {
-            setIsLoadingContent(false);
         }
     }
 
@@ -647,9 +465,6 @@ export const useStudio = (conversationId: number | null) => {
                     break;
                 case 'report':
                     await studioService.deleteReport(actualId); // Report uses string ID
-                    break;
-                case 'roadmap':
-                    await studioService.deleteRoadmap(actualId); // Roadmap uses string ID
                     break;
                 default:
                     console.error(`Unknown item type: ${itemType}`);
@@ -720,13 +535,6 @@ export const useStudio = (conversationId: number | null) => {
         showDeleteConfirmModal,
         setShowDeleteConfirmModal,
         itemToDelete,
-        confirmDeleteItem,
-        showRoadmapModal,
-        setShowRoadmapModal,
-        showRoadmapOptionsModal,
-        setShowRoadmapOptionsModal,
-        handleRoadmapOptionSelect,
-        selectedRoadmapId,
-        roadmapContent
+        confirmDeleteItem
     }
 }

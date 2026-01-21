@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Send, GitBranch, FileText, ClipboardCheck, StickyNote, Map, Mic } from 'lucide-react'
+import { Send, GitBranch, FileText, ClipboardCheck, StickyNote, Mic } from 'lucide-react'
 import subjectService, { type Subject } from '../../service/subjectService'
 import flaggingService from '../../service/flaggingService'
 import { useStudio } from './hooks/useStudio'
@@ -16,8 +16,7 @@ import { CustomizeFeatureModal } from './components/modals/CustomizeFeatureModal
 import { ShareModal } from './components/modals/ShareModal'
 import { FlagMessageModal } from './components/modals/FlagMessageModal'
 import { FlagQuizModal } from './components/modals/FlagQuizModal'
-import { RoadmapModal } from './components/modals/RoadmapModal'
-import { RoadmapOptionsModal } from './components/modals/RoadmapOptionsModal'
+
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal'
 import { QuizAttemptHistory } from './components/QuizModal/QuizAttemptHistory'
 import { BigPictureSidebar } from './components/BigPictureSidebar'
@@ -94,37 +93,12 @@ export default function Chat() {
         { icon: GitBranch, title: 'Bản đồ tư duy', description: 'Mind map', type: 'mindmap' as const, note: 'Tạo bản đồ tư duy dựa vào nội dung cuộc trò chuyện' },
         { icon: FileText, title: 'Báo cáo', description: 'Report', type: 'report' as const, note: 'Tạo báo cáo dựa vào nội dung cuộc trò chuyện' },
         { icon: StickyNote, title: 'Thẻ ghi nhớ', description: 'Note cards', type: 'notecard' as const, note: 'Tạo thẻ ghi nhớ dựa vào nội dung cuộc trò chuyện' },
-        { icon: ClipboardCheck, title: 'Bài kiểm tra', description: 'Quiz', type: 'quiz' as const, note: 'Tạo bài kiểm tra dựa vào nội dung cuộc trò chuyện' },
-        { icon: Map, title: 'Tư vấn lộ trình', description: 'Roadmap', type: 'roadmap' as const, note: 'Xem lộ trình học tập và định hướng' }
+        { icon: ClipboardCheck, title: 'Bài kiểm tra', description: 'Quiz', type: 'quiz' as const, note: 'Tạo bài kiểm tra dựa vào nội dung cuộc trò chuyện' }
     ]
 
     // Wrapper for feature click with semester validation for roadmap
     // 🆕 Phase 1: Shows SubjectSelectionModal for quiz/flashcard/mindmap
-    const handleFeatureClick = (type: 'mindmap' | 'report' | 'notecard' | 'quiz' | 'roadmap', title: string) => {
-        if (type === 'roadmap') {
-            // Check if student has set their semester
-            let currentSemester = user?.currentSemester;
-            if (!currentSemester) {
-                try {
-                    const storedUser = localStorage.getItem('user_data');
-                    if (storedUser) {
-                        const parsedUser = JSON.parse(storedUser);
-                        currentSemester = parsedUser?.currentSemester;
-                    }
-                } catch (e) {
-                    console.error('Failed to parse user_data from localStorage:', e);
-                }
-            }
-            if (!currentSemester) {
-                toast.error('Vui lòng cập nhật kỳ học hiện tại trong hồ sơ để sử dụng tính năng này!', {
-                    duration: 4000,
-                    icon: '📚'
-                });
-                navigate('/profile');
-                return;
-            }
-        }
-
+    const handleFeatureClick = (type: 'mindmap' | 'report' | 'notecard' | 'quiz', title: string) => {
         // 🆕 For quiz/flashcard/mindmap: show subject selection modal
         if (type === 'quiz' || type === 'notecard' || type === 'mindmap') {
             setPendingGenerationType(type === 'notecard' ? 'flashcard' : type);
@@ -132,7 +106,7 @@ export default function Chat() {
             return;
         }
 
-        // For roadmap and report: proceed as before
+        // For report: proceed as before
         studio.handleStudioFeatureClick(type, title);
     }
 
@@ -186,8 +160,7 @@ export default function Chat() {
             const featureTitles = {
                 'mindmap': 'Bản đồ tư duy',
                 'notecard': 'Thẻ ghi nhớ',
-                'quiz': 'Bài kiểm tra',
-                'roadmap': 'Tư vấn lộ trình'
+                'quiz': 'Bài kiểm tra'
             }
 
             const options = {
@@ -451,7 +424,7 @@ export default function Chat() {
                     items={studio.studioItems}
                     features={studioFeatures}
                     onFeatureClick={handleFeatureClick}
-                    onEditFeature={(type: 'mindmap' | 'notecard' | 'quiz' | 'roadmap') => {
+                    onEditFeature={(type: 'mindmap' | 'notecard' | 'quiz') => {
                         studio.setSelectedFeatureType(type)
                         studio.setShowCustomizeModal(true)
                     }}
@@ -648,20 +621,7 @@ export default function Chat() {
                 quizTitle={studio.studioItems.find(item => item.id === flaggingQuizId)?.title}
             />
 
-            {/* Roadmap Modal */}
-            <RoadmapModal
-                isOpen={studio.showRoadmapModal}
-                onClose={() => studio.setShowRoadmapModal(false)}
-                content={studio.roadmapContent}
-            />
 
-            {/* Roadmap Options Modal */}
-            <RoadmapOptionsModal
-                isOpen={studio.showRoadmapOptionsModal}
-                onClose={() => studio.setShowRoadmapOptionsModal(false)}
-                onSelectOption={studio.handleRoadmapOptionSelect}
-                currentSemester={user?.currentSemester || undefined}
-            />
 
             {/* Delete Confirm Modal */}
             <ConfirmModal

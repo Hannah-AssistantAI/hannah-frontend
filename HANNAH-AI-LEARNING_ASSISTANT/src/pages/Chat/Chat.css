@@ -13,21 +13,6 @@
 @import './styles/chat/message-content.css';
 @import './styles/chat/message-actions.css';
 @import './styles/chat/sources.css';
-/* Layout */
-@import './styles/layout/base.css';
-@import './styles/layout/header.css';
-
-/* Sidebars */
-@import './styles/sidebars/big-picture.css';
-@import './styles/sidebars/studio.css';
-@import './styles/sidebars/history.css';
-
-/* Chat Components */
-@import './styles/chat/welcome-banner.css';
-@import './styles/chat/messages.css';
-@import './styles/chat/message-content.css';
-@import './styles/chat/message-actions.css';
-@import './styles/chat/sources.css';
 @import './styles/chat/interactive-list.css';
 @import './styles/chat/video-content.css';
 @import './styles/chat/related-content.css';
@@ -41,7 +26,6 @@
 @import './styles/modals/notecard.css';
 @import './styles/modals/quiz.css';
 @import './styles/modals/share.css';
-@import './styles/modals/roadmap.css';
 
 /* Utilities */
 @import './styles/utils/scrollbar.css';

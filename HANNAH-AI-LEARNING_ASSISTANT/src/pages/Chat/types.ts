@@ -1,6 +1,6 @@
 export interface StudioItem {
     id: string
-    type: 'mindmap' | 'report' | 'notecard' | 'quiz' | 'roadmap'
+    type: 'mindmap' | 'report' | 'notecard' | 'quiz'
     title: string
     subtitle: string
     status: 'loading' | 'completed'
@@ -78,6 +78,6 @@ export interface StudioFeature {
     icon: any
     title: string
     description: string
-    type: 'mindmap' | 'report' | 'notecard' | 'quiz' | 'roadmap'
+    type: 'mindmap' | 'report' | 'notecard' | 'quiz'
     note: string
 }
