@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+    Sparkles, BookOpen, GraduationCap, Lightbulb, CheckCircle,
+    Circle, Square, AlertTriangle, ClipboardList, FileText,
+    Home, RefreshCw, Compass, Search, BarChart2, ArrowLeft, ChevronRight
+} from 'lucide-react';
 import { careerPathService } from '../../../service/careerPathService';
 import type {
     SpecializationsOverview,
@@ -29,12 +34,23 @@ const SpecializationCard: React.FC<SpecializationCardProps> = ({
             className={`spec-card ${isSelected ? 'selected' : ''} ${isSuggested ? 'suggested' : ''}`}
             onClick={onClick}
         >
-            {isSuggested && <div className="suggested-badge">✨ Gợi ý cho bạn</div>}
+            {isSuggested && (
+                <div className="suggested-badge">
+                    <Sparkles size={14} />
+                    Gợi ý cho bạn
+                </div>
+            )}
             <h3 className="spec-name">{spec.name}</h3>
             {spec.nameEn && <p className="spec-name-en">{spec.nameEn}</p>}
             <div className="spec-stats">
-                <span className="stat">📚 {totalSubjects} môn</span>
-                <span className="stat">🎓 {spec.requiredCredits} tín chỉ</span>
+                <span className="stat">
+                    <BookOpen size={14} />
+                    {totalSubjects} môn
+                </span>
+                <span className="stat">
+                    <GraduationCap size={14} />
+                    {spec.requiredCredits} tín chỉ
+                </span>
             </div>
             {spec.careerOutlook && (
                 <div className="career-outlook">
@@ -75,7 +91,10 @@ const SpecializationDetail: React.FC<SpecializationDetailProps> = ({ spec, sugge
             )}
 
             {suggestionReason && (
-                <div className="suggestion-reason">💡 {suggestionReason}</div>
+                <div className="suggestion-reason">
+                    <Lightbulb size={16} />
+                    {suggestionReason}
+                </div>
             )}
 
             {spec.careerOutlook && (
@@ -132,10 +151,16 @@ interface RoadmapViewProps {
 }
 
 const RoadmapView: React.FC<RoadmapViewProps> = ({ roadmap }) => {
+    const getStatusIcon = (status: string) => {
+        if (status === 'completed') return <CheckCircle size={14} className="status-icon completed" />;
+        if (status === 'current') return <Circle size={14} className="status-icon current" fill="currentColor" />;
+        return <Square size={14} className="status-icon upcoming" />;
+    };
+
     const getStatusLabel = (status: string) => {
-        if (status === 'completed') return '✅ Hoàn thành';
-        if (status === 'current') return '🔵 Đang học';
-        return '⬜ Sắp tới';
+        if (status === 'completed') return 'Hoàn thành';
+        if (status === 'current') return 'Đang học';
+        return 'Sắp tới';
     };
 
     return (
@@ -168,7 +193,10 @@ const RoadmapView: React.FC<RoadmapViewProps> = ({ roadmap }) => {
 
             {roadmap.weakSubjects && roadmap.weakSubjects.length > 0 && (
                 <div className="weak-subjects-alert">
-                    <h4>⚠️ Môn cần cải thiện</h4>
+                    <h4>
+                        <AlertTriangle size={16} />
+                        Môn cần cải thiện
+                    </h4>
                     <div className="weak-list">
                         {roadmap.weakSubjects.map(ws => (
                             <div key={ws.code} className="weak-item">
@@ -189,6 +217,7 @@ const RoadmapView: React.FC<RoadmapViewProps> = ({ roadmap }) => {
                             <div className="milestone-header">
                                 <span className="semester">Kỳ {milestone.semester}</span>
                                 <span className={`status-badge ${milestone.status}`}>
+                                    {getStatusIcon(milestone.status)}
                                     {getStatusLabel(milestone.status)}
                                 </span>
                             </div>
@@ -210,11 +239,14 @@ const RoadmapView: React.FC<RoadmapViewProps> = ({ roadmap }) => {
                     ))
                 ) : (
                     <div className="empty-milestones">
-                        <div className="empty-icon">📋</div>
+                        <div className="empty-icon">
+                            <ClipboardList size={48} />
+                        </div>
                         <h4>Chưa có lộ trình học tập</h4>
                         <p>Hãy upload bảng điểm để xem lộ trình của bạn.</p>
                         <button onClick={() => window.location.href = '/profile'}>
-                            📄 Cập nhật bảng điểm
+                            <FileText size={16} />
+                            Cập nhật bảng điểm
                         </button>
                     </div>
                 )}
@@ -287,7 +319,9 @@ const CareerPathExplorer: React.FC = () => {
         return (
             <div className="career-path-page error">
                 <div className="error-box">
-                    <div className="error-icon">📚</div>
+                    <div className="error-icon">
+                        <BookOpen size={48} />
+                    </div>
                     <h3>Chưa có dữ liệu lộ trình</h3>
                     <p className="error-description">
                         {error.includes('401') || error.includes('Unauthorized') ? (
@@ -305,13 +339,15 @@ const CareerPathExplorer: React.FC = () => {
                             className="btn-home"
                             onClick={() => window.location.href = '/'}
                         >
-                            🏠 Quay lại trang chủ
+                            <Home size={16} />
+                            Quay lại trang chủ
                         </button>
                         <button
                             className="btn-retry"
                             onClick={() => window.location.reload()}
                         >
-                            🔄 Thử lại
+                            <RefreshCw size={16} />
+                            Thử lại
                         </button>
                     </div>
                     <p className="error-help">
@@ -325,69 +361,77 @@ const CareerPathExplorer: React.FC = () => {
     return (
         <div className="career-path-page">
             <header className="page-header">
-                <div className="header-content">
+                <div className="header-row">
                     <button
                         className="back-btn"
                         onClick={() => navigate(-1)}
                         title="Quay lại"
                     >
-                        ← Quay lại
+                        <ArrowLeft size={18} />
+                        Quay lại
                     </button>
-                    <h1>🧭 Khám Phá Lộ Trình</h1>
-                </div>
-                <div className="tab-switcher">
-                    <button
-                        className={activeTab === 'explore' ? 'active' : ''}
-                        onClick={() => setActiveTab('explore')}
-                    >
-                        🔍 Khám phá
-                    </button>
-                    <button
-                        className={activeTab === 'roadmap' ? 'active' : ''}
-                        onClick={() => setActiveTab('roadmap')}
-                    >
-                        📊 Lộ trình của tôi
-                    </button>
+                    <div className="tab-switcher">
+                        <button
+                            className={activeTab === 'explore' ? 'active' : ''}
+                            onClick={() => setActiveTab('explore')}
+                        >
+                            <Search size={16} />
+                            Khám phá
+                        </button>
+                        <button
+                            className={activeTab === 'roadmap' ? 'active' : ''}
+                            onClick={() => setActiveTab('roadmap')}
+                        >
+                            <BarChart2 size={16} />
+                            Lộ trình của tôi
+                        </button>
+                    </div>
                 </div>
             </header>
 
             <main className="career-content">
                 {activeTab === 'explore' && overview && (
-                    <div className="explore-layout">
-                        <aside className="spec-list">
-                            {overview.specializations && overview.specializations.length > 0 ? (
-                                overview.specializations.map(spec => (
-                                    <SpecializationCard
-                                        key={spec.id}
-                                        spec={spec}
-                                        isSuggested={spec.code === overview.suggestedCode}
-                                        isSelected={selectedSpec?.id === spec.id}
-                                        onClick={() => setSelectedSpec(spec)}
+                    <>
+                        <h1 className="page-title">
+                            <Compass size={24} />
+                            Khám Phá Lộ Trình
+                        </h1>
+                        <div className="explore-layout">
+                            <aside className="spec-list">
+                                {overview.specializations && overview.specializations.length > 0 ? (
+                                    overview.specializations.map(spec => (
+                                        <SpecializationCard
+                                            key={spec.id}
+                                            spec={spec}
+                                            isSuggested={spec.code === overview.suggestedCode}
+                                            isSelected={selectedSpec?.id === spec.id}
+                                            onClick={() => setSelectedSpec(spec)}
+                                        />
+                                    ))
+                                ) : (
+                                    <div className="empty-specs">
+                                        <p>Chưa có chuyên ngành nào được thiết lập.</p>
+                                    </div>
+                                )}
+                            </aside>
+                            <section className="spec-content">
+                                {selectedSpec ? (
+                                    <SpecializationDetail
+                                        spec={selectedSpec}
+                                        suggestionReason={
+                                            selectedSpec.code === overview.suggestedCode
+                                                ? overview.suggestionReason
+                                                : null
+                                        }
                                     />
-                                ))
-                            ) : (
-                                <div className="empty-specs">
-                                    <p>Chưa có chuyên ngành nào được thiết lập.</p>
-                                </div>
-                            )}
-                        </aside>
-                        <section className="spec-content">
-                            {selectedSpec ? (
-                                <SpecializationDetail
-                                    spec={selectedSpec}
-                                    suggestionReason={
-                                        selectedSpec.code === overview.suggestedCode
-                                            ? overview.suggestionReason
-                                            : null
-                                    }
-                                />
-                            ) : (
-                                <div className="no-selection">
-                                    Chọn một chuyên ngành để xem chi tiết
-                                </div>
-                            )}
-                        </section>
-                    </div>
+                                ) : (
+                                    <div className="no-selection">
+                                        Chọn một chuyên ngành để xem chi tiết
+                                    </div>
+                                )}
+                            </section>
+                        </div>
+                    </>
                 )}
 
                 {activeTab === 'roadmap' && roadmap && (

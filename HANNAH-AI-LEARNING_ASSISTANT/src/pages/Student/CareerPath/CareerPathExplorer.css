@@ -7,15 +7,79 @@
     --cp-text-muted: var(--text-tertiary);
     --cp-accent: var(--accent-blue);
 
-    min-height: 100vh;
+    height: 100vh;
     background: var(--bg-gradient);
     color: var(--text-primary);
     padding: 24px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Dark theme - brighter text for better readability */
+[data-theme="dark"] .career-path-page {
+    --cp-text-primary: #f1f5f9;
+    --cp-text-secondary: #cbd5e1;
+    --cp-text-muted: #94a3b8;
+}
+
+[data-theme="dark"] .spec-card {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .spec-name {
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .spec-name-en {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .spec-stats .stat {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .spec-detail {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .detail-header h2 {
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .description {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .career-section h4,
+[data-theme="dark"] .curriculum-section h4 {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .semester-num {
+    color: #a5b4fc;
+}
+
+[data-theme="dark"] .subject-code {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .subject-name {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .subject-credits {
+    color: #94a3b8;
 }
 
 /* Override any conflicting global styles */
 .career-content {
-    display: block !important;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
 }
 
 /* Loading & Error States */
@@ -57,9 +121,11 @@
 }
 
 .error-box .error-icon {
-    font-size: 64px;
     margin-bottom: 16px;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a5b4fc;
 }
 
 .error-box h3 {
@@ -95,6 +161,9 @@
     font-weight: 500;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .error-box .btn-home:hover {
@@ -111,6 +180,9 @@
     cursor: pointer;
     font-size: 14px;
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .error-box .btn-retry:hover {
@@ -127,77 +199,118 @@
 /* Header */
 .page-header {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 16px;
+    margin-bottom: 2px;
+    width: 100%;
+    position: relative;
+    z-index: 10;
 }
 
-/* 🆕 Back button */
-.back-btn {
-    display: inline-flex;
+.header-row {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    background: transparent;
-    border: 1px solid var(--cp-card-border);
-    border-radius: 8px;
-    cursor: pointer;
-    margin-bottom: 0.5rem;
-    transition: all 0.2s ease;
+    flex-wrap: wrap;
+    gap: 12px;
+    width: 100%;
 }
 
-.back-btn:hover {
-    color: var(--cp-accent);
-    border-color: var(--cp-accent);
-    background: rgba(99, 102, 241, 0.05);
-}
-
-.header-content h1 {
-    font-size: 28px;
+.page-title {
+    font-size: 24px;
     font-weight: 700;
     background: linear-gradient(90deg, #a78bfa, #6366f1);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 4px;
+    margin: 0 0 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.subtitle {
-    color: var(--text-secondary);
+.page-title svg {
+    flex-shrink: 0;
+}
+
+/* Back button */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
     font-size: 14px;
-    margin: 0;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-secondary);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.back-btn:hover {
+    color: var(--cp-accent);
+    border-color: var(--cp-accent);
+    background: rgba(99, 102, 241, 0.08);
 }
 
 .tab-switcher {
     display: flex;
+    flex-direction: row;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 4px;
+    background: var(--bg-surface);
+    padding: 6px;
     border-radius: 12px;
+    border: 1px solid var(--border-secondary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .tab-switcher button {
     padding: 10px 20px;
-    border: none;
+    border: 1px solid rgba(99, 102, 241, 0.25);
     background: transparent;
     color: var(--text-secondary);
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
     font-size: 14px;
-    transition: all 0.2s;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.tab-switcher button .tab-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab-switcher button .tab-arrow {
+    display: none;
 }
 
 .tab-switcher button.active {
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: white;
+    border: 1px solid transparent;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+}
+
+.tab-switcher button.active svg {
+    color: white;
 }
 
 .tab-switcher button:hover:not(.active) {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    color: var(--text-primary);
+}
+
+.tab-switcher button:hover:not(.active) svg {
+    color: #6366f1;
 }
 
 /* Explore Layout */
@@ -205,7 +318,8 @@
     display: grid;
     grid-template-columns: 320px 1fr;
     gap: 24px;
-    min-height: calc(100vh - 180px);
+    flex: 1;
+    overflow: hidden;
 }
 
 @media (max-width: 900px) {
@@ -219,8 +333,23 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    overflow-y: auto;
+    width: 320px;
+    flex-shrink: 0;
     position: relative;
     z-index: 1;
+    padding-top: 2px;
+}
+
+/* Hide scrollbar for spec-list - Webkit */
+.spec-list::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for spec-list - Firefox/IE */
+.spec-list {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .spec-list h3 {
@@ -229,6 +358,22 @@
     letter-spacing: 1px;
     color: var(--text-secondary);
     margin: 0 0 8px 0;
+}
+
+/* Spec Content - Scrollable detail area */
+.spec-content {
+    overflow-y: auto;
+}
+
+/* Hide scrollbar for spec-content - Webkit */
+.spec-content::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for spec-content - Firefox/IE */
+.spec-content {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 /* Specialization Card */
@@ -241,6 +386,8 @@
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    flex-shrink: 0; /* Đảm bảo không bị co lại trong flex container */
+    width: 100%;
 }
 
 .spec-card:hover {
@@ -273,6 +420,9 @@
     color: #fbbf24;
     padding: 4px 8px;
     border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .spec-name {
@@ -320,12 +470,13 @@
 
 /* Specialization Detail */
 .spec-content {
+    margin-top: 2px;
     background: var(--bg-surface);
     border: 1px solid var(--border-secondary);
     border-radius: 16px;
-    padding: 24px;
+    padding: 20px;
     overflow-y: auto;
-    max-height: calc(100vh - 180px);
+    max-height: calc(100vh - 170px);
 }
 
 .detail-header h2 {
@@ -352,6 +503,14 @@
     padding: 12px 16px;
     border-radius: 8px;
     margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.suggestion-reason svg {
+    flex-shrink: 0;
+    margin-top: 2px;
 }
 
 /* Career Section */
@@ -501,7 +660,8 @@
 }
 
 .roadmap-header h2 {
-    font-size: 24px;
+    font-size: 28px;
+    font-weight: 700;
     margin-bottom: 8px;
 }
 
@@ -558,6 +718,9 @@
 .weak-subjects-alert h4 {
     color: #f87171;
     margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .weak-list {
@@ -632,6 +795,25 @@
     font-size: 12px;
     padding: 4px 8px;
     border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-badge .status-icon {
+    flex-shrink: 0;
+}
+
+.status-badge .status-icon.completed {
+    color: #34d399;
+}
+
+.status-badge .status-icon.current {
+    color: #6366f1;
+}
+
+.status-badge .status-icon.upcoming {
+    color: #6b7280;
 }
 
 .status-badge.completed {
@@ -719,8 +901,8 @@
 }
 
 .empty-milestones .empty-icon {
-    font-size: 48px;
     margin-bottom: 16px;
+    color: var(--text-tertiary);
 }
 
 .empty-milestones h4,
@@ -745,6 +927,9 @@
     cursor: pointer;
     font-size: 14px;
     transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .empty-milestones button:hover,
