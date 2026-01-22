@@ -9,12 +9,12 @@ const getHubUrl = (): string => {
     if (signalrUrl) {
         return `${signalrUrl}/hubs/realtime`;
     }
-    
+
     // In production, construct from current origin
     if (import.meta.env.PROD) {
         return `${window.location.origin}/hubs/realtime`;
     }
-    
+
     // Local development
     return 'http://localhost:5001/hubs/realtime';
 };
@@ -23,7 +23,7 @@ const REALTIME_HUB_URL = getHubUrl();
 
 console.log('[Realtime] Hub URL:', REALTIME_HUB_URL);
 
-export type RealtimeEventType = 
+export type RealtimeEventType =
     | 'FlagCreated'
     | 'FlagResolved'
     | 'FlagAssigned'
@@ -35,6 +35,10 @@ export type RealtimeEventType =
     | 'DocumentApproved'
     | 'DocumentRejected'
     | 'AnalyticsUpdated'
+    // 🆕 Studio generation events (from command handlers)
+    | 'QuizGenerated'
+    | 'FlashcardGenerated'
+    | 'MindmapGenerated'
     // Course Management events
     | 'SubjectAddedToSemester'
     | 'SubjectRemovedFromSemester'
@@ -125,7 +129,7 @@ class RealtimeService {
         } catch (error) {
             console.error('[Realtime] Connection failed:', error);
             this.isConnecting = false;
-            
+
             // Retry connection
             if (this.reconnectAttempts < this.maxReconnectAttempts) {
                 this.reconnectAttempts++;
@@ -166,6 +170,10 @@ class RealtimeService {
             'DocumentApproved',
             'DocumentRejected',
             'AnalyticsUpdated',
+            // 🆕 Studio generation events
+            'QuizGenerated',
+            'FlashcardGenerated',
+            'MindmapGenerated',
             // Course Management events
             'SubjectAddedToSemester',
             'SubjectRemovedFromSemester',
@@ -179,13 +187,23 @@ class RealtimeService {
         ];
 
         eventTypes.forEach(eventType => {
-            // Register lowercase version (SignalR JS receives methods as lowercase)
-            // Map back to PascalCase for our internal listeners
-            const lowercaseEvent = eventType.toLowerCase();
-            this.connection!.on(lowercaseEvent, (data: unknown) => {
-                console.log(`[Realtime] Received ${lowercaseEvent} -> ${eventType}:`, data);
+            // Register BOTH PascalCase (sent by .NET) and lowercase versions
+            // .NET SendAsync sends method name as-is (PascalCase)
+
+            // 1. Register PascalCase (primary - from .NET)
+            this.connection!.on(eventType, (data: unknown) => {
+                console.log(`[Realtime] Received ${eventType}:`, data);
                 this.notifyListeners(eventType, data);
             });
+
+            // 2. Also register lowercase (fallback compatibility)
+            const lowercaseEvent = eventType.toLowerCase();
+            if (lowercaseEvent !== eventType) {
+                this.connection!.on(lowercaseEvent, (data: unknown) => {
+                    console.log(`[Realtime] Received ${lowercaseEvent} -> ${eventType}:`, data);
+                    this.notifyListeners(eventType, data);
+                });
+            }
         });
     }
 
@@ -212,9 +230,9 @@ class RealtimeService {
         if (!this.eventListeners.has(eventType)) {
             this.eventListeners.set(eventType, new Set());
         }
-        
+
         this.eventListeners.get(eventType)!.add(callback as EventCallback);
-        
+
         // Return unsubscribe function
         return () => {
             this.eventListeners.get(eventType)?.delete(callback as EventCallback);
