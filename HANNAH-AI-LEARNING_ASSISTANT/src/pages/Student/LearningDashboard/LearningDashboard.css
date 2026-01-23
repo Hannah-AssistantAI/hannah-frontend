@@ -95,6 +95,14 @@
     flex-shrink: 0;
 }
 
+/* Wrapper để đảm bảo recommendations section không overlap */
+.learning-dashboard__recommendations-wrapper {
+    display: block;
+    width: 100%;
+    clear: both;
+    margin-top: 0;
+}
+
 .stat-item {
     text-align: center;
     padding: 1rem 1.5rem;

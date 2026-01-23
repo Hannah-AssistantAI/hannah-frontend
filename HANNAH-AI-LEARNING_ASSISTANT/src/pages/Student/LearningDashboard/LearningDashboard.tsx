@@ -705,8 +705,8 @@ const LearningDashboard: React.FC = () => {
         <div className="learning-dashboard">
             <div className="learning-dashboard__container">
                 {/* Header */}
-                <header className="learning-dashboard__header">
-                    <div className="learning-dashboard__header-left">
+                <header className="learning-dashboard__header" style={{ display: 'flex', marginBottom: '24px' }}>
+                    <div className="learning-dashboard__header-left" style={{ display: 'block' }}>
                         <button
                             className="learning-dashboard__back-btn"
                             onClick={() => navigate(-1)}
@@ -714,8 +714,8 @@ const LearningDashboard: React.FC = () => {
                         >
                             ← Quay lại
                         </button>
-                        <h1 className="learning-dashboard__title">📊 Learning Dashboard</h1>
-                        <p className="learning-dashboard__subtitle">
+                        <h1 className="learning-dashboard__title" style={{ display: 'block', marginBottom: '8px' }}>📊 Learning Dashboard</h1>
+                        <p className="learning-dashboard__subtitle" style={{ display: 'block', margin: 0 }}>
                             Học kỳ {dashboard.currentSemester}
                             {dashboard.specializationName && ` • ${dashboard.specializationName}`}
                         </p>
@@ -739,7 +739,9 @@ const LearningDashboard: React.FC = () => {
 
                 {/* 🆕 AI Recommendations - prominent for daily focus */}
                 {dashboard.userId && (
-                    <RecommendationsSection userId={dashboard.userId} />
+                    <div className="learning-dashboard__recommendations-wrapper" style={{ display: 'block', width: '100%', clear: 'both' }}>
+                        <RecommendationsSection userId={dashboard.userId} />
+                    </div>
                 )}
 
                 {/* Weak Topics */}
