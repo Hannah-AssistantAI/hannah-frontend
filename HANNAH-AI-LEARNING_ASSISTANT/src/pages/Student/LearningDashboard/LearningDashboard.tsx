@@ -1,6 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+    LayoutDashboard,
+    FileText,
+    BarChart3,
+    AlertTriangle,
+    Loader2,
+    CheckCircle2,
+    Eye,
+    Calendar,
+    ClipboardList,
+    Layers,
+    Brain,
+    ArrowLeft,
+    BookOpen
+} from 'lucide-react';
+import {
     learningDashboardService
 } from '../../../service/learningDashboardService';
 import type {
@@ -79,19 +94,19 @@ const SubjectCard: React.FC<SubjectCardProps> = ({ subject, onSelect }) => {
 
             <div className="subject-card__stats">
                 <div className="subject-card__stat">
-                    <span>📝</span>
+                    <ClipboardList size={14} />
                     <span>{subject.quizzesTaken} quizzes</span>
                 </div>
                 {/* 🆕 Document tracking display */}
                 {(subject.totalDocuments ?? 0) > 0 && (
                     <div className="subject-card__stat">
-                        <span>📄</span>
+                        <FileText size={14} />
                         <span>{subject.viewedDocuments ?? 0}/{subject.totalDocuments} tài liệu</span>
                     </div>
                 )}
                 {subject.averageQuizScore !== null && (
                     <div className="subject-card__stat">
-                        <span>📊</span>
+                        <BarChart3 size={14} />
                         <span>{subject.averageQuizScore.toFixed(0)}% avg</span>
                     </div>
                 )}
@@ -110,7 +125,7 @@ const WeakTopicsSection: React.FC<WeakTopicsSectionProps> = ({ topics }) => {
     return (
         <div className="weak-topics-section">
             <h2 className="section-title">
-                <span className="section-title__icon">⚠️</span>
+                <AlertTriangle size={18} className="section-title__icon" />
                 Chủ đề cần cải thiện
             </h2>
             <div className="weak-topics-list">
@@ -206,11 +221,11 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ subjectId }) => {
     };
 
     if (isLoading) {
-        return <div className="documents-section"><p>⏳ Đang tải tài liệu...</p></div>;
+        return <div className="documents-section"><p><Loader2 size={14} className="animate-spin" style={{ display: 'inline', marginRight: 6 }} />Đang tải tài liệu...</p></div>;
     }
 
     if (documents.length === 0) {
-        return <div className="documents-section"><p style={{ color: 'var(--text-muted)' }}>📄 Chưa có tài liệu nào</p></div>;
+        return <div className="documents-section"><p style={{ color: 'var(--text-muted)' }}><FileText size={14} style={{ display: 'inline', marginRight: 6 }} />Chưa có tài liệu nào</p></div>;
     }
 
     const viewedCount = documents.filter(d => d.isViewed).length;
@@ -221,7 +236,8 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ subjectId }) => {
         <div className="documents-section">
             <div className="documents-section__header">
                 <h3 className="documents-section__title">
-                    📄 Tài liệu ({viewedCount}/{documents.length} đã xem, {completedCount} hoàn thành)
+                    <FileText size={16} style={{ display: 'inline', marginRight: 6 }} />
+                    Tài liệu ({viewedCount}/{documents.length} đã xem, {completedCount} hoàn thành)
                 </h3>
                 {!allCompleted && (
                     <button
@@ -229,7 +245,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ subjectId }) => {
                         onClick={handleMarkAllCompleted}
                         disabled={updatingDocId === -1}
                     >
-                        {updatingDocId === -1 ? '⏳ Đang xử lý...' : '✅ Đánh dấu tất cả hoàn thành'}
+                        {updatingDocId === -1 ? <><Loader2 size={14} className="animate-spin" /> Đang xử lý...</> : <><CheckCircle2 size={14} /> Đánh dấu tất cả hoàn thành</>}
                     </button>
                 )}
             </div>
@@ -240,17 +256,17 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ subjectId }) => {
                             <span className="document-item__title">
                                 {doc.title}
                                 {doc.needsReview && (
-                                    <span className="document-item__warning" title="Cần ôn lại - điểm quiz thấp">⚠️</span>
+                                    <span className="document-item__warning" title="Cần ôn lại - điểm quiz thấp"><AlertTriangle size={14} /></span>
                                 )}
                             </span>
                             {doc.linkedSessions && (
-                                <span className="document-item__sessions">📅 Sessions: {doc.linkedSessions}</span>
+                                <span className="document-item__sessions"><Calendar size={12} /> Sessions: {doc.linkedSessions}</span>
                             )}
                             {(doc.quizzesCreated > 0 || doc.flashcardsCreated > 0 || doc.mindmapsCreated > 0) && (
                                 <span className="document-item__stats">
-                                    {doc.quizzesCreated > 0 && `📝${doc.quizzesCreated}`}
-                                    {doc.flashcardsCreated > 0 && ` 🃏${doc.flashcardsCreated}`}
-                                    {doc.mindmapsCreated > 0 && ` 🧠${doc.mindmapsCreated}`}
+                                    {doc.quizzesCreated > 0 && <><ClipboardList size={12} />{doc.quizzesCreated}</>}
+                                    {doc.flashcardsCreated > 0 && <> <Layers size={12} />{doc.flashcardsCreated}</>}
+                                    {doc.mindmapsCreated > 0 && <> <Brain size={12} />{doc.mindmapsCreated}</>}
                                 </span>
                             )}
                         </div>
@@ -260,14 +276,14 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ subjectId }) => {
                                 onClick={() => !doc.isViewed && handleMarkViewed(doc.documentId)}
                                 disabled={doc.isViewed || updatingDocId === doc.documentId}
                             >
-                                👁 Đã xem
+                                <Eye size={14} /> Đã xem
                             </button>
                             <button
                                 className={`document-checkbox ${doc.isCompleted ? 'document-checkbox--checked' : ''}`}
                                 onClick={() => !doc.isCompleted && handleMarkCompleted(doc.documentId)}
                                 disabled={doc.isCompleted || updatingDocId === doc.documentId}
                             >
-                                ✅ Hoàn thành
+                                <CheckCircle2 size={14} /> Hoàn thành
                             </button>
                         </div>
                     </div>
@@ -690,7 +706,7 @@ const LearningDashboard: React.FC = () => {
             <div className="learning-dashboard">
                 <div className="learning-dashboard__container">
                     <div className="empty-state">
-                        <div className="empty-state__icon">📚</div>
+                        <div className="empty-state__icon"><BookOpen size={48} /></div>
                         <h2 className="empty-state__title">Chưa có môn học nào</h2>
                         <p className="empty-state__text">
                             Upload bảng điểm để xem tiến độ học tập của bạn
@@ -711,7 +727,7 @@ const LearningDashboard: React.FC = () => {
                         onClick={() => navigate(-1)}
                         title="Quay lại"
                     >
-                        ← Quay lại
+                        <ArrowLeft size={16} /> Quay lại
                     </button>
 
                     <div className="learning-dashboard__stats">
@@ -732,7 +748,7 @@ const LearningDashboard: React.FC = () => {
 
                 {/* Title Block - riêng biệt, nằm dưới topbar */}
                 <div className="learning-dashboard__title-block">
-                    <h1 className="learning-dashboard__title">📊 Learning Dashboard</h1>
+                    <h1 className="learning-dashboard__title"><LayoutDashboard size={28} /> Learning Dashboard</h1>
                     <p className="learning-dashboard__subtitle">
                         Học kỳ {dashboard.currentSemester}
                         {dashboard.specializationName && ` • ${dashboard.specializationName}`}
