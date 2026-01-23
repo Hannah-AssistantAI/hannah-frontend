@@ -311,9 +311,9 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ subjectId, sessions
 
     if (isLoading) {
         return (
-            <div className="analytics-section analytics-section--loading">
-                <div className="loading-spinner__icon" />
-                <p>Đang tải phân tích...</p>
+            <div className="analytics-section ld-analytics-section--loading">
+                <div className="ld-page-loader__spinner" />
+                <span className="ld-page-loader__text">Đang tải phân tích...</span>
             </div>
         );
     }
@@ -650,10 +650,10 @@ const LearningDashboard: React.FC = () => {
     // Render loading
     if (isLoading) {
         return (
-            <div className="learning-dashboard">
-                <div className="loading-spinner">
-                    <div className="loading-spinner__icon" />
-                    <p>Đang tải dashboard...</p>
+            <div className="learning-dashboard learning-dashboard--loading">
+                <div className="ld-page-loader">
+                    <div className="ld-page-loader__spinner" />
+                    <span className="ld-page-loader__text">Đang tải dashboard...</span>
                 </div>
             </div>
         );
