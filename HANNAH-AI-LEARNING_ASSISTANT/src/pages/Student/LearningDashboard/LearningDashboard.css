@@ -32,8 +32,6 @@
 .learning-dashboard__container {
     max-width: 1400px;
     margin: 0 auto;
-    display: block;
-    position: relative;
 }
 
 /* ============ Header ============ */
@@ -43,19 +41,11 @@
     align-items: flex-start;
     margin-bottom: 24px;
     flex-wrap: wrap;
-    gap: 1rem;
-    width: 100%;
-    position: relative;
-    z-index: 1;
-    clear: both;
+    gap: 16px;
 }
 
 .learning-dashboard__header-left {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    flex: 1;
-    min-width: 0;
+    display: block;
 }
 
 /* 🆕 Back button */
@@ -70,7 +60,7 @@
     border: 1px solid var(--card-border);
     border-radius: 8px;
     cursor: pointer;
-    margin-bottom: 0.5rem;
+    margin-bottom: 8px;
     transition: all 0.2s ease;
 }
 
@@ -81,24 +71,28 @@
 }
 
 .learning-dashboard__title {
-    font-size: 2rem;
+    display: block;
+    font-size: 1.75rem;
     font-weight: 700;
     background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin: 0;
+    margin: 0 0 8px 0;
 }
 
 .learning-dashboard__subtitle {
+    display: block;
     color: var(--text-secondary);
-    font-size: 1rem;
-    margin-top: 0.5rem;
+    font-size: 0.95rem;
+    margin: 0;
+    padding-bottom: 0;
 }
 
 .learning-dashboard__stats {
     display: flex;
-    gap: 1.5rem;
+    gap: 1rem;
+    flex-shrink: 0;
 }
 
 .stat-item {
