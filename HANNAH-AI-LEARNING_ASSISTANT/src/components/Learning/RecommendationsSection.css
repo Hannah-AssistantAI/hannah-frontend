@@ -2,11 +2,14 @@
     background: var(--bg-surface, #ffffff);
     border-radius: 16px;
     padding: 20px;
+    margin-top: 0;
     margin-bottom: 20px;
     border: 1px solid var(--border-secondary, #e2e8f0);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     width: 100%;
     box-sizing: border-box;
+    position: relative;
+    clear: both;
 }
 
 /* Dark theme override */

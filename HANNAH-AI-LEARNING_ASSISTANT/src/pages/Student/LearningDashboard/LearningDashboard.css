@@ -32,9 +32,8 @@
 .learning-dashboard__container {
     max-width: 1400px;
     margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
+    display: block;
+    position: relative;
 }
 
 /* ============ Header ============ */
@@ -42,10 +41,21 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 1.5rem;
+    margin-bottom: 24px;
     flex-wrap: wrap;
     gap: 1rem;
     width: 100%;
+    position: relative;
+    z-index: 1;
+    clear: both;
+}
+
+.learning-dashboard__header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    flex: 1;
+    min-width: 0;
 }
 
 /* 🆕 Back button */

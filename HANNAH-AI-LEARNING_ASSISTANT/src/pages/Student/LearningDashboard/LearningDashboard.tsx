@@ -514,6 +514,22 @@ const SessionModal: React.FC<SessionModalProps> = ({
 
 // ============ Main Component ============
 
+// 🔧 DEV MODE: Set to true to use mock data for testing UI locally
+const DEV_USE_MOCK_DATA = false; // ← Change to true to test with mock data
+
+const MOCK_DASHBOARD: LearningDashboardType = {
+    userId: 1,
+    totalSubjects: 3,
+    currentSemester: 4,
+    specializationName: 'Backend .NET Developer',
+    lastUpdated: new Date().toISOString(),
+    subjects: [
+        { subjectId: 1, subjectCode: 'SSG104', subjectName: 'Communication and In-Group Working Skills_Kỹ năng giao tiếp và cộng tác', totalSessions: 3, completedSessions: 0, inProgressSessions: 0, completionPercentage: 0, currentWeek: 1, quizzesTaken: 0, averageQuizScore: null },
+        { subjectId: 2, subjectCode: 'JPD123', subjectName: 'Elementary Japanese 1-A1.2_Tiếng Nhật sơ cấp 1-A1.2', totalSessions: 4, completedSessions: 0, inProgressSessions: 0, completionPercentage: 0, currentWeek: 1, quizzesTaken: 8, averageQuizScore: null },
+        { subjectId: 3, subjectCode: 'PRJ301', subjectName: 'Java Web Application Development_Phát triển ứng dụng Java web', totalSessions: 56, completedSessions: 5, inProgressSessions: 1, completionPercentage: 9, currentWeek: 5, quizzesTaken: 16, averageQuizScore: 33 },
+    ]
+};
+
 const LearningDashboard: React.FC = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -536,6 +552,15 @@ const LearningDashboard: React.FC = () => {
     const fetchDashboard = useCallback(async () => {
         try {
             setIsLoading(true);
+
+            // 🔧 DEV: Use mock data for testing
+            if (DEV_USE_MOCK_DATA) {
+                await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
+                setDashboard(MOCK_DASHBOARD);
+                setWeakTopics([]);
+                return;
+            }
+
             const data = await learningDashboardService.getDashboard();
             setDashboard(data);
 
@@ -681,7 +706,7 @@ const LearningDashboard: React.FC = () => {
             <div className="learning-dashboard__container">
                 {/* Header */}
                 <header className="learning-dashboard__header">
-                    <div>
+                    <div className="learning-dashboard__header-left">
                         <button
                             className="learning-dashboard__back-btn"
                             onClick={() => navigate(-1)}
