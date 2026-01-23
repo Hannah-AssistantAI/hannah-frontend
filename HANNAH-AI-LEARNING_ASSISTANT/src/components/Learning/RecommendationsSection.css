@@ -1,9 +1,19 @@
 .recommendations-section {
-    background: var(--card-bg, #1a1a2e);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 16px;
-    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    background: var(--bg-surface, #ffffff);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-secondary, #e2e8f0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Dark theme override */
+[data-theme="dark"] .recommendations-section {
+    background: var(--bg-surface, #1e293b);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
 }
 
 .recommendations-section--loading,
@@ -12,8 +22,9 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    color: var(--text-secondary, #888);
+    color: var(--text-secondary, #64748b);
     padding: 24px;
+    min-height: 80px;
 }
 
 .rec-loader {
@@ -54,10 +65,14 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
-    color: var(--text-primary, #fff);
+    color: var(--text-primary, #1e293b);
     margin: 0;
+}
+
+[data-theme="dark"] .recommendations-title {
+    color: #f1f5f9;
 }
 
 .rec-emoji {
@@ -67,16 +82,21 @@
 .rec-refresh-btn {
     background: none;
     border: none;
-    color: var(--text-secondary, #888);
+    color: var(--text-secondary, #64748b);
     cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
+    padding: 6px;
+    border-radius: 6px;
     transition: all 0.2s;
 }
 
 .rec-refresh-btn:hover {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--accent-blue, #6366f1);
+}
+
+[data-theme="dark"] .rec-refresh-btn:hover {
     background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary, #fff);
+    color: #f1f5f9;
 }
 
 .recommendations-list {
@@ -87,30 +107,43 @@
 
 .rec-card {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 8px;
+    padding: 14px;
+    background: var(--bg-surface-secondary, #f8fafc);
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s;
     border: 1px solid transparent;
 }
 
+[data-theme="dark"] .rec-card {
+    background: rgba(255, 255, 255, 0.05);
+}
+
 .rec-card:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(99, 102, 241, 0.08);
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+[data-theme="dark"] .rec-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 .rec-card__icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.05);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(99, 102, 241, 0.1);
     flex-shrink: 0;
+}
+
+[data-theme="dark"] .rec-card__icon {
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .rec-icon--warning {
@@ -169,19 +202,24 @@
 }
 
 .rec-card__title {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
-    color: var(--text-primary, #fff);
-    margin-bottom: 2px;
+    color: var(--text-primary, #1e293b);
+    margin-bottom: 4px;
+}
+
+[data-theme="dark"] .rec-card__title {
+    color: #f1f5f9;
 }
 
 .rec-card__message {
-    font-size: 12px;
-    color: var(--text-secondary, #888);
-    line-height: 1.4;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 13px;
+    color: var(--text-secondary, #64748b);
+    line-height: 1.5;
+}
+
+[data-theme="dark"] .rec-card__message {
+    color: #94a3b8;
 }
 
 .rec-card__arrow {

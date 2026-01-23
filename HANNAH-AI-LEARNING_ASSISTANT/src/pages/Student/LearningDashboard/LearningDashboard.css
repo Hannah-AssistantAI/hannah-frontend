@@ -32,6 +32,9 @@
 .learning-dashboard__container {
     max-width: 1400px;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
 }
 
 /* ============ Header ============ */
@@ -39,9 +42,10 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     flex-wrap: wrap;
     gap: 1rem;
+    width: 100%;
 }
 
 /* 🆕 Back button */
