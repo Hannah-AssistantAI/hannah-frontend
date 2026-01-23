@@ -515,7 +515,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
 // ============ Main Component ============
 
 // 🔧 DEV MODE: Set to true to use mock data for testing UI locally
-const DEV_USE_MOCK_DATA = false; // ← Change to true to test with mock data
+const DEV_USE_MOCK_DATA = false;
 
 const MOCK_DASHBOARD: LearningDashboardType = {
     userId: 1,
@@ -704,22 +704,15 @@ const LearningDashboard: React.FC = () => {
     return (
         <div className="learning-dashboard">
             <div className="learning-dashboard__container">
-                {/* Header */}
-                <header className="learning-dashboard__header" style={{ display: 'flex', marginBottom: '24px' }}>
-                    <div className="learning-dashboard__header-left" style={{ display: 'block' }}>
-                        <button
-                            className="learning-dashboard__back-btn"
-                            onClick={() => navigate(-1)}
-                            title="Quay lại"
-                        >
-                            ← Quay lại
-                        </button>
-                        <h1 className="learning-dashboard__title" style={{ display: 'block', marginBottom: '8px' }}>📊 Learning Dashboard</h1>
-                        <p className="learning-dashboard__subtitle" style={{ display: 'block', margin: 0 }}>
-                            Học kỳ {dashboard.currentSemester}
-                            {dashboard.specializationName && ` • ${dashboard.specializationName}`}
-                        </p>
-                    </div>
+                {/* Top Bar: Back button + Stats */}
+                <div className="learning-dashboard__topbar">
+                    <button
+                        className="learning-dashboard__back-btn"
+                        onClick={() => navigate(-1)}
+                        title="Quay lại"
+                    >
+                        ← Quay lại
+                    </button>
 
                     <div className="learning-dashboard__stats">
                         <div className="stat-item">
@@ -735,13 +728,20 @@ const LearningDashboard: React.FC = () => {
                             <div className="stat-item__label">Cần cải thiện</div>
                         </div>
                     </div>
-                </header>
+                </div>
 
-                {/* 🆕 AI Recommendations - prominent for daily focus */}
+                {/* Title Block - riêng biệt, nằm dưới topbar */}
+                <div className="learning-dashboard__title-block">
+                    <h1 className="learning-dashboard__title">📊 Learning Dashboard</h1>
+                    <p className="learning-dashboard__subtitle">
+                        Học kỳ {dashboard.currentSemester}
+                        {dashboard.specializationName && ` • ${dashboard.specializationName}`}
+                    </p>
+                </div>
+
+                {/* 🆕 AI Recommendations */}
                 {dashboard.userId && (
-                    <div className="learning-dashboard__recommendations-wrapper" style={{ display: 'block', width: '100%', clear: 'both' }}>
-                        <RecommendationsSection userId={dashboard.userId} />
-                    </div>
+                    <RecommendationsSection userId={dashboard.userId} />
                 )}
 
                 {/* Weak Topics */}
