@@ -1,4 +1,5 @@
 import React from 'react';
+import { ClipboardList, TrendingUp, Target, Circle } from 'lucide-react';
 import './QuizScoreTrend.css';
 
 interface QuizAttempt {
@@ -27,7 +28,7 @@ const QuizScoreTrend: React.FC<QuizScoreTrendProps> = ({
     if (!attempts || attempts.length === 0) {
         return (
             <div className="quiz-score-trend quiz-score-trend--empty">
-                <div className="quiz-score-trend__empty-icon">📝</div>
+                <div className="quiz-score-trend__empty-icon"><ClipboardList size={40} /></div>
                 <p>Chưa có lịch sử quiz</p>
                 <span>Làm quiz để xem tiến độ của bạn</span>
             </div>
@@ -80,13 +81,18 @@ const QuizScoreTrend: React.FC<QuizScoreTrendProps> = ({
     return (
         <div className="quiz-score-trend">
             <div className="quiz-score-trend__header">
-                <h3 className="quiz-score-trend__title">📈 Xu hướng điểm Quiz</h3>
+                <h3 className="quiz-score-trend__title">
+                    <TrendingUp size={18} style={{ display: 'inline', marginRight: 8 }} />
+                    Xu hướng điểm Quiz
+                </h3>
                 <div className="quiz-score-trend__stats">
                     <span className="quiz-score-trend__stat">
-                        🎯 TB: <strong style={{ color: getScoreColor(avgScore) }}>{avgScore.toFixed(0)}%</strong>
+                        <Target size={14} style={{ display: 'inline', marginRight: 4 }} />
+                        TB: <strong style={{ color: getScoreColor(avgScore) }}>{avgScore.toFixed(0)}%</strong>
                     </span>
                     <span className="quiz-score-trend__stat">
-                        📝 {sortedAttempts.length} quiz
+                        <ClipboardList size={14} style={{ display: 'inline', marginRight: 4 }} />
+                        {sortedAttempts.length} quiz
                     </span>
                 </div>
             </div>
@@ -193,13 +199,19 @@ const QuizScoreTrend: React.FC<QuizScoreTrendProps> = ({
             {/* Legend */}
             <div className="quiz-score-trend__legend">
                 <span className="quiz-score-trend__legend-item">
-                    <span style={{ color: '#22c55e' }}>●</span> ≥80% Xuất sắc
+                    <span style={{ display: 'inline-flex', alignItems: 'center', color: '#22c55e', marginRight: 4 }}>
+                        <Circle size={8} fill="currentColor" />
+                    </span> ≥80% Xuất sắc
                 </span>
                 <span className="quiz-score-trend__legend-item">
-                    <span style={{ color: '#eab308' }}>●</span> ≥60% Đạt
+                    <span style={{ display: 'inline-flex', alignItems: 'center', color: '#eab308', marginRight: 4 }}>
+                        <Circle size={8} fill="currentColor" />
+                    </span> ≥60% Đạt
                 </span>
                 <span className="quiz-score-trend__legend-item">
-                    <span style={{ color: '#ef4444' }}>●</span> &lt;60% Cần cải thiện
+                    <span style={{ display: 'inline-flex', alignItems: 'center', color: '#ef4444', marginRight: 4 }}>
+                        <Circle size={8} fill="currentColor" />
+                    </span> &lt;60% Cần cải thiện
                 </span>
             </div>
         </div>

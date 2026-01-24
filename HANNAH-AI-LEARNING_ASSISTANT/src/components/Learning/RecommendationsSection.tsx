@@ -9,8 +9,9 @@ import {
     Loader2,
     RefreshCw,
     Play,
-    Zap,  // 🆕 For quick action buttons
-    Brain  // 🆕 For KNOWLEDGE_GAP
+    Zap,
+    Brain,
+    Sparkles
 } from 'lucide-react';
 import './RecommendationsSection.css';
 
@@ -182,7 +183,7 @@ const RecommendationsSection = ({ userId, onActionClick, onGenerateFlashcard }: 
         <div className="recommendations-section">
             <div className="recommendations-header">
                 <h3 className="recommendations-title">
-                    <span className="rec-emoji">🤖</span>
+                    <Sparkles size={18} className="rec-ai-icon" />
                     AI Gợi ý học tập
                 </h3>
                 <button onClick={loadRecommendations} className="rec-refresh-btn" title="Làm mới">

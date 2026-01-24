@@ -13,7 +13,10 @@ import {
     Layers,
     Brain,
     ArrowLeft,
-    BookOpen
+    BookOpen,
+    Target,
+    Save,
+    Check
 } from 'lucide-react';
 import {
     learningDashboardService
@@ -336,7 +339,7 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ subjectId, sessions
 
     return (
         <div className="analytics-section">
-            <h3 className="analytics-section__title">📊 Phân tích tiến độ</h3>
+            <h3 className="analytics-section__title"><BarChart3 size={18} /> Phân tích tiến độ</h3>
 
             {/* Session Timeline */}
             <SessionTimeline
@@ -388,7 +391,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
     // 🆕 Handler for generating flashcards from weak topic recommendations
     const handleGenerateFlashcard = async (topicName: string, subjectCode: string) => {
         // For now, show a success message - can be connected to actual flashcard API later
-        toast.success(`🎴 Tạo flashcard cho: ${topicName}`);
+        toast.success(`Tạo flashcard cho: ${topicName}`);
         // TODO: Connect to actual flashcard generation API
         // await flashcardService.generateForTopic(topicName, subjectCode);
     };
@@ -434,7 +437,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
                     <div className="sessions-section">
                         <div className="sessions-section__header">
                             <h3 className="sessions-section__title">
-                                📚 Sessions ({sessionsData.completedCount}/{sessionsData.totalSessions} hoàn thành)
+                                <BookOpen size={18} /> Sessions ({sessionsData.completedCount}/{sessionsData.totalSessions} hoàn thành)
                             </h3>
                             {sessionsData.completedCount < sessionsData.totalSessions && (
                                 <button
@@ -447,7 +450,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
                                         });
                                     }}
                                 >
-                                    ✅ Đánh dấu tất cả hoàn thành
+                                    <CheckCircle2 size={14} /> Đánh dấu tất cả hoàn thành
                                 </button>
                             )}
                         </div>
@@ -457,7 +460,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
                                 className={`session-item ${getSessionStatusClass(session.status)}`}
                             >
                                 <div className="session-item__number">
-                                    {session.status === 'completed' ? '✓' : session.sessionNumber}
+                                    {session.status === 'completed' ? <Check size={14} strokeWidth={3} /> : session.sessionNumber}
                                 </div>
 
                                 <div className="session-item__content">
@@ -471,11 +474,11 @@ const SessionModal: React.FC<SessionModalProps> = ({
                                     {(session.quizCount > 0 || session.quizCompleted) && (
                                         <div className="session-item__quiz-metrics">
                                             {session.quizCount > 0 && (
-                                                <span className="quiz-badge">📝 {session.quizCount} quiz</span>
+                                                <span className="quiz-badge"><ClipboardList size={12} /> {session.quizCount} quiz</span>
                                             )}
                                             {session.quizCompleted && session.quizScore !== null && (
                                                 <span className={`quiz-score ${session.quizScore >= 60 ? 'quiz-score--pass' : 'quiz-score--fail'}`}>
-                                                    🎯 {session.quizScore}%
+                                                    <Target size={12} /> {session.quizScore}%
                                                 </span>
                                             )}
                                         </div>
@@ -485,7 +488,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
                                 {/* 🆕 Phase 2: Warning badge for sessions needing review */}
                                 {session.needsReview && (
                                     <div className="session-item__warning" title="Điểm quiz dưới 50% - cần ôn lại">
-                                        ⚠️ Cần ôn lại
+                                        <AlertTriangle size={14} /> Cần ôn lại
                                     </div>
                                 )}
 
@@ -494,13 +497,13 @@ const SessionModal: React.FC<SessionModalProps> = ({
                                         className={`session-checkbox ${session.materialsRead ? 'session-checkbox--checked' : ''}`}
                                         onClick={() => onUpdateSession(session.sessionNumber, 'materialsRead', !session.materialsRead)}
                                     >
-                                        📖 Đã đọc
+                                        <BookOpen size={14} /> Đã đọc
                                     </button>
                                     <button
                                         className={`session-checkbox ${session.tasksCompleted ? 'session-checkbox--checked' : ''}`}
                                         onClick={() => onUpdateSession(session.sessionNumber, 'tasksCompleted', !session.tasksCompleted)}
                                     >
-                                        ✅ Hoàn thành
+                                        <CheckCircle2 size={14} /> Hoàn thành
                                     </button>
                                 </div>
                             </div>
@@ -519,7 +522,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
                             onClick={onSaveAll}
                             disabled={isSaving}
                         >
-                            {isSaving ? '⏳ Đang lưu...' : '💾 Lưu thay đổi'}
+                            {isSaving ? <><Loader2 size={14} className="animate-spin" /> Đang lưu...</> : <><Save size={14} /> Lưu thay đổi</>}
                         </button>
                     </div>
                 )}
@@ -748,7 +751,7 @@ const LearningDashboard: React.FC = () => {
 
                 {/* Title Block - riêng biệt, nằm dưới topbar */}
                 <div className="learning-dashboard__title-block">
-                    <h1 className="learning-dashboard__title"><LayoutDashboard size={28} /> Learning Dashboard</h1>
+                    <h1 className="learning-dashboard__title">Learning Dashboard</h1>
                     <p className="learning-dashboard__subtitle">
                         Học kỳ {dashboard.currentSemester}
                         {dashboard.specializationName && ` • ${dashboard.specializationName}`}

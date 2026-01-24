@@ -1,4 +1,5 @@
 import React from 'react';
+import { Radar, Circle } from 'lucide-react';
 import type { CLOProgress } from '../../service/learningDashboardService';
 import './CLORadarChart.css';
 
@@ -58,7 +59,10 @@ const CLORadarChart: React.FC<CLORadarChartProps> = ({ clos, size = 280 }) => {
     return (
         <div className="clo-radar-chart">
             <div className="clo-radar-chart__header">
-                <h3 className="clo-radar-chart__title">📊 Tiến độ CLO</h3>
+                <h3 className="clo-radar-chart__title">
+                    <Radar size={18} style={{ display: 'inline', marginRight: 8 }} />
+                    Tiến độ CLO
+                </h3>
                 <span
                     className="clo-radar-chart__average"
                     style={{ color: getProgressColor(avgProgress) }}
@@ -149,10 +153,18 @@ const CLORadarChart: React.FC<CLORadarChartProps> = ({ clos, size = 280 }) => {
 
             {/* Legend */}
             <div className="clo-radar-chart__legend">
-                <span className="clo-radar-chart__legend-item clo-radar-chart__legend-item--high">● ≥80%</span>
-                <span className="clo-radar-chart__legend-item clo-radar-chart__legend-item--medium">● ≥50%</span>
-                <span className="clo-radar-chart__legend-item clo-radar-chart__legend-item--low">● ≥20%</span>
-                <span className="clo-radar-chart__legend-item clo-radar-chart__legend-item--none">● &lt;20%</span>
+                <span className="clo-radar-chart__legend-item clo-radar-chart__legend-item--high">
+                    <Circle size={8} fill="#22c55e" stroke="none" style={{ marginRight: 4 }} /> ≥80%
+                </span>
+                <span className="clo-radar-chart__legend-item clo-radar-chart__legend-item--medium">
+                    <Circle size={8} fill="#eab308" stroke="none" style={{ marginRight: 4 }} /> ≥50%
+                </span>
+                <span className="clo-radar-chart__legend-item clo-radar-chart__legend-item--low">
+                    <Circle size={8} fill="#f97316" stroke="none" style={{ marginRight: 4 }} /> ≥20%
+                </span>
+                <span className="clo-radar-chart__legend-item clo-radar-chart__legend-item--none">
+                    <Circle size={8} fill="#ef4444" stroke="none" style={{ marginRight: 4 }} /> &lt;20%
+                </span>
             </div>
         </div>
     );

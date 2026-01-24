@@ -77,8 +77,8 @@
     color: #f1f5f9;
 }
 
-.rec-emoji {
-    font-size: 16px;
+.rec-ai-icon {
+    color: var(--accent-purple, #8b5cf6);
 }
 
 .rec-refresh-btn {

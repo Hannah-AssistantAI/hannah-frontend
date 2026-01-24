@@ -1,4 +1,5 @@
 import React from 'react';
+import { Calendar, Check, Circle, AlertTriangle, Target } from 'lucide-react';
 import './SessionTimeline.css';
 
 interface SessionProgress {
@@ -50,9 +51,9 @@ const SessionTimeline: React.FC<SessionTimelineProps> = ({
     // Get icon for status
     const getStatusIcon = (status: string) => {
         switch (status) {
-            case 'completed': return '✓';
-            case 'in_progress': return '●';
-            default: return '○';
+            case 'completed': return <Check size={12} strokeWidth={3} />;
+            case 'in_progress': return <Circle size={8} fill="currentColor" strokeWidth={0} />;
+            default: return <Circle size={8} strokeWidth={2} />;
         }
     };
 
@@ -63,7 +64,10 @@ const SessionTimeline: React.FC<SessionTimelineProps> = ({
     return (
         <div className="session-timeline">
             <div className="session-timeline__header">
-                <h3 className="session-timeline__title">📅 Lộ trình học tập</h3>
+                <h3 className="session-timeline__title">
+                    <Calendar size={18} style={{ display: 'inline', marginRight: 8 }} />
+                    Lộ trình học tập
+                </h3>
                 <div className="session-timeline__progress">
                     <span className="session-timeline__progress-text">
                         {completedCount}/{totalSessions} sessions
@@ -105,7 +109,7 @@ const SessionTimeline: React.FC<SessionTimelineProps> = ({
                             >
                                 <div className="session-timeline__node-circle">
                                     {session.needsReview ? (
-                                        <span className="session-timeline__warning">⚠️</span>
+                                        <AlertTriangle size={12} />
                                     ) : (
                                         getStatusIcon(status)
                                     )}
@@ -125,7 +129,7 @@ const SessionTimeline: React.FC<SessionTimelineProps> = ({
                                     {session.quizCompleted && session.quizScore != null && (
                                         <span className={`session-timeline__node-score ${session.quizScore >= 60 ? 'session-timeline__node-score--pass' : 'session-timeline__node-score--fail'
                                             }`}>
-                                            🎯 {session.quizScore}%
+                                            <Target size={12} /> {session.quizScore}%
                                         </span>
                                     )}
                                 </div>
@@ -138,19 +142,27 @@ const SessionTimeline: React.FC<SessionTimelineProps> = ({
             {/* Legend */}
             <div className="session-timeline__legend">
                 <span className="session-timeline__legend-item">
-                    <span className="session-timeline__legend-dot session-timeline__legend-dot--completed">✓</span>
+                    <span className="session-timeline__legend-dot session-timeline__legend-dot--completed">
+                        <Check size={10} strokeWidth={3} />
+                    </span>
                     Hoàn thành
                 </span>
                 <span className="session-timeline__legend-item">
-                    <span className="session-timeline__legend-dot session-timeline__legend-dot--in-progress">●</span>
+                    <span className="session-timeline__legend-dot session-timeline__legend-dot--in-progress">
+                        <Circle size={6} fill="currentColor" strokeWidth={0} />
+                    </span>
                     Đang học
                 </span>
                 <span className="session-timeline__legend-item">
-                    <span className="session-timeline__legend-dot session-timeline__legend-dot--not-started">○</span>
+                    <span className="session-timeline__legend-dot session-timeline__legend-dot--not-started">
+                        <Circle size={6} strokeWidth={2} />
+                    </span>
                     Chưa học
                 </span>
                 <span className="session-timeline__legend-item">
-                    <span className="session-timeline__legend-dot session-timeline__legend-dot--warning">⚠️</span>
+                    <span className="session-timeline__legend-dot session-timeline__legend-dot--warning">
+                        <AlertTriangle size={10} />
+                    </span>
                     Cần ôn lại
                 </span>
             </div>
