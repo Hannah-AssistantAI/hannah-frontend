@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { studioService } from '../../../service/studioService'
 import type { StudioItem } from '../types'
 import { formatDateTimeVN } from '../../../utils/dateUtils'
@@ -31,122 +31,129 @@ export const useStudio = (conversationId: number | null) => {
     const [quizContent, setQuizContent] = useState<any>(null)
     const [flashcardContent, setFlashcardContent] = useState<any>(null)
 
+    // 🆕 Extract fetchStudioItems to useCallback for reuse and refresh capability
+    const fetchStudioItems = useCallback(async () => {
+        // Only fetch if we have a valid conversationId
+        if (!conversationId) {
+            console.log('No conversationId available, skipping studio items fetch');
+            setStudioItems([]);
+            return;
+        }
+
+        try {
+            console.log(`Fetching studio items for conversation ${conversationId}`);
+
+            // Fetch all studio item types for the CURRENT CONVERSATION
+            const [mindmapsRes, quizzesRes, flashcardsRes, reportsRes] = await Promise.all([
+                studioService.listMindMaps(conversationId).catch(() => ({ data: { data: [] } })),
+                studioService.listQuizzes(conversationId).catch(() => ({ data: { data: [] } })),
+                studioService.listFlashcards(conversationId).catch(() => ({ data: { data: [] } })),
+                studioService.listReports(conversationId).catch(() => ({ data: { data: [] } })),
+                // ROADMAP API DISABLED - UI only
+                // studioService.listRoadmaps(conversationId).catch(() => ({ data: { data: [] } })),
+            ]);
+            const roadmapsRes = { data: { data: [] } }; // Mock empty roadmap list
+
+            // Transform backend data to StudioItem format (with raw timestamp for sorting)
+            interface RawStudioItem extends Omit<StudioItem, 'timestamp'> {
+                rawTimestamp: string;
+            }
+            const rawItems: RawStudioItem[] = [];
+
+            // Add mindmaps
+            if (mindmapsRes.data && mindmapsRes.data.data) {
+                rawItems.push(...mindmapsRes.data.data.map((m: any) => ({
+                    id: `mindmap-${m.mindmapId}`,
+                    type: 'mindmap' as const,
+                    title: m.title,
+                    subtitle: m.topic,
+                    status: 'completed' as const,
+                    rawTimestamp: m.generatedAt,
+                    content: null
+                })));
+            }
+
+            // Add quizzes
+            if (quizzesRes.data && quizzesRes.data.data) {
+                rawItems.push(...quizzesRes.data.data.map((q: any) => ({
+                    id: `quiz-${q.quizId}`,
+                    type: 'quiz' as const,
+                    title: q.title,
+                    subtitle: `${q.questionCount} câu hỏi • ${q.difficulty}`,
+                    status: 'completed' as const,
+                    rawTimestamp: q.generatedAt,
+                    content: null
+                })));
+            }
+
+            // Add flashcards
+            console.log('=== FLASHCARDS DEBUG ===');
+            console.log('flashcardsRes:', flashcardsRes);
+            console.log('flashcardsRes.data:', flashcardsRes.data);
+            console.log('flashcardsRes.data.data:', flashcardsRes.data?.data);
+
+            if (flashcardsRes.data && flashcardsRes.data.data) {
+                console.log(`Processing ${flashcardsRes.data.data.length} flashcard sets`);
+                rawItems.push(...flashcardsRes.data.data.map((f: any) => {
+                    console.log('Flashcard item:', f);
+                    return {
+                        id: `notecard-${f.flashcardSetId}`,
+                        type: 'notecard' as const,
+                        title: f.title,
+                        subtitle: `${f.cardCount} thẻ`,
+                        status: 'completed' as const,
+                        rawTimestamp: f.generatedAt,
+                        content: null
+                    };
+                }));
+                console.log(`Added ${flashcardsRes.data.data.length} flashcard items`);
+            } else {
+                console.log('No flashcard data found');
+            }
+            console.log('======================');
+
+            // Add reports
+            if (reportsRes.data && reportsRes.data.data) {
+                rawItems.push(...reportsRes.data.data.map((r: any) => ({
+                    id: `report-${r.reportId}`,
+                    type: 'report' as const,
+                    title: r.title,
+                    subtitle: 'Báo cáo',
+                    status: 'completed' as const,
+                    rawTimestamp: r.generatedAt,
+                    content: null
+                })));
+            }
+
+
+
+            // Sort by raw timestamp (newest first)
+            rawItems.sort((a, b) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime());
+
+            // Format timestamps for display and remove rawTimestamp
+            const items: StudioItem[] = rawItems.map(({ rawTimestamp, ...rest }) => ({
+                ...rest,
+                timestamp: formatDateTimeVN(rawTimestamp)
+            }));
+
+            setStudioItems(items);
+
+            console.log(`Fetched ${items.length} studio items for conversation ${conversationId}`);
+        } catch (error) {
+            console.error('Failed to fetch studio items:', error);
+        }
+    }, [conversationId]);
+
     // Fetch studio items when conversationId changes
     useEffect(() => {
-        const fetchStudioItems = async () => {
-            // Only fetch if we have a valid conversationId
-            if (!conversationId) {
-                console.log('No conversationId available, skipping studio items fetch');
-                setStudioItems([]);
-                return;
-            }
-
-            try {
-                console.log(`Fetching studio items for conversation ${conversationId}`);
-
-                // Fetch all studio item types for the CURRENT CONVERSATION
-                const [mindmapsRes, quizzesRes, flashcardsRes, reportsRes] = await Promise.all([
-                    studioService.listMindMaps(conversationId).catch(() => ({ data: { data: [] } })),
-                    studioService.listQuizzes(conversationId).catch(() => ({ data: { data: [] } })),
-                    studioService.listFlashcards(conversationId).catch(() => ({ data: { data: [] } })),
-                    studioService.listReports(conversationId).catch(() => ({ data: { data: [] } })),
-                    // ROADMAP API DISABLED - UI only
-                    // studioService.listRoadmaps(conversationId).catch(() => ({ data: { data: [] } })),
-                ]);
-                const roadmapsRes = { data: { data: [] } }; // Mock empty roadmap list
-
-                // Transform backend data to StudioItem format (with raw timestamp for sorting)
-                interface RawStudioItem extends Omit<StudioItem, 'timestamp'> {
-                    rawTimestamp: string;
-                }
-                const rawItems: RawStudioItem[] = [];
-
-                // Add mindmaps
-                if (mindmapsRes.data && mindmapsRes.data.data) {
-                    rawItems.push(...mindmapsRes.data.data.map((m: any) => ({
-                        id: `mindmap-${m.mindmapId}`,
-                        type: 'mindmap' as const,
-                        title: m.title,
-                        subtitle: m.topic,
-                        status: 'completed' as const,
-                        rawTimestamp: m.generatedAt,
-                        content: null
-                    })));
-                }
-
-                // Add quizzes
-                if (quizzesRes.data && quizzesRes.data.data) {
-                    rawItems.push(...quizzesRes.data.data.map((q: any) => ({
-                        id: `quiz-${q.quizId}`,
-                        type: 'quiz' as const,
-                        title: q.title,
-                        subtitle: `${q.questionCount} câu hỏi • ${q.difficulty}`,
-                        status: 'completed' as const,
-                        rawTimestamp: q.generatedAt,
-                        content: null
-                    })));
-                }
-
-                // Add flashcards
-                console.log('=== FLASHCARDS DEBUG ===');
-                console.log('flashcardsRes:', flashcardsRes);
-                console.log('flashcardsRes.data:', flashcardsRes.data);
-                console.log('flashcardsRes.data.data:', flashcardsRes.data?.data);
-
-                if (flashcardsRes.data && flashcardsRes.data.data) {
-                    console.log(`Processing ${flashcardsRes.data.data.length} flashcard sets`);
-                    rawItems.push(...flashcardsRes.data.data.map((f: any) => {
-                        console.log('Flashcard item:', f);
-                        return {
-                            id: `notecard-${f.flashcardSetId}`,
-                            type: 'notecard' as const,
-                            title: f.title,
-                            subtitle: `${f.cardCount} thẻ`,
-                            status: 'completed' as const,
-                            rawTimestamp: f.generatedAt,
-                            content: null
-                        };
-                    }));
-                    console.log(`Added ${flashcardsRes.data.data.length} flashcard items`);
-                } else {
-                    console.log('No flashcard data found');
-                }
-                console.log('======================');
-
-                // Add reports
-                if (reportsRes.data && reportsRes.data.data) {
-                    rawItems.push(...reportsRes.data.data.map((r: any) => ({
-                        id: `report-${r.reportId}`,
-                        type: 'report' as const,
-                        title: r.title,
-                        subtitle: 'Báo cáo',
-                        status: 'completed' as const,
-                        rawTimestamp: r.generatedAt,
-                        content: null
-                    })));
-                }
-
-
-
-                // Sort by raw timestamp (newest first)
-                rawItems.sort((a, b) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime());
-
-                // Format timestamps for display and remove rawTimestamp
-                const items: StudioItem[] = rawItems.map(({ rawTimestamp, ...rest }) => ({
-                    ...rest,
-                    timestamp: formatDateTimeVN(rawTimestamp)
-                }));
-
-                setStudioItems(items);
-
-                console.log(`Fetched ${items.length} studio items for conversation ${conversationId}`);
-            } catch (error) {
-                console.error('Failed to fetch studio items:', error);
-            }
-        };
-
         fetchStudioItems();
-    }, [conversationId]); // Re-fetch when conversationId changes
+    }, [fetchStudioItems]); // Re-fetch when conversationId changes
+
+    // 🆕 Expose refreshStudioItems for realtime updates (SessionProgressUpdated event)
+    const refreshStudioItems = useCallback(() => {
+        console.log('[Studio] Refreshing studio items due to realtime event...');
+        fetchStudioItems();
+    }, [fetchStudioItems]);
 
     const createStudioItem = async (
         type: 'mindmap' | 'report' | 'notecard' | 'quiz',
@@ -535,6 +542,8 @@ export const useStudio = (conversationId: number | null) => {
         showDeleteConfirmModal,
         setShowDeleteConfirmModal,
         itemToDelete,
-        confirmDeleteItem
+        confirmDeleteItem,
+        // 🆕 Expose refresh function for realtime updates
+        refreshStudioItems
     }
 }

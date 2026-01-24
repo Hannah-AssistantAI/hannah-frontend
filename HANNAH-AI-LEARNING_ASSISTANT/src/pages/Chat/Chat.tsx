@@ -24,6 +24,7 @@ import { StudioSidebar } from './components/StudioSidebar'
 import { HistorySidebar } from '../../components/HistorySidebar'
 import { Header } from '../../components/Header'
 import { useAuth } from '../../contexts/AuthContext'
+import { useRealtimeEvent } from '../../hooks/useRealtime'
 import type { Message, BigPictureTopic } from './types'
 import { parseInteractiveList } from './utils/messageHelpers'
 import { MessageDisplay } from './components/MessageDisplay/MessageDisplay'
@@ -88,6 +89,13 @@ export default function Chat() {
     // Use hooks for state management
     const studio = useStudio(conversationId)
     const quiz = useQuiz()
+
+    // 🆕 Listen for SessionProgressUpdated realtime event to refresh sidebar recommendations
+    useRealtimeEvent('SessionProgressUpdated', (data: any) => {
+        console.log('[Realtime] Received SessionProgressUpdated:', data);
+        // Refresh studio items to update recommendations based on new quiz scores
+        studio.refreshStudioItems();
+    });
 
     const studioFeatures = [
         { icon: GitBranch, title: 'Bản đồ tư duy', description: 'Mind map', type: 'mindmap' as const, note: 'Tạo bản đồ tư duy dựa vào nội dung cuộc trò chuyện' },

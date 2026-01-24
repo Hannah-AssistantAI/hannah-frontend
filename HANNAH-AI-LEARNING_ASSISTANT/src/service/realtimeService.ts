@@ -48,7 +48,9 @@ export type RealtimeEventType =
     | 'SuggestionCreated'
     | 'SuggestionApproved'
     | 'SuggestionRejected'
-    | 'SuggestionDeleted';
+    | 'SuggestionDeleted'
+    // 🆕 Learning Progress events (Quiz score < 50% recommendations)
+    | 'SessionProgressUpdated';
 
 export interface RealtimeEvent<T = unknown> {
     type: RealtimeEventType;
