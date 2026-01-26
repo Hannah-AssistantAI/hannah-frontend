@@ -3,7 +3,7 @@ import { Wand2, PanelRight, PanelRightClose, Pencil, Loader2, MoreVertical, Tras
 import type { StudioItem, StudioFeature } from '../types'
 import { getLabels, type SupportedLanguage } from '../../../utils/translations'
 import { API_BASE_URL } from '../../../config/apiConfig'
-import { useQuizEvents } from '../../../hooks/useRealtime'
+import { useQuizEvents, useRealtimeEvent } from '../../../hooks/useRealtime'
 
 interface WeakDocument {
     documentId: number
@@ -85,6 +85,16 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
             setShowReminder(true)
             fetchWeakDocuments()
         }
+    })
+
+    // 🆕 Also listen for SessionProgressUpdated (from Studio quiz sync with score < 50%)
+    useRealtimeEvent('SessionProgressUpdated', (data: any) => {
+        console.log('📡 SessionProgressUpdated received, refetching weak documents...', data)
+        // If quiz score < 50%, there might be new weak documents
+        if (data?.NeedsReview || data?.needsReview) {
+            setShowReminder(true)
+        }
+        fetchWeakDocuments()
     })
 
     const getIconForType = (type: string) => {
