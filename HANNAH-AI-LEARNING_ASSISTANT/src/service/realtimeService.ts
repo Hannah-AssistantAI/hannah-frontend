@@ -185,7 +185,9 @@ class RealtimeService {
             'SuggestionCreated',
             'SuggestionApproved',
             'SuggestionRejected',
-            'SuggestionDeleted'
+            'SuggestionDeleted',
+            // 🆕 Learning Progress events (Quiz score < 50% recommendations)
+            'SessionProgressUpdated'
         ];
 
         eventTypes.forEach(eventType => {
