@@ -1,5 +1,5 @@
 import './QuizResults.css';
-import { RefreshCw, Trophy, ThumbsUp, BookOpen, TrendingUp, Pin, CheckCircle, XCircle, Lightbulb } from 'lucide-react';
+import { RefreshCw, Trophy, ThumbsUp, BookOpen, TrendingUp, Pin, CheckCircle, XCircle, Lightbulb, X } from 'lucide-react';
 
 interface QuizAnswer {
     questionId: number;
@@ -21,9 +21,10 @@ interface QuizResultsProps {
     };
     onRetry: () => void;
     onFlag?: () => void;
+    onClose?: () => void;  // 🆕 Close button handler
 }
 
-export function QuizResults({ results, onRetry, onFlag }: QuizResultsProps) {
+export function QuizResults({ results, onRetry, onFlag, onClose }: QuizResultsProps) {
     if (!results) return null;
 
     const getOptionLabel = (index: number) => String.fromCharCode(65 + index); // A, B, C, D...
@@ -174,6 +175,15 @@ export function QuizResults({ results, onRetry, onFlag }: QuizResultsProps) {
                     <RefreshCw size={14} />
                     Làm lại
                 </button>
+                {onClose && (
+                    <button
+                        className="quiz-close-btn"
+                        onClick={onClose}
+                    >
+                        <X size={14} />
+                        Đóng
+                    </button>
+                )}
             </div>
         </div>
     );

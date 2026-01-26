@@ -266,7 +266,10 @@
     margin-top: 30px;
     padding-top: 20px;
     border-top: 2px solid #e5e7eb;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
 .quiz-retry-btn {
@@ -296,6 +299,37 @@
 }
 
 .quiz-retry-btn:active {
+    transform: translateY(0);
+}
+
+/* 🆕 Close button */
+.quiz-close-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #f3f4f6;
+    color: #374151;
+    border: 2px solid #e5e7eb;
+    padding: 14px 36px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.quiz-close-btn svg {
+    flex-shrink: 0;
+}
+
+.quiz-close-btn:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+    transform: translateY(-2px);
+}
+
+.quiz-close-btn:active {
     transform: translateY(0);
 }
 

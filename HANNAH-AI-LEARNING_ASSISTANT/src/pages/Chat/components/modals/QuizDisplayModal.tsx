@@ -1,5 +1,5 @@
 import React from 'react'
-import { Minimize2, ThumbsUp, ThumbsDown, Lightbulb, Loader2 } from 'lucide-react'
+import { Minimize2, ThumbsUp, ThumbsDown, Lightbulb, Loader2, X } from 'lucide-react'
 import { QuizResults } from '../QuizModal/QuizResults'
 
 interface QuizDisplayModalProps {
@@ -62,6 +62,14 @@ export const QuizDisplayModal: React.FC<QuizDisplayModalProps> = ({
                         >
                             <Minimize2 size={20} />
                         </button>
+                        <button
+                            className="quiz-modal-close"
+                            onClick={onClose}
+                            aria-label="Đóng"
+                            title="Đóng"
+                        >
+                            <X size={20} />
+                        </button>
                     </div>
                 </div>
 
@@ -79,6 +87,7 @@ export const QuizDisplayModal: React.FC<QuizDisplayModalProps> = ({
                             results={results}
                             onRetry={onRetry!}
                             onFlag={onFlag}
+                            onClose={onClose}
                         />
                     ) : (
                         <>
